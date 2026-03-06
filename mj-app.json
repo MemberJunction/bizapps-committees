@@ -1,0 +1,65 @@
+{
+  "$schema": "https://schema.memberjunction.org/mj-app/v1.json",
+  "manifestVersion": 1,
+  "name": "mj-committees",
+  "displayName": "Committees",
+  "description": "Committee management application with roles, members, and artifact tracking built on MemberJunction",
+  "version": "1.0.0",
+  "license": "ISC",
+  "icon": "fa-solid fa-people-group",
+  "publisher": {
+    "name": "MemberJunction",
+    "url": "https://memberjunction.com"
+  },
+  "repository": "https://github.com/MemberJunction/committees",
+  "mjVersionRange": ">=5.0.0 <6.0.0",
+  "schema": {
+    "name": "Committees",
+    "createIfNotExists": true
+  },
+  "migrations": {
+    "directory": "migrations",
+    "engine": "skyway"
+  },
+  "metadata": {
+    "directory": "metadata"
+  },
+  "packages": {
+    "server": [
+      {
+        "name": "@mj-committees/server",
+        "role": "bootstrap",
+        "startupExport": "LoadCommitteesServer"
+      }
+    ],
+    "client": [
+      {
+        "name": "@mj-committees/ng",
+        "role": "bootstrap",
+        "startupExport": "LoadCommitteesClient"
+      }
+    ],
+    "shared": [
+      {
+        "name": "@mj-committees/entities",
+        "role": "library"
+      },
+      {
+        "name": "@mj-committees/actions",
+        "role": "library"
+      }
+    ]
+  },
+  "dependencies": {
+    "mj-bizapps-common": {
+      "version": ">=1.0.0",
+      "repository": "https://github.com/MemberJunction/bizapps-common"
+    }
+  },
+  "code": {
+    "visibility": "public",
+    "sourceDirectory": "packages"
+  },
+  "categories": ["Business", "Governance"],
+  "tags": ["committees", "members", "roles", "governance", "artifacts"]
+}

@@ -13,68 +13,64 @@ import { FormsModule } from '@angular/forms';
 import { BaseFormsModule } from '@memberjunction/ng-base-forms';
 import { EntityViewerModule } from '@memberjunction/ng-entity-viewer';
 import { LinkDirectivesModule } from '@memberjunction/ng-link-directives';
-import { MJTabStripModule } from "@memberjunction/ng-tabstrip";
-import { ContainerDirectivesModule } from "@memberjunction/ng-container-directives";
 import { LayoutModule } from '@progress/kendo-angular-layout';
 
 // Import Generated Components
-import { ActionItemFormComponent } from "./Entities/ActionItem/actionitem.form.component";
-import { AgendaItemFormComponent } from "./Entities/AgendaItem/agendaitem.form.component";
-import { ArtifactTypeFormComponent } from "./Entities/ArtifactType/artifacttype.form.component";
-import { ArtifactFormComponent } from "./Entities/Artifact/artifact.form.component";
-import { AttendanceFormComponent } from "./Entities/Attendance/attendance.form.component";
-import { CommitteeFormComponent } from "./Entities/Committee/committee.form.component";
-import { MeetingFormComponent } from "./Entities/Meeting/meeting.form.component";
-import { MembershipFormComponent } from "./Entities/Membership/membership.form.component";
-import { MinuteFormComponent } from "./Entities/Minute/minute.form.component";
-import { MotionFormComponent } from "./Entities/Motion/motion.form.component";
-import { RoleFormComponent } from "./Entities/Role/role.form.component";
-import { TermFormComponent } from "./Entities/Term/term.form.component";
-import { TypeFormComponent } from "./Entities/Type/type.form.component";
-import { VoteFormComponent } from "./Entities/Vote/vote.form.component";
-import { AddressLinkFormComponent } from "./Entities/AddressLink/addresslink.form.component";
-import { AddressTypeFormComponent } from "./Entities/AddressType/addresstype.form.component";
-import { AddressFormComponent } from "./Entities/Address/address.form.component";
-import { ContactMethodFormComponent } from "./Entities/ContactMethod/contactmethod.form.component";
-import { ContactTypeFormComponent } from "./Entities/ContactType/contacttype.form.component";
-import { OrganizationTypeFormComponent } from "./Entities/OrganizationType/organizationtype.form.component";
-import { OrganizationFormComponent } from "./Entities/Organization/organization.form.component";
-import { PersonFormComponent } from "./Entities/Person/person.form.component";
-import { RelationshipTypeFormComponent } from "./Entities/RelationshipType/relationshiptype.form.component";
-import { RelationshipFormComponent } from "./Entities/Relationship/relationship.form.component";
+import { mjCommitteesActionItemFormComponent } from "./Entities/mjCommitteesActionItem/mjcommitteesactionitem.form.component";
+import { mjCommitteesAgendaItemFormComponent } from "./Entities/mjCommitteesAgendaItem/mjcommitteesagendaitem.form.component";
+import { mjCommitteesArtifactTypeFormComponent } from "./Entities/mjCommitteesArtifactType/mjcommitteesartifacttype.form.component";
+import { mjCommitteesArtifactFormComponent } from "./Entities/mjCommitteesArtifact/mjcommitteesartifact.form.component";
+import { mjCommitteesAttendanceFormComponent } from "./Entities/mjCommitteesAttendance/mjcommitteesattendance.form.component";
+import { mjCommitteesCommitteeFormComponent } from "./Entities/mjCommitteesCommittee/mjcommitteescommittee.form.component";
+import { mjCommitteesMeetingFormComponent } from "./Entities/mjCommitteesMeeting/mjcommitteesmeeting.form.component";
+import { mjCommitteesMembershipFormComponent } from "./Entities/mjCommitteesMembership/mjcommitteesmembership.form.component";
+import { mjCommitteesMinuteFormComponent } from "./Entities/mjCommitteesMinute/mjcommitteesminute.form.component";
+import { mjBizAppsCommonAddressLinkFormComponent } from "./Entities/mjBizAppsCommonAddressLink/mjbizappscommonaddresslink.form.component";
+import { mjBizAppsCommonAddressTypeFormComponent } from "./Entities/mjBizAppsCommonAddressType/mjbizappscommonaddresstype.form.component";
+import { mjBizAppsCommonAddressFormComponent } from "./Entities/mjBizAppsCommonAddress/mjbizappscommonaddress.form.component";
+import { mjBizAppsCommonContactMethodFormComponent } from "./Entities/mjBizAppsCommonContactMethod/mjbizappscommoncontactmethod.form.component";
+import { mjBizAppsCommonContactTypeFormComponent } from "./Entities/mjBizAppsCommonContactType/mjbizappscommoncontacttype.form.component";
+import { mjBizAppsCommonOrganizationTypeFormComponent } from "./Entities/mjBizAppsCommonOrganizationType/mjbizappscommonorganizationtype.form.component";
+import { mjBizAppsCommonOrganizationFormComponent } from "./Entities/mjBizAppsCommonOrganization/mjbizappscommonorganization.form.component";
+import { mjBizAppsCommonPersonFormComponent } from "./Entities/mjBizAppsCommonPerson/mjbizappscommonperson.form.component";
+import { mjBizAppsCommonRelationshipTypeFormComponent } from "./Entities/mjBizAppsCommonRelationshipType/mjbizappscommonrelationshiptype.form.component";
+import { mjBizAppsCommonRelationshipFormComponent } from "./Entities/mjBizAppsCommonRelationship/mjbizappscommonrelationship.form.component";
+import { mjCommitteesMotionFormComponent } from "./Entities/mjCommitteesMotion/mjcommitteesmotion.form.component";
+import { mjCommitteesRoleFormComponent } from "./Entities/mjCommitteesRole/mjcommitteesrole.form.component";
+import { mjCommitteesTermFormComponent } from "./Entities/mjCommitteesTerm/mjcommitteesterm.form.component";
+import { mjCommitteesTypeFormComponent } from "./Entities/mjCommitteesType/mjcommitteestype.form.component";
+import { mjCommitteesVoteFormComponent } from "./Entities/mjCommitteesVote/mjcommitteesvote.form.component";
    
 
 @NgModule({
 declarations: [
-    ActionItemFormComponent,
-    AgendaItemFormComponent,
-    ArtifactTypeFormComponent,
-    ArtifactFormComponent,
-    AttendanceFormComponent,
-    CommitteeFormComponent,
-    MeetingFormComponent,
-    MembershipFormComponent,
-    MinuteFormComponent,
-    MotionFormComponent,
-    RoleFormComponent,
-    TermFormComponent,
-    TypeFormComponent,
-    VoteFormComponent,
-    AddressLinkFormComponent,
-    AddressTypeFormComponent,
-    AddressFormComponent,
-    ContactMethodFormComponent,
-    ContactTypeFormComponent,
-    OrganizationTypeFormComponent],
+    mjCommitteesActionItemFormComponent,
+    mjCommitteesAgendaItemFormComponent,
+    mjCommitteesArtifactTypeFormComponent,
+    mjCommitteesArtifactFormComponent,
+    mjCommitteesAttendanceFormComponent,
+    mjCommitteesCommitteeFormComponent,
+    mjCommitteesMeetingFormComponent,
+    mjCommitteesMembershipFormComponent,
+    mjCommitteesMinuteFormComponent,
+    mjBizAppsCommonAddressLinkFormComponent,
+    mjBizAppsCommonAddressTypeFormComponent,
+    mjBizAppsCommonAddressFormComponent,
+    mjBizAppsCommonContactMethodFormComponent,
+    mjBizAppsCommonContactTypeFormComponent,
+    mjBizAppsCommonOrganizationTypeFormComponent,
+    mjBizAppsCommonOrganizationFormComponent,
+    mjBizAppsCommonPersonFormComponent,
+    mjBizAppsCommonRelationshipTypeFormComponent,
+    mjBizAppsCommonRelationshipFormComponent,
+    mjCommitteesMotionFormComponent],
 imports: [
     CommonModule,
     FormsModule,
     LayoutModule,
     BaseFormsModule,
     EntityViewerModule,
-    LinkDirectivesModule,
-    MJTabStripModule,
-    ContainerDirectivesModule
+    LinkDirectivesModule
 ],
 exports: [
 ]
@@ -85,19 +81,17 @@ export class GeneratedForms_SubModule_0 { }
 
 @NgModule({
 declarations: [
-    OrganizationFormComponent,
-    PersonFormComponent,
-    RelationshipTypeFormComponent,
-    RelationshipFormComponent],
+    mjCommitteesRoleFormComponent,
+    mjCommitteesTermFormComponent,
+    mjCommitteesTypeFormComponent,
+    mjCommitteesVoteFormComponent],
 imports: [
     CommonModule,
     FormsModule,
     LayoutModule,
     BaseFormsModule,
     EntityViewerModule,
-    LinkDirectivesModule,
-    MJTabStripModule,
-    ContainerDirectivesModule
+    LinkDirectivesModule
 ],
 exports: [
 ]

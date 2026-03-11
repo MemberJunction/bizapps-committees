@@ -1,0 +1,29 @@
+{
+  "name": "@committees/server",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Committees server bootstrap — resolvers and class registration for MJAPI.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "private": true,
+  "files": ["/dist"],
+  "scripts": {
+    "build": "tsc && tsc-alias -f",
+    "test": "echo \"No tests configured yet\""
+  },
+  "dependencies": {
+    "@memberjunction/core": "5.10.1",
+    "@memberjunction/global": "5.10.1",
+    "@memberjunction/server": "5.10.1",
+    "@committees/core": "1.0.0",
+    "mj_generatedentities": "1.0.0",
+    "mj_generatedactions": "1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MemberJunction/committees"
+  }
+}

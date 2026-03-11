@@ -18,6 +18,12 @@ import {
 import { AuthServicesModule, RedirectComponent, MJAuthBase } from '@memberjunction/ng-auth-services';
 import { MJExplorerAppModule } from '@memberjunction/ng-explorer-app';
 
+//***********************************************************
+// Committees Module
+//***********************************************************
+import { CommitteesModule, LoadCommitteesModule } from '@committees/ng-committees';
+LoadCommitteesModule();
+
 // Import pre-built MJ class registrations manifest (covers all @memberjunction/* packages)
 import {CLASS_REGISTRATIONS} from '@memberjunction/ng-bootstrap';
 
@@ -84,7 +90,10 @@ export function initializeAuth(authService: MJAuthBase): () => Promise<void> {
     MJExplorerAppModule.forRoot(environment),
 
     // App-specific modules
-    GeneratedFormsModule
+    GeneratedFormsModule,
+
+    // Committees governance UI
+    CommitteesModule
   ],
   providers: [
     SharedService,

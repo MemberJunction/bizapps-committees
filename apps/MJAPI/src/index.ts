@@ -10,6 +10,10 @@ import { resolve } from 'node:path';
 import 'mj_generatedentities';
 import 'mj_generatedactions';
 
+// Committees server bootstrap — registers entity classes and services
+import { LoadCommitteesServer, RESOLVER_PATHS as committeesResolverPaths } from '@committees/server';
+LoadCommitteesServer();
+
 // Import pre-built MJ class registrations manifest (covers all @memberjunction/* packages)
 import '@memberjunction/server-bootstrap/mj-class-registrations';
 
@@ -26,7 +30,7 @@ import './generated/class-registrations-manifest.js';
 
 // Resolve resolver paths relative to this file
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const resolverPaths = [resolve(__dirname, 'generated/generated.{js,ts}')];
+const resolverPaths = [resolve(__dirname, 'generated/generated.{js,ts}'), ...committeesResolverPaths];
 
 // Start the server
 createMJServer({ resolverPaths }).catch(console.error);

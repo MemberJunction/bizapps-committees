@@ -1,0 +1,85 @@
+@if (IsLoading) {
+    <div class="list-loading">
+        <mj-loading text="Loading action items..."></mj-loading>
+    </div>
+} @else {
+    <div class="action-tracker-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">Action Items</h1>
+            <p class="page-subtitle">Track tasks across all committees</p>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="tracker-toolbar">
+            <div class="status-filters">
+                <button class="filter-pill"
+                    [class.active]="StatusFilter === 'All'"
+                    (click)="OnStatusFilterChanged('All')">
+                    All
+                    <span class="filter-count">{{ ActionItems.length }}</span>
+                </button>
+                <button class="filter-pill"
+                    [class.active]="StatusFilter === 'Open'"
+                    (click)="OnStatusFilterChanged('Open')">Open</button>
+                <button class="filter-pill"
+                    [class.active]="StatusFilter === 'InProgress'"
+                    (click)="OnStatusFilterChanged('InProgress')">In Progress</button>
+                <button class="filter-pill"
+                    [class.active]="StatusFilter === 'Completed'"
+                    (click)="OnStatusFilterChanged('Completed')">Completed</button>
+            </div>
+        </div>
+
+        <!-- Action Items List -->
+        @if (FilteredItems.length === 0) {
+            <div class="empty-state">
+                <i class="fa-solid fa-clipboard-check"></i>
+                <p>No action items match this filter.</p>
+            </div>
+        } @else {
+            <div class="action-item-grid">
+                @for (item of FilteredItems; track item['ID']) {
+                    <div class="action-item-card" [class.overdue]="IsOverdue(item)">
+                        <div [class]="'item-priority ' + GetPriorityClass(item)"></div>
+                        <div class="item-content">
+                            <h4 class="item-title">{{ item['Title'] }}</h4>
+                            @if (item['Description']) {
+                                <p class="item-description">{{ item['Description'] }}</p>
+                            }
+                            <div class="item-meta">
+                                <span class="committee">
+                                    <i class="fa-solid fa-users-rectangle"></i>
+                                    {{ item['Committee'] }}
+                                </span>
+                                @if (item['AssignedToPerson']) {
+                                    <span class="assignee">
+                                        <i class="fa-solid fa-user"></i>
+                                        {{ item['AssignedToPerson'] }}
+                                    </span>
+                                }
+                                @if (item['DueDate']) {
+                                    <span class="due-date" [class.overdue]="IsOverdue(item)">
+                                        <i class="fa-solid fa-calendar"></i>
+                                        Due {{ $any(item['DueDate']) | date:'MMM d, y' }}
+                                    </span>
+                                }
+                                @if (item['Meeting']) {
+                                    <span class="meeting">
+                                        <i class="fa-solid fa-handshake"></i>
+                                        {{ item['Meeting'] }}
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                        <div class="item-status">
+                            <span [class]="'status-badge status-' + ($any(item['Status']) || '').toLowerCase()">
+                                {{ item['Status'] }}
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

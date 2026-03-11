@@ -1,0 +1,152 @@
+@if (IsLoading) {
+    <div class="dashboard-loading">
+        <mj-loading text="Loading dashboard..."></mj-loading>
+    </div>
+} @else {
+    <div class="dashboard-container">
+        <!-- Hero -->
+        <div class="dashboard-hero">
+            <h1 class="hero-title">Committees Dashboard</h1>
+            <p class="hero-subtitle">Your overview at a glance</p>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="card-icon"><i class="fa-solid fa-users-rectangle"></i></div>
+                <div class="card-content">
+                    <div class="card-value">{{ CommitteeCount }}</div>
+                    <div class="card-label">Active Committees</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="card-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="card-content">
+                    <div class="card-value">{{ ActiveMeetingCount }}</div>
+                    <div class="card-label">Upcoming Meetings</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="card-icon"><i class="fa-solid fa-clipboard-list"></i></div>
+                <div class="card-content">
+                    <div class="card-value">{{ OpenActionItemCount }}</div>
+                    <div class="card-label">Open Items</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="card-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="card-content">
+                    <div class="card-value">{{ OverdueActionItemCount }}</div>
+                    <div class="card-label">Overdue</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Two Column Layout -->
+        <div class="dashboard-columns">
+            <!-- Upcoming Meetings -->
+            <div class="dashboard-panel">
+                <div class="panel-header">
+                    <i class="fa-solid fa-calendar"></i>
+                    <h3>Upcoming Meetings</h3>
+                </div>
+                @if (UpcomingMeetings.length === 0) {
+                    <div class="empty-state">
+                        <i class="fa-solid fa-calendar-xmark"></i>
+                        <p>No upcoming meetings — enjoy the quiet!</p>
+                    </div>
+                } @else {
+                    <div class="meeting-list">
+                        @for (meeting of UpcomingMeetings; track meeting['ID']) {
+                            <div class="meeting-item">
+                                <div class="meeting-date">
+                                    {{ $any(meeting['StartDateTime']) | date:'MMM d' }}
+                                </div>
+                                <div class="meeting-info">
+                                    <div class="meeting-title">{{ meeting['Title'] }}</div>
+                                    <div class="meeting-meta">
+                                        {{ meeting['Committee'] }}
+                                        <span class="location-badge">
+                                            @if (meeting['LocationType'] === 'Virtual') {
+                                                <i class="fa-solid fa-video"></i>
+                                            } @else if (meeting['LocationType'] === 'InPerson') {
+                                                <i class="fa-solid fa-location-dot"></i>
+                                            } @else {
+                                                <i class="fa-solid fa-arrows-split-up-and-left"></i>
+                                            }
+                                            {{ meeting['LocationType'] }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Action Items -->
+            <div class="dashboard-panel">
+                <div class="panel-header">
+                    <i class="fa-solid fa-clipboard-list"></i>
+                    <h3>Action Items</h3>
+                </div>
+                @if (MyActionItems.length === 0) {
+                    <div class="empty-state">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <p>All caught up — no open action items!</p>
+                    </div>
+                } @else {
+                    <div class="action-item-list">
+                        @for (item of MyActionItems; track item['ID']) {
+                            <div class="action-item" [class.overdue]="item['DueDate'] != null && item['DueDate'] < todayString">
+                                <div [class]="'action-priority priority-' + ($any(item['Priority']) || 'medium').toLowerCase()">
+                                    <i class="fa-solid fa-circle"></i>
+                                </div>
+                                <div class="action-info">
+                                    <div class="action-title">{{ item['Title'] }}</div>
+                                    <div class="action-meta">
+                                        {{ item['Committee'] }}
+                                        @if (item['DueDate']) {
+                                            &middot; Due {{ $any(item['DueDate']) | date:'MMM d' }}
+                                        }
+                                    </div>
+                                </div>
+                                <div class="action-status">
+                                    <span [class]="'status-badge status-' + ($any(item['Status']) || '').toLowerCase()">
+                                        {{ item['Status'] }}
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Recent Meetings -->
+        @if (RecentMeetings.length > 0) {
+            <div class="dashboard-panel full-width">
+                <div class="panel-header">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <h3>Recent Meetings</h3>
+                </div>
+                <div class="meeting-list">
+                    @for (meeting of RecentMeetings; track meeting['ID']) {
+                        <div class="meeting-item">
+                            <div class="meeting-date">
+                                {{ $any(meeting['StartDateTime']) | date:'MMM d' }}
+                            </div>
+                            <div class="meeting-info">
+                                <div class="meeting-title">{{ meeting['Title'] }}</div>
+                                <div class="meeting-meta">{{ meeting['Committee'] }}</div>
+                            </div>
+                            <div class="meeting-status">
+                                <span class="status-badge completed">Completed</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}

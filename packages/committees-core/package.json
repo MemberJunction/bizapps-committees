@@ -1,0 +1,31 @@
+{
+  "name": "@committees/core",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Core business logic services for Committees management",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "private": true,
+  "files": [
+    "/dist"
+  ],
+  "scripts": {
+    "build": "tsc && tsc-alias -f",
+    "test": "echo \"No tests configured yet\""
+  },
+  "author": "MemberJunction.com",
+  "license": "ISC",
+  "devDependencies": {
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@memberjunction/core": "5.10.1",
+    "@memberjunction/global": "5.10.1",
+    "mj_generatedentities": "1.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MemberJunction/committees"
+  }
+}

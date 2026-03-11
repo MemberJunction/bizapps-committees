@@ -1,0 +1,78 @@
+@if (IsLoading) {
+    <div class="list-loading">
+        <mj-loading text="Loading documents..."></mj-loading>
+    </div>
+} @else {
+    <div class="document-browser-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">Documents</h1>
+            <p class="page-subtitle">Browse committee artifacts and files</p>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="browser-toolbar">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input
+                    type="text"
+                    placeholder="Search documents..."
+                    [ngModel]="SearchText"
+                    (ngModelChange)="OnSearchChanged($event)" />
+            </div>
+            <div class="type-filter">
+                <div class="type-filter-pills">
+                    @for (type of TypeFilterOptions; track type) {
+                        <button class="filter-pill"
+                            [class.active]="TypeFilter === type"
+                            (click)="OnTypeFilterChanged(type)">{{ type }}</button>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Document Grid -->
+        @if (FilteredArtifacts.length === 0) {
+            <div class="empty-state">
+                <i class="fa-solid fa-folder-open"></i>
+                <p>No documents found matching your criteria.</p>
+            </div>
+        } @else {
+            <div class="document-grid">
+                @for (artifact of FilteredArtifacts; track artifact['ID']) {
+                    <div class="document-card">
+                        <div class="doc-icon">
+                            <i [class]="GetArtifactIcon($any(artifact['ArtifactType']))"></i>
+                        </div>
+                        <div class="doc-content">
+                            <h4 class="doc-title">{{ artifact['Title'] }}</h4>
+                            @if (artifact['Description']) {
+                                <p class="doc-description">{{ artifact['Description'] }}</p>
+                            }
+                            <div class="doc-meta">
+                                <span class="doc-type">{{ artifact['ArtifactType'] }}</span>
+                                @if (artifact['Committee']) {
+                                    <span class="doc-committee">
+                                        <i class="fa-solid fa-users-rectangle"></i>
+                                        {{ artifact['Committee'] }}
+                                    </span>
+                                }
+                                @if (artifact['Meeting']) {
+                                    <span class="doc-meeting">
+                                        <i class="fa-solid fa-calendar"></i>
+                                        {{ artifact['Meeting'] }}
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                        <div class="doc-actions">
+                            <span [class]="'status-badge status-' + ($any(artifact['Status']) || '').toLowerCase()">
+                                {{ artifact['Status'] }}
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}

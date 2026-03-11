@@ -1,0 +1,48 @@
+{
+  "name": "@committees/ng-committees",
+  "version": "1.0.0",
+  "description": "Angular components for the Committees governance platform.",
+  "main": "./dist/public-api.js",
+  "typings": "./dist/public-api.d.ts",
+  "private": true,
+  "files": ["/dist"],
+  "scripts": {
+    "build": "ngc",
+    "test": "echo \"No tests configured yet\""
+  },
+  "peerDependencies": {
+    "@angular/common": "21.1.3",
+    "@angular/core": "21.1.3",
+    "@angular/forms": "21.1.3",
+    "@angular/router": "21.1.3"
+  },
+  "dependencies": {
+    "@memberjunction/core": "5.10.1",
+    "@memberjunction/core-entities": "5.10.1",
+    "@memberjunction/global": "5.10.1",
+    "@memberjunction/graphql-dataprovider": "5.10.1",
+    "@memberjunction/ng-shared": "5.10.1",
+    "@memberjunction/ng-shared-generic": "5.10.1",
+    "@progress/kendo-angular-buttons": "22.0.1",
+    "@progress/kendo-angular-grid": "22.0.1",
+    "@progress/kendo-angular-dropdowns": "22.0.1",
+    "@progress/kendo-angular-dateinputs": "22.0.1",
+    "@progress/kendo-angular-dialog": "22.0.1",
+    "@progress/kendo-angular-inputs": "22.0.1",
+    "@progress/kendo-angular-layout": "22.0.1",
+    "@progress/kendo-angular-label": "22.0.1",
+    "@progress/kendo-angular-icons": "22.0.1",
+    "mj_generatedentities": "1.0.0",
+    "rxjs": "^7.8.2"
+  },
+  "devDependencies": {
+    "@angular/compiler": "21.1.3",
+    "@angular/compiler-cli": "21.1.3",
+    "typescript": "^5.9.3"
+  },
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MemberJunction/committees"
+  }
+}

@@ -1,0 +1,102 @@
+@if (IsLoading) {
+    <div class="list-loading">
+        <mj-loading text="Loading meetings..."></mj-loading>
+    </div>
+} @else {
+    <div class="meeting-list-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">Meetings</h1>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="tab-bar">
+            <button class="tab-pill"
+                [class.active]="ActiveTab === 'upcoming'"
+                (click)="OnTabChanged('upcoming')">
+                <i class="fa-solid fa-calendar-plus"></i>
+                Upcoming
+                <span class="count">{{ UpcomingMeetings.length }}</span>
+            </button>
+            <button class="tab-pill"
+                [class.active]="ActiveTab === 'past'"
+                (click)="OnTabChanged('past')">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                Past
+                <span class="count">{{ PastMeetings.length }}</span>
+            </button>
+        </div>
+
+        <!-- Upcoming Meetings -->
+        @if (ActiveTab === 'upcoming') {
+            @if (UpcomingMeetings.length === 0) {
+                <div class="empty-state">
+                    <i class="fa-solid fa-calendar-xmark"></i>
+                    <p>No upcoming meetings scheduled yet.</p>
+                </div>
+            } @else {
+                <div class="meeting-grid">
+                    @for (meeting of UpcomingMeetings; track meeting['ID']) {
+                        <div class="meeting-card">
+                            <div class="meeting-date-block">
+                                <span class="month">{{ $any(meeting['StartDateTime']) | date:'MMM' }}</span>
+                                <span class="day">{{ $any(meeting['StartDateTime']) | date:'d' }}</span>
+                                <span class="time">{{ $any(meeting['StartDateTime']) | date:'h:mm a' }}</span>
+                            </div>
+                            <div class="meeting-details">
+                                <h3 class="meeting-title">{{ meeting['Title'] }}</h3>
+                                <div class="meeting-meta">
+                                    <span class="committee-name">
+                                        <i class="fa-solid fa-users-rectangle"></i>
+                                        {{ meeting['Committee'] }}
+                                    </span>
+                                    <span class="location">
+                                        <i [class]="GetLocationIcon($any(meeting['LocationType']))"></i>
+                                        {{ meeting['Location'] || meeting['LocationType'] }}
+                                    </span>
+                                </div>
+                                <span [class]="'status-badge status-' + ($any(meeting['Status']) || '').toLowerCase()">
+                                    {{ meeting['Status'] }}
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+
+        <!-- Past Meetings -->
+        @if (ActiveTab === 'past') {
+            @if (PastMeetings.length === 0) {
+                <div class="empty-state">
+                    <i class="fa-solid fa-calendar-xmark"></i>
+                    <p>No past meetings recorded.</p>
+                </div>
+            } @else {
+                <div class="meeting-grid">
+                    @for (meeting of PastMeetings; track meeting['ID']) {
+                        <div class="meeting-card past">
+                            <div class="meeting-date-block">
+                                <span class="month">{{ $any(meeting['StartDateTime']) | date:'MMM' }}</span>
+                                <span class="day">{{ $any(meeting['StartDateTime']) | date:'d' }}</span>
+                                <span class="time">{{ $any(meeting['StartDateTime']) | date:'h:mm a' }}</span>
+                            </div>
+                            <div class="meeting-details">
+                                <h3 class="meeting-title">{{ meeting['Title'] }}</h3>
+                                <div class="meeting-meta">
+                                    <span class="committee-name">
+                                        <i class="fa-solid fa-users-rectangle"></i>
+                                        {{ meeting['Committee'] }}
+                                    </span>
+                                </div>
+                                <span [class]="'status-badge status-' + ($any(meeting['Status']) || '').toLowerCase()">
+                                    {{ meeting['Status'] }}
+                                </span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+}

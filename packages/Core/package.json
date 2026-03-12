@@ -1,16 +1,17 @@
 {
-  "name": "mj_generatedentities",
+  "name": "@mj-biz-apps/committees-core",
   "type": "module",
   "version": "1.0.0",
-  "description": "Generated Entity Subclasses - Automatically Created and Maintained by MemberJunction CodeGen",
+  "description": "Core business logic services for the Committees OpenApp",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "/dist"
   ],
   "scripts": {
-    "start": "ts-node-dev src/index.ts",
     "build": "tsc && tsc-alias -f",
     "test": "echo \"No tests configured yet\""
   },
@@ -23,7 +24,7 @@
   "dependencies": {
     "@memberjunction/core": "5.10.1",
     "@memberjunction/global": "5.10.1",
-    "zod": "~3.24.4"
+    "@mj-biz-apps/committees-entities": "1.0.0"
   },
   "repository": {
     "type": "git",

@@ -1,10 +1,12 @@
 {
-  "name": "@committees/ng-committees",
+  "name": "@mj-biz-apps/committees-ng",
   "version": "1.0.0",
-  "description": "Angular components for the Committees governance platform.",
+  "description": "Angular components for the Committees OpenApp",
   "main": "./dist/public-api.js",
   "typings": "./dist/public-api.d.ts",
-  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "files": ["/dist"],
   "scripts": {
     "build": "ngc",
@@ -32,7 +34,7 @@
     "@progress/kendo-angular-layout": "22.0.1",
     "@progress/kendo-angular-label": "22.0.1",
     "@progress/kendo-angular-icons": "22.0.1",
-    "mj_generatedentities": "1.0.0",
+    "@mj-biz-apps/committees-entities": "1.0.0",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {

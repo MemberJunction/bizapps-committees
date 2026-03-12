@@ -9,7 +9,7 @@ export * from './generated/entity_subclasses'
  * @export
  * @returns {void}
  * @example
- * import { LoadGeneratedEntities } from 'mj_core'
+ * import { LoadGeneratedEntities } from '@mj-biz-apps/committees-entities'
  * LoadGeneratedEntities()
  */
 export function LoadGeneratedEntities() {

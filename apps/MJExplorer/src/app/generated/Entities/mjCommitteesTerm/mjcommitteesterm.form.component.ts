@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { mjCommitteesTermEntity } from 'mj_generatedentities';
+import { mjCommitteesTermEntity } from '@mj-biz-apps/committees-entities';
 import { RegisterClass } from '@memberjunction/global';
 import { BaseFormComponent } from '@memberjunction/ng-base-forms';
 import {  } from "@memberjunction/ng-entity-viewer"

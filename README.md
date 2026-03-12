@@ -1,22 +1,42 @@
 # Committees App
 
-A unified governance platform for managing committees, memberships, meetings, and action tracking. Built as an [OpenApp](https://github.com/MemberJunction/MJ) on the MemberJunction platform.
+A unified governance platform for managing committees, memberships, meetings, and action tracking. Built as an [OpenApp](https://github.com/MemberJunction/MJ) on the MemberJunction platform, layered on top of [BizApps Common (BAC)](https://github.com/MemberJunction/MJ) for shared People and Organization data.
 
 ## The Problem
 
-Organizations manage committee operations through disconnected tools -- spreadsheets for rosters, email threads for coordination, shared drives for documents, and calendar apps that don't sync with membership data. This fragmentation leads to lost institutional knowledge, missed action items, and hours spent on administrative overhead.
+Committee operations are fragmented across disconnected tools — spreadsheets for rosters, email threads for coordination, shared drives for documents, and calendar apps that don't sync with membership data. This leads to:
+
+- **Administrative overhead**: Chairs spend 3+ hours per meeting on logistics instead of governance
+- **Scattered data**: No single source of truth across a dozen different tools
+- **Volunteer burnout**: Admin burden exhausts volunteers who have day jobs
+- **Institutional knowledge loss**: Decisions, rationale, and history disappear when people rotate off
+- **No intelligence**: Existing solutions offer zero AI capabilities for minutes, insights, or health monitoring
 
 ## What This App Does
 
+### Core Features (Phase 1)
+
 | Capability | Description |
 |---|---|
-| **Committee Structure** | Define types (Board, Standing, Ad Hoc, Workgroup, Standards WG), create committees, manage hierarchies |
+| **Dashboard** | At-a-glance overview with summary cards, upcoming meetings, action items, and recent activity |
+| **Committee Management** | Browse, search, and filter committees by status with member counts and organization info |
+| **Meeting Tracking** | Upcoming and past meetings with date blocks, location types (Virtual/InPerson/Hybrid), and status |
+| **Action Item Tracker** | Track tasks across all committees with priority levels, assignees, due dates, and overdue detection |
+| **Document Browser** | Browse committee artifacts and files with type filtering and search |
 | **Membership Management** | Track who serves, their roles, term dates, and historical membership |
-| **Meeting Coordination** | Schedule meetings, build agendas, capture attendance, link video conferencing |
 | **Motions & Voting** | Record formal motions, individual votes, and results |
-| **Action Tracking** | Assign tasks from meetings, monitor progress, drive accountability |
-| **Document Linking** | Connect to Google Drive, SharePoint, OneDrive, Box, Dropbox -- no migration needed |
-| **Minutes Management** | Track draft/approval lifecycle of meeting minutes |
+| **Document Linking** | Connect to Google Drive, SharePoint, OneDrive, Box, Dropbox — no migration needed |
+
+### AI Features (Phase 2 — In Progress)
+
+| Capability | Description |
+|---|---|
+| **AI Meeting Minutes** | Upload a transcript, AI extracts structured minutes with summaries, decisions, action items, and motions. Reduces 2-4 hours of manual work to 15 minutes of review |
+| **Smart Agenda Suggestions** | AI flags overdue action items, expiring terms, recurring topics, and pending proposals to build better agendas |
+| **Proposal Filtering & Scoring** | AI scores proposals against configurable criteria, detects conflicts, and generates executive summaries |
+| **Committee Health Dashboard** | Composite health scoring (attendance, quorum, action completion, engagement) with predictive alerts |
+| **Member Engagement Profiles** | Cross-committee search with engagement scores, skills, and committee history |
+| **Onboarding Workflows** | Automated welcome sequences with document packages for new committee members |
 
 ## Schema Overview
 
@@ -80,6 +100,31 @@ npm run build
 npm start
 ```
 
+## Architecture
+
+```
+Committees OpenApp (this repo)                    @mj-biz-apps/committees-*
+    ├── Angular/             → committees-ng       (dashboard components, 5 tabs)
+    ├── Entities/            → committees-entities  (CodeGen entity classes)
+    ├── Actions/             → committees-actions   (CodeGen action classes)
+    ├── Core/                → committees-core      (business logic, AI agent)
+    └── Server/              → committees-server    (bootstrap, resolvers)
+
+Installs into ↓
+
+BAC OpenApp (@mj-biz-apps/common-*)
+    ├── Person, Organization, Address, etc.
+    └── Shared entities committees FK to (never duplicated)
+
+Runs on ↓
+
+MemberJunction Core
+    ├── Auth, RBAC, Notifications, AI Framework
+    ├── Record Changes (version control)
+    ├── Scheduled Jobs, Actions, Class Factory
+    └── Angular Explorer shell + generated forms
+```
+
 ## Directory Structure
 
 ```
@@ -94,9 +139,12 @@ npm start
 │   └── artifact-types/
 ├── migrations/                # Flyway database migrations
 ├── packages/
-│   ├── GeneratedEntities/     # Auto-generated entity classes
-│   └── GeneratedActions/      # Auto-generated action classes
-├── plans/                     # Design documents
+│   ├── Entities/              # @mj-biz-apps/committees-entities (CodeGen entity classes)
+│   ├── Actions/               # @mj-biz-apps/committees-actions (CodeGen action classes)
+│   ├── Core/                  # @mj-biz-apps/committees-core (business logic, services)
+│   ├── Server/                # @mj-biz-apps/committees-server (bootstrap, resolvers)
+│   └── Angular/               # @mj-biz-apps/committees-ng (dashboard components)
+├── plans/                     # Design documents and mockups
 ├── SQL Scripts/               # SQL views and stored procedures
 ├── mj.config.cjs              # MemberJunction configuration
 └── turbo.json                 # Turbo build configuration
@@ -143,10 +191,11 @@ npm run build
 
 | Phase | Focus | Status |
 |---|---|---|
-| **Phase 1** | Core schema, CRUD, document linking | In Progress |
-| **Phase 2** | Dashboards, meeting templates, notifications | Planned |
-| **Phase 3** | Workflow stages, balloting, calendar integration | Planned |
-| **Phase 4** | AI-generated minutes, transcript processing, analytics | Planned |
+| **Phase 1A** | Core schema (14 tables), CRUD, seed data, CodeGen, entity classes | Done |
+| **Phase 1B** | Custom Angular UI — dashboard, committee list, meetings, action items, documents | Done |
+| **Phase 2** | AI Intelligence Layer — minutes generation, smart agendas, proposal scoring, health dashboard | In Progress |
+| **Phase 3** | Voting & balloting, notifications, calendar integration, reporting | Planned |
+| **Phase 4** | OpenApp manifest, app store distribution, multi-tenant packaging | Planned |
 
 ## License
 

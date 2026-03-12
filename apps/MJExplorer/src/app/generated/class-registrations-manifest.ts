@@ -11,16 +11,7 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-// @committees/ng-committees (5 classes)
-import {
-    ActionItemTrackerComponent,
-    CommitteeDashboardComponent,
-    CommitteeListComponent,
-    DocumentBrowserComponent,
-    MeetingListComponent,
-} from '@committees/ng-committees';
-
-// mj_generatedentities (24 classes)
+// @mj-biz-apps/committees-entities (24 classes)
 import {
     mjBizAppsCommonAddressEntity,
     mjBizAppsCommonAddressLinkEntity,
@@ -46,7 +37,16 @@ import {
     mjCommitteesTermEntity,
     mjCommitteesTypeEntity,
     mjCommitteesVoteEntity,
-} from 'mj_generatedentities';
+} from '@mj-biz-apps/committees-entities';
+
+// @mj-biz-apps/committees-ng (5 classes)
+import {
+    ActionItemTrackerComponent,
+    CommitteeDashboardComponent,
+    CommitteeListComponent,
+    DocumentBrowserComponent,
+    MeetingListComponent,
+} from '@mj-biz-apps/committees-ng';
 
 /**
  * Runtime references to every @RegisterClass decorated class.
@@ -54,11 +54,6 @@ import {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const CLASS_REGISTRATIONS: any[] = [
-    ActionItemTrackerComponent,
-    CommitteeDashboardComponent,
-    CommitteeListComponent,
-    DocumentBrowserComponent,
-    MeetingListComponent,
     mjBizAppsCommonAddressEntity,
     mjBizAppsCommonAddressLinkEntity,
     mjBizAppsCommonAddressTypeEntity,
@@ -83,6 +78,11 @@ export const CLASS_REGISTRATIONS: any[] = [
     mjCommitteesTermEntity,
     mjCommitteesTypeEntity,
     mjCommitteesVoteEntity,
+    ActionItemTrackerComponent,
+    CommitteeDashboardComponent,
+    CommitteeListComponent,
+    DocumentBrowserComponent,
+    MeetingListComponent,
 ];
 
 /** Marker constant indicating the manifest has been loaded. */
@@ -93,6 +93,6 @@ export const CLASS_REGISTRATIONS_COUNT = 29;
 
 /** Packages imported by this manifest */
 export const CLASS_REGISTRATIONS_PACKAGES = [
-    '@committees/ng-committees',
-    'mj_generatedentities',
+    '@mj-biz-apps/committees-entities',
+    '@mj-biz-apps/committees-ng',
 ] as const;

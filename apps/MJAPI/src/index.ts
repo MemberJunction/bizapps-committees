@@ -7,11 +7,11 @@ import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 
 // Import generated packages to trigger class registration
-import 'mj_generatedentities';
-import 'mj_generatedactions';
+import '@mj-biz-apps/committees-entities';
+import '@mj-biz-apps/committees-actions';
 
 // Committees server bootstrap — registers entity classes and services
-import { LoadCommitteesServer, RESOLVER_PATHS as committeesResolverPaths } from '@committees/server';
+import { LoadCommitteesServer, RESOLVER_PATHS as committeesResolverPaths } from '@mj-biz-apps/committees-server';
 LoadCommitteesServer();
 
 // Import pre-built MJ class registrations manifest (covers all @memberjunction/* packages)

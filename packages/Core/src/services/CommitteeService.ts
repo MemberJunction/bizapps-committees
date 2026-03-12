@@ -4,7 +4,7 @@ import {
     mjCommitteesMembershipEntity,
     mjCommitteesMeetingEntity,
     mjCommitteesActionItemEntity,
-} from 'mj_generatedentities';
+} from '@mj-biz-apps/committees-entities';
 
 /**
  * Summary of a single membership for a person, used in cross-committee views.

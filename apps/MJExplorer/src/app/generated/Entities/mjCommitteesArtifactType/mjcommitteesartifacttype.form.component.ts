@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { mjCommitteesArtifactTypeEntity } from 'mj_generatedentities';
+import { mjCommitteesArtifactTypeEntity } from '@mj-biz-apps/committees-entities';
 import { RegisterClass } from '@memberjunction/global';
 import { BaseFormComponent } from '@memberjunction/ng-base-forms';
 import {  } from "@memberjunction/ng-entity-viewer"

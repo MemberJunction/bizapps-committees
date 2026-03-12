@@ -4,7 +4,7 @@ import {
     mjCommitteesAgendaItemEntity,
     mjCommitteesAttendanceEntity,
     mjCommitteesMembershipEntity,
-} from 'mj_generatedentities';
+} from '@mj-biz-apps/committees-entities';
 
 /**
  * Input data required to create a new meeting for a committee.

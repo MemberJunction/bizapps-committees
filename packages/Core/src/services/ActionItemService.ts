@@ -1,5 +1,5 @@
 import { Metadata, RunView, UserInfo } from '@memberjunction/core';
-import { mjCommitteesActionItemEntity } from 'mj_generatedentities';
+import { mjCommitteesActionItemEntity } from '@mj-biz-apps/committees-entities';
 
 /**
  * Lightweight read-only view of an action item for cross-committee lists.

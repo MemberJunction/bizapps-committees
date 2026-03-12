@@ -17,7 +17,7 @@ import { MaxLength } from 'class-validator';
 import * as mj_core_schema_server_object_types from '@memberjunction/server'
 
 
-import { mjCommitteesActionItemEntity, mjCommitteesAgendaItemEntity, mjCommitteesArtifactTypeEntity, mjCommitteesArtifactEntity, mjCommitteesAttendanceEntity, mjCommitteesCommitteeEntity, mjCommitteesMeetingEntity, mjCommitteesMembershipEntity, mjCommitteesMinuteEntity, mjBizAppsCommonAddressLinkEntity, mjBizAppsCommonAddressTypeEntity, mjBizAppsCommonAddressEntity, mjBizAppsCommonContactMethodEntity, mjBizAppsCommonContactTypeEntity, mjBizAppsCommonOrganizationTypeEntity, mjBizAppsCommonOrganizationEntity, mjBizAppsCommonPersonEntity, mjBizAppsCommonRelationshipTypeEntity, mjBizAppsCommonRelationshipEntity, mjCommitteesMotionEntity, mjCommitteesRoleEntity, mjCommitteesTermEntity, mjCommitteesTypeEntity, mjCommitteesVoteEntity } from 'mj_generatedentities';
+import { mjCommitteesActionItemEntity, mjCommitteesAgendaItemEntity, mjCommitteesArtifactTypeEntity, mjCommitteesArtifactEntity, mjCommitteesAttendanceEntity, mjCommitteesCommitteeEntity, mjCommitteesMeetingEntity, mjCommitteesMembershipEntity, mjCommitteesMinuteEntity, mjBizAppsCommonAddressLinkEntity, mjBizAppsCommonAddressTypeEntity, mjBizAppsCommonAddressEntity, mjBizAppsCommonContactMethodEntity, mjBizAppsCommonContactTypeEntity, mjBizAppsCommonOrganizationTypeEntity, mjBizAppsCommonOrganizationEntity, mjBizAppsCommonPersonEntity, mjBizAppsCommonRelationshipTypeEntity, mjBizAppsCommonRelationshipEntity, mjCommitteesMotionEntity, mjCommitteesRoleEntity, mjCommitteesTermEntity, mjCommitteesTypeEntity, mjCommitteesVoteEntity } from '@mj-biz-apps/committees-entities';
     
 
 //****************************************************************************

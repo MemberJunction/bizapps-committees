@@ -21,7 +21,7 @@ import { MJExplorerAppModule } from '@memberjunction/ng-explorer-app';
 //***********************************************************
 // Committees Module
 //***********************************************************
-import { CommitteesModule, LoadCommitteesModule } from '@committees/ng-committees';
+import { CommitteesModule, LoadCommitteesModule } from '@mj-biz-apps/committees-ng';
 LoadCommitteesModule();
 
 // Import pre-built MJ class registrations manifest (covers all @memberjunction/* packages)

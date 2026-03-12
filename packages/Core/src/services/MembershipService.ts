@@ -2,7 +2,7 @@ import { Metadata, RunView, UserInfo } from '@memberjunction/core';
 import {
     mjCommitteesMembershipEntity,
     mjCommitteesAttendanceEntity,
-} from 'mj_generatedentities';
+} from '@mj-biz-apps/committees-entities';
 
 /**
  * A membership record enriched with role and person details for display.

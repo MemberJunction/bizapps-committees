@@ -1,11 +1,13 @@
 {
-  "name": "mj_generatedactions",
+  "name": "@mj-biz-apps/committees-actions",
   "type": "module",
   "version": "1.0.0",
-  "description": "Generated action subclasses maintained by the CodeGen utility.",
+  "description": "Action subclasses for the Committees OpenApp",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "/dist"
   ],

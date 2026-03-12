@@ -11,7 +11,7 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-// mj_generatedentities (24 classes)
+// @mj-biz-apps/committees-entities (24 classes)
 import {
     mjBizAppsCommonAddressEntity,
     mjBizAppsCommonAddressLinkEntity,
@@ -37,7 +37,7 @@ import {
     mjCommitteesTermEntity,
     mjCommitteesTypeEntity,
     mjCommitteesVoteEntity,
-} from 'mj_generatedentities';
+} from '@mj-biz-apps/committees-entities';
 
 /**
  * Runtime references to every @RegisterClass decorated class.
@@ -79,5 +79,5 @@ export const CLASS_REGISTRATIONS_COUNT = 24;
 
 /** Packages imported by this manifest */
 export const CLASS_REGISTRATIONS_PACKAGES = [
-    'mj_generatedentities',
+    '@mj-biz-apps/committees-entities',
 ] as const;

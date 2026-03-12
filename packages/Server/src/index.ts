@@ -7,17 +7,17 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // Re-export the core services for consumers
-export { CommitteeService } from '@committees/core';
-export { MeetingService } from '@committees/core';
-export { MembershipService } from '@committees/core';
-export { ActionItemService } from '@committees/core';
+export { CommitteeService } from '@mj-biz-apps/committees-core';
+export { MeetingService } from '@mj-biz-apps/committees-core';
+export { MembershipService } from '@mj-biz-apps/committees-core';
+export { ActionItemService } from '@mj-biz-apps/committees-core';
 
 // Import generated packages to trigger @RegisterClass decorators
-import 'mj_generatedentities';
-import 'mj_generatedactions';
+import '@mj-biz-apps/committees-entities';
+import '@mj-biz-apps/committees-actions';
 
 // Import core services to trigger any class registrations
-import '@committees/core';
+import '@mj-biz-apps/committees-core';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 

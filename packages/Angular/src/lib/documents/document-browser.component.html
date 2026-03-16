@@ -6,8 +6,13 @@
     <div class="document-browser-container">
         <!-- Page Header -->
         <div class="page-header">
-            <h1 class="page-title">Documents</h1>
-            <p class="page-subtitle">Browse committee artifacts and files</p>
+            <div>
+                <h1 class="page-title">Documents</h1>
+                <p class="page-subtitle">Browse committee documents and files</p>
+            </div>
+            <button class="btn btn-primary" (click)="OnCreateDocument()">
+                <i class="fa-solid fa-plus"></i> Add Document
+            </button>
         </div>
 
         <!-- Toolbar -->
@@ -22,52 +27,54 @@
             </div>
             <div class="type-filter">
                 <div class="type-filter-pills">
-                    @for (type of TypeFilterOptions; track type) {
+                    @for (category of CategoryFilterOptions; track category) {
                         <button class="filter-pill"
-                            [class.active]="TypeFilter === type"
-                            (click)="OnTypeFilterChanged(type)">{{ type }}</button>
+                            [class.active]="CategoryFilter === category"
+                            (click)="OnCategoryFilterChanged(category)">{{ category }}</button>
                     }
                 </div>
             </div>
         </div>
 
         <!-- Document Grid -->
-        @if (FilteredArtifacts.length === 0) {
+        @if (FilteredFiles.length === 0) {
             <div class="empty-state">
                 <i class="fa-solid fa-folder-open"></i>
                 <p>No documents found matching your criteria.</p>
             </div>
         } @else {
             <div class="document-grid">
-                @for (artifact of FilteredArtifacts; track artifact['ID']) {
-                    <div class="document-card">
+                @for (file of FilteredFiles; track file['ID']) {
+                    <div class="document-card" (click)="OnEditDocument($any(file['ID']))">
                         <div class="doc-icon">
-                            <i [class]="GetArtifactIcon($any(artifact['ArtifactType']))"></i>
+                            <i [class]="GetDocIcon($any(file['Category']))"></i>
                         </div>
                         <div class="doc-content">
-                            <h4 class="doc-title">{{ artifact['Title'] }}</h4>
-                            @if (artifact['Description']) {
-                                <p class="doc-description">{{ artifact['Description'] }}</p>
+                            <h4 class="doc-title">{{ file['Name'] }}</h4>
+                            @if (file['Description']) {
+                                <p class="doc-description">{{ file['Description'] }}</p>
                             }
                             <div class="doc-meta">
-                                <span class="doc-type">{{ artifact['ArtifactType'] }}</span>
-                                @if (artifact['Committee']) {
-                                    <span class="doc-committee">
-                                        <i class="fa-solid fa-users-rectangle"></i>
-                                        {{ artifact['Committee'] }}
-                                    </span>
+                                @if (file['Category']) {
+                                    <span class="doc-type">{{ file['Category'] }}</span>
                                 }
-                                @if (artifact['Meeting']) {
-                                    <span class="doc-meeting">
-                                        <i class="fa-solid fa-calendar"></i>
-                                        {{ artifact['Meeting'] }}
+                                @if (file['Provider']) {
+                                    <span class="doc-provider">
+                                        <i class="fa-solid fa-link"></i>
+                                        {{ file['Provider'] }}
                                     </span>
                                 }
                             </div>
                         </div>
                         <div class="doc-actions">
-                            <span [class]="'status-badge status-' + ($any(artifact['Status']) || '').toLowerCase()">
-                                {{ artifact['Status'] }}
+                            @if (file['URL']) {
+                                <button class="btn-icon" title="Open in new tab"
+                                    (click)="OnOpenDocument($any(file['URL']), $event)">
+                                    <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                </button>
+                            }
+                            <span [class]="'status-badge status-' + ($any(file['Status']) || '').toLowerCase()">
+                                {{ file['Status'] }}
                             </span>
                         </div>
                     </div>
@@ -75,4 +82,12 @@
             </div>
         }
     </div>
+}
+
+<!-- Edit Dialog -->
+@if (ShowEditDialog) {
+    <document-edit-dialog
+        [FileID]="EditingFileID"
+        (DialogClosed)="OnDialogClosed($event)">
+    </document-edit-dialog>
 }

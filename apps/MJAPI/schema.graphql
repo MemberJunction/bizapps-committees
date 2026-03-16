@@ -2461,11 +2461,14 @@ input CreateMJFileInput {
   CategoryID: String
   ContentType: String
   Description: String
+  ExternalID: String
+  FileSize: Int
   ID: String
   Name: String
   ProviderID: String
   ProviderKey: String
   Status: String
+  URL: String
 }
 
 input CreateMJFileStorageAccountInput {
@@ -4107,6 +4110,20 @@ input CreatemjCommitteesAttendanceInput {
   LeftAt: Timestamp
   MeetingID: String
   Notes: String
+  PersonID: String
+}
+
+input CreatemjCommitteesCommentInput {
+  ActionItemID: String
+  AgendaItemID: String
+  ArtifactID: String
+  CommentText: String
+  CommitteeID: String
+  ID: String
+  IsResolved: Boolean
+  MeetingID: String
+  MentionedPersonIDs: String
+  ParentCommentID: String
   PersonID: String
 }
 
@@ -12081,6 +12098,8 @@ type MJFile_ {
   ContentType: String
   Description: String
   DownloadUrl: String!
+  ExternalID: String
+  FileSize: Int
   ID: String!
   MJAIAgentRunMedias_FileIDArray: [MJAIAgentRunMedia_!]!
   MJAIPromptRunMedias_FileIDArray: [MJAIPromptRunMedia_!]!
@@ -12095,6 +12114,7 @@ type MJFile_ {
 
   """Pending, Uploading, Uploaded, Deleting, Deleted"""
   Status: String!
+  URL: String
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
 }
@@ -16469,6 +16489,7 @@ type Mutation {
   CreatemjCommitteesArtifact(input: CreatemjCommitteesArtifactInput!): mjCommitteesArtifact_!
   CreatemjCommitteesArtifactType(input: CreatemjCommitteesArtifactTypeInput!): mjCommitteesArtifactType_!
   CreatemjCommitteesAttendance(input: CreatemjCommitteesAttendanceInput!): mjCommitteesAttendance_!
+  CreatemjCommitteesComment(input: CreatemjCommitteesCommentInput!): mjCommitteesComment_!
   CreatemjCommitteesCommittee(input: CreatemjCommitteesCommitteeInput!): mjCommitteesCommittee_!
   CreatemjCommitteesMeeting(input: CreatemjCommitteesMeetingInput!): mjCommitteesMeeting_!
   CreatemjCommitteesMembership(input: CreatemjCommitteesMembershipInput!): mjCommitteesMembership_!
@@ -16782,6 +16803,7 @@ type Mutation {
   DeletemjCommitteesArtifact(ID: String!, options___: DeleteOptionsInput!): mjCommitteesArtifact_!
   DeletemjCommitteesArtifactType(ID: String!, options___: DeleteOptionsInput!): mjCommitteesArtifactType_!
   DeletemjCommitteesAttendance(ID: String!, options___: DeleteOptionsInput!): mjCommitteesAttendance_!
+  DeletemjCommitteesComment(ID: String!, options___: DeleteOptionsInput!): mjCommitteesComment_!
   DeletemjCommitteesCommittee(ID: String!, options___: DeleteOptionsInput!): mjCommitteesCommittee_!
   DeletemjCommitteesMeeting(ID: String!, options___: DeleteOptionsInput!): mjCommitteesMeeting_!
   DeletemjCommitteesMembership(ID: String!, options___: DeleteOptionsInput!): mjCommitteesMembership_!
@@ -17119,6 +17141,7 @@ type Mutation {
   UpdatemjCommitteesArtifact(input: UpdatemjCommitteesArtifactInput!): mjCommitteesArtifact_!
   UpdatemjCommitteesArtifactType(input: UpdatemjCommitteesArtifactTypeInput!): mjCommitteesArtifactType_!
   UpdatemjCommitteesAttendance(input: UpdatemjCommitteesAttendanceInput!): mjCommitteesAttendance_!
+  UpdatemjCommitteesComment(input: UpdatemjCommitteesCommentInput!): mjCommitteesComment_!
   UpdatemjCommitteesCommittee(input: UpdatemjCommitteesCommitteeInput!): mjCommitteesCommittee_!
   UpdatemjCommitteesMeeting(input: UpdatemjCommitteesMeetingInput!): mjCommitteesMeeting_!
   UpdatemjCommitteesMembership(input: UpdatemjCommitteesMembershipInput!): mjCommitteesMembership_!
@@ -18455,6 +18478,9 @@ type Query {
   RunmjCommitteesAttendanceDynamicView(input: RunDynamicViewInput!): RunmjCommitteesAttendanceViewResult!
   RunmjCommitteesAttendanceViewByID(input: RunViewByIDInput!): RunmjCommitteesAttendanceViewResult!
   RunmjCommitteesAttendanceViewByName(input: RunViewByNameInput!): RunmjCommitteesAttendanceViewResult!
+  RunmjCommitteesCommentDynamicView(input: RunDynamicViewInput!): RunmjCommitteesCommentViewResult!
+  RunmjCommitteesCommentViewByID(input: RunViewByIDInput!): RunmjCommitteesCommentViewResult!
+  RunmjCommitteesCommentViewByName(input: RunViewByNameInput!): RunmjCommitteesCommentViewResult!
   RunmjCommitteesCommitteeDynamicView(input: RunDynamicViewInput!): RunmjCommitteesCommitteeViewResult!
   RunmjCommitteesCommitteeViewByID(input: RunViewByIDInput!): RunmjCommitteesCommitteeViewResult!
   RunmjCommitteesCommitteeViewByName(input: RunViewByNameInput!): RunmjCommitteesCommitteeViewResult!
@@ -18509,6 +18535,7 @@ type Query {
   mjCommitteesArtifact(ID: String!): mjCommitteesArtifact_
   mjCommitteesArtifactType(ID: String!): mjCommitteesArtifactType_
   mjCommitteesAttendance(ID: String!): mjCommitteesAttendance_
+  mjCommitteesComment(ID: String!): mjCommitteesComment_
   mjCommitteesCommittee(ID: String!): mjCommitteesCommittee_
   mjCommitteesMeeting(ID: String!): mjCommitteesMeeting_
   mjCommitteesMembership(ID: String!): mjCommitteesMembership_
@@ -22177,6 +22204,16 @@ type RunmjCommitteesAttendanceViewResult {
   UserViewRunID: String
 }
 
+type RunmjCommitteesCommentViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjCommitteesComment_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
 type RunmjCommitteesCommitteeViewResult {
   ErrorMessage: String
   ExecutionTime: Int
@@ -24987,12 +25024,15 @@ input UpdateMJFileInput {
   CategoryID: String
   ContentType: String
   Description: String
+  ExternalID: String
+  FileSize: Int
   ID: String!
   Name: String
   OldValues___: [KeyValuePairInput!]
   ProviderID: String
   ProviderKey: String
   Status: String
+  URL: String
 }
 
 input UpdateMJFileStorageAccountInput {
@@ -26733,6 +26773,21 @@ input UpdatemjCommitteesAttendanceInput {
   PersonID: String
 }
 
+input UpdatemjCommitteesCommentInput {
+  ActionItemID: String
+  AgendaItemID: String
+  ArtifactID: String
+  CommentText: String
+  CommitteeID: String
+  ID: String!
+  IsResolved: Boolean
+  MeetingID: String
+  MentionedPersonIDs: String
+  OldValues___: [KeyValuePairInput!]
+  ParentCommentID: String
+  PersonID: String
+}
+
 input UpdatemjCommitteesCommitteeInput {
   CharterDocumentURL: String
   Description: String
@@ -27194,6 +27249,7 @@ type mjBizAppsCommonPerson_ {
   mjCommitteesAgendaItems_PresenterPersonIDArray: [mjCommitteesAgendaItem_!]!
   mjCommitteesArtifacts_UploadedByPersonIDArray: [mjCommitteesArtifact_!]!
   mjCommitteesAttendances_PersonIDArray: [mjCommitteesAttendance_!]!
+  mjCommitteesComments_PersonIDArray: [mjCommitteesComment_!]!
   mjCommitteesMemberships_PersonIDArray: [mjCommitteesMembership_!]!
 }
 
@@ -27272,6 +27328,7 @@ type mjBizAppsCommonRelationship_ {
 
 """Tasks and action items assigned from committees or meetings"""
 type mjCommitteesActionItem_ {
+  AgendaItem: String
   AgendaItemID: String
   AssignedByPerson: String
   AssignedByPersonID: String
@@ -27292,6 +27349,7 @@ type mjCommitteesActionItem_ {
   """Due date for completion"""
   DueDate: Timestamp
   ID: String!
+  Meeting: String
   MeetingID: String
 
   """Priority level: Low, Medium, High, Critical"""
@@ -27305,6 +27363,7 @@ type mjCommitteesActionItem_ {
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
   mjCommitteesArtifacts_ActionItemIDArray: [mjCommitteesArtifact_!]!
+  mjCommitteesComments_ActionItemIDArray: [mjCommitteesComment_!]!
 }
 
 """Structured agenda items for meetings with hierarchy support"""
@@ -27318,10 +27377,12 @@ type mjCommitteesAgendaItem_ {
 
   """Type of item: Information, Discussion, Action, Vote, Report, Other"""
   ItemType: String!
+  Meeting: String!
   MeetingID: String!
 
   """Discussion notes and outcomes captured during the meeting"""
   Notes: String
+  ParentAgendaItem: String
   ParentAgendaItemID: String
   PresenterPerson: String
   PresenterPersonID: String
@@ -27343,6 +27404,7 @@ type mjCommitteesAgendaItem_ {
   mjCommitteesActionItems_AgendaItemIDArray: [mjCommitteesActionItem_!]!
   mjCommitteesAgendaItems_ParentAgendaItemIDArray: [mjCommitteesAgendaItem_!]!
   mjCommitteesArtifacts_AgendaItemIDArray: [mjCommitteesArtifact_!]!
+  mjCommitteesComments_AgendaItemIDArray: [mjCommitteesComment_!]!
   mjCommitteesMotions_AgendaItemIDArray: [mjCommitteesMotion_!]!
 }
 
@@ -27372,7 +27434,9 @@ type mjCommitteesArtifactType_ {
 
 """Links to external documents and files from various providers"""
 type mjCommitteesArtifact_ {
+  ActionItem: String
   ActionItemID: String
+  AgendaItem: String
   AgendaItemID: String
   ArtifactType: String!
   ArtifactTypeID: String!
@@ -27388,6 +27452,7 @@ type mjCommitteesArtifact_ {
   """File size in bytes"""
   FileSize: Int
   ID: String!
+  Meeting: String
   MeetingID: String
 
   """MIME type of the file"""
@@ -27405,6 +27470,7 @@ type mjCommitteesArtifact_ {
   UploadedByPersonID: String
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
+  mjCommitteesComments_ArtifactIDArray: [mjCommitteesComment_!]!
   mjCommitteesMinutes_ArtifactIDArray: [mjCommitteesMinute_!]!
 }
 
@@ -27419,6 +27485,7 @@ type mjCommitteesAttendance_ {
 
   """Timestamp when the attendee left the meeting"""
   LeftAt: Timestamp
+  Meeting: String!
   MeetingID: String!
 
   """Additional notes about attendance"""
@@ -27427,6 +27494,54 @@ type mjCommitteesAttendance_ {
   PersonID: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
+}
+
+"""
+Threaded discussion comments on committee meetings, agenda items, action items, and documents
+"""
+type mjCommitteesComment_ {
+  ActionItem: String
+
+  """Optional action item this comment is attached to"""
+  ActionItemID: String
+  AgendaItem: String
+
+  """Optional agenda item this comment is attached to"""
+  AgendaItemID: String
+  Artifact: String
+
+  """Optional artifact/document this comment is attached to"""
+  ArtifactID: String
+
+  """Comment body text"""
+  CommentText: String!
+  Committee: String!
+
+  """Committee this comment belongs to (always set for easy filtering)"""
+  CommitteeID: String!
+  ID: String!
+
+  """Whether this comment thread has been resolved"""
+  IsResolved: Boolean!
+  Meeting: String
+
+  """Optional meeting this comment is attached to"""
+  MeetingID: String
+
+  """JSON array of PersonIDs mentioned via @mentions"""
+  MentionedPersonIDs: String
+  ParentComment: String
+
+  """Parent comment for threading; NULL for top-level comments"""
+  ParentCommentID: String
+  Person: String
+
+  """Person who wrote the comment"""
+  PersonID: String!
+  RootParentCommentID: String
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+  mjCommitteesComments_ParentCommentIDArray: [mjCommitteesComment_!]!
 }
 
 """Core committee records with hierarchy support"""
@@ -27466,6 +27581,7 @@ type mjCommitteesCommittee_ {
   _mj__UpdatedAt: Timestamp!
   mjCommitteesActionItems_CommitteeIDArray: [mjCommitteesActionItem_!]!
   mjCommitteesArtifacts_CommitteeIDArray: [mjCommitteesArtifact_!]!
+  mjCommitteesComments_CommitteeIDArray: [mjCommitteesComment_!]!
   mjCommitteesCommittees_ParentCommitteeIDArray: [mjCommitteesCommittee_!]!
   mjCommitteesMeetings_CommitteeIDArray: [mjCommitteesMeeting_!]!
   mjCommitteesMemberships_CommitteeIDArray: [mjCommitteesMembership_!]!
@@ -27526,6 +27642,7 @@ type mjCommitteesMeeting_ {
   mjCommitteesAgendaItems_MeetingIDArray: [mjCommitteesAgendaItem_!]!
   mjCommitteesArtifacts_MeetingIDArray: [mjCommitteesArtifact_!]!
   mjCommitteesAttendances_MeetingIDArray: [mjCommitteesAttendance_!]!
+  mjCommitteesComments_MeetingIDArray: [mjCommitteesComment_!]!
   mjCommitteesMinutes_ApprovedByMeetingIDArray: [mjCommitteesMinute_!]!
   mjCommitteesMotions_MeetingIDArray: [mjCommitteesMotion_!]!
 }
@@ -27570,11 +27687,13 @@ type mjCommitteesMinute_ {
 
   """Timestamp when the minutes were approved"""
   ApprovedAt: Timestamp
+  ApprovedByMeeting: String
 
   """
   Reference to the meeting at which these minutes were approved (typically the next meeting)
   """
   ApprovedByMeetingID: String
+  Artifact: String!
   ArtifactID: String!
   ID: String!
 
@@ -27588,12 +27707,15 @@ type mjCommitteesMinute_ {
 type mjCommitteesMotion_ {
   """Number of Abstain votes"""
   AbstainCount: Int
+  AgendaItem: String
   AgendaItemID: String
 
   """Full text or description of the motion"""
   Description: String
   ID: String!
+  Meeting: String!
   MeetingID: String!
+  MovedByMembership: String
 
   """The committee member who made the motion"""
   MovedByMembershipID: String
@@ -27609,6 +27731,7 @@ type mjCommitteesMotion_ {
 
   """Human-readable vote tally, e.g. 7-2-1 or Passed unanimously"""
   ResultSummary: String
+  SecondedByMembership: String
 
   """The committee member who seconded the motion"""
   SecondedByMembershipID: String
@@ -27698,7 +27821,9 @@ type mjCommitteesType_ {
 """Individual vote records for committee motions"""
 type mjCommitteesVote_ {
   ID: String!
+  Membership: String
   MembershipID: String!
+  Motion: String!
   MotionID: String!
 
   """Optional notes explaining the vote"""

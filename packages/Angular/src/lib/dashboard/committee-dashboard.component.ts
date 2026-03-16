@@ -1,8 +1,9 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
-import { RunView } from '@memberjunction/core';
+import { Metadata, RunView } from '@memberjunction/core';
 
 @RegisterClass(BaseResourceComponent, 'CommitteeDashboardComponent')
 @Component({
@@ -17,15 +18,18 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
     ActiveMeetingCount = 0;
     OpenActionItemCount = 0;
     OverdueActionItemCount = 0;
+    DocumentCount = 0;
 
     RecentMeetings: Record<string, unknown>[] = [];
     UpcomingMeetings: Record<string, unknown>[] = [];
     MyActionItems: Record<string, unknown>[] = [];
+    RecentDocuments: Record<string, unknown>[] = [];
 
     IsLoading = true;
     todayString = new Date().toISOString().split('T')[0];
 
     private cdr = inject(ChangeDetectorRef);
+    private router = inject(Router);
 
     async ngOnInit(): Promise<void> {
         this.NotifyLoadStarted();
@@ -43,6 +47,24 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
         return 'fa-solid fa-gauge';
     }
 
+    NavigateToTab(tabName: string): void {
+        this.router.navigate(['/app/mjcommittees', tabName]);
+    }
+
+    GetDocIcon(category: string | null | undefined): string {
+        switch (category) {
+            case 'Minutes': return 'fa-solid fa-file-lines';
+            case 'Agenda': return 'fa-solid fa-list-check';
+            case 'Recording': return 'fa-solid fa-video';
+            case 'Transcript': return 'fa-solid fa-closed-captioning';
+            case 'Presentation': return 'fa-solid fa-file-powerpoint';
+            case 'Spreadsheet': return 'fa-solid fa-file-excel';
+            case 'Image': return 'fa-solid fa-file-image';
+            case 'Document': return 'fa-solid fa-file-word';
+            default: return 'fa-solid fa-file';
+        }
+    }
+
     private async LoadDashboardData(): Promise<void> {
         const rv = new RunView();
         const today = new Date().toISOString().split('T')[0];
@@ -57,7 +79,7 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
             {
                 EntityName: 'Meetings',
                 ExtraFilter: `StartDateTime >= '${today}' AND Status IN ('Scheduled', 'Draft')`,
-                Fields: ['ID', 'Title', 'StartDateTime', 'Committee', 'Status', 'LocationType'],
+                Fields: ['ID', 'Title', 'StartDateTime', 'Committee', 'Status', 'LocationType', 'VideoJoinURL'],
                 OrderBy: 'StartDateTime ASC',
                 MaxRows: 10,
                 ResultType: 'simple'
@@ -99,6 +121,46 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
                     return dueDate != null && dueDate < today;
                 }
             ).length;
+        }
+
+        // Load recent documents via File Entity Record Links
+        await this.LoadRecentDocuments(rv);
+    }
+
+    private async LoadRecentDocuments(rv: RunView): Promise<void> {
+        const md = new Metadata();
+        const committeeEntity = md.Entities.find(e => e.Name === 'Committees');
+        if (!committeeEntity) return;
+
+        // Get file IDs linked to any committee
+        const linksResult = await rv.RunView<{ FileID: string }>({
+            EntityName: 'MJ: File Entity Record Links',
+            Fields: ['FileID'],
+            ExtraFilter: `EntityID = '${committeeEntity.ID}'`,
+            ResultType: 'simple'
+        });
+
+        if (!linksResult.Success || linksResult.Results.length === 0) {
+            this.RecentDocuments = [];
+            this.DocumentCount = 0;
+            return;
+        }
+
+        const fileIDs = [...new Set(linksResult.Results.map(l => l.FileID))];
+        const fileIDFilter = fileIDs.map(id => `'${id}'`).join(', ');
+
+        const filesResult = await rv.RunView<Record<string, unknown>>({
+            EntityName: 'MJ: Files',
+            Fields: ['ID', 'Name', 'Category', 'Provider', '__mj_CreatedAt'],
+            ExtraFilter: `ID IN (${fileIDFilter}) AND Status != 'Deleted'`,
+            OrderBy: '__mj_CreatedAt DESC',
+            MaxRows: 5,
+            ResultType: 'simple'
+        });
+
+        if (filesResult.Success) {
+            this.RecentDocuments = filesResult.Results;
+            this.DocumentCount = filesResult.Results.length;
         }
     }
 }

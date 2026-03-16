@@ -6,8 +6,13 @@
     <div class="action-tracker-container">
         <!-- Page Header -->
         <div class="page-header">
-            <h1 class="page-title">Action Items</h1>
-            <p class="page-subtitle">Track tasks across all committees</p>
+            <div>
+                <h1 class="page-title">Action Items</h1>
+                <p class="page-subtitle">Track tasks across all committees</p>
+            </div>
+            <button class="btn btn-primary" (click)="OnCreateActionItem()">
+                <i class="fa-solid fa-plus"></i> New Action Item
+            </button>
         </div>
 
         <!-- Toolbar -->
@@ -40,7 +45,7 @@
         } @else {
             <div class="action-item-grid">
                 @for (item of FilteredItems; track item['ID']) {
-                    <div class="action-item-card" [class.overdue]="IsOverdue(item)">
+                    <div class="action-item-card" [class.overdue]="IsOverdue(item)" (click)="OnEditActionItem($any(item['ID']))">
                         <div [class]="'item-priority ' + GetPriorityClass(item)"></div>
                         <div class="item-content">
                             <h4 class="item-title">{{ item['Title'] }}</h4>
@@ -82,4 +87,12 @@
             </div>
         }
     </div>
+}
+
+<!-- Edit Dialog -->
+@if (ShowEditDialog) {
+    <action-item-edit-dialog
+        [ActionItemID]="EditingActionItemID"
+        (DialogClosed)="OnDialogClosed($event)">
+    </action-item-edit-dialog>
 }

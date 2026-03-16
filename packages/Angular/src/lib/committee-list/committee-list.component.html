@@ -6,8 +6,13 @@
     <div class="committee-list-container">
         <!-- Page Header -->
         <div class="page-header">
-            <h1 class="page-title">Committees</h1>
-            <p class="page-subtitle">Browse and manage all committees</p>
+            <div class="page-header-text">
+                <h1 class="page-title">Committees</h1>
+                <p class="page-subtitle">Browse and manage all committees</p>
+            </div>
+            <button class="btn btn-primary" (click)="OnCreateCommittee()">
+                <i class="fa-solid fa-plus"></i> New Committee
+            </button>
         </div>
 
         <!-- Toolbar -->
@@ -42,7 +47,9 @@
         } @else {
             <div class="committee-grid">
                 @for (committee of FilteredCommittees; track committee['ID']) {
-                    <div class="committee-card" [class.inactive]="committee['Status'] === 'Inactive'">
+                    <div class="committee-card"
+                         [class.inactive]="committee['Status'] === 'Inactive'"
+                         (click)="OnEditCommittee($any(committee['ID']))">
                         <div class="card-header">
                             <h3 class="committee-name">{{ committee['Name'] }}</h3>
                             @if (committee['Type']) {
@@ -72,4 +79,12 @@
             </div>
         }
     </div>
+}
+
+<!-- Edit Dialog -->
+@if (ShowEditDialog) {
+    <committee-edit-dialog
+        [CommitteeID]="EditingCommitteeID"
+        (DialogClosed)="OnDialogClosed($event)">
+    </committee-edit-dialog>
 }

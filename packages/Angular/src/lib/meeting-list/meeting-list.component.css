@@ -5,7 +5,8 @@
 :host {
     display: block;
     background: #f8fafc;
-    min-height: 100%;
+    height: 100%;
+    overflow-y: auto;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
@@ -24,6 +25,10 @@
 
 /* ─── Page Header ─── */
 .page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
     margin-bottom: 24px;
 }
 
@@ -32,6 +37,32 @@
     font-weight: 800;
     color: #1e293b;
     margin: 0;
+}
+
+/* ─── Buttons ─── */
+.btn {
+    padding: 10px 20px;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+}
+
+.btn-primary {
+    background: #3b82f6;
+    border-color: #2563eb;
+    border-bottom: 3px solid #1d4ed8;
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: #2563eb;
 }
 
 /* ─── Tab Bar ─── */
@@ -223,6 +254,24 @@
     color: #e11d48;
 }
 
+/* ─── Meeting Actions (Join button) ─── */
+.meeting-actions {
+    flex-shrink: 0;
+}
+
+.btn-join {
+    background: #059669;
+    border-color: #047857;
+    border-bottom: 3px solid #065f46;
+    color: #fff;
+    padding: 8px 18px;
+    font-size: 13px;
+}
+
+.btn-join:hover {
+    background: #047857;
+}
+
 /* ─── Empty State ─── */
 .empty-state {
     text-align: center;
@@ -245,6 +294,17 @@
 
 /* ─── Responsive ─── */
 @media (max-width: 600px) {
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .page-header .btn {
+        align-self: stretch;
+        justify-content: center;
+    }
+    .tab-bar {
+        flex-wrap: wrap;
+    }
     .meeting-card {
         flex-direction: column;
         align-items: flex-start;
@@ -257,5 +317,12 @@
     }
     .meeting-date-block .day {
         font-size: 18px;
+    }
+    .meeting-actions {
+        align-self: stretch;
+    }
+    .meeting-actions .btn-join {
+        width: 100%;
+        justify-content: center;
     }
 }

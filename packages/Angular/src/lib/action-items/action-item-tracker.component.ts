@@ -3,6 +3,7 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { RunView } from '@memberjunction/core';
+import { ActionItemDialogResult } from './action-item-edit-dialog.component';
 
 @RegisterClass(BaseResourceComponent, 'ActionItemTrackerComponent')
 @Component({
@@ -18,6 +19,10 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
     IsLoading = true;
     StatusFilter: 'All' | 'Open' | 'InProgress' | 'Completed' = 'Open';
     TodayString = new Date().toISOString().split('T')[0];
+
+    /** Dialog state */
+    ShowEditDialog = false;
+    EditingActionItemID: string | null = null;
 
     private cdr = inject(ChangeDetectorRef);
 
@@ -49,6 +54,26 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
 
     GetPriorityClass(item: Record<string, unknown>): string {
         return 'priority-' + ((item['Priority'] as string || 'medium').toLowerCase());
+    }
+
+    OnCreateActionItem(): void {
+        this.EditingActionItemID = null;
+        this.ShowEditDialog = true;
+        this.cdr.markForCheck();
+    }
+
+    OnEditActionItem(actionItemID: string): void {
+        this.EditingActionItemID = actionItemID;
+        this.ShowEditDialog = true;
+        this.cdr.markForCheck();
+    }
+
+    async OnDialogClosed(result: ActionItemDialogResult): Promise<void> {
+        this.ShowEditDialog = false;
+        if (result.Saved) {
+            await this.LoadActionItems();
+        }
+        this.cdr.markForCheck();
     }
 
     private ApplyFilters(): void {

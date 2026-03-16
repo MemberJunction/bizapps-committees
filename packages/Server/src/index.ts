@@ -19,6 +19,9 @@ import '@mj-biz-apps/committees-actions';
 // Import core services to trigger any class registrations
 import '@mj-biz-apps/committees-core';
 
+// Event handlers
+import { InitCommitteeNotificationHandler } from './event-handlers/CommitteeNotificationHandler.js';
+
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 /**
@@ -38,5 +41,9 @@ export function LoadCommitteesServer(): void {
     // The imports above trigger class registration.
     // This function exists as an explicit call site for clarity
     // and to prevent tree-shaking from removing the imports.
+
+    // Wire up entity event handlers for notifications
+    InitCommitteeNotificationHandler();
+
     console.log('[Committees] Server loaded');
 }

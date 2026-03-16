@@ -4,10 +4,28 @@
     </div>
 } @else {
     <div class="dashboard-container">
-        <!-- Hero -->
+        <!-- Hero + Quick Actions -->
         <div class="dashboard-hero">
-            <h1 class="hero-title">Committees Dashboard</h1>
-            <p class="hero-subtitle">Your overview at a glance</p>
+            <div class="hero-top">
+                <div>
+                    <h1 class="hero-title">Committees Dashboard</h1>
+                    <p class="hero-subtitle">Your overview at a glance</p>
+                </div>
+                <div class="quick-actions">
+                    <button class="btn btn-quick" title="Schedule Meeting" (click)="NavigateToTab('Meetings')">
+                        <i class="fa-solid fa-calendar-plus"></i>
+                        <span class="quick-label">Schedule Meeting</span>
+                    </button>
+                    <button class="btn btn-quick" title="New Action Item" (click)="NavigateToTab('Action Items')">
+                        <i class="fa-solid fa-clipboard-list"></i>
+                        <span class="quick-label">New Action Item</span>
+                    </button>
+                    <button class="btn btn-quick" title="Add Document" (click)="NavigateToTab('Documents')">
+                        <i class="fa-solid fa-file-circle-plus"></i>
+                        <span class="quick-label">Add Document</span>
+                    </button>
+                </div>
+            </div>
         </div>
 
         <!-- Summary Cards -->
@@ -66,6 +84,10 @@
                                     <div class="meeting-title">{{ meeting['Title'] }}</div>
                                     <div class="meeting-meta">
                                         {{ meeting['Committee'] }}
+                                        <span class="meeting-time">
+                                            <i class="fa-regular fa-clock"></i>
+                                            {{ $any(meeting['StartDateTime']) | date:'h:mm a' }}
+                                        </span>
                                         <span class="location-badge">
                                             @if (meeting['LocationType'] === 'Virtual') {
                                                 <i class="fa-solid fa-video"></i>
@@ -78,6 +100,11 @@
                                         </span>
                                     </div>
                                 </div>
+                                @if (meeting['VideoJoinURL']) {
+                                    <a class="btn-join-sm" [href]="meeting['VideoJoinURL']" target="_blank" rel="noopener" (click)="$event.stopPropagation()">
+                                        <i class="fa-solid fa-video"></i> Join
+                                    </a>
+                                }
                             </div>
                         }
                     </div>
@@ -125,26 +152,58 @@
 
         <!-- Recent Meetings -->
         @if (RecentMeetings.length > 0) {
-            <div class="dashboard-panel full-width">
-                <div class="panel-header">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
-                    <h3>Recent Meetings</h3>
+            <div class="dashboard-columns">
+                <div class="dashboard-panel full-width">
+                    <div class="panel-header">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                        <h3>Recent Meetings</h3>
+                    </div>
+                    <div class="meeting-list">
+                        @for (meeting of RecentMeetings; track meeting['ID']) {
+                            <div class="meeting-item">
+                                <div class="meeting-date past">
+                                    {{ $any(meeting['StartDateTime']) | date:'MMM d' }}
+                                </div>
+                                <div class="meeting-info">
+                                    <div class="meeting-title">{{ meeting['Title'] }}</div>
+                                    <div class="meeting-meta">{{ meeting['Committee'] }}</div>
+                                </div>
+                                <div class="meeting-status">
+                                    <span class="status-badge completed">Completed</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
                 </div>
-                <div class="meeting-list">
-                    @for (meeting of RecentMeetings; track meeting['ID']) {
-                        <div class="meeting-item">
-                            <div class="meeting-date">
-                                {{ $any(meeting['StartDateTime']) | date:'MMM d' }}
+            </div>
+        }
+
+        <!-- Recent Documents -->
+        @if (RecentDocuments.length > 0) {
+            <div class="dashboard-columns">
+                <div class="dashboard-panel full-width">
+                    <div class="panel-header">
+                        <i class="fa-solid fa-folder-open"></i>
+                        <h3>Recent Documents</h3>
+                    </div>
+                    <div class="document-list">
+                        @for (doc of RecentDocuments; track doc['ID']) {
+                            <div class="document-item">
+                                <div class="doc-icon-sm">
+                                    <i [class]="GetDocIcon($any(doc['Category']))"></i>
+                                </div>
+                                <div class="doc-info">
+                                    <div class="doc-title">{{ doc['Name'] }}</div>
+                                    <div class="doc-meta-text">
+                                        {{ doc['Provider'] }}
+                                    </div>
+                                </div>
+                                @if (doc['Category']) {
+                                    <div class="doc-type-badge">{{ doc['Category'] }}</div>
+                                }
                             </div>
-                            <div class="meeting-info">
-                                <div class="meeting-title">{{ meeting['Title'] }}</div>
-                                <div class="meeting-meta">{{ meeting['Committee'] }}</div>
-                            </div>
-                            <div class="meeting-status">
-                                <span class="status-badge completed">Completed</span>
-                            </div>
-                        </div>
-                    }
+                        }
+                    </div>
                 </div>
             </div>
         }

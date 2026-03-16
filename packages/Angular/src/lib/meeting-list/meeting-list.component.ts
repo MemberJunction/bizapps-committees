@@ -3,6 +3,7 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { RunView } from '@memberjunction/core';
+import { MeetingDialogResult } from './meeting-edit-dialog.component';
 
 @RegisterClass(BaseResourceComponent, 'MeetingListComponent')
 @Component({
@@ -17,6 +18,10 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
     PastMeetings: Record<string, unknown>[] = [];
     IsLoading = true;
     ActiveTab: 'upcoming' | 'past' = 'upcoming';
+
+    /** Dialog state */
+    ShowEditDialog = false;
+    EditingMeetingID: string | null = null;
 
     private cdr = inject(ChangeDetectorRef);
 
@@ -49,6 +54,31 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
         }
     }
 
+    OnJoinMeeting(event: Event, url: string): void {
+        event.stopPropagation(); // Don't trigger card click (edit)
+        window.open(url, '_blank', 'noopener');
+    }
+
+    OnCreateMeeting(): void {
+        this.EditingMeetingID = null;
+        this.ShowEditDialog = true;
+        this.cdr.markForCheck();
+    }
+
+    OnEditMeeting(meetingID: string): void {
+        this.EditingMeetingID = meetingID;
+        this.ShowEditDialog = true;
+        this.cdr.markForCheck();
+    }
+
+    async OnDialogClosed(result: MeetingDialogResult): Promise<void> {
+        this.ShowEditDialog = false;
+        if (result.Saved) {
+            await this.LoadMeetings();
+        }
+        this.cdr.markForCheck();
+    }
+
     private async LoadMeetings(): Promise<void> {
         const rv = new RunView();
         const today = new Date().toISOString().split('T')[0];
@@ -56,16 +86,16 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
         const [upcoming, past] = await rv.RunViews([
             {
                 EntityName: 'Meetings',
-                ExtraFilter: `StartDateTime >= '${today}'`,
-                Fields: ['ID', 'Title', 'StartDateTime', 'EndDateTime', 'Committee', 'Status', 'LocationType', 'Location'],
+                ExtraFilter: `StartDateTime >= '${today}' AND Status NOT IN ('Cancelled', 'Completed')`,
+                Fields: ['ID', 'Title', 'StartDateTime', 'EndDateTime', 'Committee', 'Status', 'LocationType', 'Location', 'VideoJoinURL'],
                 OrderBy: 'StartDateTime ASC',
                 MaxRows: 50,
                 ResultType: 'simple'
             },
             {
                 EntityName: 'Meetings',
-                ExtraFilter: `StartDateTime < '${today}'`,
-                Fields: ['ID', 'Title', 'StartDateTime', 'EndDateTime', 'Committee', 'Status', 'LocationType', 'Location'],
+                ExtraFilter: `StartDateTime < '${today}' OR Status IN ('Cancelled', 'Completed')`,
+                Fields: ['ID', 'Title', 'StartDateTime', 'EndDateTime', 'Committee', 'Status', 'LocationType', 'Location', 'VideoJoinURL'],
                 OrderBy: 'StartDateTime DESC',
                 MaxRows: 50,
                 ResultType: 'simple'

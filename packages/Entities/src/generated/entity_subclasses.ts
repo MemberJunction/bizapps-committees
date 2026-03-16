@@ -443,6 +443,87 @@ export const mjCommitteesAttendanceSchema = z.object({
 export type mjCommitteesAttendanceEntityType = z.infer<typeof mjCommitteesAttendanceSchema>;
 
 /**
+ * zod schema definition for the entity Comments
+ */
+export const mjCommitteesCommentSchema = z.object({
+    ID: z.string().describe(`
+        * * Field Name: ID
+        * * Display Name: ID
+        * * SQL Data Type: uniqueidentifier
+        * * Default Value: newsequentialid()`),
+    CommitteeID: z.string().describe(`
+        * * Field Name: CommitteeID
+        * * Display Name: Committee
+        * * SQL Data Type: uniqueidentifier
+        * * Related Entity/Foreign Key: Committees (vwCommittees.ID)
+        * * Description: Committee this comment belongs to (always set for easy filtering)`),
+    MeetingID: z.string().nullable().describe(`
+        * * Field Name: MeetingID
+        * * Display Name: Meeting
+        * * SQL Data Type: uniqueidentifier
+        * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)
+        * * Description: Optional meeting this comment is attached to`),
+    AgendaItemID: z.string().nullable().describe(`
+        * * Field Name: AgendaItemID
+        * * Display Name: Agenda Item
+        * * SQL Data Type: uniqueidentifier
+        * * Related Entity/Foreign Key: Agenda Items (vwAgendaItems.ID)
+        * * Description: Optional agenda item this comment is attached to`),
+    ActionItemID: z.string().nullable().describe(`
+        * * Field Name: ActionItemID
+        * * Display Name: Action Item
+        * * SQL Data Type: uniqueidentifier
+        * * Related Entity/Foreign Key: Action Items (vwActionItems.ID)
+        * * Description: Optional action item this comment is attached to`),
+    ArtifactID: z.string().nullable().describe(`
+        * * Field Name: ArtifactID
+        * * Display Name: Artifact
+        * * SQL Data Type: uniqueidentifier
+        * * Related Entity/Foreign Key: Artifacts (vwArtifacts.ID)
+        * * Description: Optional artifact/document this comment is attached to`),
+    ParentCommentID: z.string().nullable().describe(`
+        * * Field Name: ParentCommentID
+        * * Display Name: Parent Comment
+        * * SQL Data Type: uniqueidentifier
+        * * Related Entity/Foreign Key: Comments (vwComments.ID)
+        * * Description: Parent comment for threading; NULL for top-level comments`),
+    PersonID: z.string().describe(`
+        * * Field Name: PersonID
+        * * Display Name: Person
+        * * SQL Data Type: uniqueidentifier
+        * * Related Entity/Foreign Key: MJ.BizApps.Common: People (vwPeopleExtended.ID)
+        * * Description: Person who wrote the comment`),
+    CommentText: z.string().describe(`
+        * * Field Name: CommentText
+        * * Display Name: Comment Text
+        * * SQL Data Type: nvarchar(MAX)
+        * * Description: Comment body text`),
+    MentionedPersonIDs: z.string().nullable().describe(`
+        * * Field Name: MentionedPersonIDs
+        * * Display Name: Mentioned Persons
+        * * SQL Data Type: nvarchar(MAX)
+        * * Description: JSON array of PersonIDs mentioned via @mentions`),
+    IsResolved: z.boolean().describe(`
+        * * Field Name: IsResolved
+        * * Display Name: Resolved
+        * * SQL Data Type: bit
+        * * Default Value: 0
+        * * Description: Whether this comment thread has been resolved`),
+    __mj_CreatedAt: z.date().describe(`
+        * * Field Name: __mj_CreatedAt
+        * * Display Name: Created At
+        * * SQL Data Type: datetimeoffset
+        * * Default Value: getutcdate()`),
+    __mj_UpdatedAt: z.date().describe(`
+        * * Field Name: __mj_UpdatedAt
+        * * Display Name: Updated At
+        * * SQL Data Type: datetimeoffset
+        * * Default Value: getutcdate()`),
+});
+
+export type mjCommitteesCommentEntityType = z.infer<typeof mjCommitteesCommentSchema>;
+
+/**
  * zod schema definition for the entity Committees
  */
 export const mjCommitteesCommitteeSchema = z.object({
@@ -2999,6 +3080,216 @@ export class mjCommitteesAttendanceEntity extends BaseEntity<mjCommitteesAttenda
     */
     get __mj_UpdatedAt(): Date {
         return this.Get('__mj_UpdatedAt');
+    }
+
+    /**
+    * * Field Name: Person
+    * * Display Name: Person
+    * * SQL Data Type: nvarchar(244)
+    */
+    get Person(): string | null {
+        return this.Get('Person');
+    }
+}
+
+
+/**
+ * Comments - strongly typed entity sub-class
+ * * Schema: __mj_Committees
+ * * Base Table: Comment
+ * * Base View: vwComments
+ * * @description Threaded discussion comments on committee meetings, agenda items, action items, and documents
+ * * Primary Key: ID
+ * @extends {BaseEntity}
+ * @class
+ * @public
+ */
+@RegisterClass(BaseEntity, 'Comments')
+export class mjCommitteesCommentEntity extends BaseEntity<mjCommitteesCommentEntityType> {
+    /**
+    * Loads the Comments record from the database
+    * @param ID: string - primary key value to load the Comments record.
+    * @param EntityRelationshipsToLoad - (optional) the relationships to load
+    * @returns {Promise<boolean>} - true if successful, false otherwise
+    * @public
+    * @async
+    * @memberof mjCommitteesCommentEntity
+    * @method
+    * @override
+    */
+    public async Load(ID: string, EntityRelationshipsToLoad?: string[]) : Promise<boolean> {
+        const compositeKey: CompositeKey = new CompositeKey();
+        compositeKey.KeyValuePairs.push({ FieldName: 'ID', Value: ID });
+        return await super.InnerLoad(compositeKey, EntityRelationshipsToLoad);
+    }
+
+    /**
+    * * Field Name: ID
+    * * SQL Data Type: uniqueidentifier
+    * * Default Value: newsequentialid()
+    */
+    get ID(): string {
+        return this.Get('ID');
+    }
+    set ID(value: string) {
+        this.Set('ID', value);
+    }
+
+    /**
+    * * Field Name: CommitteeID
+    * * Display Name: Committee
+    * * SQL Data Type: uniqueidentifier
+    * * Related Entity/Foreign Key: Committees (vwCommittees.ID)
+    */
+    get CommitteeID(): string {
+        return this.Get('CommitteeID');
+    }
+    set CommitteeID(value: string) {
+        this.Set('CommitteeID', value);
+    }
+
+    /**
+    * * Field Name: MeetingID
+    * * Display Name: Meeting
+    * * SQL Data Type: uniqueidentifier
+    * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)
+    */
+    get MeetingID(): string | null {
+        return this.Get('MeetingID');
+    }
+    set MeetingID(value: string | null) {
+        this.Set('MeetingID', value);
+    }
+
+    /**
+    * * Field Name: AgendaItemID
+    * * Display Name: Agenda Item
+    * * SQL Data Type: uniqueidentifier
+    * * Related Entity/Foreign Key: Agenda Items (vwAgendaItems.ID)
+    */
+    get AgendaItemID(): string | null {
+        return this.Get('AgendaItemID');
+    }
+    set AgendaItemID(value: string | null) {
+        this.Set('AgendaItemID', value);
+    }
+
+    /**
+    * * Field Name: ActionItemID
+    * * Display Name: Action Item
+    * * SQL Data Type: uniqueidentifier
+    * * Related Entity/Foreign Key: Action Items (vwActionItems.ID)
+    */
+    get ActionItemID(): string | null {
+        return this.Get('ActionItemID');
+    }
+    set ActionItemID(value: string | null) {
+        this.Set('ActionItemID', value);
+    }
+
+    /**
+    * * Field Name: ArtifactID
+    * * Display Name: Artifact
+    * * SQL Data Type: uniqueidentifier
+    * * Related Entity/Foreign Key: Artifacts (vwArtifacts.ID)
+    */
+    get ArtifactID(): string | null {
+        return this.Get('ArtifactID');
+    }
+    set ArtifactID(value: string | null) {
+        this.Set('ArtifactID', value);
+    }
+
+    /**
+    * * Field Name: ParentCommentID
+    * * Display Name: Parent Comment
+    * * SQL Data Type: uniqueidentifier
+    * * Related Entity/Foreign Key: Comments (vwComments.ID)
+    */
+    get ParentCommentID(): string | null {
+        return this.Get('ParentCommentID');
+    }
+    set ParentCommentID(value: string | null) {
+        this.Set('ParentCommentID', value);
+    }
+
+    /**
+    * * Field Name: PersonID
+    * * Display Name: Person
+    * * SQL Data Type: uniqueidentifier
+    * * Related Entity/Foreign Key: MJ.BizApps.Common: People (vwPeopleExtended.ID)
+    */
+    get PersonID(): string {
+        return this.Get('PersonID');
+    }
+    set PersonID(value: string) {
+        this.Set('PersonID', value);
+    }
+
+    /**
+    * * Field Name: CommentText
+    * * Display Name: Comment Text
+    * * SQL Data Type: nvarchar(MAX)
+    */
+    get CommentText(): string {
+        return this.Get('CommentText');
+    }
+    set CommentText(value: string) {
+        this.Set('CommentText', value);
+    }
+
+    /**
+    * * Field Name: MentionedPersonIDs
+    * * Display Name: Mentioned Persons
+    * * SQL Data Type: nvarchar(MAX)
+    */
+    get MentionedPersonIDs(): string | null {
+        return this.Get('MentionedPersonIDs');
+    }
+    set MentionedPersonIDs(value: string | null) {
+        this.Set('MentionedPersonIDs', value);
+    }
+
+    /**
+    * * Field Name: IsResolved
+    * * Display Name: Resolved
+    * * SQL Data Type: bit
+    * * Default Value: 0
+    */
+    get IsResolved(): boolean {
+        return this.Get('IsResolved');
+    }
+    set IsResolved(value: boolean) {
+        this.Set('IsResolved', value);
+    }
+
+    /**
+    * * Field Name: __mj_CreatedAt
+    * * Display Name: Created At
+    * * SQL Data Type: datetimeoffset
+    * * Default Value: getutcdate()
+    */
+    get __mj_CreatedAt(): Date {
+        return this.Get('__mj_CreatedAt');
+    }
+
+    /**
+    * * Field Name: __mj_UpdatedAt
+    * * Display Name: Updated At
+    * * SQL Data Type: datetimeoffset
+    * * Default Value: getutcdate()
+    */
+    get __mj_UpdatedAt(): Date {
+        return this.Get('__mj_UpdatedAt');
+    }
+
+    /**
+    * * Field Name: Committee
+    * * Display Name: Committee
+    * * SQL Data Type: nvarchar(255)
+    */
+    get Committee(): string {
+        return this.Get('Committee');
     }
 
     /**

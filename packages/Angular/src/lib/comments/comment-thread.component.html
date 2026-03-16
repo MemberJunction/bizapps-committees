@@ -1,0 +1,92 @@
+<div class="comment-thread">
+    <div class="comment-header">
+        <i class="fa-regular fa-comments"></i>
+        <span class="comment-title">Discussion</span>
+        <span class="comment-count" *ngIf="TotalCount > 0">({{ TotalCount }})</span>
+    </div>
+
+    <!-- Loading state -->
+    <mj-loading *ngIf="IsLoading" text="Loading comments..." size="small"></mj-loading>
+
+    <!-- Empty state -->
+    <div class="empty-state" *ngIf="!IsLoading && CommentTree.length === 0">
+        <i class="fa-regular fa-comment-dots"></i>
+        <span>No comments yet. Start the discussion!</span>
+    </div>
+
+    <!-- Comment tree -->
+    <div class="comments-list" *ngIf="!IsLoading && CommentTree.length > 0">
+        <ng-container *ngFor="let node of CommentTree">
+            <ng-container *ngTemplateOutlet="commentNode; context: { $implicit: node, depth: 0 }"></ng-container>
+        </ng-container>
+    </div>
+
+    <!-- New top-level comment -->
+    <div class="new-comment" *ngIf="!IsLoading && CurrentPersonID">
+        <textarea
+            class="comment-input"
+            [(ngModel)]="NewCommentText"
+            placeholder="Add a comment..."
+            rows="2"
+            [disabled]="IsSaving"
+        ></textarea>
+        <div class="comment-actions">
+            <button
+                class="btn btn-primary btn-sm"
+                (click)="OnPostComment()"
+                [disabled]="!NewCommentText.trim() || IsSaving"
+            >
+                <i class="fa-solid fa-paper-plane"></i> Post
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Recursive comment template -->
+<ng-template #commentNode let-node let-depth="depth">
+    <div class="comment-item" [class.resolved]="node.Comment.IsResolved" [style.margin-left.px]="depth * 24">
+        <div class="comment-meta">
+            <span class="comment-author">{{ node.Comment.Person || 'Unknown' }}</span>
+            <span class="comment-time">{{ FormatDate(node.Comment.__mj_CreatedAt) }}</span>
+            <span class="resolved-badge" *ngIf="node.Comment.IsResolved">
+                <i class="fa-solid fa-check-circle"></i> Resolved
+            </span>
+        </div>
+        <div class="comment-body">{{ node.Comment.CommentText }}</div>
+        <div class="comment-toolbar">
+            <button class="btn-link" (click)="ToggleReply(node)" *ngIf="CurrentPersonID">
+                <i class="fa-regular fa-reply"></i> Reply
+            </button>
+            <button class="btn-link" (click)="OnResolve(node)" *ngIf="CurrentPersonID && !node.Comment.ParentCommentID">
+                <i class="fa-regular" [class.fa-circle-check]="!node.Comment.IsResolved" [class.fa-circle-xmark]="node.Comment.IsResolved"></i>
+                {{ node.Comment.IsResolved ? 'Unresolve' : 'Resolve' }}
+            </button>
+        </div>
+
+        <!-- Inline reply box -->
+        <div class="reply-box" *ngIf="node.ShowReplyBox">
+            <textarea
+                class="comment-input reply-input"
+                [(ngModel)]="node.ReplyText"
+                placeholder="Write a reply..."
+                rows="2"
+                [disabled]="IsSaving"
+            ></textarea>
+            <div class="comment-actions">
+                <button
+                    class="btn btn-primary btn-sm"
+                    (click)="OnPostReply(node)"
+                    [disabled]="!node.ReplyText.trim() || IsSaving"
+                >
+                    <i class="fa-solid fa-paper-plane"></i> Reply
+                </button>
+                <button class="btn btn-sm" (click)="ToggleReply(node)">Cancel</button>
+            </div>
+        </div>
+
+        <!-- Nested replies -->
+        <ng-container *ngFor="let child of node.Replies">
+            <ng-container *ngTemplateOutlet="commentNode; context: { $implicit: child, depth: depth + 1 }"></ng-container>
+        </ng-container>
+    </div>
+</ng-template>

@@ -79,6 +79,7 @@
     "dhtmlx-gantt": "^9.1.1",
     "golden-layout": "^2.6.0",
     "hammerjs": "^2.0.8",
+    "@mj-biz-apps/common-entities": "5.10.1",
     "@mj-biz-apps/committees-ng": "1.0.0",
     "@mj-biz-apps/committees-entities": "1.0.0",
     "rxjs": "^7.8.2",

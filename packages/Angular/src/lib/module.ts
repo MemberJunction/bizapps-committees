@@ -2,56 +2,53 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-// Kendo UI modules
-import { ButtonsModule } from '@progress/kendo-angular-buttons';
-import { GridModule } from '@progress/kendo-angular-grid';
-import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
-import { DateInputsModule } from '@progress/kendo-angular-dateinputs';
-import { DialogsModule } from '@progress/kendo-angular-dialog';
-import { InputsModule } from '@progress/kendo-angular-inputs';
-import { LayoutModule } from '@progress/kendo-angular-layout';
-import { LabelModule } from '@progress/kendo-angular-label';
-
 // MJ shared modules
 import { SharedGenericModule } from '@memberjunction/ng-shared-generic';
 
 // Committees components
 import { CommitteeDashboardComponent, LoadCommitteeDashboard } from './dashboard/committee-dashboard.component';
 import { CommitteeListComponent, LoadCommitteeList } from './committee-list/committee-list.component';
+import { CommitteeEditDialogComponent, LoadCommitteeEditDialog } from './committee-list/committee-edit-dialog.component';
 import { MeetingListComponent, LoadMeetingList } from './meeting-list/meeting-list.component';
+import { MeetingEditDialogComponent, LoadMeetingEditDialog } from './meeting-list/meeting-edit-dialog.component';
 import { ActionItemTrackerComponent, LoadActionItemTracker } from './action-items/action-item-tracker.component';
+import { ActionItemEditDialogComponent, LoadActionItemEditDialog } from './action-items/action-item-edit-dialog.component';
 import { DocumentBrowserComponent, LoadDocumentBrowser } from './documents/document-browser.component';
+import { DocumentEditDialogComponent, LoadDocumentEditDialog } from './documents/document-edit-dialog.component';
 import { PersonPickerComponent } from './shared/person-picker.component';
+import { CommentThreadComponent, LoadCommentThread } from './comments/comment-thread.component';
 
 @NgModule({
     declarations: [
         CommitteeDashboardComponent,
         CommitteeListComponent,
+        CommitteeEditDialogComponent,
         MeetingListComponent,
+        MeetingEditDialogComponent,
         ActionItemTrackerComponent,
+        ActionItemEditDialogComponent,
         DocumentBrowserComponent,
+        DocumentEditDialogComponent,
         PersonPickerComponent,
+        CommentThreadComponent,
     ],
     imports: [
         CommonModule,
         FormsModule,
-        ButtonsModule,
-        GridModule,
-        DropDownsModule,
-        DateInputsModule,
-        DialogsModule,
-        InputsModule,
-        LayoutModule,
-        LabelModule,
         SharedGenericModule,
     ],
     exports: [
         CommitteeDashboardComponent,
         CommitteeListComponent,
+        CommitteeEditDialogComponent,
         MeetingListComponent,
+        MeetingEditDialogComponent,
         ActionItemTrackerComponent,
+        ActionItemEditDialogComponent,
         DocumentBrowserComponent,
+        DocumentEditDialogComponent,
         PersonPickerComponent,
+        CommentThreadComponent,
     ]
 })
 export class CommitteesModule { }
@@ -60,7 +57,12 @@ export class CommitteesModule { }
 export function LoadCommitteesModule() {
     LoadCommitteeDashboard();
     LoadCommitteeList();
+    LoadCommitteeEditDialog();
     LoadMeetingList();
+    LoadMeetingEditDialog();
     LoadActionItemTracker();
+    LoadActionItemEditDialog();
     LoadDocumentBrowser();
+    LoadDocumentEditDialog();
+    LoadCommentThread();
 }

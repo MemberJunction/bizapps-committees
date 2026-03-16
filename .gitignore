@@ -3,6 +3,12 @@
 node_modules/
 .turbo/
 .angular/
+.playwright-cli/
+dashboard-*.png
+dashboard-*.yml
+home.yml
+logged-in.yml
+login.yml
 codegen.output.log
 dist/
 SQL Scripts/

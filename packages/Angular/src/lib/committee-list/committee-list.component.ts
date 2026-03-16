@@ -3,6 +3,7 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { RunView } from '@memberjunction/core';
+import { CommitteeDialogResult } from './committee-edit-dialog.component';
 
 @RegisterClass(BaseResourceComponent, 'CommitteeListComponent')
 @Component({
@@ -18,6 +19,10 @@ export class CommitteeListComponent extends BaseResourceComponent implements OnI
     IsLoading = true;
     SearchText = '';
     StatusFilter: 'All' | 'Active' | 'Inactive' = 'Active';
+
+    /** Dialog state */
+    ShowEditDialog = false;
+    EditingCommitteeID: string | null = null;
 
     private cdr = inject(ChangeDetectorRef);
 
@@ -45,6 +50,26 @@ export class CommitteeListComponent extends BaseResourceComponent implements OnI
     OnStatusFilterChanged(status: 'All' | 'Active' | 'Inactive'): void {
         this.StatusFilter = status;
         this.ApplyFilters();
+    }
+
+    OnCreateCommittee(): void {
+        this.EditingCommitteeID = null;
+        this.ShowEditDialog = true;
+        this.cdr.markForCheck();
+    }
+
+    OnEditCommittee(committeeID: string): void {
+        this.EditingCommitteeID = committeeID;
+        this.ShowEditDialog = true;
+        this.cdr.markForCheck();
+    }
+
+    async OnDialogClosed(result: CommitteeDialogResult): Promise<void> {
+        this.ShowEditDialog = false;
+        if (result.Saved) {
+            await this.LoadCommittees();
+        }
+        this.cdr.markForCheck();
     }
 
     private ApplyFilters(): void {

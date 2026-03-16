@@ -1,0 +1,224 @@
+<!-- Backdrop -->
+<div class="dialog-backdrop" (click)="OnClose()"></div>
+
+<!-- Dialog -->
+<div class="dialog-panel">
+    <div class="dialog-header">
+        <h2 class="dialog-title">{{ DialogTitle }}</h2>
+        <button class="dialog-close" (click)="OnClose()" [disabled]="IsSaving">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    @if (IsLoading) {
+        <div class="dialog-loading">
+            <mj-loading text="Loading..."></mj-loading>
+        </div>
+    } @else if (Meeting) {
+        <div class="dialog-body">
+            @if (ErrorMessage) {
+                <div class="error-banner">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ ErrorMessage }}
+                </div>
+            }
+
+            <!-- Title (required) -->
+            <div class="form-group">
+                <label class="form-label required">Title</label>
+                <input class="form-input"
+                    type="text"
+                    [ngModel]="Meeting.Title"
+                    (ngModelChange)="Meeting.Title = $event"
+                    placeholder="Meeting title" />
+            </div>
+
+            <!-- Committee & Status row -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label required">Committee</label>
+                    <select class="form-input"
+                        [ngModel]="Meeting.CommitteeID"
+                        (ngModelChange)="Meeting.CommitteeID = $event">
+                        <option [ngValue]="null" disabled>Select committee...</option>
+                        @for (c of Committees; track c.ID) {
+                            <option [ngValue]="c.ID">{{ c.Name }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select class="form-input"
+                        [ngModel]="Meeting.Status"
+                        (ngModelChange)="Meeting.Status = $event">
+                        @for (status of StatusOptions; track status) {
+                            <option [ngValue]="status">{{ status }}</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- Start & End DateTime row -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label required">Start Date/Time</label>
+                    <input class="form-input"
+                        type="datetime-local"
+                        [ngModel]="StartDateTimeLocal"
+                        (ngModelChange)="StartDateTimeLocal = $event" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">End Date/Time</label>
+                    <input class="form-input"
+                        type="datetime-local"
+                        [ngModel]="EndDateTimeLocal"
+                        (ngModelChange)="EndDateTimeLocal = $event" />
+                </div>
+            </div>
+
+            <!-- Location Type & Location row -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Location Type</label>
+                    <select class="form-input"
+                        [ngModel]="Meeting.LocationType"
+                        (ngModelChange)="Meeting.LocationType = $event">
+                        @for (lt of LocationTypeOptions; track lt) {
+                            <option [ngValue]="lt">{{ lt }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <input class="form-input"
+                        type="text"
+                        [ngModel]="Meeting.LocationText"
+                        (ngModelChange)="Meeting.LocationText = $event"
+                        placeholder="Room name or address" />
+                </div>
+            </div>
+
+            <!-- Video conferencing (Virtual or Hybrid) -->
+            @if (Meeting.LocationType === 'Virtual' || Meeting.LocationType === 'Hybrid') {
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Video Provider</label>
+                        <select class="form-input"
+                            [ngModel]="Meeting.VideoProvider"
+                            (ngModelChange)="Meeting.VideoProvider = $event">
+                            <option [ngValue]="null">None</option>
+                            @for (vp of VideoProviderOptions; track vp) {
+                                <option [ngValue]="vp">{{ vp }}</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Video Join URL</label>
+                        <input class="form-input"
+                            type="url"
+                            [ngModel]="Meeting.VideoJoinURL"
+                            (ngModelChange)="Meeting.VideoJoinURL = $event"
+                            placeholder="https://zoom.us/j/..." />
+                    </div>
+                </div>
+            }
+
+            <!-- Recording & Transcript (for completed/past meetings) -->
+            @if (!IsNew && (Meeting.Status === 'Completed' || Meeting.Status === 'InProgress')) {
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Recording URL</label>
+                        <input class="form-input"
+                            type="url"
+                            [ngModel]="Meeting.VideoRecordingURL"
+                            (ngModelChange)="Meeting.VideoRecordingURL = $event"
+                            placeholder="Link to recording..." />
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Transcript URL</label>
+                        <input class="form-input"
+                            type="url"
+                            [ngModel]="Meeting.TranscriptURL"
+                            (ngModelChange)="Meeting.TranscriptURL = $event"
+                            placeholder="Link to transcript..." />
+                    </div>
+                </div>
+            }
+
+            <!-- Description -->
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-input form-textarea"
+                    [ngModel]="Meeting.Description"
+                    (ngModelChange)="Meeting.Description = $event"
+                    placeholder="Meeting purpose or notes"
+                    rows="2"></textarea>
+            </div>
+
+            <!-- Comment thread (only for existing meetings) -->
+            @if (!IsNew) {
+                <comment-thread
+                    [CommitteeID]="Meeting.CommitteeID"
+                    [MeetingID]="Meeting.ID"
+                ></comment-thread>
+            }
+
+            <!-- Attendees -->
+            <div class="attendees-section">
+                <label class="form-label">Attendees</label>
+                <div class="attendee-add-row">
+                    <select class="form-input"
+                        [ngModel]="SelectedPersonID"
+                        (ngModelChange)="SelectedPersonID = $event">
+                        <option [ngValue]="null">Select person to invite...</option>
+                        @for (person of AvailablePeople; track person.ID) {
+                            <option [ngValue]="person.ID">{{ person.DisplayName }}</option>
+                        }
+                    </select>
+                    <button class="btn btn-secondary btn-sm" (click)="OnAddAttendee()" [disabled]="!SelectedPersonID">
+                        <i class="fa-solid fa-plus"></i> Add
+                    </button>
+                </div>
+                @if (VisibleAttendees.length > 0) {
+                    <div class="attendee-list">
+                        @for (attendee of VisibleAttendees; track attendee.PersonID) {
+                            <div class="attendee-row">
+                                <i class="fa-solid fa-user attendee-icon"></i>
+                                <span class="attendee-name">{{ attendee.DisplayName }}</span>
+                                <span [class]="'attendee-status status-' + attendee.Status.toLowerCase()">{{ attendee.Status }}</span>
+                                <button class="attendee-remove" (click)="OnRemoveAttendee(attendee)" title="Remove">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+                        }
+                    </div>
+                } @else {
+                    <p class="attendee-empty">No attendees added yet.</p>
+                }
+            </div>
+        </div>
+
+        <div class="dialog-actions">
+            <button class="btn btn-primary" (click)="OnSave()" [disabled]="IsSaving">
+                @if (IsSaving) {
+                    <i class="fa-solid fa-spinner fa-spin"></i> Saving...
+                } @else {
+                    {{ IsNew ? 'Schedule' : 'Save' }}
+                }
+            </button>
+            <button class="btn btn-secondary" (click)="OnClose()" [disabled]="IsSaving">Cancel</button>
+            @if (!IsNew && Meeting.Status !== 'Cancelled') {
+                <div class="actions-spacer"></div>
+                @if (!ShowCancelConfirm) {
+                    <button class="btn btn-danger-outline" (click)="ShowCancelConfirm = true" [disabled]="IsSaving">
+                        <i class="fa-solid fa-ban"></i> Cancel Meeting
+                    </button>
+                } @else {
+                    <span class="confirm-text">Are you sure?</span>
+                    <button class="btn btn-danger" (click)="OnCancelMeeting()" [disabled]="IsSaving">Yes, cancel it</button>
+                    <button class="btn btn-secondary" (click)="ShowCancelConfirm = false" [disabled]="IsSaving">No</button>
+                }
+            }
+        </div>
+    }
+</div>

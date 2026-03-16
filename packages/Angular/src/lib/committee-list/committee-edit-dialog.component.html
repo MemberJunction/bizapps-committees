@@ -1,0 +1,152 @@
+<!-- Backdrop -->
+<div class="dialog-backdrop" (click)="OnCancel()"></div>
+
+<!-- Dialog -->
+<div class="dialog-panel">
+    <div class="dialog-header">
+        <h2 class="dialog-title">{{ DialogTitle }}</h2>
+        <button class="dialog-close" (click)="OnCancel()" [disabled]="IsSaving">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    @if (IsLoading) {
+        <div class="dialog-loading">
+            <mj-loading text="Loading..."></mj-loading>
+        </div>
+    } @else if (Committee) {
+        <div class="dialog-body">
+            @if (ErrorMessage) {
+                <div class="error-banner">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ ErrorMessage }}
+                </div>
+            }
+
+            <!-- Name (required) -->
+            <div class="form-group">
+                <label class="form-label required">Committee Name</label>
+                <input class="form-input"
+                    type="text"
+                    [ngModel]="Committee.Name"
+                    (ngModelChange)="Committee.Name = $event"
+                    placeholder="Enter committee name" />
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-input form-textarea"
+                    [ngModel]="Committee.Description"
+                    (ngModelChange)="Committee.Description = $event"
+                    placeholder="Purpose and scope of the committee"
+                    rows="3"></textarea>
+            </div>
+
+            <!-- Type & Status row -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label required">Type</label>
+                    <select class="form-input"
+                        [ngModel]="Committee.TypeID"
+                        (ngModelChange)="Committee.TypeID = $event">
+                        <option [ngValue]="null" disabled>Select type...</option>
+                        @for (type of Types; track type.ID) {
+                            <option [ngValue]="type.ID">{{ type.Name }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Status</label>
+                    <select class="form-input"
+                        [ngModel]="Committee.Status"
+                        (ngModelChange)="Committee.Status = $event">
+                        @for (status of StatusOptions; track status) {
+                            <option [ngValue]="status">{{ status }}</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- Organization & Parent Committee row -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Organization</label>
+                    <select class="form-input"
+                        [ngModel]="Committee.OrganizationID"
+                        (ngModelChange)="Committee.OrganizationID = $event">
+                        <option [ngValue]="null">None</option>
+                        @for (org of Organizations; track org.ID) {
+                            <option [ngValue]="org.ID">{{ org.Name }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Parent Committee</label>
+                    <select class="form-input"
+                        [ngModel]="Committee.ParentCommitteeID"
+                        (ngModelChange)="Committee.ParentCommitteeID = $event">
+                        <option [ngValue]="null">None</option>
+                        @for (parent of ParentCommittees; track parent.ID) {
+                            <option [ngValue]="parent.ID">{{ parent.Name }}</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- Mission Statement -->
+            <div class="form-group">
+                <label class="form-label">Mission Statement</label>
+                <textarea class="form-input form-textarea"
+                    [ngModel]="Committee.MissionStatement"
+                    (ngModelChange)="Committee.MissionStatement = $event"
+                    placeholder="Brief statement of the committee's mission"
+                    rows="2"></textarea>
+            </div>
+
+            <!-- Charter URL & Public toggle row -->
+            <div class="form-row">
+                <div class="form-group" style="flex: 2">
+                    <label class="form-label">Charter Document URL</label>
+                    <input class="form-input"
+                        type="url"
+                        [ngModel]="Committee.CharterDocumentURL"
+                        (ngModelChange)="Committee.CharterDocumentURL = $event"
+                        placeholder="https://..." />
+                </div>
+                <div class="form-group form-group-toggle">
+                    <label class="form-label">Publicly Visible</label>
+                    <label class="toggle">
+                        <input type="checkbox"
+                            [ngModel]="Committee.IsPublic"
+                            (ngModelChange)="Committee.IsPublic = $event" />
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="dialog-actions">
+            <button class="btn btn-primary" (click)="OnSave()" [disabled]="IsSaving">
+                @if (IsSaving) {
+                    <i class="fa-solid fa-spinner fa-spin"></i> Saving...
+                } @else {
+                    {{ IsNew ? 'Create' : 'Save' }}
+                }
+            </button>
+            <button class="btn btn-secondary" (click)="OnCancel()" [disabled]="IsSaving">Cancel</button>
+            @if (!IsNew && Committee.Status !== 'Dissolved') {
+                <div class="actions-spacer"></div>
+                @if (!ShowDissolveConfirm) {
+                    <button class="btn btn-danger-outline" (click)="ShowDissolveConfirm = true" [disabled]="IsSaving">
+                        <i class="fa-solid fa-ban"></i> Dissolve
+                    </button>
+                } @else {
+                    <span class="confirm-text">Are you sure?</span>
+                    <button class="btn btn-danger" (click)="OnDissolve()" [disabled]="IsSaving">Yes, dissolve</button>
+                    <button class="btn btn-secondary" (click)="ShowDissolveConfirm = false" [disabled]="IsSaving">No</button>
+                }
+            }
+        </div>
+    }
+</div>

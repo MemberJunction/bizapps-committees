@@ -2,7 +2,8 @@ import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject }
 import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
-import { RunView } from '@memberjunction/core';
+import { Metadata, RunView } from '@memberjunction/core';
+import { DocumentDialogResult } from './document-edit-dialog.component';
 
 @RegisterClass(BaseResourceComponent, 'DocumentBrowserComponent')
 @Component({
@@ -13,19 +14,23 @@ import { RunView } from '@memberjunction/core';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DocumentBrowserComponent extends BaseResourceComponent implements OnInit {
-    Artifacts: Record<string, unknown>[] = [];
-    FilteredArtifacts: Record<string, unknown>[] = [];
-    ArtifactTypes: Record<string, unknown>[] = [];
+    Files: Record<string, unknown>[] = [];
+    FilteredFiles: Record<string, unknown>[] = [];
+    Categories: Record<string, unknown>[] = [];
     IsLoading = true;
-    TypeFilter = 'All';
-    TypeFilterOptions: string[] = ['All'];
+    CategoryFilter = 'All';
+    CategoryFilterOptions: string[] = ['All'];
     SearchText = '';
+
+    /** Dialog state */
+    ShowEditDialog = false;
+    EditingFileID: string | null = null;
 
     private cdr = inject(ChangeDetectorRef);
 
     async ngOnInit(): Promise<void> {
         this.NotifyLoadStarted();
-        await this.LoadArtifacts();
+        await this.LoadFiles();
         this.IsLoading = false;
         this.NotifyLoadComplete();
         this.cdr.markForCheck();
@@ -44,68 +49,130 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
         this.ApplyFilters();
     }
 
-    OnTypeFilterChanged(type: string): void {
-        this.TypeFilter = type;
+    OnCategoryFilterChanged(category: string): void {
+        this.CategoryFilter = category;
         this.ApplyFilters();
     }
 
-    GetArtifactIcon(typeName: string): string {
-        switch (typeName) {
+    OnCreateDocument(): void {
+        this.EditingFileID = null;
+        this.ShowEditDialog = true;
+        this.cdr.markForCheck();
+    }
+
+    OnOpenDocument(url: string, event: MouseEvent): void {
+        event.stopPropagation(); // Don't trigger the card's edit click
+        window.open(url, '_blank');
+    }
+
+    OnEditDocument(fileID: string): void {
+        this.EditingFileID = fileID;
+        this.ShowEditDialog = true;
+        this.cdr.markForCheck();
+    }
+
+    async OnDialogClosed(result: DocumentDialogResult): Promise<void> {
+        this.ShowEditDialog = false;
+        if (result.Saved) {
+            await this.LoadFiles();
+        }
+        this.cdr.markForCheck();
+    }
+
+    GetDocIcon(categoryName: string): string {
+        switch (categoryName) {
             case 'Agenda': return 'fa-solid fa-list-ol';
             case 'Minutes': return 'fa-solid fa-file-lines';
-            case 'Resolution': return 'fa-solid fa-gavel';
-            case 'Report': return 'fa-solid fa-chart-bar';
-            case 'Policy': return 'fa-solid fa-scale-balanced';
-            case 'Proposal': return 'fa-solid fa-lightbulb';
-            case 'Budget': return 'fa-solid fa-coins';
-            case 'Presentation': return 'fa-solid fa-presentation-screen';
-            case 'Correspondence': return 'fa-solid fa-envelope';
+            case 'Recording': return 'fa-solid fa-video';
+            case 'Transcript': return 'fa-solid fa-closed-captioning';
+            case 'Spreadsheet': return 'fa-solid fa-file-excel';
+            case 'Presentation': return 'fa-solid fa-file-powerpoint';
+            case 'Image': return 'fa-solid fa-file-image';
+            case 'Document': return 'fa-solid fa-file-word';
             default: return 'fa-solid fa-file';
         }
     }
 
     private ApplyFilters(): void {
-        let result = this.Artifacts;
-        if (this.TypeFilter !== 'All') {
-            result = result.filter(a => a['ArtifactType'] === this.TypeFilter);
+        let result = this.Files;
+        if (this.CategoryFilter !== 'All') {
+            result = result.filter(f => f['Category'] === this.CategoryFilter);
         }
         if (this.SearchText.trim()) {
             const term = this.SearchText.toLowerCase();
-            result = result.filter(a =>
-                (a['Title'] as string || '').toLowerCase().includes(term) ||
-                (a['Description'] as string || '').toLowerCase().includes(term)
+            result = result.filter(f =>
+                (f['Name'] as string || '').toLowerCase().includes(term) ||
+                (f['Description'] as string || '').toLowerCase().includes(term)
             );
         }
-        this.FilteredArtifacts = result;
+        this.FilteredFiles = result;
         this.cdr.markForCheck();
     }
 
-    private async LoadArtifacts(): Promise<void> {
+    private async LoadFiles(): Promise<void> {
         const rv = new RunView();
-        const [artifacts, types] = await rv.RunViews([
+        const md = new Metadata();
+
+        // Step 1: Get all File Entity Record Links for committee-related entities
+        const committeeEntityNames = [
+            'Committees',
+            'Meetings',
+            'Agenda Items',
+            'Action Items'
+        ];
+        const entityInfos = committeeEntityNames
+            .map(name => md.Entities.find(e => e.Name === name))
+            .filter(e => e != null);
+
+        if (entityInfos.length === 0) {
+            this.Files = [];
+            this.ApplyFilters();
+            return;
+        }
+
+        const entityIDFilter = entityInfos.map(e => `'${e.ID}'`).join(', ');
+
+        const [linksResult, categoriesResult] = await rv.RunViews([
             {
-                EntityName: 'Artifacts',
-                ExtraFilter: '',
-                Fields: ['ID', 'Title', 'Description', 'ArtifactType', 'Committee', 'Meeting', 'FileURL', 'Status'],
-                OrderBy: '__mj_CreatedAt DESC',
-                MaxRows: 100,
+                EntityName: 'MJ: File Entity Record Links',
+                Fields: ['FileID', 'EntityID', 'RecordID'],
+                ExtraFilter: `EntityID IN (${entityIDFilter})`,
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Artifact Types',
-                ExtraFilter: '',
+                EntityName: 'MJ: File Categories',
                 Fields: ['ID', 'Name'],
                 OrderBy: 'Name ASC',
                 ResultType: 'simple'
             }
         ]);
 
-        if (artifacts.Success) {
-            this.Artifacts = artifacts.Results;
+        if (categoriesResult.Success) {
+            this.Categories = categoriesResult.Results;
+            this.CategoryFilterOptions = ['All', ...categoriesResult.Results.map(c => String(c['Name'] || ''))];
         }
-        if (types.Success) {
-            this.ArtifactTypes = types.Results;
-            this.TypeFilterOptions = ['All', ...types.Results.map(t => String(t['Name'] || ''))];
+
+        if (!linksResult.Success || linksResult.Results.length === 0) {
+            this.Files = [];
+            this.ApplyFilters();
+            return;
+        }
+
+        // Step 2: Load the linked files
+        const fileIDs = [...new Set(linksResult.Results.map(l => String(l['FileID'])))];
+        const fileIDFilter = fileIDs.map(id => `'${id}'`).join(', ');
+
+        const filesResult = await rv.RunView<Record<string, unknown>>({
+            EntityName: 'MJ: Files',
+            Fields: ['ID', 'Name', 'Description', 'Category', 'Provider', 'ContentType', 'Status', 'URL', '__mj_CreatedAt'],
+            ExtraFilter: `ID IN (${fileIDFilter}) AND Status != 'Deleted'`,
+            OrderBy: '__mj_CreatedAt DESC',
+            MaxRows: 200,
+            ResultType: 'simple'
+        });
+
+        if (filesResult.Success) {
+            this.Files = filesResult.Results;
         }
         this.ApplyFilters();
     }

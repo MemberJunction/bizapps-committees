@@ -22,6 +22,16 @@ module.exports = {
    * Output paths for code generation
    * These are specific to this distribution's directory structure
    */
+  /**
+   * Schema-to-package mapping for entity imports in generated code.
+   * Each schema maps to the npm package that provides its entity classes.
+   * Schemas not listed here use the default 'mj_generatedentities' package.
+   */
+  entityPackageName: {
+    '__mj_BizAppsCommon': '@mj-biz-apps/common-entities',
+    '__mj_Committees': '@mj-biz-apps/committees-entities',
+  },
+
   output: [
     { type: 'SQL', directory: './SQL Scripts/generated', appendOutputCode: true },
     {

@@ -21,7 +21,7 @@ interface AttendeeRow {
     standalone: false,
     selector: 'meeting-edit-dialog',
     templateUrl: './meeting-edit-dialog.component.html',
-    styleUrls: ['./meeting-edit-dialog.component.css'],
+    styleUrls: ['../shared/slide-panel.css', './meeting-edit-dialog.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MeetingEditDialogComponent implements OnInit {

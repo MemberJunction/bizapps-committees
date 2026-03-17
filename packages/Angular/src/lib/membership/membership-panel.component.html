@@ -14,12 +14,25 @@
             }
         </div>
 
+        @if (SuccessMessage) {
+            <div class="success-banner">
+                <i class="fa-solid fa-circle-check"></i>
+                {{ SuccessMessage }}
+            </div>
+        }
+
         <!-- No Terms Warning -->
         @if (Terms.length === 0) {
             <div class="empty-state">
                 <i class="fa-solid fa-calendar-xmark"></i>
                 <p>No terms defined for this committee.</p>
-                <p class="empty-hint">Create a term first to start adding members.</p>
+                @if (Permissions.IsOfficer) {
+                    <button class="btn btn-primary empty-action" (click)="OnCreateTerm()">
+                        <i class="fa-solid fa-plus"></i> Create First Term
+                    </button>
+                } @else {
+                    <p class="empty-hint">An officer needs to create a term first.</p>
+                }
             </div>
         } @else {
             <!-- Term Filter & Summary -->
@@ -34,6 +47,16 @@
                         </option>
                     }
                 </select>
+                @if (Permissions.IsOfficer) {
+                    <button class="btn-term-action" (click)="OnCreateTerm()" title="New Term">
+                        <i class="fa-solid fa-plus"></i> New Term
+                    </button>
+                    @if (SelectedTermID) {
+                        <button class="btn-term-action" (click)="OnEditTerm(SelectedTermID)" title="Edit Term">
+                            <i class="fa-solid fa-pen"></i> Edit Term
+                        </button>
+                    }
+                }
                 <span class="member-count">
                     {{ ActiveCount }} active of {{ FilteredMemberships.length }} total
                 </span>
@@ -92,4 +115,13 @@
         [CommitteeID]="CommitteeID"
         (DialogClosed)="OnDialogClosed($event)">
     </membership-edit-dialog>
+}
+
+<!-- Term Edit Dialog -->
+@if (ShowTermDialog) {
+    <term-edit-dialog
+        [TermID]="EditingTermID"
+        [CommitteeID]="CommitteeID"
+        (DialogClosed)="OnTermDialogClosed($event)">
+    </term-edit-dialog>
 }

@@ -105,10 +105,57 @@
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
+.btn-term-action {
+    padding: 8px 14px;
+    border: 2px solid #e2e8f0;
+    border-bottom: 3px solid #e2e8f0;
+    border-radius: 10px;
+    background: #fff;
+    font-size: 13px;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-term-action:hover {
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
+/* ─── Success Banner ─── */
+.success-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: #f0fdf4;
+    border: 2px solid #bbf7d0;
+    border-radius: 10px;
+    color: #16a34a;
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.empty-action {
+    margin-top: 16px;
+}
+
 .member-count {
     font-size: 14px;
     font-weight: 600;
     color: #94a3b8;
+    margin-left: auto;
 }
 
 /* ─── Member Grid ─── */

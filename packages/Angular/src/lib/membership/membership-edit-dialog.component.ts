@@ -19,7 +19,7 @@ interface TermLookup {
     standalone: false,
     selector: 'membership-edit-dialog',
     templateUrl: './membership-edit-dialog.component.html',
-    styleUrls: ['./membership-edit-dialog.component.css'],
+    styleUrls: ['../shared/slide-panel.css', './membership-edit-dialog.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MembershipEditDialogComponent implements OnInit {
@@ -155,8 +155,8 @@ export class MembershipEditDialogComponent implements OnInit {
         const term = this.SelectedTerm;
         if (!term || !this.Membership) return;
 
-        this.Membership.StartDate = new Date(term.StartDate + 'T00:00:00');
-        this.Membership.EndDate = term.EndDate ? new Date(term.EndDate + 'T00:00:00') : null;
+        this.Membership.StartDate = new Date(term.StartDate);
+        this.Membership.EndDate = term.EndDate ? new Date(term.EndDate) : null;
     }
 
     private async LoadOrCreateMembership(): Promise<void> {

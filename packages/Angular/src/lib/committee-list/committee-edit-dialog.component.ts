@@ -11,7 +11,7 @@ export interface CommitteeDialogResult {
     standalone: false,
     selector: 'committee-edit-dialog',
     templateUrl: './committee-edit-dialog.component.html',
-    styleUrls: ['./committee-edit-dialog.component.css'],
+    styleUrls: ['../shared/slide-panel.css', './committee-edit-dialog.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CommitteeEditDialogComponent implements OnInit {

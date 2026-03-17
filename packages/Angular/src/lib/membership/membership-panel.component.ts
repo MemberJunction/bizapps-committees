@@ -1,6 +1,7 @@
 import { Component, Input, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { RunView } from '@memberjunction/core';
 import { MembershipDialogResult } from './membership-edit-dialog.component';
+import { TermDialogResult } from '../terms/term-edit-dialog.component';
 import { CommitteePermissionHelper, CommitteePermissions } from '../shared/committee-permission-helper';
 
 @Component({
@@ -19,6 +20,9 @@ export class MembershipPanelComponent {
 
     ShowEditDialog = false;
     EditingMembershipID: string | null = null;
+
+    ShowTermDialog = false;
+    EditingTermID: string | null = null;
 
     private cdr = inject(ChangeDetectorRef);
     private RoleSequenceMap = new Map<string, number>();
@@ -66,8 +70,53 @@ export class MembershipPanelComponent {
         if (result.Saved) {
             CommitteePermissionHelper.ClearCache();
             await this.LoadMemberships();
+            this.SuccessMessage = this.EditingMembershipID ? 'Membership updated.' : 'Member added.';
+            this.ClearSuccessAfterDelay();
         }
         this.cdr.markForCheck();
+    }
+
+    OnCreateTerm(): void {
+        if (!this.Permissions.IsOfficer) return;
+        this.EditingTermID = null;
+        this.ShowTermDialog = true;
+        this.cdr.markForCheck();
+    }
+
+    OnEditTerm(termID: string): void {
+        if (!this.Permissions.IsOfficer) return;
+        this.EditingTermID = termID;
+        this.ShowTermDialog = true;
+        this.cdr.markForCheck();
+    }
+
+    SuccessMessage = '';
+
+    async OnTermDialogClosed(result: TermDialogResult): Promise<void> {
+        this.ShowTermDialog = false;
+        if (result.Saved) {
+            const isDelete = result.Term == null;
+            await this.LoadTerms();
+            await this.LoadMemberships();
+
+            if (isDelete) {
+                this.SelectedTermID = null;
+                this.SuccessMessage = 'Term deleted.';
+            } else {
+                // Auto-select the saved term
+                this.SelectedTermID = result.Term!.ID;
+                this.SuccessMessage = this.EditingTermID ? 'Term updated.' : 'Term created.';
+            }
+            this.ClearSuccessAfterDelay();
+        }
+        this.cdr.markForCheck();
+    }
+
+    private ClearSuccessAfterDelay(): void {
+        setTimeout(() => {
+            this.SuccessMessage = '';
+            this.cdr.markForCheck();
+        }, 3000);
     }
 
     GetStatusClass(status: string): string {

@@ -1,0 +1,6 @@
+/* Term Edit Dialog — component-specific overrides only.
+   Base styles from ../shared/slide-panel.css */
+
+:host {
+    z-index: 1001;
+}

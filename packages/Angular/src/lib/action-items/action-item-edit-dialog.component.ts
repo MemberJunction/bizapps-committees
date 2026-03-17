@@ -12,7 +12,7 @@ export interface ActionItemDialogResult {
     standalone: false,
     selector: 'action-item-edit-dialog',
     templateUrl: './action-item-edit-dialog.component.html',
-    styleUrls: ['./action-item-edit-dialog.component.css'],
+    styleUrls: ['../shared/slide-panel.css', './action-item-edit-dialog.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ActionItemEditDialogComponent implements OnInit {

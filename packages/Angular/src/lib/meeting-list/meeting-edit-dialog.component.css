@@ -234,3 +234,82 @@
     font-weight: 500;
     margin: 4px 0 0 0;
 }
+
+/* ─── Motions Section ─── */
+.motions-section {
+    margin-top: 4px;
+    padding-top: 20px;
+    border-top: 1px solid #f1f5f9;
+}
+
+.motions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.motion-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #f1f5f9;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.motion-row:hover {
+    border-color: #e2e8f0;
+    background: #fafbfc;
+}
+
+.motion-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.motion-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.motion-meta {
+    font-size: 12px;
+    font-weight: 500;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.motion-meta .meta-sep { color: #e2e8f0; }
+
+.motion-result {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 6px;
+    flex-shrink: 0;
+}
+
+.result-passed { background: #d1fae5; color: #065f46; }
+.result-failed { background: #fef2f2; color: #991b1b; }
+.result-pending { background: #e0e7ff; color: #3730a3; }
+.result-tabled { background: #fef3c7; color: #92400e; }
+.result-withdrawn { background: #f1f5f9; color: #64748b; }
+
+.motions-empty {
+    font-size: 13px;
+    color: #94a3b8;
+    font-weight: 500;
+    margin: 4px 0 0 0;
+}

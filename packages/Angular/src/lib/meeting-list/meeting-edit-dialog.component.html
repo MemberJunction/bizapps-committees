@@ -201,6 +201,43 @@
                 </div>
             }
 
+            <!-- Motions (only for existing meetings) -->
+            @if (!IsNew) {
+                <div class="motions-section">
+                    <div class="section-header">
+                        <label class="form-label">Motions</label>
+                        <button class="btn btn-sm btn-secondary" (click)="OnCreateMotion()">
+                            <i class="fa-solid fa-plus"></i> New Motion
+                        </button>
+                    </div>
+                    @if (Motions.length > 0) {
+                        <div class="motions-list">
+                            @for (motion of Motions; track motion['ID']) {
+                                <div class="motion-row" (click)="OnEditMotion($any(motion['ID']))">
+                                    <div class="motion-info">
+                                        <span class="motion-title">{{ motion['Title'] }}</span>
+                                        <span class="motion-meta">
+                                            @if (motion['MovedByMembership']) {
+                                                Moved: {{ motion['MovedByMembership'] }}
+                                            }
+                                            @if (motion['ResultSummary']) {
+                                                <span class="meta-sep">&middot;</span>
+                                                {{ motion['ResultSummary'] }}
+                                            }
+                                        </span>
+                                    </div>
+                                    <span [class]="'motion-result ' + GetResultClass($any(motion['Result']))">
+                                        {{ motion['Result'] }}
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    } @else {
+                        <p class="motions-empty">No motions recorded for this meeting.</p>
+                    }
+                </div>
+            }
+
             <!-- Comment thread (only for existing meetings) -->
             @if (!IsNew) {
                 <comment-thread
@@ -277,4 +314,14 @@
         [NextSequence]="NextAgendaSequence"
         (DialogClosed)="OnAgendaDialogClosed($event)">
     </agenda-item-edit-dialog>
+}
+
+<!-- Motion Edit Dialog -->
+@if (ShowMotionDialog) {
+    <motion-edit-dialog
+        [MotionID]="EditingMotionID"
+        [MeetingID]="MeetingID ?? Meeting?.ID ?? null"
+        [CommitteeID]="Meeting?.CommitteeID ?? null"
+        (DialogClosed)="OnMotionDialogClosed($event)">
+    </motion-edit-dialog>
 }

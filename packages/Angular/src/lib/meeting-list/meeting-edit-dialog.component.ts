@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy
 import { Metadata, RunView } from '@memberjunction/core';
 import { mjCommitteesMeetingEntity, mjCommitteesAttendanceEntity, mjCommitteesAgendaItemEntity } from '@mj-biz-apps/committees-entities';
 import { AgendaItemDialogResult } from '../agenda/agenda-item-edit-dialog.component';
+import { MotionDialogResult } from '../motions/motion-edit-dialog.component';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 export interface MeetingDialogResult {
@@ -48,6 +49,11 @@ export class MeetingEditDialogComponent implements OnInit {
     ShowAgendaDialog = false;
     EditingAgendaItemID: string | null = null;
 
+    /** Motions */
+    Motions: Record<string, unknown>[] = [];
+    ShowMotionDialog = false;
+    EditingMotionID: string | null = null;
+
     readonly StatusOptions: ('Draft' | 'Scheduled' | 'InProgress' | 'Completed' | 'Cancelled' | 'Postponed')[] =
         ['Draft', 'Scheduled', 'InProgress', 'Completed', 'Cancelled', 'Postponed'];
 
@@ -87,7 +93,8 @@ export class MeetingEditDialogComponent implements OnInit {
         if (!this.IsNew) {
             await Promise.all([
                 this.LoadAttendees(),
-                this.LoadAgendaItems()
+                this.LoadAgendaItems(),
+                this.LoadMotions()
             ]);
         }
         this.IsLoading = false;
@@ -174,6 +181,53 @@ export class MeetingEditDialogComponent implements OnInit {
             attendee.IsRemoved = true;
         }
         this.cdr.markForCheck();
+    }
+
+    /** Motion management */
+    OnCreateMotion(): void {
+        this.EditingMotionID = null;
+        this.ShowMotionDialog = true;
+        this.cdr.markForCheck();
+    }
+
+    OnEditMotion(motionID: string): void {
+        this.EditingMotionID = motionID;
+        this.ShowMotionDialog = true;
+        this.cdr.markForCheck();
+    }
+
+    async OnMotionDialogClosed(result: MotionDialogResult): Promise<void> {
+        this.ShowMotionDialog = false;
+        if (result.Saved) {
+            await this.LoadMotions();
+        }
+        this.cdr.markForCheck();
+    }
+
+    GetResultClass(result: string): string {
+        switch (result) {
+            case 'Passed': return 'result-passed';
+            case 'Failed': return 'result-failed';
+            case 'Pending': return 'result-pending';
+            case 'Tabled': return 'result-tabled';
+            case 'Withdrawn': return 'result-withdrawn';
+            default: return '';
+        }
+    }
+
+    private async LoadMotions(): Promise<void> {
+        if (!this.MeetingID) return;
+        const rv = new RunView();
+        const result = await rv.RunView({
+            EntityName: 'Motions',
+            Fields: ['ID', 'Sequence', 'Title', 'Result', 'ResultSummary', 'MovedByMembership', 'SecondedByMembership', 'YesCount', 'NoCount', 'AbstainCount'],
+            ExtraFilter: `MeetingID = '${this.MeetingID}'`,
+            OrderBy: 'Sequence ASC',
+            ResultType: 'simple'
+        });
+        if (result.Success) {
+            this.Motions = result.Results;
+        }
     }
 
     /** Agenda item management */

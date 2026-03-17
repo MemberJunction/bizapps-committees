@@ -1,0 +1,178 @@
+/* Motion Edit Dialog — Premium Light */
+
+:host {
+    z-index: 1001;
+}
+
+/* ─── Voting Section ─── */
+.voting-section {
+    margin-top: 4px;
+    padding-top: 20px;
+    border-top: 1px solid #f1f5f9;
+    margin-bottom: 20px;
+}
+
+.voting-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.voting-header .form-label {
+    margin-bottom: 0;
+}
+
+.vote-tally {
+    font-size: 12px;
+    font-weight: 600;
+    color: #64748b;
+    background: #f1f5f9;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+
+/* ─── Voter Grid ─── */
+.voter-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.voter-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #fff;
+    border-radius: 10px;
+    border: 1px solid #f1f5f9;
+    transition: border-color 0.15s ease;
+}
+
+.voter-row:hover {
+    border-color: #e2e8f0;
+}
+
+.voter-row.non-voting {
+    opacity: 0.5;
+}
+
+.voter-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    flex: 1;
+}
+
+.voter-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #0f172a;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.voter-role {
+    font-size: 11px;
+    font-weight: 500;
+    color: #94a3b8;
+    white-space: nowrap;
+}
+
+.non-voting-tag {
+    font-size: 10px;
+    font-weight: 600;
+    color: #94a3b8;
+    background: #f1f5f9;
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+/* ─── Vote Buttons ─── */
+.vote-buttons {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.vote-btn {
+    padding: 4px 10px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    background: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+}
+
+.vote-btn:hover {
+    border-color: #d1d5db;
+    color: #64748b;
+}
+
+.vote-btn.active {
+    border-color: transparent;
+    color: #fff;
+}
+
+.vote-btn.vote-yes {
+    background: #10b981;
+    border-color: #10b981;
+    color: #fff;
+}
+
+.vote-btn.vote-no {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #fff;
+}
+
+.vote-btn.vote-abstain {
+    background: #6b7280;
+    border-color: #6b7280;
+    color: #fff;
+}
+
+.vote-btn.vote-absent {
+    background: #e5e7eb;
+    border-color: #e5e7eb;
+    color: #6b7280;
+}
+
+/* ─── Delete Confirmation ─── */
+.delete-confirm-banner {
+    padding: 14px 16px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    animation: fadeIn 0.15s ease;
+}
+
+.delete-confirm-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #991b1b;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.delete-confirm-actions {
+    display: flex;
+    gap: 8px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}

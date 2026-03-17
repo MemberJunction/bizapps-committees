@@ -24,6 +24,10 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
     ShowEditDialog = false;
     EditingMeetingID: string | null = null;
 
+    /** Live view state */
+    ActiveView: 'list' | 'live' = 'list';
+    LiveMeetingID: string | null = null;
+
     /** Permission state */
     IsAnyOfficer = false;
 
@@ -73,8 +77,16 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
     }
 
     OnEditMeeting(meetingID: string): void {
-        this.EditingMeetingID = meetingID;
-        this.ShowEditDialog = true;
+        // Open live view for all users
+        this.LiveMeetingID = meetingID;
+        this.ActiveView = 'live';
+        this.cdr.markForCheck();
+    }
+
+    OnBackToList(): void {
+        this.ActiveView = 'list';
+        this.LiveMeetingID = null;
+        this.LoadMeetings();
         this.cdr.markForCheck();
     }
 

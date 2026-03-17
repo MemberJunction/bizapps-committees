@@ -1,4 +1,9 @@
-@if (IsLoading) {
+@if (ActiveView === 'live' && LiveMeetingID) {
+    <meeting-live-view
+        [MeetingID]="LiveMeetingID"
+        (BackToList)="OnBackToList()">
+    </meeting-live-view>
+} @else if (IsLoading) {
     <div class="list-loading">
         <mj-loading text="Loading meetings..."></mj-loading>
     </div>

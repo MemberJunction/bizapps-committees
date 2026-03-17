@@ -19,6 +19,7 @@ import { PersonPickerComponent } from './shared/person-picker.component';
 import { CommentThreadComponent, LoadCommentThread } from './comments/comment-thread.component';
 import { AgendaItemEditDialogComponent, LoadAgendaItemEditDialog } from './agenda/agenda-item-edit-dialog.component';
 import { MotionEditDialogComponent, LoadMotionEditDialog } from './motions/motion-edit-dialog.component';
+import { MeetingLiveViewComponent, LoadMeetingLiveView } from './meeting-live/meeting-live-view.component';
 import { TermEditDialogComponent, LoadTermEditDialog } from './terms/term-edit-dialog.component';
 import { MembershipListComponent, LoadMembershipList } from './membership/membership-list.component';
 import { MembershipPanelComponent, LoadMembershipPanel } from './membership/membership-panel.component';
@@ -39,6 +40,7 @@ import { MembershipEditDialogComponent, LoadMembershipEditDialog } from './membe
         CommentThreadComponent,
         AgendaItemEditDialogComponent,
         MotionEditDialogComponent,
+        MeetingLiveViewComponent,
         TermEditDialogComponent,
         MembershipListComponent,
         MembershipPanelComponent,
@@ -63,6 +65,7 @@ import { MembershipEditDialogComponent, LoadMembershipEditDialog } from './membe
         CommentThreadComponent,
         AgendaItemEditDialogComponent,
         MotionEditDialogComponent,
+        MeetingLiveViewComponent,
         TermEditDialogComponent,
         MembershipListComponent,
         MembershipPanelComponent,
@@ -85,6 +88,7 @@ export function LoadCommitteesModule() {
     LoadCommentThread();
     LoadAgendaItemEditDialog();
     LoadMotionEditDialog();
+    LoadMeetingLiveView();
     LoadTermEditDialog();
     LoadMembershipList();
     LoadMembershipPanel();

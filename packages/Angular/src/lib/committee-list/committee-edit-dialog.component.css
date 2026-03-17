@@ -299,6 +299,16 @@ select.form-input {
     align-self: center;
 }
 
+/* ─── Read-only mode ─── */
+.dialog-body.readonly .form-input,
+.dialog-body.readonly .form-textarea,
+.dialog-body.readonly select.form-input,
+.dialog-body.readonly .toggle input {
+    pointer-events: none;
+    opacity: 0.7;
+    background: #f8fafc;
+}
+
 /* ─── Responsive ─── */
 @media (max-width: 640px) {
     .dialog-panel {

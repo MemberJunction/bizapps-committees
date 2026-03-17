@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
 import { mjCommitteesMeetingEntity, mjCommitteesAttendanceEntity } from '@mj-biz-apps/committees-entities';
+import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 export interface MeetingDialogResult {
     Saved: boolean;
@@ -219,13 +220,21 @@ export class MeetingEditDialogComponent implements OnInit {
                 ResultType: 'simple'
             }
         ]);
-        if (committeesResult.Success) {
-            this.Committees = committeesResult.Results as { ID: string; Name: string }[];
-        }
+
+        const allCommittees = committeesResult.Success
+            ? committeesResult.Results as { ID: string; Name: string }[]
+            : [];
+
+        const officerCommitteeIDs = await CommitteePermissionHelper.GetOfficerCommitteeIDs();
+        this.Committees = officerCommitteeIDs.size > 0
+            ? allCommittees.filter(c => officerCommitteeIDs.has(c.ID))
+            : allCommittees;
+
         if (peopleResult.Success) {
             this.AllPeople = peopleResult.Results as { ID: string; DisplayName: string }[];
         }
     }
+
 
     private async LoadAttendees(): Promise<void> {
         const rv = new RunView();

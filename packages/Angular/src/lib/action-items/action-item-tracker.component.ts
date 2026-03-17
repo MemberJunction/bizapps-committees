@@ -4,6 +4,7 @@ import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { RunView } from '@memberjunction/core';
 import { ActionItemDialogResult } from './action-item-edit-dialog.component';
+import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 @RegisterClass(BaseResourceComponent, 'ActionItemTrackerComponent')
 @Component({
@@ -24,11 +25,17 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
     ShowEditDialog = false;
     EditingActionItemID: string | null = null;
 
+    /** Permission state */
+    IsAnyOfficer = false;
+
     private cdr = inject(ChangeDetectorRef);
 
     async ngOnInit(): Promise<void> {
         this.NotifyLoadStarted();
-        await this.LoadActionItems();
+        await Promise.all([
+            this.LoadActionItems(),
+            this.LoadPermissions()
+        ]);
         this.IsLoading = false;
         this.NotifyLoadComplete();
         this.cdr.markForCheck();
@@ -74,6 +81,10 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
             await this.LoadActionItems();
         }
         this.cdr.markForCheck();
+    }
+
+    private async LoadPermissions(): Promise<void> {
+        this.IsAnyOfficer = await CommitteePermissionHelper.IsOfficerInAny();
     }
 
     private ApplyFilters(): void {

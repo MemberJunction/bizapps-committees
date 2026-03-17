@@ -2,8 +2,9 @@ import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject }
 import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
-import { Metadata, RunView } from '@memberjunction/core';
+import { RunView } from '@memberjunction/core';
 import { CommitteeDialogResult } from './committee-edit-dialog.component';
+import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 @RegisterClass(BaseResourceComponent, 'CommitteeListComponent')
 @Component({
@@ -24,9 +25,8 @@ export class CommitteeListComponent extends BaseResourceComponent implements OnI
     ShowEditDialog = false;
     EditingCommitteeID: string | null = null;
 
-    /** Permission state: committee IDs where the user is an officer */
+    /** Permission state */
     OfficerCommitteeIDs = new Set<string>();
-    /** Committee IDs where the user is a member (any role) */
     MemberCommitteeIDs = new Set<string>();
 
     private cdr = inject(ChangeDetectorRef);
@@ -107,93 +107,57 @@ export class CommitteeListComponent extends BaseResourceComponent implements OnI
 
     private async LoadCommittees(): Promise<void> {
         const rv = new RunView();
-        const result = await rv.RunView({
-            EntityName: 'Committees',
-            ExtraFilter: '',
-            Fields: ['ID', 'Name', 'Description', 'Type', 'Status', 'ParentCommittee', 'Organization', 'MemberCount'],
-            OrderBy: 'Name ASC',
-            ResultType: 'simple'
-        });
-        if (result.Success) {
-            this.Committees = result.Results;
+        const [committeesResult, termsResult, membershipsResult] = await rv.RunViews([
+            {
+                EntityName: 'Committees',
+                ExtraFilter: '',
+                Fields: ['ID', 'Name', 'Description', 'Type', 'Status', 'ParentCommittee', 'Organization'],
+                OrderBy: 'Name ASC',
+                ResultType: 'simple'
+            },
+            {
+                EntityName: 'Terms',
+                Fields: ['ID', 'CommitteeID'],
+                ResultType: 'simple'
+            },
+            {
+                EntityName: 'Memberships',
+                ExtraFilter: "Status = 'Active'",
+                Fields: ['TermID'],
+                ResultType: 'simple'
+            }
+        ]);
+
+        if (committeesResult.Success) {
+            // Build term → committee map
+            const termToCommittee = new Map<string, string>();
+            if (termsResult.Success) {
+                for (const t of termsResult.Results as { ID: string; CommitteeID: string }[]) {
+                    termToCommittee.set(t.ID, t.CommitteeID);
+                }
+            }
+
+            // Count active memberships per committee
+            const memberCounts = new Map<string, number>();
+            if (membershipsResult.Success) {
+                for (const m of membershipsResult.Results as { TermID: string }[]) {
+                    const cid = termToCommittee.get(m.TermID);
+                    if (cid) memberCounts.set(cid, (memberCounts.get(cid) ?? 0) + 1);
+                }
+            }
+
+            // Attach count to each committee
+            this.Committees = committeesResult.Results.map((c: Record<string, unknown>) => ({
+                ...c,
+                MemberCount: memberCounts.get(c['ID'] as string) ?? 0
+            }));
             this.ApplyFilters();
         }
     }
 
     private async LoadUserMemberships(): Promise<void> {
-        const md = new Metadata();
-        const userID = md.CurrentUser?.ID;
-        if (!userID) return;
-
-        const rv = new RunView();
-
-        // Resolve User → Person
-        const personResult = await rv.RunView<{ ID: string }>({
-            EntityName: 'MJ.BizApps.Common: People',
-            ExtraFilter: `LinkedUserID = '${userID}'`,
-            Fields: ['ID'],
-            MaxRows: 1,
-            ResultType: 'simple'
-        });
-
-        if (!personResult.Success || !personResult.Results || personResult.Results.length === 0) return;
-        const personID = personResult.Results[0].ID;
-
-        // Get all active memberships for this person
-        const memberResult = await rv.RunView<{ RoleID: string; TermID: string }>({
-            EntityName: 'Memberships',
-            ExtraFilter: `PersonID = '${personID}' AND Status = 'Active'`,
-            Fields: ['RoleID', 'TermID'],
-            ResultType: 'simple'
-        });
-
-        if (!memberResult.Success || !memberResult.Results || memberResult.Results.length === 0) return;
-
-        // Resolve Term → Committee
-        const termIDs = [...new Set(memberResult.Results.map(m => m.TermID))];
-        const termIDsStr = termIDs.map(id => `'${id}'`).join(',');
-        const termResult = await rv.RunView<{ ID: string; CommitteeID: string }>({
-            EntityName: 'Terms',
-            ExtraFilter: `ID IN (${termIDsStr})`,
-            Fields: ['ID', 'CommitteeID'],
-            ResultType: 'simple'
-        });
-
-        const termToCommittee = new Map<string, string>();
-        if (termResult.Success && termResult.Results) {
-            for (const t of termResult.Results) {
-                termToCommittee.set(t.ID, t.CommitteeID);
-            }
-        }
-
-        // Resolve which roles are officer roles
-        const roleIDs = [...new Set(memberResult.Results.map(m => m.RoleID))];
-        const roleIDsStr = roleIDs.map(id => `'${id}'`).join(',');
-        const roleResult = await rv.RunView<{ ID: string; IsOfficer: boolean | number }>({
-            EntityName: 'Roles',
-            ExtraFilter: `ID IN (${roleIDsStr})`,
-            Fields: ['ID', 'IsOfficer'],
-            ResultType: 'simple'
-        });
-
-        const officerRoleIDs = new Set<string>();
-        if (roleResult.Success && roleResult.Results) {
-            for (const r of roleResult.Results) {
-                if (r.IsOfficer === true || r.IsOfficer === 1) {
-                    officerRoleIDs.add(r.ID);
-                }
-            }
-        }
-
-        // Build permission sets
-        for (const m of memberResult.Results) {
-            const committeeID = termToCommittee.get(m.TermID);
-            if (!committeeID) continue;
-            this.MemberCommitteeIDs.add(committeeID);
-            if (officerRoleIDs.has(m.RoleID)) {
-                this.OfficerCommitteeIDs.add(committeeID);
-            }
-        }
+        this.OfficerCommitteeIDs = await CommitteePermissionHelper.GetOfficerCommitteeIDs();
+        this.MemberCommitteeIDs = await CommitteePermissionHelper.GetMemberCommitteeIDs();
     }
 }
 

@@ -11,20 +11,22 @@
                     <h1 class="hero-title">Committees Dashboard</h1>
                     <p class="hero-subtitle">Your overview at a glance</p>
                 </div>
-                <div class="quick-actions">
-                    <button class="btn btn-quick" title="Schedule Meeting" (click)="NavigateToTab('Meetings')">
-                        <i class="fa-solid fa-calendar-plus"></i>
-                        <span class="quick-label">Schedule Meeting</span>
-                    </button>
-                    <button class="btn btn-quick" title="New Action Item" (click)="NavigateToTab('Action Items')">
-                        <i class="fa-solid fa-clipboard-list"></i>
-                        <span class="quick-label">New Action Item</span>
-                    </button>
-                    <button class="btn btn-quick" title="Add Document" (click)="NavigateToTab('Documents')">
-                        <i class="fa-solid fa-file-circle-plus"></i>
-                        <span class="quick-label">Add Document</span>
-                    </button>
-                </div>
+                @if (IsAnyOfficer) {
+                    <div class="quick-actions">
+                        <button class="btn btn-quick" title="Schedule Meeting" (click)="NavigateToTab('Meetings')">
+                            <i class="fa-solid fa-calendar-plus"></i>
+                            <span class="quick-label">Schedule Meeting</span>
+                        </button>
+                        <button class="btn btn-quick" title="New Action Item" (click)="NavigateToTab('Action Items')">
+                            <i class="fa-solid fa-clipboard-list"></i>
+                            <span class="quick-label">New Action Item</span>
+                        </button>
+                        <button class="btn btn-quick" title="Add Document" (click)="NavigateToTab('Documents')">
+                            <i class="fa-solid fa-file-circle-plus"></i>
+                            <span class="quick-label">Add Document</span>
+                        </button>
+                    </div>
+                }
             </div>
         </div>
 

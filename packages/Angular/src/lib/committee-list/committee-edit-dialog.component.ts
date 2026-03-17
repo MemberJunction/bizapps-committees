@@ -16,6 +16,7 @@ export interface CommitteeDialogResult {
 })
 export class CommitteeEditDialogComponent implements OnInit {
     @Input() CommitteeID: string | null = null;
+    @Input() ReadOnly = false;
     @Output() DialogClosed = new EventEmitter<CommitteeDialogResult>();
 
     Committee: mjCommitteesCommitteeEntity | null = null;

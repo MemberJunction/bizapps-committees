@@ -10,9 +10,11 @@
                 <h1 class="page-title">Action Items</h1>
                 <p class="page-subtitle">Track tasks across all committees</p>
             </div>
-            <button class="btn btn-primary" (click)="OnCreateActionItem()">
-                <i class="fa-solid fa-plus"></i> New Action Item
-            </button>
+            @if (IsAnyOfficer) {
+                <button class="btn btn-primary" (click)="OnCreateActionItem()">
+                    <i class="fa-solid fa-plus"></i> New Action Item
+                </button>
+            }
         </div>
 
         <!-- Toolbar -->

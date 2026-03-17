@@ -10,9 +10,11 @@
                 <h1 class="page-title">Documents</h1>
                 <p class="page-subtitle">Browse committee documents and files</p>
             </div>
-            <button class="btn btn-primary" (click)="OnCreateDocument()">
-                <i class="fa-solid fa-plus"></i> Add Document
-            </button>
+            @if (IsAnyOfficer) {
+                <button class="btn btn-primary" (click)="OnCreateDocument()">
+                    <i class="fa-solid fa-plus"></i> Add Document
+                </button>
+            }
         </div>
 
         <!-- Toolbar -->

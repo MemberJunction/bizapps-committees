@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
 import { mjCommitteesActionItemEntity } from '@mj-biz-apps/committees-entities';
+import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 export interface ActionItemDialogResult {
     Saved: boolean;
@@ -166,9 +167,16 @@ export class ActionItemEditDialogComponent implements OnInit {
                 ResultType: 'simple'
             }
         ]);
-        if (committeesResult.Success) {
-            this.Committees = committeesResult.Results as { ID: string; Name: string }[];
-        }
+
+        const allCommittees = committeesResult.Success
+            ? committeesResult.Results as { ID: string; Name: string }[]
+            : [];
+
+        const officerCommitteeIDs = await CommitteePermissionHelper.GetOfficerCommitteeIDs();
+        this.Committees = officerCommitteeIDs.size > 0
+            ? allCommittees.filter(c => officerCommitteeIDs.has(c.ID))
+            : allCommittees;
+
         if (meetingsResult.Success) {
             this.Meetings = meetingsResult.Results as { ID: string; Title: string }[];
         }
@@ -176,6 +184,7 @@ export class ActionItemEditDialogComponent implements OnInit {
             this.AllPeople = peopleResult.Results as { ID: string; DisplayName: string }[];
         }
     }
+
 
     private ToLocalDateString(date: Date): string {
         const d = new Date(date);

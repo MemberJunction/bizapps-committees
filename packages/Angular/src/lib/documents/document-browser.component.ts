@@ -4,6 +4,7 @@ import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { Metadata, RunView } from '@memberjunction/core';
 import { DocumentDialogResult } from './document-edit-dialog.component';
+import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 @RegisterClass(BaseResourceComponent, 'DocumentBrowserComponent')
 @Component({
@@ -26,11 +27,17 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
     ShowEditDialog = false;
     EditingFileID: string | null = null;
 
+    /** Permission state */
+    IsAnyOfficer = false;
+
     private cdr = inject(ChangeDetectorRef);
 
     async ngOnInit(): Promise<void> {
         this.NotifyLoadStarted();
-        await this.LoadFiles();
+        await Promise.all([
+            this.LoadFiles(),
+            this.LoadPermissions()
+        ]);
         this.IsLoading = false;
         this.NotifyLoadComplete();
         this.cdr.markForCheck();
@@ -61,7 +68,7 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
     }
 
     OnOpenDocument(url: string, event: MouseEvent): void {
-        event.stopPropagation(); // Don't trigger the card's edit click
+        event.stopPropagation();
         window.open(url, '_blank');
     }
 
@@ -93,6 +100,10 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
         }
     }
 
+    private async LoadPermissions(): Promise<void> {
+        this.IsAnyOfficer = await CommitteePermissionHelper.IsOfficerInAny();
+    }
+
     private ApplyFilters(): void {
         let result = this.Files;
         if (this.CategoryFilter !== 'All') {
@@ -113,7 +124,6 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
         const rv = new RunView();
         const md = new Metadata();
 
-        // Step 1: Get all File Entity Record Links for committee-related entities
         const committeeEntityNames = [
             'Committees',
             'Meetings',
@@ -158,7 +168,6 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
             return;
         }
 
-        // Step 2: Load the linked files
         const fileIDs = [...new Set(linksResult.Results.map(l => String(l['FileID'])))];
         const fileIDFilter = fileIDs.map(id => `'${id}'`).join(', ');
 

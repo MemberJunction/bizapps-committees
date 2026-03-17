@@ -9,6 +9,7 @@ export * from './lib/action-items/action-item-edit-dialog.component';
 export * from './lib/documents/document-browser.component';
 export * from './lib/documents/document-edit-dialog.component';
 export * from './lib/shared/person-picker.component';
+export * from './lib/shared/committee-permission-helper';
 export * from './lib/comments/comment-thread.component';
 export * from './lib/membership/membership-list.component';
 export * from './lib/membership/membership-panel.component';

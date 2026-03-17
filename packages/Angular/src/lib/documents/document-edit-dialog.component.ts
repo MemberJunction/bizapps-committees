@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy
 import { Metadata, RunView } from '@memberjunction/core';
 import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
 import { MJFileEntity, MJFileEntityRecordLinkEntity } from '@memberjunction/core-entities';
+import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 export interface DocumentDialogResult {
     Saved: boolean;
@@ -361,9 +362,15 @@ export class DocumentEditDialogComponent implements OnInit {
                 ResultType: 'simple'
             }
         ]);
-        if (committeesResult.Success) {
-            this.Committees = committeesResult.Results as { ID: string; Name: string }[];
-        }
+        const allCommittees = committeesResult.Success
+            ? committeesResult.Results as { ID: string; Name: string }[]
+            : [];
+
+        const officerCommitteeIDs = await CommitteePermissionHelper.GetOfficerCommitteeIDs();
+        this.Committees = officerCommitteeIDs.size > 0
+            ? allCommittees.filter(c => officerCommitteeIDs.has(c.ID))
+            : allCommittees;
+
         if (meetingsResult.Success) {
             this.Meetings = meetingsResult.Results as { ID: string; Title: string }[];
         }

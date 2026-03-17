@@ -88,6 +88,7 @@
 @if (ShowEditDialog) {
     <committee-edit-dialog
         [CommitteeID]="EditingCommitteeID"
+        [ReadOnly]="EditingCommitteeID != null && !IsOfficerOf(EditingCommitteeID)"
         (DialogClosed)="OnDialogClosed($event)">
     </committee-edit-dialog>
 }

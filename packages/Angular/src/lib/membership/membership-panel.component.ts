@@ -1,13 +1,7 @@
 import { Component, Input, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
-import { Metadata, RunView } from '@memberjunction/core';
+import { RunView } from '@memberjunction/core';
 import { MembershipDialogResult } from './membership-edit-dialog.component';
-
-export interface CommitteePermissions {
-    IsMember: boolean;
-    IsOfficer: boolean;
-    CanManageMembers: boolean;
-    CanView: boolean;
-}
+import { CommitteePermissionHelper, CommitteePermissions } from '../shared/committee-permission-helper';
 
 @Component({
     standalone: false,
@@ -21,12 +15,13 @@ export class MembershipPanelComponent {
     Terms: { ID: string; Name: string; Status: string }[] = [];
     SelectedTermID: string | null = null;
     IsLoading = true;
-    Permissions: CommitteePermissions = { IsMember: false, IsOfficer: false, CanManageMembers: false, CanView: false };
+    Permissions: CommitteePermissions = { IsMember: false, IsOfficer: false, CanManageMembers: false, CanManageMeetings: false, CanEditCommittee: false, CanView: false };
 
     ShowEditDialog = false;
     EditingMembershipID: string | null = null;
 
     private cdr = inject(ChangeDetectorRef);
+    private RoleSequenceMap = new Map<string, number>();
 
     private _CommitteeID: string | null = null;
 
@@ -69,6 +64,7 @@ export class MembershipPanelComponent {
     async OnDialogClosed(result: MembershipDialogResult): Promise<void> {
         this.ShowEditDialog = false;
         if (result.Saved) {
+            CommitteePermissionHelper.ClearCache();
             await this.LoadMemberships();
         }
         this.cdr.markForCheck();
@@ -103,79 +99,11 @@ export class MembershipPanelComponent {
     }
 
     private async LoadUserPermissions(): Promise<void> {
-        const md = new Metadata();
-        const userID = md.CurrentUser?.ID;
-        if (!userID || !this.CommitteeID) {
-            this.Permissions = { IsMember: false, IsOfficer: false, CanManageMembers: false, CanView: false };
+        if (!this.CommitteeID) {
+            this.Permissions = { IsMember: false, IsOfficer: false, CanManageMembers: false, CanManageMeetings: false, CanEditCommittee: false, CanView: false };
             return;
         }
-
-        // Resolve User → Person
-        const rv = new RunView();
-        const personResult = await rv.RunView<{ ID: string }>({
-            EntityName: 'MJ.BizApps.Common: People',
-            ExtraFilter: `LinkedUserID = '${userID}'`,
-            Fields: ['ID'],
-            MaxRows: 1,
-            ResultType: 'simple'
-        });
-
-        if (!personResult.Success || !personResult.Results || personResult.Results.length === 0) {
-            this.Permissions = { IsMember: false, IsOfficer: false, CanManageMembers: false, CanView: false };
-            return;
-        }
-
-        const personID = personResult.Results[0].ID;
-
-        // Find active membership for this person in this committee's terms
-        // (Terms are already loaded or loading in parallel)
-        // We need the terms loaded first, so this runs after LoadTerms via Promise.all
-        await this.resolvePermissionsForPerson(personID);
-    }
-
-    private async resolvePermissionsForPerson(personID: string): Promise<void> {
-        if (this.Terms.length === 0) {
-            this.Permissions = { IsMember: false, IsOfficer: false, CanManageMembers: false, CanView: false };
-            return;
-        }
-
-        const termIDs = this.Terms.map(t => `'${t.ID}'`).join(',');
-        const rv = new RunView();
-
-        // Get ALL active memberships for this person in this committee's terms
-        const memberResult = await rv.RunView<{ RoleID: string }>({
-            EntityName: 'Memberships',
-            ExtraFilter: `PersonID = '${personID}' AND TermID IN (${termIDs}) AND Status = 'Active'`,
-            Fields: ['RoleID'],
-            ResultType: 'simple'
-        });
-
-        if (!memberResult.Success || !memberResult.Results || memberResult.Results.length === 0) {
-            this.Permissions = { IsMember: false, IsOfficer: false, CanManageMembers: false, CanView: false };
-            return;
-        }
-
-        // Get all unique role IDs and check if any are officer roles
-        const roleIDs = [...new Set(memberResult.Results.map(m => m.RoleID))];
-        const roleIDsStr = roleIDs.map(id => `'${id}'`).join(',');
-
-        const roleResult = await rv.RunView<{ ID: string; IsOfficer: boolean | number }>({
-            EntityName: 'Roles',
-            ExtraFilter: `ID IN (${roleIDsStr})`,
-            Fields: ['ID', 'IsOfficer'],
-            ResultType: 'simple'
-        });
-
-        const isOfficer = roleResult.Success && roleResult.Results
-            ? roleResult.Results.some(r => r.IsOfficer === true || r.IsOfficer === 1)
-            : false;
-
-        this.Permissions = {
-            IsMember: true,
-            IsOfficer: isOfficer,
-            CanManageMembers: isOfficer,
-            CanView: true,
-        };
+        this.Permissions = await CommitteePermissionHelper.GetPermissionsForCommittee(this.CommitteeID);
     }
 
     private async LoadTerms(): Promise<void> {
@@ -191,8 +119,6 @@ export class MembershipPanelComponent {
             this.Terms = result.Results as { ID: string; Name: string; Status: string }[];
         }
     }
-
-    private RoleSequenceMap = new Map<string, number>();
 
     private async LoadMemberships(): Promise<void> {
         if (this.Terms.length === 0) {

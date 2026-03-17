@@ -34,33 +34,28 @@ export interface QuorumResult {
  */
 export class MembershipService {
     /**
-     * Creates a new Membership record linking a person to a committee with a
-     * specific role and optional term.
+     * Creates a new Membership record linking a person to a committee via a term
+     * with a specific role.
      */
     public async AddMemberToCommittee(
-        committeeID: string,
         personID: string,
         roleID: string,
-        termID: string | null,
+        termID: string,
         contextUser: UserInfo
     ): Promise<mjCommitteesMembershipEntity> {
         const md = new Metadata();
         const membership = await md.GetEntityObject<mjCommitteesMembershipEntity>('Memberships', contextUser);
         membership.NewRecord();
 
-        membership.CommitteeID = committeeID;
         membership.PersonID = personID;
         membership.RoleID = roleID;
+        membership.TermID = termID;
         membership.StartDate = new Date();
         membership.Status = 'Active';
 
-        if (termID != null) {
-            membership.TermID = termID;
-        }
-
         const saved = await membership.Save();
         if (!saved) {
-            throw new Error(`Failed to add person ${personID} to committee ${committeeID}`);
+            throw new Error(`Failed to add person ${personID} to term ${termID}`);
         }
 
         return membership;
@@ -68,13 +63,29 @@ export class MembershipService {
 
     /**
      * Returns all active members for a committee with their role and person
-     * details using a read-only simple query.
+     * details using a read-only simple query. Resolves through Terms.
      */
     public async GetActiveMembers(
         committeeID: string,
         contextUser: UserInfo
     ): Promise<ActiveMemberInfo[]> {
         const rv = new RunView();
+
+        // Step 1: Get term IDs for this committee
+        const termsResult = await rv.RunView<{ ID: string }>({
+            EntityName: 'Terms',
+            ExtraFilter: `CommitteeID='${committeeID}'`,
+            Fields: ['ID'],
+            ResultType: 'simple',
+        }, contextUser);
+
+        if (!termsResult.Success || !termsResult.Results || termsResult.Results.length === 0) {
+            return [];
+        }
+
+        const termIDs = termsResult.Results.map(t => `'${t.ID}'`).join(',');
+
+        // Step 2: Get active memberships for those terms
         const result = await rv.RunView<{
             ID: string;
             PersonID: string;
@@ -85,7 +96,7 @@ export class MembershipService {
             Status: string;
         }>({
             EntityName: 'Memberships',
-            ExtraFilter: `CommitteeID='${committeeID}' AND Status='Active'`,
+            ExtraFilter: `TermID IN (${termIDs}) AND Status='Active'`,
             Fields: ['ID', 'PersonID', 'Person', 'RoleID', 'Role', 'StartDate', 'Status'],
             OrderBy: 'Role, Person',
             ResultType: 'simple',
@@ -150,7 +161,7 @@ export class MembershipService {
 
     /**
      * Batch-loads voting members for the committee and attendance records for the
-     * meeting using RunViews (plural).
+     * meeting using RunViews (plural). Resolves memberships through Terms.
      */
     private async loadQuorumData(
         meetingID: string,
@@ -159,10 +170,24 @@ export class MembershipService {
     ): Promise<[{ PersonID: string; IsVotingRole: boolean }[], { PersonID: string; AttendanceStatus: string }[]]> {
         const rv = new RunView();
 
+        // First get term IDs for the committee
+        const termsResult = await rv.RunView<{ ID: string }>({
+            EntityName: 'Terms',
+            ExtraFilter: `CommitteeID='${committeeID}'`,
+            Fields: ['ID'],
+            ResultType: 'simple',
+        }, contextUser);
+
+        if (!termsResult.Success || !termsResult.Results || termsResult.Results.length === 0) {
+            return [[], []];
+        }
+
+        const termIDs = termsResult.Results.map(t => `'${t.ID}'`).join(',');
+
         const [membersResult, attendanceResult] = await rv.RunViews([
             {
                 EntityName: 'Memberships',
-                ExtraFilter: `CommitteeID='${committeeID}' AND Status='Active'`,
+                ExtraFilter: `TermID IN (${termIDs}) AND Status='Active'`,
                 Fields: ['PersonID', 'RoleID'],
                 ResultType: 'simple',
             },

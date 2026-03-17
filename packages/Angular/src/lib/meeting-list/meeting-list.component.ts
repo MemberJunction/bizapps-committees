@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject }
 import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
-import { RunView } from '@memberjunction/core';
+import { Metadata, RunView } from '@memberjunction/core';
 import { MeetingDialogResult } from './meeting-edit-dialog.component';
 
 @RegisterClass(BaseResourceComponent, 'MeetingListComponent')
@@ -23,11 +23,17 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
     ShowEditDialog = false;
     EditingMeetingID: string | null = null;
 
+    /** Permission state */
+    IsAnyOfficer = false;
+
     private cdr = inject(ChangeDetectorRef);
 
     async ngOnInit(): Promise<void> {
         this.NotifyLoadStarted();
-        await this.LoadMeetings();
+        await Promise.all([
+            this.LoadMeetings(),
+            this.LoadUserOfficerStatus()
+        ]);
         this.IsLoading = false;
         this.NotifyLoadComplete();
         this.cdr.markForCheck();
@@ -77,6 +83,43 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
             await this.LoadMeetings();
         }
         this.cdr.markForCheck();
+    }
+
+    private async LoadUserOfficerStatus(): Promise<void> {
+        const md = new Metadata();
+        const userID = md.CurrentUser?.ID;
+        if (!userID) return;
+
+        const rv = new RunView();
+        const personResult = await rv.RunView<{ ID: string }>({
+            EntityName: 'MJ.BizApps.Common: People',
+            ExtraFilter: `LinkedUserID = '${userID}'`,
+            Fields: ['ID'],
+            MaxRows: 1,
+            ResultType: 'simple'
+        });
+        if (!personResult.Success || !personResult.Results || personResult.Results.length === 0) return;
+
+        const personID = personResult.Results[0].ID;
+        const memberResult = await rv.RunView<{ RoleID: string }>({
+            EntityName: 'Memberships',
+            ExtraFilter: `PersonID = '${personID}' AND Status = 'Active'`,
+            Fields: ['RoleID'],
+            ResultType: 'simple'
+        });
+        if (!memberResult.Success || !memberResult.Results || memberResult.Results.length === 0) return;
+
+        const roleIDs = [...new Set(memberResult.Results.map(m => m.RoleID))];
+        const roleIDsStr = roleIDs.map(id => `'${id}'`).join(',');
+        const roleResult = await rv.RunView<{ IsOfficer: boolean | number }>({
+            EntityName: 'Roles',
+            ExtraFilter: `ID IN (${roleIDsStr}) AND IsOfficer = 1`,
+            Fields: ['ID'],
+            MaxRows: 1,
+            ResultType: 'simple'
+        });
+
+        this.IsAnyOfficer = roleResult.Success && roleResult.Results != null && roleResult.Results.length > 0;
     }
 
     private async LoadMeetings(): Promise<void> {

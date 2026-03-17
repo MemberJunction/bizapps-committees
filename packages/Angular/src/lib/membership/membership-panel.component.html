@@ -1,0 +1,95 @@
+@if (IsLoading) {
+    <div class="list-loading">
+        <mj-loading text="Loading members..."></mj-loading>
+    </div>
+} @else {
+    <div class="membership-panel-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">Members</h1>
+            @if (Permissions.CanManageMembers) {
+                <button class="btn btn-primary" (click)="OnCreateMembership()" [disabled]="Terms.length === 0">
+                    <i class="fa-solid fa-user-plus"></i> Add Member
+                </button>
+            }
+        </div>
+
+        <!-- No Terms Warning -->
+        @if (Terms.length === 0) {
+            <div class="empty-state">
+                <i class="fa-solid fa-calendar-xmark"></i>
+                <p>No terms defined for this committee.</p>
+                <p class="empty-hint">Create a term first to start adding members.</p>
+            </div>
+        } @else {
+            <!-- Term Filter & Summary -->
+            <div class="filter-bar">
+                <select class="filter-select"
+                    [ngModel]="SelectedTermID"
+                    (ngModelChange)="OnTermFilterChanged($event)">
+                    <option [ngValue]="null">All Terms</option>
+                    @for (term of Terms; track term.ID) {
+                        <option [ngValue]="term.ID">{{ term.Name }}
+                            @if (term.Status === 'Active') { (Active) }
+                        </option>
+                    }
+                </select>
+                <span class="member-count">
+                    {{ ActiveCount }} active of {{ FilteredMemberships.length }} total
+                </span>
+            </div>
+
+            <!-- Member List -->
+            @if (FilteredMemberships.length === 0) {
+                <div class="empty-state">
+                    <i class="fa-solid fa-users-slash"></i>
+                    <p>No members found for the selected term.</p>
+                </div>
+            } @else {
+                <div class="member-grid">
+                    @for (member of FilteredMemberships; track member['ID']) {
+                        <div class="member-card" [class.clickable]="Permissions.CanManageMembers" (click)="OnEditMembership($any(member['ID']))">
+                            <div class="member-avatar">
+                                <i [class]="GetRoleIcon($any(member['Role']))"></i>
+                            </div>
+                            <div class="member-details">
+                                <h3 class="member-name">{{ member['Person'] }}</h3>
+                                <div class="member-meta">
+                                    <span class="role-badge">{{ member['Role'] }}</span>
+                                    <span class="term-name">
+                                        <i class="fa-solid fa-calendar"></i>
+                                        {{ member['Term'] }}
+                                    </span>
+                                </div>
+                                @if (member['StartDate']) {
+                                    <div class="member-dates">
+                                        <i class="fa-solid fa-clock"></i>
+                                        {{ $any(member['StartDate']) | date:'MMM d, yyyy' }}
+                                        &ndash;
+                                        @if (member['EndDate']) {
+                                            {{ $any(member['EndDate']) | date:'MMM d, yyyy' }}
+                                        } @else {
+                                            Ongoing
+                                        }
+                                    </div>
+                                }
+                            </div>
+                            <span [class]="GetStatusClass($any(member['Status']))">
+                                {{ member['Status'] }}
+                            </span>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+}
+
+<!-- Edit Dialog -->
+@if (ShowEditDialog) {
+    <membership-edit-dialog
+        [MembershipID]="EditingMembershipID"
+        [CommitteeID]="CommitteeID"
+        (DialogClosed)="OnDialogClosed($event)">
+    </membership-edit-dialog>
+}

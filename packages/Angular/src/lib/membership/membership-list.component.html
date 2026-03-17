@@ -1,0 +1,38 @@
+@if (IsLoading) {
+    <div class="list-loading">
+        <mj-loading text="Loading..."></mj-loading>
+    </div>
+} @else {
+    <div class="membership-list-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">Members</h1>
+        </div>
+
+        @if (Committees.length === 0) {
+            <div class="empty-state">
+                <i class="fa-solid fa-users-slash"></i>
+                <p>You are not a member of any committees.</p>
+            </div>
+        } @else {
+            <!-- Committee Selector -->
+            <div class="committee-selector">
+                <label class="selector-label">Committee</label>
+                <select class="selector-input"
+                    [ngModel]="SelectedCommitteeID"
+                    (ngModelChange)="OnCommitteeChanged($event)">
+                    @for (committee of Committees; track committee.ID) {
+                        <option [ngValue]="committee.ID">{{ committee.Name }}</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Membership Panel -->
+            @if (SelectedCommitteeID) {
+                <committees-membership-panel
+                    [CommitteeID]="SelectedCommitteeID">
+                </committees-membership-panel>
+            }
+        }
+    </div>
+}

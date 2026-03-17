@@ -1,0 +1,131 @@
+<!-- Backdrop -->
+<div class="dialog-backdrop" (click)="OnClose()"></div>
+
+<!-- Dialog -->
+<div class="dialog-panel">
+    <div class="dialog-header">
+        <h2 class="dialog-title">{{ DialogTitle }}</h2>
+        <button class="dialog-close" (click)="OnClose()" [disabled]="IsSaving">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    @if (IsLoading) {
+        <div class="dialog-loading">
+            <mj-loading text="Loading..."></mj-loading>
+        </div>
+    } @else if (Membership) {
+        <div class="dialog-body">
+            @if (ErrorMessage) {
+                <div class="error-banner">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ ErrorMessage }}
+                </div>
+            }
+
+            <!-- Person -->
+            <div class="form-group">
+                <label class="form-label required">Person</label>
+                @if (IsNew) {
+                    <committees-person-picker
+                        [SelectedPersonID]="Membership.PersonID"
+                        (PersonSelected)="OnPersonSelected($event)">
+                    </committees-person-picker>
+                } @else {
+                    <div class="readonly-value">
+                        <i class="fa-solid fa-user"></i>
+                        {{ Membership.Person || 'Unknown' }}
+                    </div>
+                }
+            </div>
+
+            <!-- Role & Term row -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label required">Role</label>
+                    <select class="form-input"
+                        [ngModel]="Membership.RoleID"
+                        (ngModelChange)="Membership.RoleID = $event">
+                        <option [ngValue]="null" disabled>Select role...</option>
+                        @for (role of Roles; track role.ID) {
+                            <option [ngValue]="role.ID">{{ role.Name }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Term</label>
+                    <select class="form-input"
+                        [ngModel]="Membership.TermID"
+                        (ngModelChange)="OnTermChanged($event)">
+                        <option [ngValue]="null" disabled>Select term...</option>
+                        @for (term of Terms; track term.ID) {
+                            <option [ngValue]="term.ID">{{ term.Name }}</option>
+                        }
+                    </select>
+                    @if (TermDateRange) {
+                        <span class="term-dates-hint">
+                            <i class="fa-solid fa-calendar"></i> {{ TermDateRange }}
+                        </span>
+                    }
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select class="form-input"
+                    [ngModel]="Membership.Status"
+                    (ngModelChange)="Membership.Status = $event">
+                    @for (status of StatusOptions; track status) {
+                        <option [ngValue]="status">{{ status }}</option>
+                    }
+                </select>
+            </div>
+
+            <!-- End Reason (shown when Status is Ended) -->
+            @if (ShowEndReason) {
+                <div class="form-group">
+                    <label class="form-label">End Reason</label>
+                    <input class="form-input"
+                        type="text"
+                        [ngModel]="Membership.EndReason"
+                        (ngModelChange)="Membership.EndReason = $event"
+                        placeholder="e.g. Term ended, Resigned, Removed" />
+                </div>
+            }
+
+            <!-- Notes -->
+            <div class="form-group">
+                <label class="form-label">Notes</label>
+                <textarea class="form-input form-textarea"
+                    [ngModel]="Membership.Notes"
+                    (ngModelChange)="Membership.Notes = $event"
+                    placeholder="Additional notes..."
+                    rows="2"></textarea>
+            </div>
+        </div>
+
+        <div class="dialog-actions">
+            <button class="btn btn-primary" (click)="OnSave()" [disabled]="IsSaving">
+                @if (IsSaving) {
+                    <i class="fa-solid fa-spinner fa-spin"></i> Saving...
+                } @else {
+                    {{ IsNew ? 'Add Member' : 'Save' }}
+                }
+            </button>
+            <button class="btn btn-secondary" (click)="OnClose()" [disabled]="IsSaving">Cancel</button>
+            @if (!IsNew && Membership.Status !== 'Ended') {
+                <div class="actions-spacer"></div>
+                @if (!ShowEndConfirm) {
+                    <button class="btn btn-danger-outline" (click)="ShowEndConfirm = true" [disabled]="IsSaving">
+                        <i class="fa-solid fa-user-minus"></i> End Membership
+                    </button>
+                } @else {
+                    <span class="confirm-text">Are you sure?</span>
+                    <button class="btn btn-danger" (click)="OnEndMembership()" [disabled]="IsSaving">Yes, end it</button>
+                    <button class="btn btn-secondary" (click)="ShowEndConfirm = false" [disabled]="IsSaving">No</button>
+                }
+            }
+        </div>
+    }
+</div>

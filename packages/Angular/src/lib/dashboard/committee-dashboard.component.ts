@@ -66,19 +66,27 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
     }
 
     private async LoadDashboardData(): Promise<void> {
+        const myCommitteeIDs = await this.ResolveUserCommitteeIDs();
+
+        if (myCommitteeIDs.length === 0) {
+            // User is not a member of any committees
+            return;
+        }
+
+        const committeeFilter = myCommitteeIDs.map(id => `'${id}'`).join(',');
         const rv = new RunView();
         const today = new Date().toISOString().split('T')[0];
 
         const [committees, upcoming, recent, actionItems] = await rv.RunViews([
             {
                 EntityName: 'Committees',
-                ExtraFilter: "Status='Active'",
+                ExtraFilter: `Status='Active' AND ID IN (${committeeFilter})`,
                 Fields: ['ID'],
                 ResultType: 'simple'
             },
             {
                 EntityName: 'Meetings',
-                ExtraFilter: `StartDateTime >= '${today}' AND Status IN ('Scheduled', 'Draft')`,
+                ExtraFilter: `StartDateTime >= '${today}' AND Status IN ('Scheduled', 'Draft') AND CommitteeID IN (${committeeFilter})`,
                 Fields: ['ID', 'Title', 'StartDateTime', 'Committee', 'Status', 'LocationType', 'VideoJoinURL'],
                 OrderBy: 'StartDateTime ASC',
                 MaxRows: 10,
@@ -86,7 +94,7 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
             },
             {
                 EntityName: 'Meetings',
-                ExtraFilter: `Status = 'Completed'`,
+                ExtraFilter: `Status = 'Completed' AND CommitteeID IN (${committeeFilter})`,
                 Fields: ['ID', 'Title', 'StartDateTime', 'Committee', 'Status'],
                 OrderBy: 'StartDateTime DESC',
                 MaxRows: 5,
@@ -94,7 +102,7 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
             },
             {
                 EntityName: 'Action Items',
-                ExtraFilter: "Status IN ('Open', 'InProgress')",
+                ExtraFilter: `Status IN ('Open', 'InProgress') AND CommitteeID IN (${committeeFilter})`,
                 Fields: ['ID', 'Title', 'DueDate', 'Priority', 'Status', 'Committee', 'AssignedToPerson'],
                 OrderBy: 'DueDate ASC',
                 MaxRows: 20,
@@ -124,19 +132,67 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
         }
 
         // Load recent documents via File Entity Record Links
-        await this.LoadRecentDocuments(rv);
+        await this.LoadRecentDocuments(rv, myCommitteeIDs);
     }
 
-    private async LoadRecentDocuments(rv: RunView): Promise<void> {
+    /**
+     * Resolves the current user's committee IDs through:
+     * User → Person (LinkedUserID) → Membership (active) → Term → Committee
+     */
+    private async ResolveUserCommitteeIDs(): Promise<string[]> {
+        const md = new Metadata();
+        const userID = md.CurrentUser?.ID;
+        if (!userID) return [];
+
+        const rv = new RunView();
+
+        // User → Person
+        const personResult = await rv.RunView<{ ID: string }>({
+            EntityName: 'MJ.BizApps.Common: People',
+            ExtraFilter: `LinkedUserID = '${userID}'`,
+            Fields: ['ID'],
+            MaxRows: 1,
+            ResultType: 'simple'
+        });
+        if (!personResult.Success || !personResult.Results || personResult.Results.length === 0) return [];
+
+        const personID = personResult.Results[0].ID;
+
+        // Person → Active Memberships
+        const memberResult = await rv.RunView<{ TermID: string }>({
+            EntityName: 'Memberships',
+            ExtraFilter: `PersonID = '${personID}' AND Status = 'Active'`,
+            Fields: ['TermID'],
+            ResultType: 'simple'
+        });
+        if (!memberResult.Success || !memberResult.Results || memberResult.Results.length === 0) return [];
+
+        // Terms → Committees
+        const termIDs = [...new Set(memberResult.Results.map(m => m.TermID))];
+        const termIDsStr = termIDs.map(id => `'${id}'`).join(',');
+        const termResult = await rv.RunView<{ CommitteeID: string }>({
+            EntityName: 'Terms',
+            ExtraFilter: `ID IN (${termIDsStr})`,
+            Fields: ['CommitteeID'],
+            ResultType: 'simple'
+        });
+        if (!termResult.Success || !termResult.Results) return [];
+
+        return [...new Set(termResult.Results.map(t => t.CommitteeID))];
+    }
+
+    private async LoadRecentDocuments(rv: RunView, committeeIDs: string[]): Promise<void> {
         const md = new Metadata();
         const committeeEntity = md.Entities.find(e => e.Name === 'Committees');
         if (!committeeEntity) return;
 
-        // Get file IDs linked to any committee
+        const committeeFilter = committeeIDs.map(id => `'${id}'`).join(',');
+
+        // Get file IDs linked to the user's committees
         const linksResult = await rv.RunView<{ FileID: string }>({
             EntityName: 'MJ: File Entity Record Links',
             Fields: ['FileID'],
-            ExtraFilter: `EntityID = '${committeeEntity.ID}'`,
+            ExtraFilter: `EntityID = '${committeeEntity.ID}' AND RecordID IN (${committeeFilter})`,
             ResultType: 'simple'
         });
 

@@ -27,10 +27,11 @@ module.exports = {
    * Each schema maps to the npm package that provides its entity classes.
    * Schemas not listed here use the default 'mj_generatedentities' package.
    */
-  entityPackageName: {
-    '__mj_BizAppsCommon': '@mj-biz-apps/common-entities',
-    '__mj_Committees': '@mj-biz-apps/committees-entities',
-  },
+  // TODO: Re-enable object form after upgrading CLI to >=5.11.0
+  // entityPackageName: {
+  //   '__mj_BizAppsCommon': '@mj-biz-apps/common-entities',
+  //   '__mj_Committees': '@mj-biz-apps/committees-entities',
+  // },
 
   output: [
     { type: 'SQL', directory: './SQL Scripts/generated', appendOutputCode: true },
@@ -40,8 +41,8 @@ module.exports = {
       options: [{ name: 'maxComponentsPerModule', value: 20 }],
     },
     { type: 'GraphQLServer', directory: './apps/MJAPI/src/generated' },
-    { type: 'ActionSubclasses', directory: './packages/GeneratedActions/src/generated' },
-    { type: 'EntitySubclasses', directory: './packages/GeneratedEntities/src/generated' },
+    { type: 'ActionSubclasses', directory: './packages/Actions/src/generated' },
+    { type: 'EntitySubclasses', directory: './packages/Entities/src/generated' },
     { type: 'DBSchemaJSON', directory: './Schema Files' },
   ],
 
@@ -51,13 +52,13 @@ module.exports = {
    */
   commands: [
     {
-      workingDirectory: './packages/GeneratedEntities',
+      workingDirectory: './packages/Entities',
       command: 'npm',
       args: ['run', 'build'],
       when: 'after',
     },
     {
-      workingDirectory: './packages/GeneratedActions',
+      workingDirectory: './packages/Actions',
       command: 'npm',
       args: ['run', 'build'],
       when: 'after',
@@ -182,13 +183,13 @@ module.exports = {
   // Database Connection Overrides
   // ---------------------------------------------------------------------------
   // These come from DEFAULT_SERVER_CONFIG with environment variable defaults
-  // dbHost: process.env.DB_HOST ?? 'localhost',
-  // dbPort: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 1433,
-  // dbDatabase: process.env.DB_DATABASE,
-  // dbUsername: process.env.DB_USERNAME,
-  // dbPassword: process.env.DB_PASSWORD,
-  // codeGenLogin: process.env.CODEGEN_DB_USERNAME,
-  // codeGenPassword: process.env.CODEGEN_DB_PASSWORD,
+  dbHost: process.env.DB_HOST ?? 'localhost',
+  dbPort: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 1433,
+  dbDatabase: process.env.DB_DATABASE,
+  dbUsername: process.env.DB_USERNAME,
+  dbPassword: process.env.DB_PASSWORD,
+  codeGenLogin: process.env.CODEGEN_DB_USERNAME,
+  codeGenPassword: process.env.CODEGEN_DB_PASSWORD,
 
   // ---------------------------------------------------------------------------
   // Server Settings Overrides

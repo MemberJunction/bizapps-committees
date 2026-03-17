@@ -17,6 +17,9 @@ import { DocumentBrowserComponent, LoadDocumentBrowser } from './documents/docum
 import { DocumentEditDialogComponent, LoadDocumentEditDialog } from './documents/document-edit-dialog.component';
 import { PersonPickerComponent } from './shared/person-picker.component';
 import { CommentThreadComponent, LoadCommentThread } from './comments/comment-thread.component';
+import { MembershipListComponent, LoadMembershipList } from './membership/membership-list.component';
+import { MembershipPanelComponent, LoadMembershipPanel } from './membership/membership-panel.component';
+import { MembershipEditDialogComponent, LoadMembershipEditDialog } from './membership/membership-edit-dialog.component';
 
 @NgModule({
     declarations: [
@@ -31,6 +34,9 @@ import { CommentThreadComponent, LoadCommentThread } from './comments/comment-th
         DocumentEditDialogComponent,
         PersonPickerComponent,
         CommentThreadComponent,
+        MembershipListComponent,
+        MembershipPanelComponent,
+        MembershipEditDialogComponent,
     ],
     imports: [
         CommonModule,
@@ -49,6 +55,9 @@ import { CommentThreadComponent, LoadCommentThread } from './comments/comment-th
         DocumentEditDialogComponent,
         PersonPickerComponent,
         CommentThreadComponent,
+        MembershipListComponent,
+        MembershipPanelComponent,
+        MembershipEditDialogComponent,
     ]
 })
 export class CommitteesModule { }
@@ -65,4 +74,7 @@ export function LoadCommitteesModule() {
     LoadDocumentBrowser();
     LoadDocumentEditDialog();
     LoadCommentThread();
+    LoadMembershipList();
+    LoadMembershipPanel();
+    LoadMembershipEditDialog();
 }

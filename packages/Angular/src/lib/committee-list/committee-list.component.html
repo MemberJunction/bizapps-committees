@@ -10,9 +10,11 @@
                 <h1 class="page-title">Committees</h1>
                 <p class="page-subtitle">Browse and manage all committees</p>
             </div>
-            <button class="btn btn-primary" (click)="OnCreateCommittee()">
-                <i class="fa-solid fa-plus"></i> New Committee
-            </button>
+            @if (OfficerCommitteeIDs.size > 0) {
+                <button class="btn btn-primary" (click)="OnCreateCommittee()">
+                    <i class="fa-solid fa-plus"></i> New Committee
+                </button>
+            }
         </div>
 
         <!-- Toolbar -->
@@ -49,6 +51,7 @@
                 @for (committee of FilteredCommittees; track committee['ID']) {
                     <div class="committee-card"
                          [class.inactive]="committee['Status'] === 'Inactive'"
+                         [class.clickable]="IsMemberOf($any(committee['ID']))"
                          (click)="OnEditCommittee($any(committee['ID']))">
                         <div class="card-header">
                             <h3 class="committee-name">{{ committee['Name'] }}</h3>

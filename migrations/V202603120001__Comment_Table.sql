@@ -7,6 +7,7 @@
 -- or artifacts. Uses direct FK pattern (matching Artifact table design).
 -- CommitteeID is always set for easy scoping/filtering.
 ---------------------------------------------------------------------------
+IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA = '__mj_Committees' AND TABLE_NAME = 'Comment')
 CREATE TABLE __mj_Committees.Comment (
     ID UNIQUEIDENTIFIER NOT NULL DEFAULT NEWSEQUENTIALID(),
     CommitteeID UNIQUEIDENTIFIER NOT NULL,
@@ -31,17 +32,8 @@ CREATE TABLE __mj_Committees.Comment (
 GO
 
 ---------------------------------------------------------------------------
--- EXTENDED PROPERTIES: Comment table
+-- EXTENDED PROPERTIES: Comment table (skip if already present)
 ---------------------------------------------------------------------------
-EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Threaded discussion comments on committee meetings, agenda items, action items, and documents', @level0type = N'SCHEMA', @level0name = N'__mj_Committees', @level1type = N'TABLE', @level1name = N'Comment';
-EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Committee this comment belongs to (always set for easy filtering)', @level0type = N'SCHEMA', @level0name = N'__mj_Committees', @level1type = N'TABLE', @level1name = N'Comment', @level2type = N'COLUMN', @level2name = N'CommitteeID';
-EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Optional meeting this comment is attached to', @level0type = N'SCHEMA', @level0name = N'__mj_Committees', @level1type = N'TABLE', @level1name = N'Comment', @level2type = N'COLUMN', @level2name = N'MeetingID';
-EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Optional agenda item this comment is attached to', @level0type = N'SCHEMA', @level0name = N'__mj_Committees', @level1type = N'TABLE', @level1name = N'Comment', @level2type = N'COLUMN', @level2name = N'AgendaItemID';
-EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Optional action item this comment is attached to', @level0type = N'SCHEMA', @level0name = N'__mj_Committees', @level1type = N'TABLE', @level1name = N'Comment', @level2type = N'COLUMN', @level2name = N'ActionItemID';
-EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Optional artifact/document this comment is attached to', @level0type = N'SCHEMA', @level0name = N'__mj_Committees', @level1type = N'TABLE', @level1name = N'Comment', @level2type = N'COLUMN', @level2name = N'ArtifactID';
-EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Parent comment for threading; NULL for top-level comments', @level0type = N'SCHEMA', @level0name = N'__mj_Committees', @level1type = N'TABLE', @level1name = N'Comment', @level2type = N'COLUMN', @level2name = N'ParentCommentID';
-EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Person who wrote the comment', @level0type = N'SCHEMA', @level0name = N'__mj_Committees', @level1type = N'TABLE', @level1name = N'Comment', @level2type = N'COLUMN', @level2name = N'PersonID';
-EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Comment body text', @level0type = N'SCHEMA', @level0name = N'__mj_Committees', @level1type = N'TABLE', @level1name = N'Comment', @level2type = N'COLUMN', @level2name = N'CommentText';
-EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'JSON array of PersonIDs mentioned via @mentions', @level0type = N'SCHEMA', @level0name = N'__mj_Committees', @level1type = N'TABLE', @level1name = N'Comment', @level2type = N'COLUMN', @level2name = N'MentionedPersonIDs';
-EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Whether this comment thread has been resolved', @level0type = N'SCHEMA', @level0name = N'__mj_Committees', @level1type = N'TABLE', @level1name = N'Comment', @level2type = N'COLUMN', @level2name = N'IsResolved';
+IF NOT EXISTS (SELECT 1 FROM sys.extended_properties WHERE major_id = OBJECT_ID('__mj_Committees.Comment') AND minor_id = 0 AND name = 'MS_Description')
+    EXEC sp_addextendedproperty @name = N'MS_Description', @value = N'Threaded discussion comments on committee meetings, agenda items, action items, and documents', @level0type = N'SCHEMA', @level0name = N'__mj_Committees', @level1type = N'TABLE', @level1name = N'Comment';
 GO

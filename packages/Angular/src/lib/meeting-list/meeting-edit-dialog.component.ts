@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
-import { mjCommitteesMeetingEntity, mjCommitteesAttendanceEntity } from '@mj-biz-apps/committees-entities';
+import { mjCommitteesMeetingEntity, mjCommitteesAttendanceEntity, mjCommitteesAgendaItemEntity } from '@mj-biz-apps/committees-entities';
+import { AgendaItemDialogResult } from '../agenda/agenda-item-edit-dialog.component';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 export interface MeetingDialogResult {
@@ -21,7 +22,7 @@ interface AttendeeRow {
     standalone: false,
     selector: 'meeting-edit-dialog',
     templateUrl: './meeting-edit-dialog.component.html',
-    styleUrls: ['../shared/slide-panel.css', './meeting-edit-dialog.component.css'],
+    styleUrls: ['../shared/design-system.css', '../shared/slide-panel.css', './meeting-edit-dialog.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MeetingEditDialogComponent implements OnInit {
@@ -41,6 +42,11 @@ export class MeetingEditDialogComponent implements OnInit {
     /** Attendees */
     Attendees: AttendeeRow[] = [];
     SelectedPersonID: string | null = null;
+
+    /** Agenda items */
+    AgendaItems: Record<string, unknown>[] = [];
+    ShowAgendaDialog = false;
+    EditingAgendaItemID: string | null = null;
 
     readonly StatusOptions: ('Draft' | 'Scheduled' | 'InProgress' | 'Completed' | 'Cancelled' | 'Postponed')[] =
         ['Draft', 'Scheduled', 'InProgress', 'Completed', 'Cancelled', 'Postponed'];
@@ -79,7 +85,10 @@ export class MeetingEditDialogComponent implements OnInit {
             this.LoadOrCreateMeeting()
         ]);
         if (!this.IsNew) {
-            await this.LoadAttendees();
+            await Promise.all([
+                this.LoadAttendees(),
+                this.LoadAgendaItems()
+            ]);
         }
         this.IsLoading = false;
         this.cdr.markForCheck();
@@ -165,6 +174,84 @@ export class MeetingEditDialogComponent implements OnInit {
             attendee.IsRemoved = true;
         }
         this.cdr.markForCheck();
+    }
+
+    /** Agenda item management */
+    OnAddAgendaItem(): void {
+        this.EditingAgendaItemID = null;
+        this.ShowAgendaDialog = true;
+        this.cdr.markForCheck();
+    }
+
+    OnEditAgendaItem(itemID: string): void {
+        this.EditingAgendaItemID = itemID;
+        this.ShowAgendaDialog = true;
+        this.cdr.markForCheck();
+    }
+
+    async OnAgendaDialogClosed(result: AgendaItemDialogResult): Promise<void> {
+        this.ShowAgendaDialog = false;
+        if (result.Saved) {
+            await this.LoadAgendaItems();
+        }
+        this.cdr.markForCheck();
+    }
+
+    async OnMoveAgendaItem(itemID: string, direction: 'up' | 'down'): Promise<void> {
+        const idx = this.AgendaItems.findIndex(a => a['ID'] === itemID);
+        if (idx < 0) return;
+        const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+        if (swapIdx < 0 || swapIdx >= this.AgendaItems.length) return;
+
+        // Swap in the local array first for instant UI feedback
+        const temp = this.AgendaItems[idx];
+        this.AgendaItems[idx] = this.AgendaItems[swapIdx];
+        this.AgendaItems[swapIdx] = temp;
+
+        // Reassign all sequences based on new order
+        this.AgendaItems = this.AgendaItems.map((item, i) => ({ ...item, Sequence: i + 1 }));
+        this.cdr.markForCheck();
+
+        // Persist the two swapped items
+        const md = new Metadata();
+        const entityA = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Agenda Items');
+        const entityB = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Agenda Items');
+        await entityA.Load(this.AgendaItems[idx]['ID'] as string);
+        await entityB.Load(this.AgendaItems[swapIdx]['ID'] as string);
+        entityA.Sequence = this.AgendaItems[idx]['Sequence'] as number;
+        entityB.Sequence = this.AgendaItems[swapIdx]['Sequence'] as number;
+        await Promise.all([entityA.Save(), entityB.Save()]);
+    }
+
+    get NextAgendaSequence(): number {
+        if (this.AgendaItems.length === 0) return 1;
+        return Math.max(...this.AgendaItems.map(a => (a['Sequence'] as number) || 0)) + 1;
+    }
+
+    GetItemTypeIcon(type: string): string {
+        switch (type) {
+            case 'Information': return 'fa-solid fa-circle-info';
+            case 'Discussion': return 'fa-solid fa-comments';
+            case 'Action': return 'fa-solid fa-bolt';
+            case 'Vote': return 'fa-solid fa-check-to-slot';
+            case 'Report': return 'fa-solid fa-chart-bar';
+            default: return 'fa-solid fa-ellipsis';
+        }
+    }
+
+    private async LoadAgendaItems(): Promise<void> {
+        if (!this.MeetingID) return;
+        const rv = new RunView();
+        const result = await rv.RunView({
+            EntityName: 'Agenda Items',
+            Fields: ['ID', 'Sequence', 'Title', 'ItemType', 'DurationMinutes', 'Status', 'Presenter', 'PresenterPersonID'],
+            ExtraFilter: `MeetingID = '${this.MeetingID}'`,
+            OrderBy: 'Sequence ASC',
+            ResultType: 'simple'
+        });
+        if (result.Success) {
+            this.AgendaItems = result.Results;
+        }
     }
 
     private Validate(): string | null {

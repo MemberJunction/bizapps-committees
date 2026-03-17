@@ -155,6 +155,52 @@
                     rows="2"></textarea>
             </div>
 
+            <!-- Agenda Items (only for existing meetings) -->
+            @if (!IsNew) {
+                <div class="agenda-section">
+                    <div class="section-header">
+                        <label class="form-label">Agenda</label>
+                        <button class="btn btn-sm btn-secondary" (click)="OnAddAgendaItem()">
+                            <i class="fa-solid fa-plus"></i> Add Item
+                        </button>
+                    </div>
+                    @if (AgendaItems.length > 0) {
+                        <div class="agenda-list">
+                            @for (item of AgendaItems; track item['ID']; let i = $index) {
+                                <div class="agenda-row" (click)="OnEditAgendaItem($any(item['ID']))">
+                                    <span class="agenda-seq">{{ item['Sequence'] }}</span>
+                                    <i [class]="GetItemTypeIcon($any(item['ItemType']))" class="agenda-type-icon"></i>
+                                    <div class="agenda-info">
+                                        <span class="agenda-title">{{ item['Title'] }}</span>
+                                        <span class="agenda-meta">
+                                            @if (item['Presenter']) {
+                                                <i class="fa-solid fa-user"></i> {{ item['Presenter'] }}
+                                            }
+                                            @if (item['DurationMinutes']) {
+                                                &middot; {{ item['DurationMinutes'] }} min
+                                            }
+                                        </span>
+                                    </div>
+                                    <span [class]="'agenda-status status-' + ($any(item['Status']) || '').toLowerCase()">
+                                        {{ item['Status'] }}
+                                    </span>
+                                    <div class="agenda-reorder">
+                                        <button class="reorder-btn" (click)="OnMoveAgendaItem($any(item['ID']), 'up'); $event.stopPropagation()" [disabled]="i === 0" title="Move up">
+                                            <i class="fa-solid fa-chevron-up"></i>
+                                        </button>
+                                        <button class="reorder-btn" (click)="OnMoveAgendaItem($any(item['ID']), 'down'); $event.stopPropagation()" [disabled]="i === AgendaItems.length - 1" title="Move down">
+                                            <i class="fa-solid fa-chevron-down"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    } @else {
+                        <p class="agenda-empty">No agenda items yet. Add items to build the meeting agenda.</p>
+                    }
+                </div>
+            }
+
             <!-- Comment thread (only for existing meetings) -->
             @if (!IsNew) {
                 <comment-thread
@@ -222,3 +268,13 @@
         </div>
     }
 </div>
+
+<!-- Agenda Item Edit Dialog -->
+@if (ShowAgendaDialog) {
+    <agenda-item-edit-dialog
+        [AgendaItemID]="EditingAgendaItemID"
+        [MeetingID]="MeetingID ?? Meeting?.ID ?? null"
+        [NextSequence]="NextAgendaSequence"
+        (DialogClosed)="OnAgendaDialogClosed($event)">
+    </agenda-item-edit-dialog>
+}

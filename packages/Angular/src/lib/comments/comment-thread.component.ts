@@ -20,7 +20,7 @@ interface CommentNode {
     standalone: false,
     selector: 'comment-thread',
     templateUrl: './comment-thread.component.html',
-    styleUrls: ['./comment-thread.component.css'],
+    styleUrls: ['../shared/design-system.css', './comment-thread.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CommentThreadComponent implements OnInit {

@@ -8,7 +8,7 @@ import { CommitteePermissionHelper, CommitteePermissions } from '../shared/commi
     standalone: false,
     selector: 'committees-membership-panel',
     templateUrl: './membership-panel.component.html',
-    styleUrls: ['./membership-panel.component.css'],
+    styleUrls: ['../shared/design-system.css', './membership-panel.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MembershipPanelComponent {

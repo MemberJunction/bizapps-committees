@@ -11,7 +11,7 @@ import { CommitteePermissionHelper } from '../shared/committee-permission-helper
     standalone: false,
     selector: 'committees-documents',
     templateUrl: './document-browser.component.html',
-    styleUrls: ['./document-browser.component.css'],
+    styleUrls: ['../shared/design-system.css', './document-browser.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DocumentBrowserComponent extends BaseResourceComponent implements OnInit {

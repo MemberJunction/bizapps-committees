@@ -1,0 +1,146 @@
+<!-- Backdrop -->
+<div class="dialog-backdrop" (click)="OnClose()"></div>
+
+<!-- Dialog -->
+<div class="dialog-panel">
+    <div class="dialog-header">
+        <h2 class="dialog-title">{{ DialogTitle }}</h2>
+        <button class="dialog-close" (click)="OnClose()" [disabled]="IsSaving">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    @if (IsLoading) {
+        <div class="dialog-loading">
+            <mj-loading text="Loading..."></mj-loading>
+        </div>
+    } @else if (AgendaItem) {
+        <div class="dialog-body">
+            @if (ShowDeleteConfirm) {
+                <div class="delete-confirm-banner">
+                    <div class="delete-confirm-text">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Delete this agenda item? This cannot be undone.
+                    </div>
+                    <div class="delete-confirm-actions">
+                        <button class="btn btn-danger btn-sm" (click)="OnDelete()" [disabled]="IsSaving">
+                            Yes, Delete
+                        </button>
+                        <button class="btn btn-secondary btn-sm" (click)="OnCancelDelete()" [disabled]="IsSaving">
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            }
+
+            @if (ErrorMessage) {
+                <div class="error-banner">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ ErrorMessage }}
+                </div>
+            }
+
+            <!-- Title -->
+            <div class="form-group">
+                <label class="form-label required">Title</label>
+                <input class="form-input"
+                    type="text"
+                    [ngModel]="AgendaItem.Title"
+                    (ngModelChange)="AgendaItem.Title = $event"
+                    placeholder="Agenda item title" />
+            </div>
+
+            <!-- Type & Duration row -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Type</label>
+                    <select class="form-input"
+                        [ngModel]="AgendaItem.ItemType"
+                        (ngModelChange)="AgendaItem.ItemType = $event">
+                        @for (type of ItemTypeOptions; track type) {
+                            <option [ngValue]="type">{{ type }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Duration (min)</label>
+                    <input class="form-input"
+                        type="number"
+                        min="0"
+                        [ngModel]="AgendaItem.DurationMinutes"
+                        (ngModelChange)="AgendaItem.DurationMinutes = $event"
+                        placeholder="e.g. 15" />
+                </div>
+            </div>
+
+            <!-- Presenter -->
+            <div class="form-group">
+                <label class="form-label">Presenter</label>
+                <committees-person-picker
+                    [SelectedPersonID]="AgendaItem.PresenterPersonID"
+                    Placeholder="Select presenter..."
+                    (PersonSelected)="OnPresenterSelected($event)">
+                </committees-person-picker>
+            </div>
+
+            <!-- Status -->
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select class="form-input"
+                    [ngModel]="AgendaItem.Status"
+                    (ngModelChange)="AgendaItem.Status = $event">
+                    @for (status of StatusOptions; track status) {
+                        <option [ngValue]="status">{{ status }}</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-input form-textarea"
+                    [ngModel]="AgendaItem.Description"
+                    (ngModelChange)="AgendaItem.Description = $event"
+                    placeholder="Details about this agenda item"
+                    rows="2"></textarea>
+            </div>
+
+            <!-- Related Document URL -->
+            <div class="form-group">
+                <label class="form-label">Related Document URL</label>
+                <input class="form-input"
+                    type="url"
+                    [ngModel]="AgendaItem.RelatedDocumentURL"
+                    (ngModelChange)="AgendaItem.RelatedDocumentURL = $event"
+                    placeholder="https://..." />
+            </div>
+
+            <!-- Notes (for during-meeting capture) -->
+            <div class="form-group">
+                <label class="form-label">Discussion Notes</label>
+                <textarea class="form-input form-textarea"
+                    [ngModel]="AgendaItem.Notes"
+                    (ngModelChange)="AgendaItem.Notes = $event"
+                    placeholder="Notes captured during meeting discussion"
+                    rows="3"></textarea>
+            </div>
+        </div>
+
+        <div class="dialog-actions">
+            <button class="btn btn-primary" (click)="OnSave()" [disabled]="IsSaving">
+                @if (IsSaving) {
+                    <i class="fa-solid fa-spinner fa-spin"></i> Saving...
+                } @else {
+                    {{ IsNew ? 'Add Item' : 'Save' }}
+                }
+            </button>
+            <button class="btn btn-secondary" (click)="OnClose()" [disabled]="IsSaving">Cancel</button>
+            @if (!IsNew) {
+                <div class="actions-spacer"></div>
+                <button class="btn btn-danger-outline" (click)="OnConfirmDelete()" [disabled]="IsSaving">
+                    <i class="fa-solid fa-trash"></i> Delete
+                </button>
+            }
+        </div>
+    }
+</div>

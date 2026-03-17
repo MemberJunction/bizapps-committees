@@ -19,7 +19,7 @@ interface TermLookup {
     standalone: false,
     selector: 'membership-edit-dialog',
     templateUrl: './membership-edit-dialog.component.html',
-    styleUrls: ['../shared/slide-panel.css', './membership-edit-dialog.component.css'],
+    styleUrls: ['../shared/design-system.css', '../shared/slide-panel.css', './membership-edit-dialog.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MembershipEditDialogComponent implements OnInit {

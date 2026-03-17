@@ -1,0 +1,36 @@
+/* Agenda Item Edit Dialog — component-specific overrides only.
+   Base styles from ../shared/slide-panel.css */
+
+:host {
+    z-index: 1001;
+}
+
+/* ─── Delete Confirmation Banner ─── */
+.delete-confirm-banner {
+    padding: 14px 16px;
+    background: #fef2f2;
+    border: 2px solid #fecaca;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    animation: fadeIn 0.15s ease;
+}
+
+.delete-confirm-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: #dc2626;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.delete-confirm-actions {
+    display: flex;
+    gap: 8px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}

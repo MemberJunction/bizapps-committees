@@ -13,7 +13,7 @@ export interface DocumentDialogResult {
     standalone: false,
     selector: 'document-edit-dialog',
     templateUrl: './document-edit-dialog.component.html',
-    styleUrls: ['../shared/slide-panel.css', './document-edit-dialog.component.css'],
+    styleUrls: ['../shared/design-system.css', '../shared/slide-panel.css', './document-edit-dialog.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DocumentEditDialogComponent implements OnInit {

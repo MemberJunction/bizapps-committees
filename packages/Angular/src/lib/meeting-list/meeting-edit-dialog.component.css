@@ -1,6 +1,152 @@
 /* Meeting Edit Dialog — component-specific overrides only.
    Base styles from ../shared/slide-panel.css */
 
+/* ─── Agenda Section ─── */
+.agenda-section {
+    margin-top: 6px;
+    padding-top: 18px;
+    border-top: 2px solid #f1f5f9;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.section-header .form-label {
+    margin-bottom: 0;
+}
+
+.agenda-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.agenda-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.agenda-row:hover {
+    border-color: #bfdbfe;
+    background: #fff;
+}
+
+.agenda-seq {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #3b82f6;
+    color: #fff;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.agenda-type-icon {
+    color: #94a3b8;
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.agenda-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.agenda-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1e293b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.agenda-meta {
+    font-size: 12px;
+    font-weight: 500;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.agenda-meta i {
+    font-size: 11px;
+}
+
+.agenda-status {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+}
+
+.agenda-status.status-pending { background: #dbeafe; color: #2563eb; }
+.agenda-status.status-discussed { background: #d1fae5; color: #059669; }
+.agenda-status.status-completed { background: #d1fae5; color: #059669; }
+.agenda-status.status-tabled { background: #fef3c7; color: #d97706; }
+.agenda-status.status-skipped { background: #f1f5f9; color: #64748b; }
+
+.agenda-reorder {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-shrink: 0;
+}
+
+.reorder-btn {
+    width: 24px;
+    height: 20px;
+    border: none;
+    border-radius: 4px;
+    background: transparent;
+    color: #94a3b8;
+    font-size: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.reorder-btn:hover:not(:disabled) {
+    background: #e2e8f0;
+    color: #475569;
+}
+
+.reorder-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.agenda-empty {
+    font-size: 13px;
+    color: #94a3b8;
+    font-weight: 500;
+    margin: 4px 0 0 0;
+}
+
 /* ─── Attendees ─── */
 .attendees-section {
     margin-top: 6px;

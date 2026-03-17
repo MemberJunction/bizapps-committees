@@ -81,7 +81,7 @@
                         </div>
                         <div class="item-status">
                             <span [class]="'status-badge status-' + ($any(item['Status']) || '').toLowerCase()">
-                                {{ item['Status'] }}
+                                {{ FormatStatus($any(item['Status'])) }}
                             </span>
                         </div>
                     </div>

@@ -11,6 +11,7 @@ export * from './lib/documents/document-edit-dialog.component';
 export * from './lib/shared/person-picker.component';
 export * from './lib/shared/committee-permission-helper';
 export * from './lib/comments/comment-thread.component';
+export * from './lib/agenda/agenda-item-edit-dialog.component';
 export * from './lib/terms/term-edit-dialog.component';
 export * from './lib/membership/membership-list.component';
 export * from './lib/membership/membership-panel.component';

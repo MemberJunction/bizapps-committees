@@ -11,7 +11,7 @@ export interface TermDialogResult {
     standalone: false,
     selector: 'term-edit-dialog',
     templateUrl: './term-edit-dialog.component.html',
-    styleUrls: ['../shared/slide-panel.css', './term-edit-dialog.component.css'],
+    styleUrls: ['../shared/design-system.css', '../shared/slide-panel.css', './term-edit-dialog.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TermEditDialogComponent implements OnInit {

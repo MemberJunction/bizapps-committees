@@ -4,16 +4,6 @@
     </div>
 } @else {
     <div class="membership-panel-container">
-        <!-- Page Header -->
-        <div class="page-header">
-            <h1 class="page-title">Members</h1>
-            @if (Permissions.CanManageMembers) {
-                <button class="btn btn-primary" (click)="OnCreateMembership()" [disabled]="Terms.length === 0">
-                    <i class="fa-solid fa-user-plus"></i> Add Member
-                </button>
-            }
-        </div>
-
         @if (SuccessMessage) {
             <div class="success-banner">
                 <i class="fa-solid fa-circle-check"></i>
@@ -60,6 +50,11 @@
                 <span class="member-count">
                     {{ ActiveCount }} active of {{ FilteredMemberships.length }} total
                 </span>
+                @if (Permissions.CanManageMembers) {
+                    <button class="btn btn-primary" (click)="OnCreateMembership()" [disabled]="Terms.length === 0">
+                        <i class="fa-solid fa-user-plus"></i> Add Member
+                    </button>
+                }
             </div>
 
             <!-- Member List -->

@@ -11,7 +11,7 @@ import { CommitteePermissionHelper } from '../shared/committee-permission-helper
     standalone: false,
     selector: 'committees-action-items',
     templateUrl: './action-item-tracker.component.html',
-    styleUrls: ['./action-item-tracker.component.css'],
+    styleUrls: ['../shared/design-system.css', './action-item-tracker.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ActionItemTrackerComponent extends BaseResourceComponent implements OnInit {
@@ -57,6 +57,11 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
     IsOverdue(item: Record<string, unknown>): boolean {
         const dueDate = item['DueDate'] as string | null;
         return dueDate != null && dueDate < this.TodayString && item['Status'] !== 'Completed';
+    }
+
+    FormatStatus(status: string): string {
+        if (!status) return '';
+        return status.replace(/([a-z])([A-Z])/g, '$1 $2');
     }
 
     GetPriorityClass(item: Record<string, unknown>): string {

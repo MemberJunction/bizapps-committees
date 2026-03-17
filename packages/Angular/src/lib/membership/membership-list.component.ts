@@ -9,7 +9,7 @@ import { Metadata, RunView } from '@memberjunction/core';
     standalone: false,
     selector: 'committees-membership-list',
     templateUrl: './membership-list.component.html',
-    styleUrls: ['./membership-list.component.css'],
+    styleUrls: ['../shared/design-system.css', './membership-list.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MembershipListComponent extends BaseResourceComponent implements OnInit {

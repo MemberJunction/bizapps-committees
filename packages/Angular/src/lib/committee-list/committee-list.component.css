@@ -1,13 +1,14 @@
 /* ══════════════════════════════════════════════════════════
-   Committee List — Slate & Electric Blue
+   Committee List — Premium Light
    ══════════════════════════════════════════════════════════ */
 
 :host {
     display: block;
-    background: #f8fafc;
+    background: #fafafa;
     height: 100%;
     overflow-y: auto;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
 }
 
 .list-loading {
@@ -18,36 +19,59 @@
 }
 
 .committee-list-container {
-    max-width: 1200px;
+    max-width: 1100px;
     margin: 0 auto;
-    padding: 32px 24px;
+    padding: 48px 32px;
 }
 
 /* ─── Page Header ─── */
 .page-header {
     display: flex;
-    align-items: flex-start;
+    align-items: flex-end;
     justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 24px;
-}
-
-.page-header-text {
-    flex: 1;
+    gap: 24px;
+    margin-bottom: 32px;
 }
 
 .page-title {
-    font-size: 28px;
-    font-weight: 800;
-    color: #1e293b;
-    margin: 0 0 4px 0;
+    font-size: 34px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0;
+    letter-spacing: -0.8px;
 }
 
 .page-subtitle {
     font-size: 15px;
+    font-weight: 400;
     color: #94a3b8;
-    font-weight: 500;
-    margin: 0;
+    margin: 6px 0 0 0;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-primary {
+    padding: 9px 18px;
+    border: none;
+    border-radius: 10px;
+    background: #6366f1;
+    font-size: 14px;
+    font-weight: 600;
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
+}
+
+.btn-primary:hover {
+    background: #4f46e5;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    transform: translateY(-1px);
 }
 
 /* ─── Toolbar ─── */
@@ -55,79 +79,75 @@
     display: flex;
     align-items: center;
     gap: 16px;
-    margin-bottom: 24px;
-    flex-wrap: wrap;
+    margin-bottom: 28px;
 }
 
 .search-box {
     position: relative;
     flex: 1;
-    min-width: 220px;
+    max-width: 400px;
 }
 
 .search-box i {
     position: absolute;
-    left: 16px;
+    left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: #94a3b8;
     font-size: 14px;
+    color: #94a3b8;
     pointer-events: none;
 }
 
 .search-box input {
     width: 100%;
-    padding: 12px 16px 12px 44px;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    font-size: 15px;
+    padding: 10px 14px 10px 40px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
     font-weight: 500;
     color: #1e293b;
     background: #fff;
     outline: none;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.2s ease;
     box-sizing: border-box;
+    font-family: inherit;
 }
 
-.search-box input::placeholder {
-    color: #94a3b8;
-}
+.search-box input::placeholder { color: #cbd5e1; }
 
 .search-box input:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+    box-shadow: 0 0 0 2px #6366f1, 0 4px 12px rgba(99, 102, 241, 0.12);
 }
 
 /* ─── Filter Pills ─── */
 .status-filters {
     display: flex;
-    gap: 8px;
+    gap: 2px;
+    background: #f1f5f9;
+    border-radius: 10px;
+    padding: 3px;
 }
 
 .filter-pill {
-    padding: 10px 20px;
-    border: 2px solid #e2e8f0;
-    border-bottom: 3px solid #e2e8f0;
-    border-radius: 12px;
-    background: #fff;
-    font-size: 14px;
-    font-weight: 700;
-    color: #64748b;
+    padding: 7px 16px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    font-size: 13px;
+    font-weight: 600;
+    color: #94a3b8;
     cursor: pointer;
     transition: all 0.15s ease;
-    outline: none;
+    font-family: inherit;
 }
 
-.filter-pill:hover {
-    border-color: #cbd5e1;
-    color: #475569;
-}
+.filter-pill:hover { color: #64748b; }
 
 .filter-pill.active {
-    background: #3b82f6;
-    border-color: #2563eb;
-    border-bottom-color: #1d4ed8;
-    color: #fff;
+    background: #fff;
+    color: #0f172a;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 /* ─── Committee Grid ─── */
@@ -139,49 +159,20 @@
 
 .committee-card {
     background: #fff;
-    border: 2px solid #e2e8f0;
-    border-bottom: 4px solid #e2e8f0;
     border-radius: 16px;
     padding: 24px;
-    transition: transform 0.15s ease, border-color 0.15s ease;
-    cursor: default;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
-.committee-card:hover {
-    transform: translateY(-2px);
-    border-color: #bfdbfe;
-    cursor: pointer;
+.committee-card.clickable { cursor: pointer; }
+
+.committee-card.clickable:hover {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    transform: translateY(-3px);
 }
 
-/* ─── Buttons ─── */
-.btn {
-    padding: 10px 20px;
-    border: 2px solid transparent;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
-}
-
-.btn-primary {
-    background: #3b82f6;
-    border-color: #2563eb;
-    border-bottom: 3px solid #1d4ed8;
-    color: #fff;
-}
-
-.btn-primary:hover {
-    background: #2563eb;
-}
-
-.committee-card.inactive {
-    opacity: 0.55;
-}
+.committee-card.inactive { opacity: 0.5; }
 
 .card-header {
     display: flex;
@@ -192,29 +183,31 @@
 }
 
 .committee-name {
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 700;
-    color: #1e293b;
+    color: #0f172a;
     margin: 0;
+    letter-spacing: -0.3px;
     line-height: 1.3;
 }
 
 .committee-type {
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
+    color: #6366f1;
+    background: #eef2ff;
+    padding: 3px 10px;
+    border-radius: 20px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    background: #eff6ff;
-    color: #3b82f6;
     white-space: nowrap;
     flex-shrink: 0;
 }
 
 .committee-description {
-    font-size: 14px;
-    color: #64748b;
+    font-size: 13px;
+    font-weight: 400;
+    color: #94a3b8;
     line-height: 1.5;
     margin: 0 0 16px 0;
     display: -webkit-box;
@@ -226,89 +219,64 @@
 .card-footer {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
     flex-wrap: wrap;
     padding-top: 14px;
-    border-top: 2px solid #f1f5f9;
+    border-top: 1px solid #f1f5f9;
 }
 
-.member-count,
-.org-name {
-    font-size: 13px;
-    font-weight: 600;
+.member-count, .org-name {
+    font-size: 12px;
+    font-weight: 500;
     color: #94a3b8;
     display: flex;
     align-items: center;
     gap: 6px;
 }
 
-.member-count i,
-.org-name i {
-    font-size: 12px;
+.member-count i, .org-name i {
+    font-size: 11px;
     color: #cbd5e1;
 }
 
 .status-badge {
-    margin-left: auto;
     font-size: 11px;
-    font-weight: 700;
-    padding: 4px 12px;
-    border-radius: 20px;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 6px;
+    margin-left: auto;
 }
 
-.status-active {
-    background: #d1fae5;
-    color: #059669;
-}
-
-.status-inactive {
-    background: #f1f5f9;
-    color: #94a3b8;
-}
+.status-active { background: #d1fae5; color: #065f46; }
+.status-inactive { background: #f1f5f9; color: #64748b; }
+.status-pending { background: #e0e7ff; color: #3730a3; }
+.status-dissolved { background: #fef2f2; color: #991b1b; }
 
 /* ─── Empty State ─── */
 .empty-state {
     text-align: center;
-    padding: 60px 20px;
-    color: #94a3b8;
+    padding: 64px 24px;
 }
 
 .empty-state i {
-    font-size: 48px;
-    margin-bottom: 16px;
+    font-size: 40px;
+    color: #e2e8f0;
     display: block;
-    opacity: 0.35;
+    margin-bottom: 16px;
 }
 
 .empty-state p {
-    font-size: 16px;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 500;
+    color: #94a3b8;
     margin: 0;
 }
 
 /* ─── Responsive ─── */
-@media (max-width: 700px) {
-    .page-header {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .page-header .btn {
-        align-self: stretch;
-        justify-content: center;
-    }
-    .committee-list-container {
-        padding: 20px 16px;
-    }
-    .committee-grid {
-        grid-template-columns: 1fr;
-    }
-    .list-toolbar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-    .status-filters {
-        flex-wrap: wrap;
-    }
+@media (max-width: 768px) {
+    .committee-list-container { padding: 24px 16px; }
+    .page-header { flex-direction: column; align-items: flex-start; }
+    .list-toolbar { flex-direction: column; align-items: stretch; }
+    .search-box { max-width: none; }
+    .committee-grid { grid-template-columns: 1fr; }
 }

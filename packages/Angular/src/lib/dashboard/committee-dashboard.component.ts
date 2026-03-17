@@ -11,7 +11,7 @@ import { CommitteePermissionHelper } from '../shared/committee-permission-helper
     standalone: false,
     selector: 'committees-dashboard',
     templateUrl: './committee-dashboard.component.html',
-    styleUrls: ['./committee-dashboard.component.css'],
+    styleUrls: ['../shared/design-system.css', './committee-dashboard.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CommitteeDashboardComponent extends BaseResourceComponent implements OnInit {
@@ -68,6 +68,11 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
             case 'Document': return 'fa-solid fa-file-word';
             default: return 'fa-solid fa-file';
         }
+    }
+
+    FormatStatus(status: string): string {
+        if (!status) return '';
+        return status.replace(/([a-z])([A-Z])/g, '$1 $2');
     }
 
     private async LoadPermissions(): Promise<void> {

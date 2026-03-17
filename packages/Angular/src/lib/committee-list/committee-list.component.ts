@@ -11,7 +11,7 @@ import { CommitteePermissionHelper } from '../shared/committee-permission-helper
     standalone: false,
     selector: 'committees-list',
     templateUrl: './committee-list.component.html',
-    styleUrls: ['./committee-list.component.css'],
+    styleUrls: ['../shared/design-system.css', './committee-list.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CommitteeListComponent extends BaseResourceComponent implements OnInit {

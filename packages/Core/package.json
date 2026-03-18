@@ -22,6 +22,8 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
+    "@memberjunction/ai": "5.10.1",
+    "@memberjunction/aiengine": "5.10.1",
     "@memberjunction/core": "5.10.1",
     "@memberjunction/global": "5.10.1",
     "@mj-biz-apps/committees-entities": "1.0.0"

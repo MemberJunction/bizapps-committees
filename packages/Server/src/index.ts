@@ -29,8 +29,7 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
  * Pass these to createMJServer({ resolverPaths }) along with other resolver paths.
  */
 export const RESOLVER_PATHS: string[] = [
-    // Custom resolvers will go here as they're added
-    // resolve(__dirname, 'resolvers/*.{js,ts}'),
+    resolve(__dirname, 'resolvers/*.js'),
 ];
 
 /**

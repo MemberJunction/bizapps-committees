@@ -24,6 +24,7 @@ import { TermEditDialogComponent, LoadTermEditDialog } from './terms/term-edit-d
 import { MembershipListComponent, LoadMembershipList } from './membership/membership-list.component';
 import { MembershipPanelComponent, LoadMembershipPanel } from './membership/membership-panel.component';
 import { MembershipEditDialogComponent, LoadMembershipEditDialog } from './membership/membership-edit-dialog.component';
+import { GenerateMinutesPanelComponent, LoadGenerateMinutesPanel } from './minutes/generate-minutes-panel.component';
 
 @NgModule({
     declarations: [
@@ -45,6 +46,7 @@ import { MembershipEditDialogComponent, LoadMembershipEditDialog } from './membe
         MembershipListComponent,
         MembershipPanelComponent,
         MembershipEditDialogComponent,
+        GenerateMinutesPanelComponent,
     ],
     imports: [
         CommonModule,
@@ -70,6 +72,7 @@ import { MembershipEditDialogComponent, LoadMembershipEditDialog } from './membe
         MembershipListComponent,
         MembershipPanelComponent,
         MembershipEditDialogComponent,
+        GenerateMinutesPanelComponent,
     ]
 })
 export class CommitteesModule { }
@@ -93,4 +96,5 @@ export function LoadCommitteesModule() {
     LoadMembershipList();
     LoadMembershipPanel();
     LoadMembershipEditDialog();
+    LoadGenerateMinutesPanel();
 }

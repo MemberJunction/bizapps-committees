@@ -32,6 +32,7 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
     ShowMotionDialog = false;
     EditingMotionID: string | null = null;
     ShowMeetingEditDialog = false;
+    ShowMinutesPanel = false;
 
     private refreshInterval: ReturnType<typeof setInterval> | null = null;
     private cdr = inject(ChangeDetectorRef);

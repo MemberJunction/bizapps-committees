@@ -40,6 +40,9 @@
                     <button class="toolbar-btn" (click)="OnCreateMotion()">
                         <i class="fa-solid fa-gavel"></i> New Motion
                     </button>
+                    <button class="toolbar-btn" (click)="ShowMinutesPanel = true">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Minutes
+                    </button>
                     <button class="toolbar-btn" (click)="OnOpenMeetingSettings()">
                         <i class="fa-solid fa-gear"></i> Meeting Settings
                     </button>
@@ -193,4 +196,13 @@
         [MeetingID]="MeetingID"
         (DialogClosed)="OnMeetingEditClosed($event)">
     </meeting-edit-dialog>
+}
+
+<!-- Generate Minutes Panel -->
+@if (ShowMinutesPanel) {
+    <generate-minutes-panel
+        [MeetingID]="MeetingID ?? ''"
+        [TranscriptURL]="$any(Meeting?.['TranscriptURL']) ?? null"
+        (Close)="ShowMinutesPanel = false">
+    </generate-minutes-panel>
 }

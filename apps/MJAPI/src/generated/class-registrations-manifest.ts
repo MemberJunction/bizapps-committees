@@ -11,8 +11,9 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-// @mj-biz-apps/committees-entities (25 classes)
+// @mj-biz-apps/committees-entities (26 classes)
 import {
+    MembershipEntityCustom,
     mjBizAppsCommonAddressEntity,
     mjBizAppsCommonAddressLinkEntity,
     mjBizAppsCommonAddressTypeEntity,
@@ -46,6 +47,7 @@ import {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const CLASS_REGISTRATIONS: any[] = [
+    MembershipEntityCustom,
     mjBizAppsCommonAddressEntity,
     mjBizAppsCommonAddressLinkEntity,
     mjBizAppsCommonAddressTypeEntity,
@@ -77,7 +79,7 @@ export const CLASS_REGISTRATIONS: any[] = [
 export const CLASS_REGISTRATIONS_MANIFEST_LOADED = true;
 
 /** Total @RegisterClass decorated classes discovered in dependency tree */
-export const CLASS_REGISTRATIONS_COUNT = 25;
+export const CLASS_REGISTRATIONS_COUNT = 26;
 
 /** Packages imported by this manifest */
 export const CLASS_REGISTRATIONS_PACKAGES = [

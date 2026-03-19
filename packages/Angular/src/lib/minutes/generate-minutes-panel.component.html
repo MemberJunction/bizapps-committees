@@ -117,7 +117,20 @@
             }
         </div>
 
+        @if (SaveError) {
+            <div class="save-error">
+                <i class="fa-solid fa-circle-exclamation"></i> {{ SaveError }}
+            </div>
+        }
+
         <div class="dialog-actions">
+            <button class="btn btn-primary" (click)="OnSaveDraft()" [disabled]="SaveSuccess">
+                @if (SaveSuccess) {
+                    <i class="fa-solid fa-check"></i> Saved as Draft
+                } @else {
+                    <i class="fa-solid fa-floppy-disk"></i> Save as Draft
+                }
+            </button>
             <button class="btn btn-secondary" (click)="State = 'input'">
                 <i class="fa-solid fa-arrow-left"></i> Regenerate
             </button>

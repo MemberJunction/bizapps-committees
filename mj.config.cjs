@@ -27,11 +27,10 @@ module.exports = {
    * Each schema maps to the npm package that provides its entity classes.
    * Schemas not listed here use the default 'mj_generatedentities' package.
    */
-  // TODO: Re-enable object form after upgrading CLI to >=5.11.0
-  // entityPackageName: {
-  //   '__mj_BizAppsCommon': '@mj-biz-apps/common-entities',
-  //   '__mj_Committees': '@mj-biz-apps/committees-entities',
-  // },
+  entityPackageName: {
+    '__mj_BizAppsCommon': '@mj-biz-apps/common-entities',
+    '__mj_Committees': '@mj-biz-apps/committees-entities',
+  },
 
   output: [
     { type: 'SQL', directory: './SQL Scripts/generated', appendOutputCode: true },
@@ -42,7 +41,7 @@ module.exports = {
     },
     { type: 'GraphQLServer', directory: './apps/MJAPI/src/generated' },
     { type: 'ActionSubclasses', directory: './packages/Actions/src/generated' },
-    { type: 'EntitySubclasses', directory: './packages/Entities/src/generated' },
+    { type: 'EntitySubclasses', directory: './packages/GeneratedEntities/src/generated' },
     { type: 'DBSchemaJSON', directory: './Schema Files' },
   ],
 
@@ -52,7 +51,7 @@ module.exports = {
    */
   commands: [
     {
-      workingDirectory: './packages/Entities',
+      workingDirectory: './packages/GeneratedEntities',
       command: 'npm',
       args: ['run', 'build'],
       when: 'after',

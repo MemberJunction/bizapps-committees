@@ -12,16 +12,10 @@
     "/dist"
   ],
   "scripts": {
-    "start": "ts-node-dev src/index.ts",
-    "build": "tsc && tsc-alias -f",
-    "test": "echo \"No tests configured yet\""
+    "build": "tsc && tsc-alias -f"
   },
   "author": "MemberJunction.com",
   "license": "ISC",
-  "devDependencies": {
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.9.3"
-  },
   "dependencies": {
     "@memberjunction/core": "5.10.1",
     "@memberjunction/global": "5.10.1",

@@ -32,6 +32,7 @@ export class MembershipEditDialogComponent implements OnInit {
     IsSaving = false;
     ErrorMessage = '';
     ShowEndConfirm = false;
+    SelectedPersonName = '';
 
     Roles: { ID: string; Name: string }[] = [];
     Terms: TermLookup[] = [];
@@ -77,6 +78,7 @@ export class MembershipEditDialogComponent implements OnInit {
     OnPersonSelected(event: { PersonID: string; DisplayName: string } | null): void {
         if (this.Membership && event) {
             this.Membership.PersonID = event.PersonID;
+            this.SelectedPersonName = event.DisplayName;
             this.cdr.markForCheck();
         }
     }
@@ -173,6 +175,21 @@ export class MembershipEditDialogComponent implements OnInit {
         } else {
             this.Membership = await md.GetEntityObject<mjCommitteesMembershipEntity>('Memberships');
             await this.Membership.Load(this.MembershipID!);
+            await this.loadPersonName(this.Membership.PersonID);
+        }
+    }
+
+    private async loadPersonName(personID: string | null): Promise<void> {
+        if (!personID) return;
+        const rv = new RunView();
+        const result = await rv.RunView({
+            EntityName: 'MJ.BizApps.Common: People',
+            ExtraFilter: `ID='${personID}'`,
+            Fields: ['ID', 'DisplayName'],
+            ResultType: 'simple',
+        });
+        if (result.Success && result.Results?.length) {
+            this.SelectedPersonName = (result.Results[0] as { DisplayName: string }).DisplayName;
         }
     }
 

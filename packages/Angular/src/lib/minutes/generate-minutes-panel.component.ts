@@ -9,6 +9,16 @@ import { marked } from 'marked';
 
 export type MinutesPanelState = 'input' | 'generating' | 'preview' | 'editing';
 
+const SAVE_MINUTES_MUTATION = `
+    mutation SaveMinutesDraft($MeetingID: String!, $Content: String!) {
+        SaveMinutesDraft(MeetingID: $MeetingID, Content: $Content) {
+            Success
+            ErrorMessage
+            MinuteID
+        }
+    }
+`;
+
 const GENERATE_MINUTES_MUTATION = `
     mutation GenerateMeetingMinutes($input: GenerateMinutesInput!) {
         GenerateMeetingMinutes(input: $input) {
@@ -39,6 +49,8 @@ export class GenerateMinutesPanelComponent implements OnInit {
     GeneratedContent = '';
     ErrorMessage = '';
     CopySuccess = false;
+    SaveSuccess = false;
+    SaveError = '';
 
     private cdr = inject(ChangeDetectorRef);
     private sanitizer = inject(DomSanitizer);
@@ -84,6 +96,30 @@ export class GenerateMinutesPanelComponent implements OnInit {
 
     OnToggleEdit(): void {
         this.State = this.State === 'preview' ? 'editing' : 'preview';
+        this.cdr.markForCheck();
+    }
+
+    async OnSaveDraft(): Promise<void> {
+        this.SaveError = '';
+        this.SaveSuccess = false;
+        this.cdr.markForCheck();
+
+        try {
+            const provider = Metadata.Provider as GraphQLDataProvider;
+            const result = await provider.ExecuteGQL(SAVE_MINUTES_MUTATION, {
+                MeetingID: this.MeetingID,
+                Content: this.GeneratedContent,
+            });
+            const data = result?.SaveMinutesDraft;
+            if (!data?.Success) throw new Error(data?.ErrorMessage ?? 'Unknown error saving minutes');
+            this.SaveSuccess = true;
+            this.cdr.markForCheck();
+            setTimeout(() => this.OnClose(), 1500);
+            return;
+        } catch (error) {
+            this.SaveError = error instanceof Error ? error.message : String(error);
+        }
+
         this.cdr.markForCheck();
     }
 

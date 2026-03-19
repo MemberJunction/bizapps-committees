@@ -342,6 +342,18 @@
     border-radius: 0 6px 6px 0;
 }
 
+/* Save error */
+.save-error {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 24px;
+    background: #fef2f2;
+    border-top: 1px solid #fecaca;
+    color: #ef4444;
+    font-size: 13px;
+}
+
 /* Edit textarea */
 .edit-textarea {
     width: 100%;

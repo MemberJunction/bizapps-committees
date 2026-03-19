@@ -6,7 +6,7 @@ export * from './custom/MembershipEntity'
  * If you don't import this function and execute it, then the generated entities will not be included in the build. This is because the entities are not directly
  * referenced in this file, so webpack doesn't know that they are needed. By importing this function and calling it, webpack will include the generated entities
  * in the build.
- * 
+ *
  * @export
  * @returns {void}
  * @example
@@ -14,4 +14,4 @@ export * from './custom/MembershipEntity'
  * LoadGeneratedEntities()
  */
 export function LoadGeneratedEntities() {
-} 
+}

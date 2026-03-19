@@ -24,9 +24,10 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
     ShowEditDialog = false;
     EditingMeetingID: string | null = null;
 
-    /** Live view state */
-    ActiveView: 'list' | 'live' = 'list';
+    /** View state */
+    ActiveView: 'list' | 'live' | 'detail' = 'list';
     LiveMeetingID: string | null = null;
+    DetailMeetingID: string | null = null;
 
     /** Permission state */
     IsAnyOfficer = false;
@@ -76,16 +77,21 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
         this.cdr.markForCheck();
     }
 
-    OnEditMeeting(meetingID: string): void {
-        // Open live view for all users
-        this.LiveMeetingID = meetingID;
-        this.ActiveView = 'live';
+    OnOpenMeeting(meetingID: string, isPast: boolean): void {
+        if (isPast) {
+            this.DetailMeetingID = meetingID;
+            this.ActiveView = 'detail';
+        } else {
+            this.LiveMeetingID = meetingID;
+            this.ActiveView = 'live';
+        }
         this.cdr.markForCheck();
     }
 
     OnBackToList(): void {
         this.ActiveView = 'list';
         this.LiveMeetingID = null;
+        this.DetailMeetingID = null;
         this.LoadMeetings();
         this.cdr.markForCheck();
     }
@@ -104,12 +110,12 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
 
     private async LoadMeetings(): Promise<void> {
         const rv = new RunView();
-        const today = new Date().toISOString().split('T')[0];
+        const now = new Date().toISOString();
 
         const [upcoming, past] = await rv.RunViews([
             {
                 EntityName: 'Meetings',
-                ExtraFilter: `StartDateTime >= '${today}' AND Status NOT IN ('Cancelled', 'Completed')`,
+                ExtraFilter: `StartDateTime >= '${now}' AND Status NOT IN ('Cancelled', 'Completed')`,
                 Fields: ['ID', 'Title', 'StartDateTime', 'EndDateTime', 'Committee', 'Status', 'LocationType', 'Location', 'VideoJoinURL'],
                 OrderBy: 'StartDateTime ASC',
                 MaxRows: 50,
@@ -117,7 +123,7 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
             },
             {
                 EntityName: 'Meetings',
-                ExtraFilter: `StartDateTime < '${today}' OR Status IN ('Cancelled', 'Completed')`,
+                ExtraFilter: `StartDateTime < '${now}' OR Status IN ('Cancelled', 'Completed')`,
                 Fields: ['ID', 'Title', 'StartDateTime', 'EndDateTime', 'Committee', 'Status', 'LocationType', 'Location', 'VideoJoinURL'],
                 OrderBy: 'StartDateTime DESC',
                 MaxRows: 50,

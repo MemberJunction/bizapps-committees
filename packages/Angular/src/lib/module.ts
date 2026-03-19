@@ -5,6 +5,9 @@ import { FormsModule } from '@angular/forms';
 // MJ shared modules
 import { SharedGenericModule } from '@memberjunction/ng-shared-generic';
 
+// BizAppsCommon reusable components
+import { AddressEditorComponent, ContactMethodListComponent, RelationshipListComponent } from '@mj-biz-apps/common-ng';
+
 // Committees components
 import { CommitteeDashboardComponent, LoadCommitteeDashboard } from './dashboard/committee-dashboard.component';
 import { CommitteeListComponent, LoadCommitteeList } from './committee-list/committee-list.component';
@@ -25,6 +28,7 @@ import { MembershipListComponent, LoadMembershipList } from './membership/member
 import { MembershipPanelComponent, LoadMembershipPanel } from './membership/membership-panel.component';
 import { MembershipEditDialogComponent, LoadMembershipEditDialog } from './membership/membership-edit-dialog.component';
 import { GenerateMinutesPanelComponent, LoadGenerateMinutesPanel } from './minutes/generate-minutes-panel.component';
+import { MeetingDetailViewComponent, LoadMeetingDetailView } from './meeting-detail/meeting-detail-view.component';
 
 @NgModule({
     declarations: [
@@ -47,11 +51,15 @@ import { GenerateMinutesPanelComponent, LoadGenerateMinutesPanel } from './minut
         MembershipPanelComponent,
         MembershipEditDialogComponent,
         GenerateMinutesPanelComponent,
+        MeetingDetailViewComponent,
     ],
     imports: [
         CommonModule,
         FormsModule,
         SharedGenericModule,
+        AddressEditorComponent,
+        ContactMethodListComponent,
+        RelationshipListComponent,
     ],
     exports: [
         CommitteeDashboardComponent,
@@ -73,6 +81,7 @@ import { GenerateMinutesPanelComponent, LoadGenerateMinutesPanel } from './minut
         MembershipPanelComponent,
         MembershipEditDialogComponent,
         GenerateMinutesPanelComponent,
+        MeetingDetailViewComponent,
     ]
 })
 export class CommitteesModule { }
@@ -97,4 +106,8 @@ export function LoadCommitteesModule() {
     LoadMembershipPanel();
     LoadMembershipEditDialog();
     LoadGenerateMinutesPanel();
+    LoadMeetingDetailView();
 }
+
+/** Alias matching the mj-app.json manifest startupExport convention */
+export const LoadCommitteesClient = LoadCommitteesModule;

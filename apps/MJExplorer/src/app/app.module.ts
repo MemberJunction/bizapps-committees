@@ -19,6 +19,12 @@ import { AuthServicesModule, RedirectComponent, MJAuthBase } from '@memberjuncti
 import { MJExplorerAppModule } from '@memberjunction/ng-explorer-app';
 
 //***********************************************************
+// BizAppsCommon Client Bootstrap
+//***********************************************************
+import { LoadBizAppsCommonClient } from '@mj-biz-apps/common-ng';
+LoadBizAppsCommonClient();
+
+//***********************************************************
 // Committees Module
 //***********************************************************
 import { CommitteesModule, LoadCommitteesModule } from '@mj-biz-apps/committees-ng';

@@ -3,6 +3,11 @@
         [MeetingID]="LiveMeetingID"
         (BackToList)="OnBackToList()">
     </meeting-live-view>
+} @else if (ActiveView === 'detail' && DetailMeetingID) {
+    <meeting-detail-view
+        [MeetingID]="DetailMeetingID"
+        (BackToList)="OnBackToList()">
+    </meeting-detail-view>
 } @else if (IsLoading) {
     <div class="list-loading">
         <mj-loading text="Loading meetings..."></mj-loading>
@@ -47,7 +52,7 @@
             } @else {
                 <div class="meeting-grid">
                     @for (meeting of UpcomingMeetings; track meeting['ID']) {
-                        <div class="meeting-card" (click)="OnEditMeeting($any(meeting['ID']))">
+                        <div class="meeting-card" (click)="OnOpenMeeting($any(meeting['ID']), false)">
                             <div class="meeting-date-block">
                                 <span class="month">{{ $any(meeting['StartDateTime']) | date:'MMM' }}</span>
                                 <span class="day">{{ $any(meeting['StartDateTime']) | date:'d' }}</span>
@@ -92,7 +97,7 @@
             } @else {
                 <div class="meeting-grid">
                     @for (meeting of PastMeetings; track meeting['ID']) {
-                        <div class="meeting-card past" (click)="OnEditMeeting($any(meeting['ID']))">
+                        <div class="meeting-card past" (click)="OnOpenMeeting($any(meeting['ID']), true)">
                             <div class="meeting-date-block">
                                 <span class="month">{{ $any(meeting['StartDateTime']) | date:'MMM' }}</span>
                                 <span class="day">{{ $any(meeting['StartDateTime']) | date:'d' }}</span>

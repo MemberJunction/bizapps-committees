@@ -843,11 +843,21 @@ export const mjCommitteesMinuteSchema = z.object({
         * * Display Name: ID
         * * SQL Data Type: uniqueidentifier
         * * Default Value: newsequentialid()`),
-    ArtifactID: z.string().describe(`
+    ArtifactID: z.string().nullable().describe(`
         * * Field Name: ArtifactID
         * * Display Name: Artifact
         * * SQL Data Type: uniqueidentifier
         * * Related Entity/Foreign Key: Artifacts (vwArtifacts.ID)`),
+    MeetingID: z.string().nullable().describe(`
+        * * Field Name: MeetingID
+        * * Display Name: Meeting
+        * * SQL Data Type: uniqueidentifier
+        * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)`),
+    Content: z.string().nullable().describe(`
+        * * Field Name: Content
+        * * Display Name: Content
+        * * SQL Data Type: nvarchar(MAX)
+        * * Description: Generated markdown content of the meeting minutes`),
     ApprovalStatus: z.union([z.literal('Approved'), z.literal('Draft'), z.literal('PendingApproval'), z.literal('Rejected')]).describe(`
         * * Field Name: ApprovalStatus
         * * Display Name: Approval Status
@@ -4114,11 +4124,37 @@ export class mjCommitteesMinuteEntity extends BaseEntity<mjCommitteesMinuteEntit
     * * SQL Data Type: uniqueidentifier
     * * Related Entity/Foreign Key: Artifacts (vwArtifacts.ID)
     */
-    get ArtifactID(): string {
+    get ArtifactID(): string | null {
         return this.Get('ArtifactID');
     }
-    set ArtifactID(value: string) {
+    set ArtifactID(value: string | null) {
         this.Set('ArtifactID', value);
+    }
+
+    /**
+    * * Field Name: MeetingID
+    * * Display Name: Meeting
+    * * SQL Data Type: uniqueidentifier
+    * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)
+    */
+    get MeetingID(): string | null {
+        return this.Get('MeetingID');
+    }
+    set MeetingID(value: string | null) {
+        this.Set('MeetingID', value);
+    }
+
+    /**
+    * * Field Name: Content
+    * * Display Name: Content
+    * * SQL Data Type: nvarchar(MAX)
+    * * Description: Generated markdown content of the meeting minutes
+    */
+    get Content(): string | null {
+        return this.Get('Content');
+    }
+    set Content(value: string | null) {
+        this.Set('Content', value);
     }
 
     /**

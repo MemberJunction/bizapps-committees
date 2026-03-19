@@ -7,8 +7,13 @@ import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 
 // Import generated packages to trigger class registration
+import '@mj-biz-apps/common-entities';
 import '@mj-biz-apps/committees-entities';
 import '@mj-biz-apps/committees-actions';
+
+// BizAppsCommon server bootstrap — registers common entity classes and resolvers
+import { LoadBizAppsCommonServer, RESOLVER_PATHS as commonResolverPaths } from '@mj-biz-apps/common-server';
+LoadBizAppsCommonServer();
 
 // Committees server bootstrap — registers entity classes and services
 import { LoadCommitteesServer, RESOLVER_PATHS as committeesResolverPaths } from '@mj-biz-apps/committees-server';
@@ -30,7 +35,7 @@ import './generated/class-registrations-manifest.js';
 
 // Resolve resolver paths relative to this file
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const resolverPaths = [resolve(__dirname, 'generated/generated.{js,ts}'), ...committeesResolverPaths];
+const resolverPaths = [resolve(__dirname, 'generated/generated.{js,ts}'), ...commonResolverPaths, ...committeesResolverPaths];
 
 // Start the server with upload proxy route for storage providers that don't support CORS
 createMJServer({

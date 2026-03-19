@@ -21,7 +21,7 @@
     }
   ],
   "schema": {
-    "name": "__mj_committees",
+    "name": "__mj_Committees",
     "createIfNotExists": true
   },
   "migrations": {
@@ -49,10 +49,6 @@
     "shared": [
       {
         "name": "@mj-biz-apps/committees-entities",
-        "role": "library"
-      },
-      {
-        "name": "@mj-biz-apps/committees-actions",
         "role": "library"
       },
       {

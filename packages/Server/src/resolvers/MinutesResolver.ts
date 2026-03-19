@@ -3,6 +3,18 @@ import { AppContext, ResolverBase } from '@memberjunction/server';
 import { MinutesService } from '@mj-biz-apps/committees-core';
 
 @ObjectType()
+export class MinutesSaveDraftResponse {
+    @Field()
+    Success!: boolean;
+
+    @Field({ nullable: true })
+    ErrorMessage?: string;
+
+    @Field()
+    MinuteID!: string;
+}
+
+@ObjectType()
 export class MinutesDraftResponse {
     @Field()
     Success!: boolean;
@@ -60,5 +72,21 @@ export class MinutesResolver extends ResolverBase {
             MeetingID: result.MeetingID,
             Content: result.Content,
         };
+    }
+
+    @Mutation(() => MinutesSaveDraftResponse)
+    async SaveMinutesDraft(
+        @Arg('MeetingID') meetingID: string,
+        @Arg('Content') content: string,
+        @Ctx() { userPayload }: AppContext
+    ): Promise<MinutesSaveDraftResponse> {
+        const contextUser = this.GetUserFromPayload(userPayload);
+        if (!contextUser) {
+            return { Success: false, ErrorMessage: 'Unauthorized: could not resolve user from session', MinuteID: '' };
+        }
+
+        const service = new MinutesService();
+        const result = await service.SaveDraftMinutes(meetingID, content, contextUser);
+        return { Success: result.Success, ErrorMessage: result.ErrorMessage, MinuteID: result.MinuteID };
     }
 }

@@ -1,0 +1,277 @@
+@if (IsLoading) {
+    <div class="detail-loading">
+        <mj-loading text="Loading meeting details..."></mj-loading>
+    </div>
+} @else if (!Meeting) {
+    <div class="detail-not-found">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        <p>Meeting not found.</p>
+        <button class="btn btn-secondary" (click)="OnBack()">Back to Meetings</button>
+    </div>
+} @else {
+    <div class="detail-container">
+
+        <!-- Header -->
+        <div class="detail-header">
+            <button class="back-btn" (click)="OnBack()">
+                <i class="fa-solid fa-arrow-left"></i> Meetings
+            </button>
+            <div class="header-meta">
+                <span class="committee-chip">
+                    <i class="fa-solid fa-users-rectangle"></i>
+                    {{ Meeting.Committee }}
+                </span>
+                <span [class]="'status-badge status-' + (Meeting.Status || '').toLowerCase()">
+                    {{ Meeting.Status }}
+                </span>
+                @if (IsOfficer && Meeting.Status !== 'Completed' && Meeting.Status !== 'Cancelled') {
+                    <button class="btn btn-secondary btn-sm" (click)="OnMarkAsCompleted()" [disabled]="IsMarkingCompleted">
+                        @if (IsMarkingCompleted) {
+                            <i class="fa-solid fa-spinner fa-spin"></i>
+                        } @else {
+                            <i class="fa-solid fa-circle-check"></i>
+                        }
+                        Mark as Completed
+                    </button>
+                }
+            </div>
+            <h1 class="meeting-title">{{ Meeting.Title }}</h1>
+            <div class="meeting-datetime">
+                <i class="fa-regular fa-calendar"></i>
+                {{ FormattedDate }}
+                <span class="time-sep">·</span>
+                <i class="fa-regular fa-clock"></i>
+                {{ FormattedTime }}
+                @if (Meeting.LocationType) {
+                    <span class="time-sep">·</span>
+                    {{ Meeting.Location || Meeting.LocationType }}
+                }
+            </div>
+        </div>
+
+        <!-- Section Nav -->
+        <div class="section-nav">
+            <button class="section-tab" [class.active]="ActiveSection === 'overview'"
+                (click)="ActiveSection = 'overview'">
+                <i class="fa-solid fa-circle-info"></i> Overview
+            </button>
+            <button class="section-tab" [class.active]="ActiveSection === 'agenda'"
+                (click)="ActiveSection = 'agenda'">
+                <i class="fa-solid fa-list-check"></i> Agenda
+                <span class="tab-count">{{ AgendaItems.length }}</span>
+            </button>
+            <button class="section-tab" [class.active]="ActiveSection === 'motions'"
+                (click)="ActiveSection = 'motions'">
+                <i class="fa-solid fa-gavel"></i> Motions
+                <span class="tab-count">{{ Motions.length }}</span>
+            </button>
+            <button class="section-tab" [class.active]="ActiveSection === 'minutes'"
+                (click)="ActiveSection = 'minutes'">
+                <i class="fa-solid fa-file-lines"></i> Minutes
+                @if (Minute) {
+                    <span class="tab-count tab-count-dot"></span>
+                }
+            </button>
+        </div>
+
+        <!-- Overview -->
+        @if (ActiveSection === 'overview') {
+            <div class="section-body">
+                <div class="overview-grid">
+
+                    <!-- Attendance card -->
+                    <div class="info-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-user-check"></i>
+                            <h3>Attendance</h3>
+                            <span class="card-count">{{ PresentMembers.length }} present</span>
+                        </div>
+                        @if (PresentMembers.length === 0 && AbsentMembers.length === 0) {
+                            <p class="card-empty">No attendance recorded.</p>
+                        } @else {
+                            <div class="attendance-list">
+                                @for (a of PresentMembers; track a.ID) {
+                                    <div class="attendance-row present">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        <span>{{ a.Person }}</span>
+                                    </div>
+                                }
+                                @for (a of AbsentMembers; track a.ID) {
+                                    <div class="attendance-row absent">
+                                        <i class="fa-regular fa-circle-xmark"></i>
+                                        <span>{{ a.Person }}</span>
+                                        <span class="absence-label">{{ a.AttendanceStatus }}</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Quick summary card -->
+                    <div class="info-card">
+                        <div class="card-header">
+                            <i class="fa-solid fa-chart-bar"></i>
+                            <h3>Summary</h3>
+                        </div>
+                        <div class="summary-stats">
+                            <div class="stat-row">
+                                <span class="stat-label">Agenda items</span>
+                                <span class="stat-value">{{ AgendaItems.length }}</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Motions voted</span>
+                                <span class="stat-value">{{ Motions.length }}</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Motions passed</span>
+                                <span class="stat-value passed">
+                                    {{ PassedMotionsCount }}
+                                </span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Minutes</span>
+                                <span class="stat-value">
+                                    @if (Minute) {
+                                        <span class="minutes-status" [class]="'minutes-' + Minute.ApprovalStatus.toLowerCase()">
+                                            {{ Minute.ApprovalStatus }}
+                                        </span>
+                                    } @else {
+                                        <span class="minutes-none">None</span>
+                                    }
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        }
+
+        <!-- Agenda -->
+        @if (ActiveSection === 'agenda') {
+            <div class="section-body">
+                @if (AgendaItems.length === 0) {
+                    <div class="section-empty">
+                        <i class="fa-solid fa-list-check"></i>
+                        <p>No agenda items recorded for this meeting.</p>
+                    </div>
+                } @else {
+                    <div class="agenda-list">
+                        @for (item of AgendaItems; track item.ID) {
+                            <div class="agenda-item">
+                                <div class="agenda-seq">{{ item.Sequence }}</div>
+                                <div class="agenda-content">
+                                    <div class="agenda-title-row">
+                                        <span class="agenda-title">{{ item.Title }}</span>
+                                        <span [class]="'agenda-status ' + GetAgendaStatusClass(item.Status)">
+                                            {{ item.Status }}
+                                        </span>
+                                    </div>
+                                    <div class="agenda-meta">
+                                        <span class="agenda-type">{{ item.ItemType }}</span>
+                                        @if (item.DurationMinutes) {
+                                            <span class="agenda-duration">
+                                                <i class="fa-regular fa-clock"></i>
+                                                {{ item.DurationMinutes }}m
+                                            </span>
+                                        }
+                                    </div>
+                                    @if (item.Notes) {
+                                        <p class="agenda-notes">{{ item.Notes }}</p>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Motions -->
+        @if (ActiveSection === 'motions') {
+            <div class="section-body">
+                @if (Motions.length === 0) {
+                    <div class="section-empty">
+                        <i class="fa-solid fa-gavel"></i>
+                        <p>No motions recorded for this meeting.</p>
+                    </div>
+                } @else {
+                    <div class="motions-list">
+                        @for (motion of Motions; track motion.ID) {
+                            <div class="motion-card">
+                                <div class="motion-header">
+                                    <span class="motion-title">{{ motion.Title }}</span>
+                                    <span [class]="'motion-result ' + GetMotionResultClass(motion.Result)">
+                                        {{ motion.Result }}
+                                    </span>
+                                </div>
+                                @if (motion.Description) {
+                                    <p class="motion-description">{{ motion.Description }}</p>
+                                }
+                                <div class="vote-tally">
+                                    @if (motion.ResultSummary) {
+                                        <span class="tally-summary">{{ motion.ResultSummary }}</span>
+                                    } @else if (motion.YesCount != null) {
+                                        <span class="tally-yes">
+                                            <i class="fa-solid fa-thumbs-up"></i> {{ motion.YesCount }}
+                                        </span>
+                                        <span class="tally-no">
+                                            <i class="fa-solid fa-thumbs-down"></i> {{ motion.NoCount }}
+                                        </span>
+                                        @if (motion.AbstainCount) {
+                                            <span class="tally-abstain">
+                                                <i class="fa-solid fa-minus"></i> {{ motion.AbstainCount }}
+                                            </span>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Minutes -->
+        @if (ActiveSection === 'minutes') {
+            <div class="section-body">
+                @if (!Minute) {
+                    <div class="section-empty">
+                        <i class="fa-solid fa-file-lines"></i>
+                        <p>No minutes have been generated for this meeting.</p>
+                        @if (IsOfficer) {
+                            <button class="btn btn-primary" (click)="ShowMinutesPanel = true">
+                                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Minutes
+                            </button>
+                        }
+                    </div>
+                } @else {
+                    <div class="minutes-viewer">
+                        <div class="minutes-toolbar">
+                            <span [class]="'minutes-status minutes-' + Minute.ApprovalStatus.toLowerCase()">
+                                {{ Minute.ApprovalStatus }}
+                            </span>
+                            <div class="toolbar-spacer"></div>
+                            @if (IsOfficer) {
+                                <button class="btn btn-secondary btn-sm" (click)="ShowMinutesPanel = true">
+                                    <i class="fa-solid fa-rotate"></i> Regenerate
+                                </button>
+                            }
+                        </div>
+                        <div class="markdown-preview" [innerHTML]="RenderedMinutes"></div>
+                    </div>
+                }
+            </div>
+        }
+
+    </div>
+}
+
+<!-- Generate Minutes Panel -->
+@if (ShowMinutesPanel) {
+    <generate-minutes-panel
+        [MeetingID]="MeetingID"
+        [TranscriptURL]="Meeting?.TranscriptURL ?? null"
+        (Close)="OnMinutesPanelClose()">
+    </generate-minutes-panel>
+}

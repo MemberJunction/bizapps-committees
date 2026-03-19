@@ -2,6 +2,7 @@ import { Metadata, RunView, UserInfo, LogError } from '@memberjunction/core';
 import { AIEngine } from '@memberjunction/aiengine';
 import {
     mjCommitteesMeetingEntity,
+    mjCommitteesMinuteEntity,
 } from '@mj-biz-apps/committees-entities';
 
 /**
@@ -13,6 +14,13 @@ export interface MinutesDraftResult {
     ErrorMessage?: string;
     MeetingID: string;
     Content: string;
+}
+
+/** Result returned by SaveDraftMinutes. */
+export interface MinutesSaveResult {
+    Success: boolean;
+    ErrorMessage?: string;
+    MinuteID: string;
 }
 
 /** Read-only shape of an Agenda Item row from a simple RunView query. */
@@ -96,6 +104,51 @@ export class MinutesService {
             LogError(`[MinutesService] GenerateDraftMinutes failed for meeting ${meetingID}: ${message}`);
             return { Success: false, ErrorMessage: message, MeetingID: meetingID, Content: '' };
         }
+    }
+
+    /**
+     * Saves (or updates) a draft Minute record for the given meeting.
+     * If a Minute record already exists for the meeting it is overwritten;
+     * otherwise a new Draft record is created.
+     */
+    public async SaveDraftMinutes(
+        meetingID: string,
+        content: string,
+        contextUser: UserInfo
+    ): Promise<MinutesSaveResult> {
+        try {
+            const minute = await this.findOrCreateMinute(meetingID, contextUser);
+            minute.MeetingID = meetingID;
+            minute.Content = content;
+            minute.ApprovalStatus = 'Draft';
+
+            const saved = await minute.Save();
+            if (!saved) {
+                return { Success: false, ErrorMessage: 'Failed to save minute record', MinuteID: '' };
+            }
+            return { Success: true, MinuteID: minute.ID };
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            LogError(`[MinutesService] SaveDraftMinutes failed for meeting ${meetingID}: ${message}`);
+            return { Success: false, ErrorMessage: message, MinuteID: '' };
+        }
+    }
+
+    /** Finds an existing Draft Minute for the meeting, or creates a new entity object. */
+    private async findOrCreateMinute(meetingID: string, contextUser: UserInfo): Promise<mjCommitteesMinuteEntity> {
+        const rv = new RunView();
+        const result = await rv.RunView<mjCommitteesMinuteEntity>({
+            EntityName: 'Minutes',
+            ExtraFilter: `MeetingID='${meetingID}'`,
+            ResultType: 'entity_object',
+        }, contextUser);
+
+        if (result.Success && result.Results && result.Results.length > 0) {
+            return result.Results[0];
+        }
+
+        const md = new Metadata();
+        return await md.GetEntityObject<mjCommitteesMinuteEntity>('Minutes', contextUser);
     }
 
     // -------------------------------------------------------------------------

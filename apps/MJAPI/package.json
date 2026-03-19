@@ -34,6 +34,8 @@
     "@memberjunction/templates": "5.10.1",
     "axios": "^1.13.4",
     "class-validator": "^0.14.3",
+    "@mj-biz-apps/common-entities": "5.10.1",
+    "@mj-biz-apps/common-server": "5.10.1",
     "@mj-biz-apps/committees-actions": "1.0.0",
     "@mj-biz-apps/committees-entities": "1.0.0",
     "@mj-biz-apps/committees-server": "1.0.0"

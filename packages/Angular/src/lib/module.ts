@@ -27,6 +27,7 @@ import { TermEditDialogComponent, LoadTermEditDialog } from './terms/term-edit-d
 import { MembershipListComponent, LoadMembershipList } from './membership/membership-list.component';
 import { MembershipPanelComponent, LoadMembershipPanel } from './membership/membership-panel.component';
 import { MembershipEditDialogComponent, LoadMembershipEditDialog } from './membership/membership-edit-dialog.component';
+import { PersonDetailPanelComponent, LoadPersonDetailPanel } from './membership/person-detail-panel.component';
 import { GenerateMinutesPanelComponent, LoadGenerateMinutesPanel } from './minutes/generate-minutes-panel.component';
 import { MeetingDetailViewComponent, LoadMeetingDetailView } from './meeting-detail/meeting-detail-view.component';
 
@@ -50,6 +51,7 @@ import { MeetingDetailViewComponent, LoadMeetingDetailView } from './meeting-det
         MembershipListComponent,
         MembershipPanelComponent,
         MembershipEditDialogComponent,
+        PersonDetailPanelComponent,
         GenerateMinutesPanelComponent,
         MeetingDetailViewComponent,
     ],
@@ -80,6 +82,7 @@ import { MeetingDetailViewComponent, LoadMeetingDetailView } from './meeting-det
         MembershipListComponent,
         MembershipPanelComponent,
         MembershipEditDialogComponent,
+        PersonDetailPanelComponent,
         GenerateMinutesPanelComponent,
         MeetingDetailViewComponent,
     ]
@@ -105,6 +108,7 @@ export function LoadCommitteesModule() {
     LoadMembershipList();
     LoadMembershipPanel();
     LoadMembershipEditDialog();
+    LoadPersonDetailPanel();
     LoadGenerateMinutesPanel();
     LoadMeetingDetailView();
 }

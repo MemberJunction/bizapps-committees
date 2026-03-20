@@ -18,5 +18,6 @@ export * from './lib/terms/term-edit-dialog.component';
 export * from './lib/membership/membership-list.component';
 export * from './lib/membership/membership-panel.component';
 export * from './lib/membership/membership-edit-dialog.component';
+export * from './lib/membership/person-detail-panel.component';
 export * from './lib/minutes/generate-minutes-panel.component';
 export * from './lib/meeting-detail/meeting-detail-view.component';

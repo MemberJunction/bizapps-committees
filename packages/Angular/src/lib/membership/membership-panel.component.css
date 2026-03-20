@@ -225,6 +225,58 @@
 
 .member-dates i { font-size: 10px; }
 
+/* ─── Inline Contact Chips ─── */
+.contact-chips {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.contact-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #475569;
+}
+
+.contact-chip i {
+    font-size: 10px;
+    color: #94a3b8;
+}
+
+/* ─── Member Actions ─── */
+.member-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn-icon-sm {
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: 7px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+
+.btn-icon-sm:hover {
+    background: #e2e8f0;
+    color: #0f172a;
+}
+
 /* ─── Status Badges ─── */
 .status-badge {
     font-size: 11px;

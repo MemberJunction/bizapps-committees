@@ -24,6 +24,9 @@ export class MembershipPanelComponent {
     ShowTermDialog = false;
     EditingTermID: string | null = null;
 
+    ShowPersonPanel = false;
+    ViewingPersonID: string | null = null;
+
     private cdr = inject(ChangeDetectorRef);
     private RoleSequenceMap = new Map<string, number>();
 
@@ -58,10 +61,23 @@ export class MembershipPanelComponent {
         this.cdr.markForCheck();
     }
 
-    OnEditMembership(membershipID: string): void {
+    OnEditMembership(membershipID: string, event: Event): void {
+        event.stopPropagation();
         if (!this.Permissions.CanManageMembers) return;
         this.EditingMembershipID = membershipID;
         this.ShowEditDialog = true;
+        this.cdr.markForCheck();
+    }
+
+    OnViewPerson(personID: string): void {
+        this.ViewingPersonID = personID;
+        this.ShowPersonPanel = true;
+        this.cdr.markForCheck();
+    }
+
+    OnPersonPanelClosed(): void {
+        this.ShowPersonPanel = false;
+        this.ViewingPersonID = null;
         this.cdr.markForCheck();
     }
 
@@ -103,7 +119,6 @@ export class MembershipPanelComponent {
                 this.SelectedTermID = null;
                 this.SuccessMessage = 'Term deleted.';
             } else {
-                // Auto-select the saved term
                 this.SelectedTermID = result.Term!.ID;
                 this.SuccessMessage = this.EditingTermID ? 'Term updated.' : 'Term created.';
             }
@@ -181,7 +196,7 @@ export class MembershipPanelComponent {
             {
                 EntityName: 'Memberships',
                 Fields: ['ID', 'PersonID', 'Person', 'RoleID', 'Role', 'TermID', 'Term', 'StartDate', 'EndDate', 'Status'],
-                ExtraFilter: `TermID IN (${termIDs})`,
+                ExtraFilter: `TermID IN (${termIDs}) AND Status != 'Ended'`,
                 OrderBy: 'Person ASC',
                 ResultType: 'simple'
             },
@@ -207,7 +222,43 @@ export class MembershipPanelComponent {
                 if (seqA !== seqB) return seqA - seqB;
                 return ((a['Person'] as string) || '').localeCompare((b['Person'] as string) || '');
             });
+            await this.LoadPersonContactData();
         }
+    }
+
+    /** Batch-loads primary Email and Phone from Contact Methods and merges onto membership records. */
+    private async LoadPersonContactData(): Promise<void> {
+        const personIDs = [...new Set(
+            this.Memberships.map(m => m['PersonID'] as string).filter(Boolean)
+        )];
+        if (personIDs.length === 0) return;
+
+        const rv = new RunView();
+        const result = await rv.RunView<{ PersonID: string; Value: string; ContactType: string; IsPrimary: boolean }>({
+            EntityName: 'MJ.BizApps.Common: Contact Methods',
+            ExtraFilter: `PersonID IN (${personIDs.map(id => `'${id}'`).join(',')}) AND IsPrimary = 1`,
+            Fields: ['PersonID', 'Value', 'ContactType', 'IsPrimary'],
+            ResultType: 'simple'
+        });
+
+        if (!result.Success) return;
+
+        const contactMap = new Map<string, { Email: string | null; Phone: string | null }>();
+        for (const cm of result.Results) {
+            const type = (cm.ContactType || '').toLowerCase();
+            if (!contactMap.has(cm.PersonID)) {
+                contactMap.set(cm.PersonID, { Email: null, Phone: null });
+            }
+            const entry = contactMap.get(cm.PersonID)!;
+            if (type === 'email' && !entry.Email) entry.Email = cm.Value;
+            else if ((type === 'phone' || type === 'mobile' || type === 'work phone') && !entry.Phone) entry.Phone = cm.Value;
+        }
+
+        this.Memberships = this.Memberships.map(m => ({
+            ...m,
+            PersonEmail: contactMap.get(m['PersonID'] as string)?.Email ?? null,
+            PersonPhone: contactMap.get(m['PersonID'] as string)?.Phone ?? null,
+        }));
     }
 }
 

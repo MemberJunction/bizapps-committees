@@ -66,7 +66,7 @@
             } @else {
                 <div class="member-grid">
                     @for (member of FilteredMemberships; track member['ID']) {
-                        <div class="member-card" [class.clickable]="Permissions.CanManageMembers" (click)="OnEditMembership($any(member['ID']))">
+                        <div class="member-card clickable" (click)="OnViewPerson($any(member['PersonID']))">
                             <div class="member-avatar">
                                 <i [class]="GetRoleIcon($any(member['Role']))"></i>
                             </div>
@@ -79,6 +79,23 @@
                                         {{ member['Term'] }}
                                     </span>
                                 </div>
+                                <!-- Inline contact chips -->
+                                @if (member['PersonEmail'] || member['PersonPhone']) {
+                                    <div class="contact-chips">
+                                        @if (member['PersonEmail']) {
+                                            <span class="contact-chip">
+                                                <i class="fa-solid fa-envelope"></i>
+                                                {{ member['PersonEmail'] }}
+                                            </span>
+                                        }
+                                        @if (member['PersonPhone']) {
+                                            <span class="contact-chip">
+                                                <i class="fa-solid fa-phone"></i>
+                                                {{ member['PersonPhone'] }}
+                                            </span>
+                                        }
+                                    </div>
+                                }
                                 @if (member['StartDate']) {
                                     <div class="member-dates">
                                         <i class="fa-solid fa-clock"></i>
@@ -92,9 +109,17 @@
                                     </div>
                                 }
                             </div>
-                            <span [class]="GetStatusClass($any(member['Status']))">
-                                {{ member['Status'] }}
-                            </span>
+                            <div class="member-actions">
+                                <span [class]="GetStatusClass($any(member['Status']))">
+                                    {{ member['Status'] }}
+                                </span>
+                                @if (Permissions.CanManageMembers) {
+                                    <button class="btn-icon-sm" title="Edit membership"
+                                        (click)="OnEditMembership($any(member['ID']), $event)">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                }
+                            </div>
                         </div>
                     }
                 </div>
@@ -103,7 +128,7 @@
     </div>
 }
 
-<!-- Edit Dialog -->
+<!-- Membership Edit Dialog -->
 @if (ShowEditDialog) {
     <membership-edit-dialog
         [MembershipID]="EditingMembershipID"
@@ -119,4 +144,13 @@
         [CommitteeID]="CommitteeID"
         (DialogClosed)="OnTermDialogClosed($event)">
     </term-edit-dialog>
+}
+
+<!-- Person Detail Panel -->
+@if (ShowPersonPanel && ViewingPersonID) {
+    <person-detail-panel
+        [PersonID]="ViewingPersonID"
+        [CanEdit]="Permissions.IsOfficer"
+        (PanelClosed)="OnPersonPanelClosed()">
+    </person-detail-panel>
 }

@@ -1,0 +1,126 @@
+<div class="dialog-backdrop" (click)="OnClose()"></div>
+<div class="dialog-panel">
+
+    <!-- Header -->
+    <div class="dialog-header">
+        <h2 class="dialog-title">
+            @if (IsLoading) { Person Details }
+            @else { {{ DisplayName || 'Person Details' }} }
+        </h2>
+        <div class="header-actions">
+            @if (!IsLoading && CanEdit && !IsEditMode) {
+                <button class="btn btn-secondary btn-sm" (click)="OnToggleEdit()">
+                    <i class="fa-solid fa-pen"></i> Edit
+                </button>
+            }
+            <button class="dialog-close" (click)="OnClose()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    @if (IsLoading) {
+        <div class="dialog-loading">
+            <mj-loading text="Loading person..."></mj-loading>
+        </div>
+    } @else if (Person) {
+
+        <div class="dialog-body">
+
+            @if (ErrorMessage) {
+                <div class="error-banner">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ ErrorMessage }}
+                </div>
+            }
+
+            <!-- Identity -->
+            <div class="person-identity">
+                @if (Person.PhotoURL) {
+                    <img class="person-avatar" [src]="Person.PhotoURL" [alt]="DisplayName" />
+                } @else {
+                    <div class="person-avatar-placeholder">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                }
+                <div class="person-info">
+                    @if (IsEditMode) {
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">First Name</label>
+                                <input class="form-input" [(ngModel)]="Person.FirstName" />
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Last Name</label>
+                                <input class="form-input" [(ngModel)]="Person.LastName" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Title</label>
+                            <input class="form-input" [(ngModel)]="Person.Title" placeholder="Job title or role..." />
+                        </div>
+                    } @else {
+                        <h3 class="person-name">{{ DisplayName }}</h3>
+                        @if (Person.Title) {
+                            <p class="person-title">{{ Person.Title }}</p>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- Bio -->
+            @if (IsEditMode) {
+                <div class="form-group">
+                    <label class="form-label">Bio</label>
+                    <textarea class="form-input form-textarea" [(ngModel)]="Person.Bio" placeholder="Brief bio..."></textarea>
+                </div>
+            } @else if (Person.Bio) {
+                <div class="section">
+                    <p class="person-bio">{{ Person.Bio }}</p>
+                </div>
+            }
+
+            <!-- Contact Methods -->
+            <div class="section">
+                <h4 class="section-title">
+                    <i class="fa-solid fa-address-card"></i> Contact Methods
+                </h4>
+                <bizapps-contact-method-list
+                    [PersonID]="PersonID"
+                    [EditMode]="IsEditMode">
+                </bizapps-contact-method-list>
+            </div>
+
+            <!-- Addresses -->
+            <div class="section">
+                <h4 class="section-title">
+                    <i class="fa-solid fa-location-dot"></i> Addresses
+                </h4>
+                <bizapps-address-editor
+                    EntityName="MJ.BizApps.Common: People"
+                    [RecordID]="PersonID!"
+                    [EditMode]="IsEditMode">
+                </bizapps-address-editor>
+            </div>
+
+        </div>
+
+        <!-- Footer (edit mode only) -->
+        @if (IsEditMode) {
+            <div class="dialog-actions">
+                <button class="btn btn-primary" (click)="OnSave()" [disabled]="IsSaving">
+                    @if (IsSaving) {
+                        <i class="fa-solid fa-spinner fa-spin"></i> Saving...
+                    } @else {
+                        <i class="fa-solid fa-check"></i> Save Changes
+                    }
+                </button>
+                <div class="actions-spacer"></div>
+                <button class="btn btn-secondary" (click)="OnCancelEdit()" [disabled]="IsSaving">
+                    Cancel
+                </button>
+            </div>
+        }
+    }
+</div>

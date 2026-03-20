@@ -258,13 +258,16 @@
 }
 
 .btn-icon-sm {
-    width: 28px;
     height: 28px;
+    padding: 0 10px;
+    gap: 5px;
     border: none;
     border-radius: 7px;
     background: #f1f5f9;
     color: #64748b;
     font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
     cursor: pointer;
     display: flex;
     align-items: center;

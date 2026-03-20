@@ -104,41 +104,6 @@
                     rows="2"></textarea>
             </div>
 
-            @if (!IsNew && Membership.PersonID) {
-                <!-- Contact Methods -->
-                <div class="person-info-section">
-                    <h3 class="person-info-heading">
-                        <i class="fa-solid fa-address-book"></i> Contact Information
-                    </h3>
-                    <bizapps-contact-method-list
-                        [PersonID]="Membership.PersonID"
-                        [EditMode]="false">
-                    </bizapps-contact-method-list>
-                </div>
-
-                <!-- Addresses -->
-                <div class="person-info-section">
-                    <h3 class="person-info-heading">
-                        <i class="fa-solid fa-location-dot"></i> Addresses
-                    </h3>
-                    <bizapps-address-editor
-                        EntityName="MJ.BizApps.Common: People"
-                        [RecordID]="Membership.PersonID"
-                        [EditMode]="false">
-                    </bizapps-address-editor>
-                </div>
-
-                <!-- Relationships -->
-                <div class="person-info-section">
-                    <h3 class="person-info-heading">
-                        <i class="fa-solid fa-diagram-project"></i> Relationships
-                    </h3>
-                    <bizapps-relationship-list
-                        [PersonID]="Membership.PersonID"
-                        [EditMode]="false">
-                    </bizapps-relationship-list>
-                </div>
-            }
         </div>
 
         <div class="dialog-actions">

@@ -10,7 +10,7 @@
         <div class="header-actions">
             @if (!IsLoading && CanEdit && !IsEditMode) {
                 <button class="btn btn-secondary btn-sm" (click)="OnToggleEdit()">
-                    <i class="fa-solid fa-pen"></i> Edit
+                    <i class="fa-solid fa-pen"></i> Edit Contact
                 </button>
             }
             <button class="dialog-close" (click)="OnClose()">
@@ -102,6 +102,17 @@
                     [RecordID]="PersonID!"
                     [EditMode]="IsEditMode">
                 </bizapps-address-editor>
+            </div>
+
+            <!-- Relationships -->
+            <div class="section">
+                <h4 class="section-title">
+                    <i class="fa-solid fa-diagram-project"></i> Relationships
+                </h4>
+                <bizapps-relationship-list
+                    [PersonID]="PersonID"
+                    [EditMode]="IsEditMode">
+                </bizapps-relationship-list>
             </div>
 
         </div>

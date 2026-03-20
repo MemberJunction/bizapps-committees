@@ -26,6 +26,7 @@ export class MembershipPanelComponent {
 
     ShowPersonPanel = false;
     ViewingPersonID: string | null = null;
+    CurrentUserPersonID: string | null = null;
 
     private cdr = inject(ChangeDetectorRef);
     private RoleSequenceMap = new Map<string, number>();
@@ -155,11 +156,16 @@ export class MembershipPanelComponent {
         await this.LoadTerms();
         await Promise.all([
             this.LoadMemberships(),
-            this.LoadUserPermissions()
+            this.LoadUserPermissions(),
+            this.LoadCurrentUserPersonID()
         ]);
 
         this.IsLoading = false;
         this.cdr.markForCheck();
+    }
+
+    private async LoadCurrentUserPersonID(): Promise<void> {
+        this.CurrentUserPersonID = await CommitteePermissionHelper.GetCurrentPersonID();
     }
 
     private async LoadUserPermissions(): Promise<void> {

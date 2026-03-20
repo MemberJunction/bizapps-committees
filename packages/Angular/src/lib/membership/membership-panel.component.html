@@ -116,7 +116,7 @@
                                 @if (Permissions.CanManageMembers) {
                                     <button class="btn-icon-sm" title="Edit membership"
                                         (click)="OnEditMembership($any(member['ID']), $event)">
-                                        <i class="fa-solid fa-pen"></i>
+                                        <i class="fa-solid fa-pen"></i> Edit Membership
                                     </button>
                                 }
                             </div>
@@ -150,7 +150,7 @@
 @if (ShowPersonPanel && ViewingPersonID) {
     <person-detail-panel
         [PersonID]="ViewingPersonID"
-        [CanEdit]="Permissions.IsOfficer"
+        [CanEdit]="Permissions.IsOfficer || ViewingPersonID === CurrentUserPersonID"
         (PanelClosed)="OnPersonPanelClosed()">
     </person-detail-panel>
 }

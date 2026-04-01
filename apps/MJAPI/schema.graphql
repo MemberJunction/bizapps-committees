@@ -2461,14 +2461,11 @@ input CreateMJFileInput {
   CategoryID: String
   ContentType: String
   Description: String
-  ExternalID: String
-  FileSize: Int
   ID: String
   Name: String
   ProviderID: String
   ProviderKey: String
   Status: String
-  URL: String
 }
 
 input CreateMJFileStorageAccountInput {
@@ -4158,11 +4155,11 @@ input CreatemjCommitteesMeetingInput {
   VideoJoinURL: String
   VideoMeetingID: String
   VideoProvider: String
+  VideoProviderID: String
   VideoRecordingURL: String
 }
 
 input CreatemjCommitteesMembershipInput {
-  CommitteeID: String
   EndDate: Timestamp
   EndReason: String
   ID: String
@@ -4179,7 +4176,10 @@ input CreatemjCommitteesMinuteInput {
   ApprovedAt: Timestamp
   ApprovedByMeetingID: String
   ArtifactID: String
+  Content: String
+  FileID: String
   ID: String
+  MeetingID: String
   Notes: String
 }
 
@@ -4226,6 +4226,15 @@ input CreatemjCommitteesTypeInput {
   IconClass: String
   IsStandards: Boolean
   Name: String
+}
+
+input CreatemjCommitteesVideoProviderInput {
+  CredentialID: String
+  ID: String
+  IsActive: Boolean
+  IsDefault: Boolean
+  Name: String
+  ServerDriverKey: String
 }
 
 input CreatemjCommitteesVoteInput {
@@ -4425,6 +4434,12 @@ type FileSearchResultPayload {
   path: String!
   relevance: Float
   size: Int!
+}
+
+input GenerateMinutesInput {
+  MeetingID: String!
+  Transcript: String
+  TranscriptURL: String
 }
 
 type GetDataContextDataOutputType {
@@ -12098,8 +12113,6 @@ type MJFile_ {
   ContentType: String
   Description: String
   DownloadUrl: String!
-  ExternalID: String
-  FileSize: Int
   ID: String!
   MJAIAgentRunMedias_FileIDArray: [MJAIAgentRunMedia_!]!
   MJAIPromptRunMedias_FileIDArray: [MJAIPromptRunMedia_!]!
@@ -12114,7 +12127,6 @@ type MJFile_ {
 
   """Pending, Uploading, Uploaded, Deleting, Deleted"""
   Status: String!
-  URL: String
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
 }
@@ -16173,6 +16185,19 @@ type MemorySnapshotGQL {
   timestamp: Float!
 }
 
+type MinutesDraftResponse {
+  Content: String!
+  ErrorMessage: String
+  MeetingID: String!
+  Success: Boolean!
+}
+
+type MinutesSaveDraftResponse {
+  ErrorMessage: String
+  MinuteID: String!
+  Success: Boolean!
+}
+
 input MoveStorageObjectInput {
   AccountID: String!
   NewName: String!
@@ -16498,6 +16523,7 @@ type Mutation {
   CreatemjCommitteesRole(input: CreatemjCommitteesRoleInput!): mjCommitteesRole_!
   CreatemjCommitteesTerm(input: CreatemjCommitteesTermInput!): mjCommitteesTerm_!
   CreatemjCommitteesType(input: CreatemjCommitteesTypeInput!): mjCommitteesType_!
+  CreatemjCommitteesVideoProvider(input: CreatemjCommitteesVideoProviderInput!): mjCommitteesVideoProvider_!
   CreatemjCommitteesVote(input: CreatemjCommitteesVoteInput!): mjCommitteesVote_!
   DeleteFile(ID: String!, options___: DeleteOptionsInput!): MJFile_!
   DeleteFileCategory(ID: String!, options___: DeleteOptionsInput!): MJFileCategory_!
@@ -16812,15 +16838,18 @@ type Mutation {
   DeletemjCommitteesRole(ID: String!, options___: DeleteOptionsInput!): mjCommitteesRole_!
   DeletemjCommitteesTerm(ID: String!, options___: DeleteOptionsInput!): mjCommitteesTerm_!
   DeletemjCommitteesType(ID: String!, options___: DeleteOptionsInput!): mjCommitteesType_!
+  DeletemjCommitteesVideoProvider(ID: String!, options___: DeleteOptionsInput!): mjCommitteesVideoProvider_!
   DeletemjCommitteesVote(ID: String!, options___: DeleteOptionsInput!): mjCommitteesVote_!
   EmbedText(modelSize: String!, textToEmbed: [String!]!): EmbedTextResult!
   ExecuteMCPTool(input: ExecuteMCPToolInput!): ExecuteMCPToolResult!
   ExecuteSimplePrompt(messages: String, modelPower: String, preferredModels: [String!], responseFormat: String, systemPrompt: String!): SimplePromptResult!
   ExecuteTaskGraph(conversationDetailId: String!, createNotifications: Boolean, environmentId: String!, sessionId: String!, taskGraphJson: String!): ExecuteTaskGraphResult!
   ExecuteTransactionGroup(group: TransactionInputType!): TransactionOutputType!
+  GenerateMeetingMinutes(input: GenerateMinutesInput!): MinutesDraftResponse!
   InitiateMCPOAuth(input: InitiateMCPOAuthInput!): InitiateMCPOAuthResult!
   MergeRecords(request: RecordMergeRequest!): RecordMergeResult!
   MoveStorageObject(input: MoveStorageObjectInput!): Boolean!
+  ProvisionVideoMeeting(MeetingID: String!): ProvisionVideoMeetingResponse!
   RefreshMCPOAuthToken(input: RefreshMCPOAuthTokenInput!): RefreshMCPOAuthTokenResult!
   RevokeAPIKey(apiKeyId: String!): RevokeAPIKeyResult!
   RevokeMCPOAuth(input: RevokeMCPOAuthInput!): RevokeMCPOAuthResult!
@@ -16832,6 +16861,7 @@ type Mutation {
   RunTemplate(contextData: String, templateId: String!): TemplateRunResult!
   RunTest(environment: String, fireAndForget: Boolean, tags: String, testId: String!, variables: String, verbose: Boolean): TestRunResult!
   RunTestSuite(environment: String, fireAndForget: Boolean, parallel: Boolean, selectedTestIds: String, sequenceEnd: Int, sequenceStart: Int, suiteId: String!, tags: String, variables: String, verbose: Boolean): TestSuiteRunResult!
+  SaveMinutesDraft(Content: String!, MeetingID: String!): MinutesSaveDraftResponse!
   SendComponentFeedback(feedback: ComponentFeedbackInput!): ComponentFeedbackResponse!
   SetRecordFavoriteStatus(params: UserFavoriteSetParams!): UserFavoriteResult!
   SyncData(items: [ActionItemInputType!]!): SyncDataResultType!
@@ -17150,6 +17180,7 @@ type Mutation {
   UpdatemjCommitteesRole(input: UpdatemjCommitteesRoleInput!): mjCommitteesRole_!
   UpdatemjCommitteesTerm(input: UpdatemjCommitteesTermInput!): mjCommitteesTerm_!
   UpdatemjCommitteesType(input: UpdatemjCommitteesTypeInput!): mjCommitteesType_!
+  UpdatemjCommitteesVideoProvider(input: UpdatemjCommitteesVideoProviderInput!): mjCommitteesVideoProvider_!
   UpdatemjCommitteesVote(input: UpdatemjCommitteesVoteInput!): mjCommitteesVote_!
   startSqlLogging(input: StartSqlLoggingInput!): SqlLoggingSession!
   stopAllSqlLogging: Boolean!
@@ -17191,6 +17222,13 @@ type PreviewDataOutput {
 
 type PreviewRecordOutput {
   Data: String!
+}
+
+type ProvisionVideoMeetingResponse {
+  ErrorMessage: String
+  JoinURL: String
+  ProviderMeetingID: String
+  Success: Boolean!
 }
 
 type PushStatusNotification {
@@ -18505,6 +18543,9 @@ type Query {
   RunmjCommitteesTypeDynamicView(input: RunDynamicViewInput!): RunmjCommitteesTypeViewResult!
   RunmjCommitteesTypeViewByID(input: RunViewByIDInput!): RunmjCommitteesTypeViewResult!
   RunmjCommitteesTypeViewByName(input: RunViewByNameInput!): RunmjCommitteesTypeViewResult!
+  RunmjCommitteesVideoProviderDynamicView(input: RunDynamicViewInput!): RunmjCommitteesVideoProviderViewResult!
+  RunmjCommitteesVideoProviderViewByID(input: RunViewByIDInput!): RunmjCommitteesVideoProviderViewResult!
+  RunmjCommitteesVideoProviderViewByName(input: RunViewByNameInput!): RunmjCommitteesVideoProviderViewResult!
   RunmjCommitteesVoteDynamicView(input: RunDynamicViewInput!): RunmjCommitteesVoteViewResult!
   RunmjCommitteesVoteViewByID(input: RunViewByIDInput!): RunmjCommitteesVoteViewResult!
   RunmjCommitteesVoteViewByName(input: RunViewByNameInput!): RunmjCommitteesVoteViewResult!
@@ -18544,6 +18585,7 @@ type Query {
   mjCommitteesRole(ID: String!): mjCommitteesRole_
   mjCommitteesTerm(ID: String!): mjCommitteesTerm_
   mjCommitteesType(ID: String!): mjCommitteesType_
+  mjCommitteesVideoProvider(ID: String!): mjCommitteesVideoProvider_
   mjCommitteesVote(ID: String!): mjCommitteesVote_
   readSqlLogFile(maxLines: Int, sessionId: String!): String!
   sqlLoggingConfig: SqlLoggingConfig!
@@ -22294,6 +22336,16 @@ type RunmjCommitteesTypeViewResult {
   UserViewRunID: String
 }
 
+type RunmjCommitteesVideoProviderViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjCommitteesVideoProvider_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
 type RunmjCommitteesVoteViewResult {
   ErrorMessage: String
   ExecutionTime: Int
@@ -25024,15 +25076,12 @@ input UpdateMJFileInput {
   CategoryID: String
   ContentType: String
   Description: String
-  ExternalID: String
-  FileSize: Int
   ID: String!
   Name: String
   OldValues___: [KeyValuePairInput!]
   ProviderID: String
   ProviderKey: String
   Status: String
-  URL: String
 }
 
 input UpdateMJFileStorageAccountInput {
@@ -26821,11 +26870,11 @@ input UpdatemjCommitteesMeetingInput {
   VideoJoinURL: String
   VideoMeetingID: String
   VideoProvider: String
+  VideoProviderID: String
   VideoRecordingURL: String
 }
 
 input UpdatemjCommitteesMembershipInput {
-  CommitteeID: String
   EndDate: Timestamp
   EndReason: String
   ID: String!
@@ -26843,7 +26892,10 @@ input UpdatemjCommitteesMinuteInput {
   ApprovedAt: Timestamp
   ApprovedByMeetingID: String
   ArtifactID: String
+  Content: String
+  FileID: String
   ID: String!
+  MeetingID: String
   Notes: String
   OldValues___: [KeyValuePairInput!]
 }
@@ -26895,6 +26947,16 @@ input UpdatemjCommitteesTypeInput {
   IsStandards: Boolean
   Name: String
   OldValues___: [KeyValuePairInput!]
+}
+
+input UpdatemjCommitteesVideoProviderInput {
+  CredentialID: String
+  ID: String!
+  IsActive: Boolean
+  IsDefault: Boolean
+  Name: String
+  OldValues___: [KeyValuePairInput!]
+  ServerDriverKey: String
 }
 
 input UpdatemjCommitteesVoteInput {
@@ -27409,7 +27471,7 @@ type mjCommitteesAgendaItem_ {
 }
 
 """
-Categories of committee artifacts with optional extension entity for type-specific fields
+DEPRECATED: Migrated to MJ: File Categories. Will be dropped in a future migration.
 """
 type mjCommitteesArtifactType_ {
   """Detailed description of this artifact type"""
@@ -27432,7 +27494,9 @@ type mjCommitteesArtifactType_ {
   mjCommitteesArtifacts_ArtifactTypeIDArray: [mjCommitteesArtifact_!]!
 }
 
-"""Links to external documents and files from various providers"""
+"""
+DEPRECATED: Migrated to MJ: Files + File Entity Record Links. Will be dropped in a future migration.
+"""
 type mjCommitteesArtifact_ {
   ActionItem: String
   ActionItemID: String
@@ -27634,6 +27698,12 @@ type mjCommitteesMeeting_ {
   """Video conferencing provider: Zoom, Teams, Meet, etc."""
   VideoProvider: String
 
+  """
+  FK to VideoProvider — when set, video meeting URL is auto-created on save
+  """
+  VideoProviderID: String
+  VideoProvider_Virtual: String
+
   """URL to the meeting recording after completion"""
   VideoRecordingURL: String
   _mj__CreatedAt: Timestamp!
@@ -27644,14 +27714,12 @@ type mjCommitteesMeeting_ {
   mjCommitteesAttendances_MeetingIDArray: [mjCommitteesAttendance_!]!
   mjCommitteesComments_MeetingIDArray: [mjCommitteesComment_!]!
   mjCommitteesMinutes_ApprovedByMeetingIDArray: [mjCommitteesMinute_!]!
+  mjCommitteesMinutes_MeetingIDArray: [mjCommitteesMinute_!]!
   mjCommitteesMotions_MeetingIDArray: [mjCommitteesMotion_!]!
 }
 
 """Person assignments to committees with roles and terms"""
 type mjCommitteesMembership_ {
-  Committee: String!
-  CommitteeID: String!
-
   """Date the membership ended, if applicable"""
   EndDate: Timestamp
 
@@ -27671,8 +27739,8 @@ type mjCommitteesMembership_ {
 
   """Current status: Active, Pending, Ended, or Suspended"""
   Status: String!
-  Term: String
-  TermID: String
+  Term: String!
+  TermID: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
   mjCommitteesMotions_MovedByMembershipIDArray: [mjCommitteesMotion_!]!
@@ -27693,9 +27761,13 @@ type mjCommitteesMinute_ {
   Reference to the meeting at which these minutes were approved (typically the next meeting)
   """
   ApprovedByMeetingID: String
-  Artifact: String!
-  ArtifactID: String!
+  ArtifactID: String
+  Content: String
+  File: String
+  FileID: String
   ID: String!
+  Meeting: String
+  MeetingID: String
 
   """Additional notes about the minutes"""
   Notes: String
@@ -27818,10 +27890,23 @@ type mjCommitteesType_ {
   mjCommitteesCommittees_TypeIDArray: [mjCommitteesCommittee_!]!
 }
 
+type mjCommitteesVideoProvider_ {
+  Credential: String
+  CredentialID: String
+  ID: String!
+  IsActive: Boolean!
+  IsDefault: Boolean!
+  Name: String!
+  ServerDriverKey: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+  mjCommitteesMeetings_VideoProviderIDArray: [mjCommitteesMeeting_!]!
+}
+
 """Individual vote records for committee motions"""
 type mjCommitteesVote_ {
   ID: String!
-  Membership: String
+  Membership: String!
   MembershipID: String!
   Motion: String!
   MotionID: String!

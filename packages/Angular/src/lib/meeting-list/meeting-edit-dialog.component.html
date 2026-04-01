@@ -103,22 +103,24 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">Video Provider</label>
-                        <select class="form-input"
-                            [ngModel]="Meeting.VideoProvider"
-                            (ngModelChange)="Meeting.VideoProvider = $event">
-                            <option [ngValue]="null">None</option>
-                            @for (vp of VideoProviderOptions; track vp) {
-                                <option [ngValue]="vp">{{ vp }}</option>
-                            }
-                        </select>
+                        @if (DefaultProvider) {
+                            <div class="form-input-static">
+                                <i class="fa-solid fa-video"></i> {{ DefaultProvider.Name }}
+                                <span class="badge-auto">auto</span>
+                            </div>
+                        } @else {
+                            <div class="form-input-static muted">No default provider configured</div>
+                        }
                     </div>
                     <div class="form-group">
                         <label class="form-label">Video Join URL</label>
-                        <input class="form-input"
-                            type="url"
-                            [ngModel]="Meeting.VideoJoinURL"
-                            (ngModelChange)="Meeting.VideoJoinURL = $event"
-                            placeholder="https://zoom.us/j/..." />
+                        @if (Meeting.VideoJoinURL) {
+                            <a class="form-link" [href]="Meeting.VideoJoinURL" target="_blank">
+                                {{ Meeting.VideoJoinURL }}
+                            </a>
+                        } @else {
+                            <div class="form-input-static muted">Generated on save</div>
+                        }
                     </div>
                 </div>
             }

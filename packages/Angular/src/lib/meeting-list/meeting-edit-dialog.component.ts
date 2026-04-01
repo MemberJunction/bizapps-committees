@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
+import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
 import { mjCommitteesMeetingEntity, mjCommitteesAttendanceEntity, mjCommitteesAgendaItemEntity } from '@mj-biz-apps/committees-entities';
 import { AgendaItemDialogResult } from '../agenda/agenda-item-edit-dialog.component';
 import { MotionDialogResult } from '../motions/motion-edit-dialog.component';
@@ -59,8 +60,9 @@ export class MeetingEditDialogComponent implements OnInit {
 
     readonly LocationTypeOptions: ('Virtual' | 'InPerson' | 'Hybrid')[] = ['Virtual', 'InPerson', 'Hybrid'];
 
-    readonly VideoProviderOptions: ('Zoom' | 'Teams' | 'GoogleMeet' | 'Webex' | 'Other')[] =
-        ['Zoom', 'Teams', 'GoogleMeet', 'Webex', 'Other'];
+    /** Default org-wide video provider loaded at init. Null if none configured. */
+    DefaultProvider: { ID: string; Name: string } | null = null;
+    IsProvisioningVideo = false;
 
     /** Bound as string for <input type="datetime-local"> */
     StartDateTimeLocal = '';
@@ -118,6 +120,12 @@ export class MeetingEditDialogComponent implements OnInit {
         this.ErrorMessage = '';
         this.cdr.markForCheck();
 
+        // Auto-set VideoProviderID from the default provider for virtual/hybrid meetings
+        const locationType = this.Meeting.LocationType;
+        if (this.DefaultProvider && (locationType === 'Virtual' || locationType === 'Hybrid')) {
+            this.Meeting.Set('VideoProviderID', this.DefaultProvider.ID);
+        }
+
         const success = await this.Meeting.Save();
         if (!success) {
             this.IsSaving = false;
@@ -128,6 +136,12 @@ export class MeetingEditDialogComponent implements OnInit {
 
         // Save attendee changes
         await this.SaveAttendees();
+
+        // Provision video meeting if provider is set and no URL yet
+        if (this.DefaultProvider && !this.Meeting.VideoJoinURL &&
+            (locationType === 'Virtual' || locationType === 'Hybrid')) {
+            await this.ProvisionVideoMeeting(this.Meeting.ID);
+        }
 
         this.IsSaving = false;
         this.DialogClosed.emit({ Saved: true, Meeting: this.Meeting });
@@ -374,6 +388,18 @@ export class MeetingEditDialogComponent implements OnInit {
         if (peopleResult.Success) {
             this.AllPeople = peopleResult.Results as { ID: string; DisplayName: string }[];
         }
+
+        // Load default video provider
+        const providerResult = await rv.RunView<{ ID: string; Name: string }>({
+            EntityName: 'Video Providers',
+            Fields: ['ID', 'Name'],
+            ExtraFilter: `IsDefault = 1 AND IsActive = 1`,
+            MaxRows: 1,
+            ResultType: 'simple'
+        });
+        if (providerResult.Success && providerResult.Results.length > 0) {
+            this.DefaultProvider = providerResult.Results[0];
+        }
     }
 
 
@@ -415,6 +441,25 @@ export class MeetingEditDialogComponent implements OnInit {
             entity.PersonID = attendee.PersonID;
             entity.AttendanceStatus = attendee.Status;
             await entity.Save();
+        }
+    }
+
+    private async ProvisionVideoMeeting(meetingID: string): Promise<void> {
+        const gqlProvider = Metadata.Provider as GraphQLDataProvider;
+        const mutation = `mutation ProvisionVideo($MeetingID: String!) {
+            ProvisionVideoMeeting(MeetingID: $MeetingID) {
+                Success ErrorMessage JoinURL ProviderMeetingID
+            }
+        }`;
+        try {
+            const result = await gqlProvider.ExecuteGQL(mutation, { MeetingID: meetingID });
+            const payload = (result as Record<string, Record<string, unknown>>)?.['ProvisionVideoMeeting'];
+            if (payload?.['Success'] && payload['JoinURL']) {
+                this.Meeting!.VideoJoinURL = payload['JoinURL'] as string;
+                this.Meeting!.VideoMeetingID = payload['ProviderMeetingID'] as string | null;
+            }
+        } catch (err) {
+            console.error('[MeetingEditDialog] Video provisioning failed:', err);
         }
     }
 

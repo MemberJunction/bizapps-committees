@@ -19,6 +19,11 @@ import '@mj-biz-apps/committees-actions';
 // Import core services to trigger any class registrations
 import '@mj-biz-apps/committees-core';
 
+// Video provider drivers — import to trigger @RegisterClass decorators
+import './drivers/ZoomVideoProvider.js';
+import './drivers/TeamsVideoProvider.js';
+import './drivers/GoogleMeetVideoProvider.js';
+
 // Event handlers
 import { InitCommitteeNotificationHandler } from './event-handlers/CommitteeNotificationHandler.js';
 

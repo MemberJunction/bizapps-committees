@@ -17,7 +17,7 @@ import { MaxLength } from 'class-validator';
 import * as mj_core_schema_server_object_types from '@memberjunction/server'
 
 
-import { mjCommitteesActionItemEntity, mjCommitteesAgendaItemEntity, mjCommitteesArtifactTypeEntity, mjCommitteesArtifactEntity, mjCommitteesAttendanceEntity, mjCommitteesCommentEntity, mjCommitteesCommitteeEntity, mjCommitteesMeetingEntity, mjCommitteesMembershipEntity, mjCommitteesMinuteEntity, mjCommitteesMotionEntity, mjCommitteesRoleEntity, mjCommitteesTermEntity, mjCommitteesTypeEntity, mjCommitteesVoteEntity } from '@mj-biz-apps/committees-entities';
+import { mjCommitteesActionItemEntity, mjCommitteesAgendaItemEntity, mjCommitteesArtifactTypeEntity, mjCommitteesArtifactEntity, mjCommitteesAttendanceEntity, mjCommitteesCommentEntity, mjCommitteesCommitteeEntity, mjCommitteesMeetingEntity, mjCommitteesMembershipEntity, mjCommitteesMinuteEntity, mjCommitteesMotionEntity, mjCommitteesRoleEntity, mjCommitteesTermEntity, mjCommitteesTypeEntity, mjCommitteesVideoProviderEntity, mjCommitteesVoteEntity } from '@mj-biz-apps/committees-entities';
 import { mjBizAppsCommonAddressLinkEntity, mjBizAppsCommonAddressTypeEntity, mjBizAppsCommonAddressEntity, mjBizAppsCommonContactMethodEntity, mjBizAppsCommonContactTypeEntity, mjBizAppsCommonOrganizationTypeEntity, mjBizAppsCommonOrganizationEntity, mjBizAppsCommonPersonEntity, mjBizAppsCommonRelationshipTypeEntity, mjBizAppsCommonRelationshipEntity } from '@mj-biz-apps/common-entities';
     
 
@@ -379,11 +379,11 @@ export class mjCommitteesAgendaItem_ {
     @MaxLength(36)
     RootParentAgendaItemID?: string;
         
-    @Field(() => [mjCommitteesMotion_])
-    mjCommitteesMotions_AgendaItemIDArray: mjCommitteesMotion_[]; // Link to mjCommitteesMotions
-    
     @Field(() => [mjCommitteesArtifact_])
     mjCommitteesArtifacts_AgendaItemIDArray: mjCommitteesArtifact_[]; // Link to mjCommitteesArtifacts
+    
+    @Field(() => [mjCommitteesMotion_])
+    mjCommitteesMotions_AgendaItemIDArray: mjCommitteesMotion_[]; // Link to mjCommitteesMotions
     
     @Field(() => [mjCommitteesActionItem_])
     mjCommitteesActionItems_AgendaItemIDArray: mjCommitteesActionItem_[]; // Link to mjCommitteesActionItems
@@ -541,16 +541,6 @@ export class mjCommitteesAgendaItemResolver extends ResolverBase {
         return result;
     }
     
-    @FieldResolver(() => [mjCommitteesMotion_])
-    async mjCommitteesMotions_AgendaItemIDArray(@Root() mjcommitteesagendaitem_: mjCommitteesAgendaItem_, @Ctx() { userPayload, providers }: AppContext, @PubSub() pubSub: PubSubEngine) {
-        this.CheckUserReadPermissions('Motions', userPayload);
-        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
-        const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_Committees', 'vwMotions')} WHERE ${provider.QuoteIdentifier('AgendaItemID')}='${mjcommitteesagendaitem_.ID}' ` + this.getRowLevelSecurityWhereClause(provider, 'Motions', userPayload, EntityPermissionType.Read, 'AND');
-        const rows = await provider.ExecuteSQL(sSQL, undefined, undefined, this.GetUserFromPayload(userPayload));
-        const result = await this.ArrayMapFieldNamesToCodeNames('Motions', rows, this.GetUserFromPayload(userPayload));
-        return result;
-    }
-        
     @FieldResolver(() => [mjCommitteesArtifact_])
     async mjCommitteesArtifacts_AgendaItemIDArray(@Root() mjcommitteesagendaitem_: mjCommitteesAgendaItem_, @Ctx() { userPayload, providers }: AppContext, @PubSub() pubSub: PubSubEngine) {
         this.CheckUserReadPermissions('Artifacts', userPayload);
@@ -558,6 +548,16 @@ export class mjCommitteesAgendaItemResolver extends ResolverBase {
         const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_Committees', 'vwArtifacts')} WHERE ${provider.QuoteIdentifier('AgendaItemID')}='${mjcommitteesagendaitem_.ID}' ` + this.getRowLevelSecurityWhereClause(provider, 'Artifacts', userPayload, EntityPermissionType.Read, 'AND');
         const rows = await provider.ExecuteSQL(sSQL, undefined, undefined, this.GetUserFromPayload(userPayload));
         const result = await this.ArrayMapFieldNamesToCodeNames('Artifacts', rows, this.GetUserFromPayload(userPayload));
+        return result;
+    }
+        
+    @FieldResolver(() => [mjCommitteesMotion_])
+    async mjCommitteesMotions_AgendaItemIDArray(@Root() mjcommitteesagendaitem_: mjCommitteesAgendaItem_, @Ctx() { userPayload, providers }: AppContext, @PubSub() pubSub: PubSubEngine) {
+        this.CheckUserReadPermissions('Motions', userPayload);
+        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
+        const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_Committees', 'vwMotions')} WHERE ${provider.QuoteIdentifier('AgendaItemID')}='${mjcommitteesagendaitem_.ID}' ` + this.getRowLevelSecurityWhereClause(provider, 'Motions', userPayload, EntityPermissionType.Read, 'AND');
+        const rows = await provider.ExecuteSQL(sSQL, undefined, undefined, this.GetUserFromPayload(userPayload));
+        const result = await this.ArrayMapFieldNamesToCodeNames('Motions', rows, this.GetUserFromPayload(userPayload));
         return result;
     }
         
@@ -623,7 +623,7 @@ export class mjCommitteesAgendaItemResolver extends ResolverBase {
 //****************************************************************************
 // ENTITY CLASS for Artifact Types
 //****************************************************************************
-@ObjectType({ description: `Categories of committee artifacts with optional extension entity for type-specific fields` })
+@ObjectType({ description: `DEPRECATED: Migrated to MJ: File Categories. Will be dropped in a future migration.` })
 export class mjCommitteesArtifactType_ {
     @Field() 
     @MaxLength(36)
@@ -804,7 +804,7 @@ export class mjCommitteesArtifactTypeResolver extends ResolverBase {
 //****************************************************************************
 // ENTITY CLASS for Artifacts
 //****************************************************************************
-@ObjectType({ description: `Links to external documents and files from various providers` })
+@ObjectType({ description: `DEPRECATED: Migrated to MJ: Files + File Entity Record Links. Will be dropped in a future migration.` })
 export class mjCommitteesArtifact_ {
     @Field() 
     @MaxLength(36)
@@ -1970,18 +1970,29 @@ export class mjCommitteesMeeting_ {
     @Field() 
     _mj__UpdatedAt: Date;
         
+    @Field({nullable: true, description: `FK to VideoProvider — when set, video meeting URL is auto-created on save`}) 
+    @MaxLength(36)
+    VideoProviderID?: string;
+        
     @Field() 
     @MaxLength(255)
     Committee: string;
+        
+    @Field({nullable: true}) 
+    @MaxLength(100)
+    VideoProvider_Virtual?: string;
         
     @Field(() => [mjCommitteesAttendance_])
     mjCommitteesAttendances_MeetingIDArray: mjCommitteesAttendance_[]; // Link to mjCommitteesAttendances
     
     @Field(() => [mjCommitteesMinute_])
-    mjCommitteesMinutes_ApprovedByMeetingIDArray: mjCommitteesMinute_[]; // Link to mjCommitteesMinutes
+    mjCommitteesMinutes_MeetingIDArray: mjCommitteesMinute_[]; // Link to mjCommitteesMinutes
     
     @Field(() => [mjCommitteesAgendaItem_])
     mjCommitteesAgendaItems_MeetingIDArray: mjCommitteesAgendaItem_[]; // Link to mjCommitteesAgendaItems
+    
+    @Field(() => [mjCommitteesMinute_])
+    mjCommitteesMinutes_ApprovedByMeetingIDArray: mjCommitteesMinute_[]; // Link to mjCommitteesMinutes
     
     @Field(() => [mjCommitteesMotion_])
     mjCommitteesMotions_MeetingIDArray: mjCommitteesMotion_[]; // Link to mjCommitteesMotions
@@ -2049,6 +2060,9 @@ export class CreatemjCommitteesMeetingInput {
 
     @Field({ nullable: true })
     CalendarEventID: string | null;
+
+    @Field({ nullable: true })
+    VideoProviderID: string | null;
 }
     
 
@@ -2104,6 +2118,9 @@ export class UpdatemjCommitteesMeetingInput {
 
     @Field({ nullable: true })
     CalendarEventID?: string | null;
+
+    @Field({ nullable: true })
+    VideoProviderID?: string | null;
 
     @Field(() => [KeyValuePairInput], { nullable: true })
     OldValues___?: KeyValuePairInput[];
@@ -2177,10 +2194,10 @@ export class mjCommitteesMeetingResolver extends ResolverBase {
     }
         
     @FieldResolver(() => [mjCommitteesMinute_])
-    async mjCommitteesMinutes_ApprovedByMeetingIDArray(@Root() mjcommitteesmeeting_: mjCommitteesMeeting_, @Ctx() { userPayload, providers }: AppContext, @PubSub() pubSub: PubSubEngine) {
+    async mjCommitteesMinutes_MeetingIDArray(@Root() mjcommitteesmeeting_: mjCommitteesMeeting_, @Ctx() { userPayload, providers }: AppContext, @PubSub() pubSub: PubSubEngine) {
         this.CheckUserReadPermissions('Minutes', userPayload);
         const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
-        const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_Committees', 'vwMinutes')} WHERE ${provider.QuoteIdentifier('ApprovedByMeetingID')}='${mjcommitteesmeeting_.ID}' ` + this.getRowLevelSecurityWhereClause(provider, 'Minutes', userPayload, EntityPermissionType.Read, 'AND');
+        const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_Committees', 'vwMinutes')} WHERE ${provider.QuoteIdentifier('MeetingID')}='${mjcommitteesmeeting_.ID}' ` + this.getRowLevelSecurityWhereClause(provider, 'Minutes', userPayload, EntityPermissionType.Read, 'AND');
         const rows = await provider.ExecuteSQL(sSQL, undefined, undefined, this.GetUserFromPayload(userPayload));
         const result = await this.ArrayMapFieldNamesToCodeNames('Minutes', rows, this.GetUserFromPayload(userPayload));
         return result;
@@ -2193,6 +2210,16 @@ export class mjCommitteesMeetingResolver extends ResolverBase {
         const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_Committees', 'vwAgendaItems')} WHERE ${provider.QuoteIdentifier('MeetingID')}='${mjcommitteesmeeting_.ID}' ` + this.getRowLevelSecurityWhereClause(provider, 'Agenda Items', userPayload, EntityPermissionType.Read, 'AND');
         const rows = await provider.ExecuteSQL(sSQL, undefined, undefined, this.GetUserFromPayload(userPayload));
         const result = await this.ArrayMapFieldNamesToCodeNames('Agenda Items', rows, this.GetUserFromPayload(userPayload));
+        return result;
+    }
+        
+    @FieldResolver(() => [mjCommitteesMinute_])
+    async mjCommitteesMinutes_ApprovedByMeetingIDArray(@Root() mjcommitteesmeeting_: mjCommitteesMeeting_, @Ctx() { userPayload, providers }: AppContext, @PubSub() pubSub: PubSubEngine) {
+        this.CheckUserReadPermissions('Minutes', userPayload);
+        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
+        const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_Committees', 'vwMinutes')} WHERE ${provider.QuoteIdentifier('ApprovedByMeetingID')}='${mjcommitteesmeeting_.ID}' ` + this.getRowLevelSecurityWhereClause(provider, 'Minutes', userPayload, EntityPermissionType.Read, 'AND');
+        const rows = await provider.ExecuteSQL(sSQL, undefined, undefined, this.GetUserFromPayload(userPayload));
+        const result = await this.ArrayMapFieldNamesToCodeNames('Minutes', rows, this.GetUserFromPayload(userPayload));
         return result;
     }
         
@@ -2276,19 +2303,15 @@ export class mjCommitteesMembership_ {
         
     @Field() 
     @MaxLength(36)
-    CommitteeID: string;
-        
-    @Field() 
-    @MaxLength(36)
     PersonID: string;
         
     @Field() 
     @MaxLength(36)
     RoleID: string;
         
-    @Field({nullable: true}) 
+    @Field() 
     @MaxLength(36)
-    TermID?: string;
+    TermID: string;
         
     @Field({description: `Date the membership started`}) 
     StartDate: Date;
@@ -2313,10 +2336,6 @@ export class mjCommitteesMembership_ {
     @Field() 
     _mj__UpdatedAt: Date;
         
-    @Field() 
-    @MaxLength(255)
-    Committee: string;
-        
     @Field({nullable: true}) 
     @MaxLength(244)
     Person?: string;
@@ -2325,9 +2344,9 @@ export class mjCommitteesMembership_ {
     @MaxLength(100)
     Role: string;
         
-    @Field({nullable: true}) 
+    @Field() 
     @MaxLength(100)
-    Term?: string;
+    Term: string;
         
     @Field(() => [mjCommitteesVote_])
     mjCommitteesVotes_MembershipIDArray: mjCommitteesVote_[]; // Link to mjCommitteesVotes
@@ -2349,16 +2368,13 @@ export class CreatemjCommitteesMembershipInput {
     ID?: string;
 
     @Field({ nullable: true })
-    CommitteeID?: string;
-
-    @Field({ nullable: true })
     PersonID?: string;
 
     @Field({ nullable: true })
     RoleID?: string;
 
     @Field({ nullable: true })
-    TermID: string | null;
+    TermID?: string;
 
     @Field({ nullable: true })
     StartDate?: Date;
@@ -2386,16 +2402,13 @@ export class UpdatemjCommitteesMembershipInput {
     ID: string;
 
     @Field({ nullable: true })
-    CommitteeID?: string;
-
-    @Field({ nullable: true })
     PersonID?: string;
 
     @Field({ nullable: true })
     RoleID?: string;
 
     @Field({ nullable: true })
-    TermID?: string | null;
+    TermID?: string;
 
     @Field({ nullable: true })
     StartDate?: Date;
@@ -2541,9 +2554,9 @@ export class mjCommitteesMinute_ {
     @MaxLength(36)
     ID: string;
         
-    @Field() 
+    @Field({nullable: true}) 
     @MaxLength(36)
-    ArtifactID: string;
+    ArtifactID?: string;
         
     @Field({description: `Current approval status: Draft, PendingApproval, Approved, Rejected`}) 
     @MaxLength(50)
@@ -2565,13 +2578,28 @@ export class mjCommitteesMinute_ {
     @Field() 
     _mj__UpdatedAt: Date;
         
-    @Field() 
-    @MaxLength(255)
-    Artifact: string;
+    @Field({nullable: true}) 
+    @MaxLength(36)
+    FileID?: string;
+        
+    @Field({nullable: true}) 
+    @MaxLength(36)
+    MeetingID?: string;
+        
+    @Field({nullable: true}) 
+    Content?: string;
         
     @Field({nullable: true}) 
     @MaxLength(255)
     ApprovedByMeeting?: string;
+        
+    @Field({nullable: true}) 
+    @MaxLength(500)
+    File?: string;
+        
+    @Field({nullable: true}) 
+    @MaxLength(255)
+    Meeting?: string;
         
 }
 
@@ -2584,7 +2612,7 @@ export class CreatemjCommitteesMinuteInput {
     ID?: string;
 
     @Field({ nullable: true })
-    ArtifactID?: string;
+    ArtifactID: string | null;
 
     @Field({ nullable: true })
     ApprovalStatus?: string;
@@ -2597,6 +2625,15 @@ export class CreatemjCommitteesMinuteInput {
 
     @Field({ nullable: true })
     Notes: string | null;
+
+    @Field({ nullable: true })
+    FileID: string | null;
+
+    @Field({ nullable: true })
+    MeetingID: string | null;
+
+    @Field({ nullable: true })
+    Content: string | null;
 }
     
 
@@ -2609,7 +2646,7 @@ export class UpdatemjCommitteesMinuteInput {
     ID: string;
 
     @Field({ nullable: true })
-    ArtifactID?: string;
+    ArtifactID?: string | null;
 
     @Field({ nullable: true })
     ApprovalStatus?: string;
@@ -2622,6 +2659,15 @@ export class UpdatemjCommitteesMinuteInput {
 
     @Field({ nullable: true })
     Notes?: string | null;
+
+    @Field({ nullable: true })
+    FileID?: string | null;
+
+    @Field({ nullable: true })
+    MeetingID?: string | null;
+
+    @Field({ nullable: true })
+    Content?: string | null;
 
     @Field(() => [KeyValuePairInput], { nullable: true })
     OldValues___?: KeyValuePairInput[];
@@ -4006,11 +4052,11 @@ export class mjBizAppsCommonOrganization_ {
     @Field(() => [mjBizAppsCommonRelationship_])
     mjBizAppsCommonRelationships_ToOrganizationIDArray: mjBizAppsCommonRelationship_[]; // Link to mjBizAppsCommonRelationships
     
-    @Field(() => [mjBizAppsCommonRelationship_])
-    mjBizAppsCommonRelationships_FromOrganizationIDArray: mjBizAppsCommonRelationship_[]; // Link to mjBizAppsCommonRelationships
-    
     @Field(() => [mjBizAppsCommonContactMethod_])
     mjBizAppsCommonContactMethods_OrganizationIDArray: mjBizAppsCommonContactMethod_[]; // Link to mjBizAppsCommonContactMethods
+    
+    @Field(() => [mjBizAppsCommonRelationship_])
+    mjBizAppsCommonRelationships_FromOrganizationIDArray: mjBizAppsCommonRelationship_[]; // Link to mjBizAppsCommonRelationships
     
     @Field(() => [mjCommitteesCommittee_])
     mjCommitteesCommittees_OrganizationIDArray: mjCommitteesCommittee_[]; // Link to mjCommitteesCommittees
@@ -4188,16 +4234,6 @@ export class mjBizAppsCommonOrganizationResolver extends ResolverBase {
         return result;
     }
         
-    @FieldResolver(() => [mjBizAppsCommonRelationship_])
-    async mjBizAppsCommonRelationships_FromOrganizationIDArray(@Root() mjbizappscommonorganization_: mjBizAppsCommonOrganization_, @Ctx() { userPayload, providers }: AppContext, @PubSub() pubSub: PubSubEngine) {
-        this.CheckUserReadPermissions('MJ.BizApps.Common: Relationships', userPayload);
-        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
-        const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_BizAppsCommon', 'vwRelationships')} WHERE ${provider.QuoteIdentifier('FromOrganizationID')}='${mjbizappscommonorganization_.ID}' ` + this.getRowLevelSecurityWhereClause(provider, 'MJ.BizApps.Common: Relationships', userPayload, EntityPermissionType.Read, 'AND');
-        const rows = await provider.ExecuteSQL(sSQL, undefined, undefined, this.GetUserFromPayload(userPayload));
-        const result = await this.ArrayMapFieldNamesToCodeNames('MJ.BizApps.Common: Relationships', rows, this.GetUserFromPayload(userPayload));
-        return result;
-    }
-        
     @FieldResolver(() => [mjBizAppsCommonContactMethod_])
     async mjBizAppsCommonContactMethods_OrganizationIDArray(@Root() mjbizappscommonorganization_: mjBizAppsCommonOrganization_, @Ctx() { userPayload, providers }: AppContext, @PubSub() pubSub: PubSubEngine) {
         this.CheckUserReadPermissions('MJ.BizApps.Common: Contact Methods', userPayload);
@@ -4205,6 +4241,16 @@ export class mjBizAppsCommonOrganizationResolver extends ResolverBase {
         const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_BizAppsCommon', 'vwContactMethods')} WHERE ${provider.QuoteIdentifier('OrganizationID')}='${mjbizappscommonorganization_.ID}' ` + this.getRowLevelSecurityWhereClause(provider, 'MJ.BizApps.Common: Contact Methods', userPayload, EntityPermissionType.Read, 'AND');
         const rows = await provider.ExecuteSQL(sSQL, undefined, undefined, this.GetUserFromPayload(userPayload));
         const result = await this.ArrayMapFieldNamesToCodeNames('MJ.BizApps.Common: Contact Methods', rows, this.GetUserFromPayload(userPayload));
+        return result;
+    }
+        
+    @FieldResolver(() => [mjBizAppsCommonRelationship_])
+    async mjBizAppsCommonRelationships_FromOrganizationIDArray(@Root() mjbizappscommonorganization_: mjBizAppsCommonOrganization_, @Ctx() { userPayload, providers }: AppContext, @PubSub() pubSub: PubSubEngine) {
+        this.CheckUserReadPermissions('MJ.BizApps.Common: Relationships', userPayload);
+        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
+        const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_BizAppsCommon', 'vwRelationships')} WHERE ${provider.QuoteIdentifier('FromOrganizationID')}='${mjbizappscommonorganization_.ID}' ` + this.getRowLevelSecurityWhereClause(provider, 'MJ.BizApps.Common: Relationships', userPayload, EntityPermissionType.Read, 'AND');
+        const rows = await provider.ExecuteSQL(sSQL, undefined, undefined, this.GetUserFromPayload(userPayload));
+        const result = await this.ArrayMapFieldNamesToCodeNames('MJ.BizApps.Common: Relationships', rows, this.GetUserFromPayload(userPayload));
         return result;
     }
         
@@ -5229,11 +5275,11 @@ export class mjCommitteesMotion_ {
     AgendaItem?: string;
         
     @Field({nullable: true}) 
-    @MaxLength(244)
+    @MaxLength(50)
     MovedByMembership?: string;
         
     @Field({nullable: true}) 
-    @MaxLength(244)
+    @MaxLength(50)
     SecondedByMembership?: string;
         
     @Field(() => [mjCommitteesVote_])
@@ -6006,6 +6052,196 @@ export class mjCommitteesTypeResolver extends ResolverBase {
 }
 
 //****************************************************************************
+// ENTITY CLASS for Video Providers
+//****************************************************************************
+@ObjectType()
+export class mjCommitteesVideoProvider_ {
+    @Field() 
+    @MaxLength(36)
+    ID: string;
+        
+    @Field() 
+    @MaxLength(100)
+    Name: string;
+        
+    @Field() 
+    @MaxLength(100)
+    ServerDriverKey: string;
+        
+    @Field(() => Boolean) 
+    IsActive: boolean;
+        
+    @Field(() => Boolean) 
+    IsDefault: boolean;
+        
+    @Field({nullable: true}) 
+    @MaxLength(36)
+    CredentialID?: string;
+        
+    @Field() 
+    _mj__CreatedAt: Date;
+        
+    @Field() 
+    _mj__UpdatedAt: Date;
+        
+    @Field({nullable: true}) 
+    @MaxLength(200)
+    Credential?: string;
+        
+    @Field(() => [mjCommitteesMeeting_])
+    mjCommitteesMeetings_VideoProviderIDArray: mjCommitteesMeeting_[]; // Link to mjCommitteesMeetings
+    
+}
+
+//****************************************************************************
+// INPUT TYPE for Video Providers
+//****************************************************************************
+@InputType()
+export class CreatemjCommitteesVideoProviderInput {
+    @Field({ nullable: true })
+    ID?: string;
+
+    @Field({ nullable: true })
+    Name?: string;
+
+    @Field({ nullable: true })
+    ServerDriverKey?: string;
+
+    @Field(() => Boolean, { nullable: true })
+    IsActive?: boolean;
+
+    @Field(() => Boolean, { nullable: true })
+    IsDefault?: boolean;
+
+    @Field({ nullable: true })
+    CredentialID: string | null;
+}
+    
+
+//****************************************************************************
+// INPUT TYPE for Video Providers
+//****************************************************************************
+@InputType()
+export class UpdatemjCommitteesVideoProviderInput {
+    @Field()
+    ID: string;
+
+    @Field({ nullable: true })
+    Name?: string;
+
+    @Field({ nullable: true })
+    ServerDriverKey?: string;
+
+    @Field(() => Boolean, { nullable: true })
+    IsActive?: boolean;
+
+    @Field(() => Boolean, { nullable: true })
+    IsDefault?: boolean;
+
+    @Field({ nullable: true })
+    CredentialID?: string | null;
+
+    @Field(() => [KeyValuePairInput], { nullable: true })
+    OldValues___?: KeyValuePairInput[];
+}
+    
+//****************************************************************************
+// RESOLVER for Video Providers
+//****************************************************************************
+@ObjectType()
+export class RunmjCommitteesVideoProviderViewResult {
+    @Field(() => [mjCommitteesVideoProvider_])
+    Results: mjCommitteesVideoProvider_[];
+
+    @Field(() => String, {nullable: true})
+    UserViewRunID?: string;
+
+    @Field(() => Int, {nullable: true})
+    RowCount: number;
+
+    @Field(() => Int, {nullable: true})
+    TotalRowCount: number;
+
+    @Field(() => Int, {nullable: true})
+    ExecutionTime: number;
+
+    @Field({nullable: true})
+    ErrorMessage?: string;
+
+    @Field(() => Boolean, {nullable: false})
+    Success: boolean;
+}
+
+@Resolver(mjCommitteesVideoProvider_)
+export class mjCommitteesVideoProviderResolver extends ResolverBase {
+    @Query(() => RunmjCommitteesVideoProviderViewResult)
+    async RunmjCommitteesVideoProviderViewByID(@Arg('input', () => RunViewByIDInput) input: RunViewByIDInput, @Ctx() { providers, userPayload }: AppContext, @PubSub() pubSub: PubSubEngine) {
+        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
+        return super.RunViewByIDGeneric(input, provider, userPayload, pubSub);
+    }
+
+    @Query(() => RunmjCommitteesVideoProviderViewResult)
+    async RunmjCommitteesVideoProviderViewByName(@Arg('input', () => RunViewByNameInput) input: RunViewByNameInput, @Ctx() { providers, userPayload }: AppContext, @PubSub() pubSub: PubSubEngine) {
+        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
+        return super.RunViewByNameGeneric(input, provider, userPayload, pubSub);
+    }
+
+    @Query(() => RunmjCommitteesVideoProviderViewResult)
+    async RunmjCommitteesVideoProviderDynamicView(@Arg('input', () => RunDynamicViewInput) input: RunDynamicViewInput, @Ctx() { providers, userPayload }: AppContext, @PubSub() pubSub: PubSubEngine) {
+        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
+        input.EntityName = 'Video Providers';
+        return super.RunDynamicViewGeneric(input, provider, userPayload, pubSub);
+    }
+    @Query(() => mjCommitteesVideoProvider_, { nullable: true })
+    async mjCommitteesVideoProvider(@Arg('ID', () => String) ID: string, @Ctx() { userPayload, providers }: AppContext, @PubSub() pubSub: PubSubEngine): Promise<mjCommitteesVideoProvider_ | null> {
+        this.CheckUserReadPermissions('Video Providers', userPayload);
+        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
+        const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_Committees', 'vwVideoProviders')} WHERE ${provider.QuoteIdentifier('ID')}='${ID}' ` + this.getRowLevelSecurityWhereClause(provider, 'Video Providers', userPayload, EntityPermissionType.Read, 'AND');
+        const rows = await provider.ExecuteSQL(sSQL, undefined, undefined, this.GetUserFromPayload(userPayload));
+        const result = await this.MapFieldNamesToCodeNames('Video Providers', rows && rows.length > 0 ? rows[0] : null, this.GetUserFromPayload(userPayload));
+        return result;
+    }
+    
+    @FieldResolver(() => [mjCommitteesMeeting_])
+    async mjCommitteesMeetings_VideoProviderIDArray(@Root() mjcommitteesvideoprovider_: mjCommitteesVideoProvider_, @Ctx() { userPayload, providers }: AppContext, @PubSub() pubSub: PubSubEngine) {
+        this.CheckUserReadPermissions('Meetings', userPayload);
+        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
+        const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_Committees', 'vwMeetings')} WHERE ${provider.QuoteIdentifier('VideoProviderID')}='${mjcommitteesvideoprovider_.ID}' ` + this.getRowLevelSecurityWhereClause(provider, 'Meetings', userPayload, EntityPermissionType.Read, 'AND');
+        const rows = await provider.ExecuteSQL(sSQL, undefined, undefined, this.GetUserFromPayload(userPayload));
+        const result = await this.ArrayMapFieldNamesToCodeNames('Meetings', rows, this.GetUserFromPayload(userPayload));
+        return result;
+    }
+        
+    @Mutation(() => mjCommitteesVideoProvider_)
+    async CreatemjCommitteesVideoProvider(
+        @Arg('input', () => CreatemjCommitteesVideoProviderInput) input: CreatemjCommitteesVideoProviderInput,
+        @Ctx() { providers, userPayload }: AppContext,
+        @PubSub() pubSub: PubSubEngine
+    ) {
+        const provider = GetReadWriteProvider(providers);
+        return this.CreateRecord('Video Providers', input, provider, userPayload, pubSub)
+    }
+        
+    @Mutation(() => mjCommitteesVideoProvider_)
+    async UpdatemjCommitteesVideoProvider(
+        @Arg('input', () => UpdatemjCommitteesVideoProviderInput) input: UpdatemjCommitteesVideoProviderInput,
+        @Ctx() { providers, userPayload }: AppContext,
+        @PubSub() pubSub: PubSubEngine
+    ) {
+        const provider = GetReadWriteProvider(providers);
+        return this.UpdateRecord('Video Providers', input, provider, userPayload, pubSub);
+    }
+    
+    @Mutation(() => mjCommitteesVideoProvider_)
+    async DeletemjCommitteesVideoProvider(@Arg('ID', () => String) ID: string, @Arg('options___', () => DeleteOptionsInput) options: DeleteOptionsInput, @Ctx() { providers, userPayload }: AppContext, @PubSub() pubSub: PubSubEngine) {
+        const provider = GetReadWriteProvider(providers);
+        const key = new CompositeKey([{FieldName: 'ID', Value: ID}]);
+        return this.DeleteRecord('Video Providers', key, options, provider, userPayload, pubSub);
+    }
+    
+}
+
+//****************************************************************************
 // ENTITY CLASS for Votes
 //****************************************************************************
 @ObjectType({ description: `Individual vote records for committee motions` })
@@ -6040,9 +6276,9 @@ export class mjCommitteesVote_ {
     @MaxLength(255)
     Motion: string;
         
-    @Field({nullable: true}) 
-    @MaxLength(244)
-    Membership?: string;
+    @Field() 
+    @MaxLength(50)
+    Membership: string;
         
 }
 

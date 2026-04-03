@@ -30,6 +30,7 @@ module.exports = {
   entityPackageName: {
     '__mj_BizAppsCommon': '@mj-biz-apps/common-entities',
     '__mj_Committees': '@mj-biz-apps/committees-entities',
+    '__mj_BizAppsTasks': '@mj-biz-apps/tasks-entities',
   },
 
   output: [

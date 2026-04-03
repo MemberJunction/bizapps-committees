@@ -4044,6 +4044,170 @@ input CreatemjBizAppsCommonRelationshipTypeInput {
   ReverseLabel: String
 }
 
+input CreatemjBizAppsTasksTaskActivityInput {
+  ActivityType: String
+  Description: String
+  ID: String
+  NewValue: String
+  PersonID: String
+  PreviousValue: String
+  TaskID: String
+}
+
+input CreatemjBizAppsTasksTaskAssignmentInput {
+  AssignedAt: Timestamp
+  AssignedByPersonID: String
+  AssigneeEntityID: String
+  AssigneeRecordID: String
+  ID: String
+  RoleID: String
+  RoleNotes: String
+  Status: String
+  TaskID: String
+}
+
+input CreatemjBizAppsTasksTaskCategoryInput {
+  ColorCode: String
+  Description: String
+  ID: String
+  IsActive: Boolean
+  Name: String
+  ParentID: String
+  Sequence: Int
+}
+
+input CreatemjBizAppsTasksTaskCommentInput {
+  Content: String
+  ID: String
+  IsEdited: Boolean
+  ParentID: String
+  PersonID: String
+  TaskID: String
+}
+
+input CreatemjBizAppsTasksTaskDependencyInput {
+  DependencyType: String
+  DependsOnTaskID: String
+  ID: String
+  TaskID: String
+}
+
+input CreatemjBizAppsTasksTaskInput {
+  BlockedReason: String
+  CategoryID: String
+  CompletedAt: Timestamp
+  CompletionNotes: String
+  CreatedByPersonID: String
+  Description: String
+  DueAt: Timestamp
+  HoursActual: Float
+  HoursEstimated: Float
+  ID: String
+  Name: String
+  OverdueNotifiedAt: Timestamp
+  ParentID: String
+  PercentComplete: Int
+  Priority: String
+  Sequence: Int
+  StartedAt: Timestamp
+  Status: String
+  TypeID: String
+}
+
+input CreatemjBizAppsTasksTaskLinkInput {
+  Description: String
+  EntityID: String
+  ID: String
+  RecordID: String
+  TaskID: String
+}
+
+input CreatemjBizAppsTasksTaskNotificationConfigInput {
+  ID: String
+  NotifyAssignees: Boolean
+  NotifyCreator: Boolean
+  OverdueActionID: String
+  OverdueGracePeriodHours: Int
+  OverdueNotificationsEnabled: Boolean
+  OverdueRepeatIntervalHours: Int
+  TaskTypeID: String
+}
+
+input CreatemjBizAppsTasksTaskNotificationLogInput {
+  ID: String
+  NotificationType: String
+  NotifiedAt: Timestamp
+  NotifiedUserID: String
+  TaskID: String
+}
+
+input CreatemjBizAppsTasksTaskRoleInput {
+  Description: String
+  ID: String
+  Name: String
+  Sequence: Int
+}
+
+input CreatemjBizAppsTasksTaskTagInput {
+  ColorCode: String
+  Description: String
+  ID: String
+  Name: String
+}
+
+input CreatemjBizAppsTasksTaskTagLinkInput {
+  ID: String
+  TagID: String
+  TaskID: String
+}
+
+input CreatemjBizAppsTasksTaskTemplateInput {
+  CategoryID: String
+  Description: String
+  ID: String
+  IsActive: Boolean
+  Name: String
+  TypeID: String
+}
+
+input CreatemjBizAppsTasksTaskTemplateItemDependencyInput {
+  DependencyType: String
+  DependsOnItemID: String
+  ID: String
+  ItemID: String
+}
+
+input CreatemjBizAppsTasksTaskTemplateItemInput {
+  DaysFromStart: Int
+  Description: String
+  HoursEstimated: Float
+  ID: String
+  Name: String
+  ParentItemID: String
+  Priority: String
+  Sequence: Int
+  TemplateID: String
+}
+
+input CreatemjBizAppsTasksTaskTemplateItemRoleInput {
+  ID: String
+  ItemID: String
+  RoleID: String
+}
+
+input CreatemjBizAppsTasksTaskTypeInput {
+  DefaultPriority: String
+  Description: String
+  ID: String
+  IconClass: String
+  IsActive: Boolean
+  Name: String
+  OnAssignActionID: String
+  OnCompleteActionID: String
+  OnOverdueActionID: String
+  OnPercentChangeActionID: String
+}
+
 input CreatemjCommitteesActionItemInput {
   AgendaItemID: String
   AssignedByPersonID: String
@@ -4076,7 +4240,6 @@ input CreatemjCommitteesAgendaItemInput {
 }
 
 input CreatemjCommitteesArtifactInput {
-  ActionItemID: String
   AgendaItemID: String
   ArtifactTypeID: String
   CommitteeID: String
@@ -4087,6 +4250,7 @@ input CreatemjCommitteesArtifactInput {
   MeetingID: String
   MimeType: String
   Provider: String
+  TaskID: String
   Title: String
   URL: String
   UploadedByPersonID: String
@@ -4111,7 +4275,6 @@ input CreatemjCommitteesAttendanceInput {
 }
 
 input CreatemjCommitteesCommentInput {
-  ActionItemID: String
   AgendaItemID: String
   ArtifactID: String
   CommentText: String
@@ -4122,6 +4285,7 @@ input CreatemjCommitteesCommentInput {
   MentionedPersonIDs: String
   ParentCommentID: String
   PersonID: String
+  TaskID: String
 }
 
 input CreatemjCommitteesCommitteeInput {
@@ -16509,6 +16673,23 @@ type Mutation {
   CreatemjBizAppsCommonPerson(input: CreatemjBizAppsCommonPersonInput!): mjBizAppsCommonPerson_!
   CreatemjBizAppsCommonRelationship(input: CreatemjBizAppsCommonRelationshipInput!): mjBizAppsCommonRelationship_!
   CreatemjBizAppsCommonRelationshipType(input: CreatemjBizAppsCommonRelationshipTypeInput!): mjBizAppsCommonRelationshipType_!
+  CreatemjBizAppsTasksTask(input: CreatemjBizAppsTasksTaskInput!): mjBizAppsTasksTask_!
+  CreatemjBizAppsTasksTaskActivity(input: CreatemjBizAppsTasksTaskActivityInput!): mjBizAppsTasksTaskActivity_!
+  CreatemjBizAppsTasksTaskAssignment(input: CreatemjBizAppsTasksTaskAssignmentInput!): mjBizAppsTasksTaskAssignment_!
+  CreatemjBizAppsTasksTaskCategory(input: CreatemjBizAppsTasksTaskCategoryInput!): mjBizAppsTasksTaskCategory_!
+  CreatemjBizAppsTasksTaskComment(input: CreatemjBizAppsTasksTaskCommentInput!): mjBizAppsTasksTaskComment_!
+  CreatemjBizAppsTasksTaskDependency(input: CreatemjBizAppsTasksTaskDependencyInput!): mjBizAppsTasksTaskDependency_!
+  CreatemjBizAppsTasksTaskLink(input: CreatemjBizAppsTasksTaskLinkInput!): mjBizAppsTasksTaskLink_!
+  CreatemjBizAppsTasksTaskNotificationConfig(input: CreatemjBizAppsTasksTaskNotificationConfigInput!): mjBizAppsTasksTaskNotificationConfig_!
+  CreatemjBizAppsTasksTaskNotificationLog(input: CreatemjBizAppsTasksTaskNotificationLogInput!): mjBizAppsTasksTaskNotificationLog_!
+  CreatemjBizAppsTasksTaskRole(input: CreatemjBizAppsTasksTaskRoleInput!): mjBizAppsTasksTaskRole_!
+  CreatemjBizAppsTasksTaskTag(input: CreatemjBizAppsTasksTaskTagInput!): mjBizAppsTasksTaskTag_!
+  CreatemjBizAppsTasksTaskTagLink(input: CreatemjBizAppsTasksTaskTagLinkInput!): mjBizAppsTasksTaskTagLink_!
+  CreatemjBizAppsTasksTaskTemplate(input: CreatemjBizAppsTasksTaskTemplateInput!): mjBizAppsTasksTaskTemplate_!
+  CreatemjBizAppsTasksTaskTemplateItem(input: CreatemjBizAppsTasksTaskTemplateItemInput!): mjBizAppsTasksTaskTemplateItem_!
+  CreatemjBizAppsTasksTaskTemplateItemDependency(input: CreatemjBizAppsTasksTaskTemplateItemDependencyInput!): mjBizAppsTasksTaskTemplateItemDependency_!
+  CreatemjBizAppsTasksTaskTemplateItemRole(input: CreatemjBizAppsTasksTaskTemplateItemRoleInput!): mjBizAppsTasksTaskTemplateItemRole_!
+  CreatemjBizAppsTasksTaskType(input: CreatemjBizAppsTasksTaskTypeInput!): mjBizAppsTasksTaskType_!
   CreatemjCommitteesActionItem(input: CreatemjCommitteesActionItemInput!): mjCommitteesActionItem_!
   CreatemjCommitteesAgendaItem(input: CreatemjCommitteesAgendaItemInput!): mjCommitteesAgendaItem_!
   CreatemjCommitteesArtifact(input: CreatemjCommitteesArtifactInput!): mjCommitteesArtifact_!
@@ -16824,6 +17005,23 @@ type Mutation {
   DeletemjBizAppsCommonPerson(ID: String!, options___: DeleteOptionsInput!): mjBizAppsCommonPerson_!
   DeletemjBizAppsCommonRelationship(ID: String!, options___: DeleteOptionsInput!): mjBizAppsCommonRelationship_!
   DeletemjBizAppsCommonRelationshipType(ID: String!, options___: DeleteOptionsInput!): mjBizAppsCommonRelationshipType_!
+  DeletemjBizAppsTasksTask(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTask_!
+  DeletemjBizAppsTasksTaskActivity(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTaskActivity_!
+  DeletemjBizAppsTasksTaskAssignment(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTaskAssignment_!
+  DeletemjBizAppsTasksTaskCategory(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTaskCategory_!
+  DeletemjBizAppsTasksTaskComment(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTaskComment_!
+  DeletemjBizAppsTasksTaskDependency(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTaskDependency_!
+  DeletemjBizAppsTasksTaskLink(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTaskLink_!
+  DeletemjBizAppsTasksTaskNotificationConfig(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTaskNotificationConfig_!
+  DeletemjBizAppsTasksTaskNotificationLog(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTaskNotificationLog_!
+  DeletemjBizAppsTasksTaskRole(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTaskRole_!
+  DeletemjBizAppsTasksTaskTag(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTaskTag_!
+  DeletemjBizAppsTasksTaskTagLink(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTaskTagLink_!
+  DeletemjBizAppsTasksTaskTemplate(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTaskTemplate_!
+  DeletemjBizAppsTasksTaskTemplateItem(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTaskTemplateItem_!
+  DeletemjBizAppsTasksTaskTemplateItemDependency(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTaskTemplateItemDependency_!
+  DeletemjBizAppsTasksTaskTemplateItemRole(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTaskTemplateItemRole_!
+  DeletemjBizAppsTasksTaskType(ID: String!, options___: DeleteOptionsInput!): mjBizAppsTasksTaskType_!
   DeletemjCommitteesActionItem(ID: String!, options___: DeleteOptionsInput!): mjCommitteesActionItem_!
   DeletemjCommitteesAgendaItem(ID: String!, options___: DeleteOptionsInput!): mjCommitteesAgendaItem_!
   DeletemjCommitteesArtifact(ID: String!, options___: DeleteOptionsInput!): mjCommitteesArtifact_!
@@ -17166,6 +17364,23 @@ type Mutation {
   UpdatemjBizAppsCommonPerson(input: UpdatemjBizAppsCommonPersonInput!): mjBizAppsCommonPerson_!
   UpdatemjBizAppsCommonRelationship(input: UpdatemjBizAppsCommonRelationshipInput!): mjBizAppsCommonRelationship_!
   UpdatemjBizAppsCommonRelationshipType(input: UpdatemjBizAppsCommonRelationshipTypeInput!): mjBizAppsCommonRelationshipType_!
+  UpdatemjBizAppsTasksTask(input: UpdatemjBizAppsTasksTaskInput!): mjBizAppsTasksTask_!
+  UpdatemjBizAppsTasksTaskActivity(input: UpdatemjBizAppsTasksTaskActivityInput!): mjBizAppsTasksTaskActivity_!
+  UpdatemjBizAppsTasksTaskAssignment(input: UpdatemjBizAppsTasksTaskAssignmentInput!): mjBizAppsTasksTaskAssignment_!
+  UpdatemjBizAppsTasksTaskCategory(input: UpdatemjBizAppsTasksTaskCategoryInput!): mjBizAppsTasksTaskCategory_!
+  UpdatemjBizAppsTasksTaskComment(input: UpdatemjBizAppsTasksTaskCommentInput!): mjBizAppsTasksTaskComment_!
+  UpdatemjBizAppsTasksTaskDependency(input: UpdatemjBizAppsTasksTaskDependencyInput!): mjBizAppsTasksTaskDependency_!
+  UpdatemjBizAppsTasksTaskLink(input: UpdatemjBizAppsTasksTaskLinkInput!): mjBizAppsTasksTaskLink_!
+  UpdatemjBizAppsTasksTaskNotificationConfig(input: UpdatemjBizAppsTasksTaskNotificationConfigInput!): mjBizAppsTasksTaskNotificationConfig_!
+  UpdatemjBizAppsTasksTaskNotificationLog(input: UpdatemjBizAppsTasksTaskNotificationLogInput!): mjBizAppsTasksTaskNotificationLog_!
+  UpdatemjBizAppsTasksTaskRole(input: UpdatemjBizAppsTasksTaskRoleInput!): mjBizAppsTasksTaskRole_!
+  UpdatemjBizAppsTasksTaskTag(input: UpdatemjBizAppsTasksTaskTagInput!): mjBizAppsTasksTaskTag_!
+  UpdatemjBizAppsTasksTaskTagLink(input: UpdatemjBizAppsTasksTaskTagLinkInput!): mjBizAppsTasksTaskTagLink_!
+  UpdatemjBizAppsTasksTaskTemplate(input: UpdatemjBizAppsTasksTaskTemplateInput!): mjBizAppsTasksTaskTemplate_!
+  UpdatemjBizAppsTasksTaskTemplateItem(input: UpdatemjBizAppsTasksTaskTemplateItemInput!): mjBizAppsTasksTaskTemplateItem_!
+  UpdatemjBizAppsTasksTaskTemplateItemDependency(input: UpdatemjBizAppsTasksTaskTemplateItemDependencyInput!): mjBizAppsTasksTaskTemplateItemDependency_!
+  UpdatemjBizAppsTasksTaskTemplateItemRole(input: UpdatemjBizAppsTasksTaskTemplateItemRoleInput!): mjBizAppsTasksTaskTemplateItemRole_!
+  UpdatemjBizAppsTasksTaskType(input: UpdatemjBizAppsTasksTaskTypeInput!): mjBizAppsTasksTaskType_!
   UpdatemjCommitteesActionItem(input: UpdatemjCommitteesActionItemInput!): mjCommitteesActionItem_!
   UpdatemjCommitteesAgendaItem(input: UpdatemjCommitteesAgendaItemInput!): mjCommitteesAgendaItem_!
   UpdatemjCommitteesArtifact(input: UpdatemjCommitteesArtifactInput!): mjCommitteesArtifact_!
@@ -18501,6 +18716,57 @@ type Query {
   RunmjBizAppsCommonRelationshipTypeViewByName(input: RunViewByNameInput!): RunmjBizAppsCommonRelationshipTypeViewResult!
   RunmjBizAppsCommonRelationshipViewByID(input: RunViewByIDInput!): RunmjBizAppsCommonRelationshipViewResult!
   RunmjBizAppsCommonRelationshipViewByName(input: RunViewByNameInput!): RunmjBizAppsCommonRelationshipViewResult!
+  RunmjBizAppsTasksTaskActivityDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskActivityViewResult!
+  RunmjBizAppsTasksTaskActivityViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskActivityViewResult!
+  RunmjBizAppsTasksTaskActivityViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskActivityViewResult!
+  RunmjBizAppsTasksTaskAssignmentDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskAssignmentViewResult!
+  RunmjBizAppsTasksTaskAssignmentViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskAssignmentViewResult!
+  RunmjBizAppsTasksTaskAssignmentViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskAssignmentViewResult!
+  RunmjBizAppsTasksTaskCategoryDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskCategoryViewResult!
+  RunmjBizAppsTasksTaskCategoryViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskCategoryViewResult!
+  RunmjBizAppsTasksTaskCategoryViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskCategoryViewResult!
+  RunmjBizAppsTasksTaskCommentDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskCommentViewResult!
+  RunmjBizAppsTasksTaskCommentViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskCommentViewResult!
+  RunmjBizAppsTasksTaskCommentViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskCommentViewResult!
+  RunmjBizAppsTasksTaskDependencyDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskDependencyViewResult!
+  RunmjBizAppsTasksTaskDependencyViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskDependencyViewResult!
+  RunmjBizAppsTasksTaskDependencyViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskDependencyViewResult!
+  RunmjBizAppsTasksTaskDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskViewResult!
+  RunmjBizAppsTasksTaskLinkDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskLinkViewResult!
+  RunmjBizAppsTasksTaskLinkViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskLinkViewResult!
+  RunmjBizAppsTasksTaskLinkViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskLinkViewResult!
+  RunmjBizAppsTasksTaskNotificationConfigDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskNotificationConfigViewResult!
+  RunmjBizAppsTasksTaskNotificationConfigViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskNotificationConfigViewResult!
+  RunmjBizAppsTasksTaskNotificationConfigViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskNotificationConfigViewResult!
+  RunmjBizAppsTasksTaskNotificationLogDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskNotificationLogViewResult!
+  RunmjBizAppsTasksTaskNotificationLogViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskNotificationLogViewResult!
+  RunmjBizAppsTasksTaskNotificationLogViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskNotificationLogViewResult!
+  RunmjBizAppsTasksTaskRoleDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskRoleViewResult!
+  RunmjBizAppsTasksTaskRoleViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskRoleViewResult!
+  RunmjBizAppsTasksTaskRoleViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskRoleViewResult!
+  RunmjBizAppsTasksTaskTagDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskTagViewResult!
+  RunmjBizAppsTasksTaskTagLinkDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskTagLinkViewResult!
+  RunmjBizAppsTasksTaskTagLinkViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskTagLinkViewResult!
+  RunmjBizAppsTasksTaskTagLinkViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskTagLinkViewResult!
+  RunmjBizAppsTasksTaskTagViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskTagViewResult!
+  RunmjBizAppsTasksTaskTagViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskTagViewResult!
+  RunmjBizAppsTasksTaskTemplateDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskTemplateViewResult!
+  RunmjBizAppsTasksTaskTemplateItemDependencyDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskTemplateItemDependencyViewResult!
+  RunmjBizAppsTasksTaskTemplateItemDependencyViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskTemplateItemDependencyViewResult!
+  RunmjBizAppsTasksTaskTemplateItemDependencyViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskTemplateItemDependencyViewResult!
+  RunmjBizAppsTasksTaskTemplateItemDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskTemplateItemViewResult!
+  RunmjBizAppsTasksTaskTemplateItemRoleDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskTemplateItemRoleViewResult!
+  RunmjBizAppsTasksTaskTemplateItemRoleViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskTemplateItemRoleViewResult!
+  RunmjBizAppsTasksTaskTemplateItemRoleViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskTemplateItemRoleViewResult!
+  RunmjBizAppsTasksTaskTemplateItemViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskTemplateItemViewResult!
+  RunmjBizAppsTasksTaskTemplateItemViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskTemplateItemViewResult!
+  RunmjBizAppsTasksTaskTemplateViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskTemplateViewResult!
+  RunmjBizAppsTasksTaskTemplateViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskTemplateViewResult!
+  RunmjBizAppsTasksTaskTypeDynamicView(input: RunDynamicViewInput!): RunmjBizAppsTasksTaskTypeViewResult!
+  RunmjBizAppsTasksTaskTypeViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskTypeViewResult!
+  RunmjBizAppsTasksTaskTypeViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskTypeViewResult!
+  RunmjBizAppsTasksTaskViewByID(input: RunViewByIDInput!): RunmjBizAppsTasksTaskViewResult!
+  RunmjBizAppsTasksTaskViewByName(input: RunViewByNameInput!): RunmjBizAppsTasksTaskViewResult!
   RunmjCommitteesActionItemDynamicView(input: RunDynamicViewInput!): RunmjCommitteesActionItemViewResult!
   RunmjCommitteesActionItemViewByID(input: RunViewByIDInput!): RunmjCommitteesActionItemViewResult!
   RunmjCommitteesActionItemViewByName(input: RunViewByNameInput!): RunmjCommitteesActionItemViewResult!
@@ -18571,6 +18837,23 @@ type Query {
   mjBizAppsCommonPerson(ID: String!): mjBizAppsCommonPerson_
   mjBizAppsCommonRelationship(ID: String!): mjBizAppsCommonRelationship_
   mjBizAppsCommonRelationshipType(ID: String!): mjBizAppsCommonRelationshipType_
+  mjBizAppsTasksTask(ID: String!): mjBizAppsTasksTask_
+  mjBizAppsTasksTaskActivity(ID: String!): mjBizAppsTasksTaskActivity_
+  mjBizAppsTasksTaskAssignment(ID: String!): mjBizAppsTasksTaskAssignment_
+  mjBizAppsTasksTaskCategory(ID: String!): mjBizAppsTasksTaskCategory_
+  mjBizAppsTasksTaskComment(ID: String!): mjBizAppsTasksTaskComment_
+  mjBizAppsTasksTaskDependency(ID: String!): mjBizAppsTasksTaskDependency_
+  mjBizAppsTasksTaskLink(ID: String!): mjBizAppsTasksTaskLink_
+  mjBizAppsTasksTaskNotificationConfig(ID: String!): mjBizAppsTasksTaskNotificationConfig_
+  mjBizAppsTasksTaskNotificationLog(ID: String!): mjBizAppsTasksTaskNotificationLog_
+  mjBizAppsTasksTaskRole(ID: String!): mjBizAppsTasksTaskRole_
+  mjBizAppsTasksTaskTag(ID: String!): mjBizAppsTasksTaskTag_
+  mjBizAppsTasksTaskTagLink(ID: String!): mjBizAppsTasksTaskTagLink_
+  mjBizAppsTasksTaskTemplate(ID: String!): mjBizAppsTasksTaskTemplate_
+  mjBizAppsTasksTaskTemplateItem(ID: String!): mjBizAppsTasksTaskTemplateItem_
+  mjBizAppsTasksTaskTemplateItemDependency(ID: String!): mjBizAppsTasksTaskTemplateItemDependency_
+  mjBizAppsTasksTaskTemplateItemRole(ID: String!): mjBizAppsTasksTaskTemplateItemRole_
+  mjBizAppsTasksTaskType(ID: String!): mjBizAppsTasksTaskType_
   mjCommitteesActionItem(ID: String!): mjCommitteesActionItem_
   mjCommitteesAgendaItem(ID: String!): mjCommitteesAgendaItem_
   mjCommitteesArtifact(ID: String!): mjCommitteesArtifact_
@@ -22190,6 +22473,176 @@ type RunmjBizAppsCommonRelationshipViewResult {
   ErrorMessage: String
   ExecutionTime: Int
   Results: [mjBizAppsCommonRelationship_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskActivityViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTaskActivity_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskAssignmentViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTaskAssignment_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskCategoryViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTaskCategory_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskCommentViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTaskComment_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskDependencyViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTaskDependency_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskLinkViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTaskLink_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskNotificationConfigViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTaskNotificationConfig_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskNotificationLogViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTaskNotificationLog_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskRoleViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTaskRole_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskTagLinkViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTaskTagLink_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskTagViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTaskTag_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskTemplateItemDependencyViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTaskTemplateItemDependency_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskTemplateItemRoleViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTaskTemplateItemRole_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskTemplateItemViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTaskTemplateItem_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskTemplateViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTaskTemplate_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskTypeViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTaskType_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsTasksTaskViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsTasksTask_!]!
   RowCount: Int
   Success: Boolean!
   TotalRowCount: Int
@@ -26751,6 +27204,187 @@ input UpdatemjBizAppsCommonRelationshipTypeInput {
   ReverseLabel: String
 }
 
+input UpdatemjBizAppsTasksTaskActivityInput {
+  ActivityType: String
+  Description: String
+  ID: String!
+  NewValue: String
+  OldValues___: [KeyValuePairInput!]
+  PersonID: String
+  PreviousValue: String
+  TaskID: String
+}
+
+input UpdatemjBizAppsTasksTaskAssignmentInput {
+  AssignedAt: Timestamp
+  AssignedByPersonID: String
+  AssigneeEntityID: String
+  AssigneeRecordID: String
+  ID: String!
+  OldValues___: [KeyValuePairInput!]
+  RoleID: String
+  RoleNotes: String
+  Status: String
+  TaskID: String
+}
+
+input UpdatemjBizAppsTasksTaskCategoryInput {
+  ColorCode: String
+  Description: String
+  ID: String!
+  IsActive: Boolean
+  Name: String
+  OldValues___: [KeyValuePairInput!]
+  ParentID: String
+  Sequence: Int
+}
+
+input UpdatemjBizAppsTasksTaskCommentInput {
+  Content: String
+  ID: String!
+  IsEdited: Boolean
+  OldValues___: [KeyValuePairInput!]
+  ParentID: String
+  PersonID: String
+  TaskID: String
+}
+
+input UpdatemjBizAppsTasksTaskDependencyInput {
+  DependencyType: String
+  DependsOnTaskID: String
+  ID: String!
+  OldValues___: [KeyValuePairInput!]
+  TaskID: String
+}
+
+input UpdatemjBizAppsTasksTaskInput {
+  BlockedReason: String
+  CategoryID: String
+  CompletedAt: Timestamp
+  CompletionNotes: String
+  CreatedByPersonID: String
+  Description: String
+  DueAt: Timestamp
+  HoursActual: Float
+  HoursEstimated: Float
+  ID: String!
+  Name: String
+  OldValues___: [KeyValuePairInput!]
+  OverdueNotifiedAt: Timestamp
+  ParentID: String
+  PercentComplete: Int
+  Priority: String
+  Sequence: Int
+  StartedAt: Timestamp
+  Status: String
+  TypeID: String
+}
+
+input UpdatemjBizAppsTasksTaskLinkInput {
+  Description: String
+  EntityID: String
+  ID: String!
+  OldValues___: [KeyValuePairInput!]
+  RecordID: String
+  TaskID: String
+}
+
+input UpdatemjBizAppsTasksTaskNotificationConfigInput {
+  ID: String!
+  NotifyAssignees: Boolean
+  NotifyCreator: Boolean
+  OldValues___: [KeyValuePairInput!]
+  OverdueActionID: String
+  OverdueGracePeriodHours: Int
+  OverdueNotificationsEnabled: Boolean
+  OverdueRepeatIntervalHours: Int
+  TaskTypeID: String
+}
+
+input UpdatemjBizAppsTasksTaskNotificationLogInput {
+  ID: String!
+  NotificationType: String
+  NotifiedAt: Timestamp
+  NotifiedUserID: String
+  OldValues___: [KeyValuePairInput!]
+  TaskID: String
+}
+
+input UpdatemjBizAppsTasksTaskRoleInput {
+  Description: String
+  ID: String!
+  Name: String
+  OldValues___: [KeyValuePairInput!]
+  Sequence: Int
+}
+
+input UpdatemjBizAppsTasksTaskTagInput {
+  ColorCode: String
+  Description: String
+  ID: String!
+  Name: String
+  OldValues___: [KeyValuePairInput!]
+}
+
+input UpdatemjBizAppsTasksTaskTagLinkInput {
+  ID: String!
+  OldValues___: [KeyValuePairInput!]
+  TagID: String
+  TaskID: String
+}
+
+input UpdatemjBizAppsTasksTaskTemplateInput {
+  CategoryID: String
+  Description: String
+  ID: String!
+  IsActive: Boolean
+  Name: String
+  OldValues___: [KeyValuePairInput!]
+  TypeID: String
+}
+
+input UpdatemjBizAppsTasksTaskTemplateItemDependencyInput {
+  DependencyType: String
+  DependsOnItemID: String
+  ID: String!
+  ItemID: String
+  OldValues___: [KeyValuePairInput!]
+}
+
+input UpdatemjBizAppsTasksTaskTemplateItemInput {
+  DaysFromStart: Int
+  Description: String
+  HoursEstimated: Float
+  ID: String!
+  Name: String
+  OldValues___: [KeyValuePairInput!]
+  ParentItemID: String
+  Priority: String
+  Sequence: Int
+  TemplateID: String
+}
+
+input UpdatemjBizAppsTasksTaskTemplateItemRoleInput {
+  ID: String!
+  ItemID: String
+  OldValues___: [KeyValuePairInput!]
+  RoleID: String
+}
+
+input UpdatemjBizAppsTasksTaskTypeInput {
+  DefaultPriority: String
+  Description: String
+  ID: String!
+  IconClass: String
+  IsActive: Boolean
+  Name: String
+  OldValues___: [KeyValuePairInput!]
+  OnAssignActionID: String
+  OnCompleteActionID: String
+  OnOverdueActionID: String
+  OnPercentChangeActionID: String
+}
+
 input UpdatemjCommitteesActionItemInput {
   AgendaItemID: String
   AssignedByPersonID: String
@@ -26785,7 +27419,6 @@ input UpdatemjCommitteesAgendaItemInput {
 }
 
 input UpdatemjCommitteesArtifactInput {
-  ActionItemID: String
   AgendaItemID: String
   ArtifactTypeID: String
   CommitteeID: String
@@ -26797,6 +27430,7 @@ input UpdatemjCommitteesArtifactInput {
   MimeType: String
   OldValues___: [KeyValuePairInput!]
   Provider: String
+  TaskID: String
   Title: String
   URL: String
   UploadedByPersonID: String
@@ -26823,7 +27457,6 @@ input UpdatemjCommitteesAttendanceInput {
 }
 
 input UpdatemjCommitteesCommentInput {
-  ActionItemID: String
   AgendaItemID: String
   ArtifactID: String
   CommentText: String
@@ -26835,6 +27468,7 @@ input UpdatemjCommitteesCommentInput {
   OldValues___: [KeyValuePairInput!]
   ParentCommentID: String
   PersonID: String
+  TaskID: String
 }
 
 input UpdatemjCommitteesCommitteeInput {
@@ -27306,6 +27940,10 @@ type mjBizAppsCommonPerson_ {
   mjBizAppsCommonContactMethods_PersonIDArray: [mjBizAppsCommonContactMethod_!]!
   mjBizAppsCommonRelationships_FromPersonIDArray: [mjBizAppsCommonRelationship_!]!
   mjBizAppsCommonRelationships_ToPersonIDArray: [mjBizAppsCommonRelationship_!]!
+  mjBizAppsTasksTaskActivities_PersonIDArray: [mjBizAppsTasksTaskActivity_!]!
+  mjBizAppsTasksTaskAssignments_AssignedByPersonIDArray: [mjBizAppsTasksTaskAssignment_!]!
+  mjBizAppsTasksTaskComments_PersonIDArray: [mjBizAppsTasksTaskComment_!]!
+  mjBizAppsTasksTasks_CreatedByPersonIDArray: [mjBizAppsTasksTask_!]!
   mjCommitteesActionItems_AssignedByPersonIDArray: [mjCommitteesActionItem_!]!
   mjCommitteesActionItems_AssignedToPersonIDArray: [mjCommitteesActionItem_!]!
   mjCommitteesAgendaItems_PresenterPersonIDArray: [mjCommitteesAgendaItem_!]!
@@ -27386,6 +28024,269 @@ type mjBizAppsCommonRelationship_ {
   ToPersonID: String
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
+}
+
+type mjBizAppsTasksTaskActivity_ {
+  ActivityType: String!
+  Description: String
+  ID: String!
+  NewValue: String
+  Person: String
+  PersonID: String
+  PreviousValue: String
+  Task: String!
+  TaskID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+type mjBizAppsTasksTaskAssignment_ {
+  AssignedAt: Timestamp!
+  AssignedByPerson: String
+  AssignedByPersonID: String
+  AssigneeEntity: String!
+  AssigneeEntityID: String!
+  AssigneeRecordID: String!
+  ID: String!
+  Role: String
+  RoleID: String
+  RoleNotes: String
+  Status: String!
+  Task: String!
+  TaskID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+type mjBizAppsTasksTaskCategory_ {
+  ColorCode: String
+  Description: String
+  ID: String!
+  IsActive: Boolean!
+  Name: String!
+  Parent: String
+  ParentID: String
+  RootParentID: String
+  Sequence: Int!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+  mjBizAppsTasksTaskCategories_ParentIDArray: [mjBizAppsTasksTaskCategory_!]!
+  mjBizAppsTasksTaskTemplates_CategoryIDArray: [mjBizAppsTasksTaskTemplate_!]!
+  mjBizAppsTasksTasks_CategoryIDArray: [mjBizAppsTasksTask_!]!
+}
+
+type mjBizAppsTasksTaskComment_ {
+  Content: String!
+  ID: String!
+  IsEdited: Boolean!
+  ParentID: String
+  Person: String
+  PersonID: String!
+  RootParentID: String
+  Task: String!
+  TaskID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+  mjBizAppsTasksTaskComments_ParentIDArray: [mjBizAppsTasksTaskComment_!]!
+}
+
+type mjBizAppsTasksTaskDependency_ {
+  DependencyType: String!
+  DependsOnTask: String!
+  DependsOnTaskID: String!
+  ID: String!
+  Task: String!
+  TaskID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+type mjBizAppsTasksTaskLink_ {
+  Description: String
+  Entity: String!
+  EntityID: String!
+  ID: String!
+  RecordID: String!
+  Task: String!
+  TaskID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+type mjBizAppsTasksTaskNotificationConfig_ {
+  ID: String!
+  NotifyAssignees: Boolean!
+  NotifyCreator: Boolean!
+  OverdueAction: String
+  OverdueActionID: String
+  OverdueGracePeriodHours: Int!
+  OverdueNotificationsEnabled: Boolean!
+  OverdueRepeatIntervalHours: Int
+  TaskType: String
+  TaskTypeID: String
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+type mjBizAppsTasksTaskNotificationLog_ {
+  ID: String!
+  NotificationType: String!
+  NotifiedAt: Timestamp!
+  NotifiedUser: String!
+  NotifiedUserID: String!
+  Task: String!
+  TaskID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+type mjBizAppsTasksTaskRole_ {
+  Description: String
+  ID: String!
+  Name: String!
+  Sequence: Int!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+  mjBizAppsTasksTaskAssignments_RoleIDArray: [mjBizAppsTasksTaskAssignment_!]!
+  mjBizAppsTasksTaskTemplateItemRoles_RoleIDArray: [mjBizAppsTasksTaskTemplateItemRole_!]!
+}
+
+type mjBizAppsTasksTaskTagLink_ {
+  ID: String!
+  Tag: String!
+  TagID: String!
+  Task: String!
+  TaskID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+type mjBizAppsTasksTaskTag_ {
+  ColorCode: String
+  Description: String
+  ID: String!
+  Name: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+  mjBizAppsTasksTaskTagLinks_TagIDArray: [mjBizAppsTasksTaskTagLink_!]!
+}
+
+type mjBizAppsTasksTaskTemplateItemDependency_ {
+  DependencyType: String!
+  DependsOnItem: String!
+  DependsOnItemID: String!
+  ID: String!
+  Item: String!
+  ItemID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+type mjBizAppsTasksTaskTemplateItemRole_ {
+  ID: String!
+  Item: String!
+  ItemID: String!
+  Role: String!
+  RoleID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+type mjBizAppsTasksTaskTemplateItem_ {
+  DaysFromStart: Int
+  Description: String
+  HoursEstimated: Float
+  ID: String!
+  Name: String!
+  ParentItem: String
+  ParentItemID: String
+  Priority: String!
+  RootParentItemID: String
+  Sequence: Int!
+  Template: String!
+  TemplateID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+  mjBizAppsTasksTaskTemplateItemDependencies_DependsOnItemIDArray: [mjBizAppsTasksTaskTemplateItemDependency_!]!
+  mjBizAppsTasksTaskTemplateItemDependencies_ItemIDArray: [mjBizAppsTasksTaskTemplateItemDependency_!]!
+  mjBizAppsTasksTaskTemplateItemRoles_ItemIDArray: [mjBizAppsTasksTaskTemplateItemRole_!]!
+  mjBizAppsTasksTaskTemplateItems_ParentItemIDArray: [mjBizAppsTasksTaskTemplateItem_!]!
+}
+
+type mjBizAppsTasksTaskTemplate_ {
+  Category: String
+  CategoryID: String
+  Description: String
+  ID: String!
+  IsActive: Boolean!
+  Name: String!
+  Type: String
+  TypeID: String
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+  mjBizAppsTasksTaskTemplateItems_TemplateIDArray: [mjBizAppsTasksTaskTemplateItem_!]!
+}
+
+type mjBizAppsTasksTaskType_ {
+  DefaultPriority: String!
+  Description: String
+  ID: String!
+  IconClass: String
+  IsActive: Boolean!
+  Name: String!
+  OnAssignAction: String
+  OnAssignActionID: String
+  OnCompleteAction: String
+  OnCompleteActionID: String
+  OnOverdueAction: String
+  OnOverdueActionID: String
+  OnPercentChangeAction: String
+  OnPercentChangeActionID: String
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+  mjBizAppsTasksTaskNotificationConfigs_TaskTypeIDArray: [mjBizAppsTasksTaskNotificationConfig_!]!
+  mjBizAppsTasksTaskTemplates_TypeIDArray: [mjBizAppsTasksTaskTemplate_!]!
+  mjBizAppsTasksTasks_TypeIDArray: [mjBizAppsTasksTask_!]!
+}
+
+type mjBizAppsTasksTask_ {
+  BlockedReason: String
+  Category: String
+  CategoryID: String
+  CompletedAt: Timestamp
+  CompletionNotes: String
+  CreatedByPerson: String
+  CreatedByPersonID: String
+  Description: String
+  DueAt: Timestamp
+  HoursActual: Float
+  HoursEstimated: Float
+  ID: String!
+  Name: String!
+  OverdueNotifiedAt: Timestamp
+  Parent: String
+  ParentID: String
+  PercentComplete: Int!
+  Priority: String!
+  RootParentID: String
+  Sequence: Int!
+  StartedAt: Timestamp
+  Status: String!
+  Type: String!
+  TypeID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+  mjBizAppsTasksTaskActivities_TaskIDArray: [mjBizAppsTasksTaskActivity_!]!
+  mjBizAppsTasksTaskAssignments_TaskIDArray: [mjBizAppsTasksTaskAssignment_!]!
+  mjBizAppsTasksTaskComments_TaskIDArray: [mjBizAppsTasksTaskComment_!]!
+  mjBizAppsTasksTaskDependencies_DependsOnTaskIDArray: [mjBizAppsTasksTaskDependency_!]!
+  mjBizAppsTasksTaskDependencies_TaskIDArray: [mjBizAppsTasksTaskDependency_!]!
+  mjBizAppsTasksTaskLinks_TaskIDArray: [mjBizAppsTasksTaskLink_!]!
+  mjBizAppsTasksTaskNotificationLogs_TaskIDArray: [mjBizAppsTasksTaskNotificationLog_!]!
+  mjBizAppsTasksTaskTagLinks_TaskIDArray: [mjBizAppsTasksTaskTagLink_!]!
+  mjBizAppsTasksTasks_ParentIDArray: [mjBizAppsTasksTask_!]!
+  mjCommitteesArtifacts_TaskIDArray: [mjCommitteesArtifact_!]!
+  mjCommitteesComments_TaskIDArray: [mjCommitteesComment_!]!
 }
 
 """Tasks and action items assigned from committees or meetings"""
@@ -27498,8 +28399,6 @@ type mjCommitteesArtifactType_ {
 DEPRECATED: Migrated to MJ: Files + File Entity Record Links. Will be dropped in a future migration.
 """
 type mjCommitteesArtifact_ {
-  ActionItem: String
-  ActionItemID: String
   AgendaItem: String
   AgendaItemID: String
   ArtifactType: String!
@@ -27524,6 +28423,8 @@ type mjCommitteesArtifact_ {
 
   """Storage provider: GoogleDrive, SharePoint, Box, OneDrive, Dropbox, URL"""
   Provider: String!
+  Task: String
+  TaskID: String
 
   """Display title for the artifact"""
   Title: String!
@@ -27564,10 +28465,6 @@ type mjCommitteesAttendance_ {
 Threaded discussion comments on committee meetings, agenda items, action items, and documents
 """
 type mjCommitteesComment_ {
-  ActionItem: String
-
-  """Optional action item this comment is attached to"""
-  ActionItemID: String
   AgendaItem: String
 
   """Optional agenda item this comment is attached to"""
@@ -27603,6 +28500,8 @@ type mjCommitteesComment_ {
   """Person who wrote the comment"""
   PersonID: String!
   RootParentCommentID: String
+  Task: String
+  TaskID: String
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
   mjCommitteesComments_ParentCommentIDArray: [mjCommitteesComment_!]!

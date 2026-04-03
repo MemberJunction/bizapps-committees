@@ -8,93 +8,81 @@
         <div class="page-header">
             <div>
                 <h1 class="page-title">Action Items</h1>
-                <p class="page-subtitle">Track tasks across all committees</p>
-            </div>
-            @if (IsAnyOfficer) {
-                <button class="btn btn-primary" (click)="OnCreateActionItem()">
-                    <i class="fa-solid fa-plus"></i> New Action Item
-                </button>
-            }
-        </div>
-
-        <!-- Toolbar -->
-        <div class="tracker-toolbar">
-            <div class="status-filters">
-                <button class="filter-pill"
-                    [class.active]="StatusFilter === 'All'"
-                    (click)="OnStatusFilterChanged('All')">
-                    All
-                    <span class="filter-count">{{ ActionItems.length }}</span>
-                </button>
-                <button class="filter-pill"
-                    [class.active]="StatusFilter === 'Open'"
-                    (click)="OnStatusFilterChanged('Open')">Open</button>
-                <button class="filter-pill"
-                    [class.active]="StatusFilter === 'InProgress'"
-                    (click)="OnStatusFilterChanged('InProgress')">In Progress</button>
-                <button class="filter-pill"
-                    [class.active]="StatusFilter === 'Completed'"
-                    (click)="OnStatusFilterChanged('Completed')">Completed</button>
+                @if (SingleCommitteeName) {
+                    <p class="page-subtitle">{{ SingleCommitteeName }}</p>
+                } @else if (Committees.length === 0) {
+                    <p class="page-subtitle">You are not a member of any committees</p>
+                } @else {
+                    <p class="page-subtitle">Track tasks across your committees</p>
+                }
             </div>
         </div>
 
-        <!-- Action Items List -->
-        @if (FilteredItems.length === 0) {
-            <div class="empty-state">
-                <i class="fa-solid fa-clipboard-check"></i>
-                <p>No action items match this filter.</p>
-            </div>
-        } @else {
-            <div class="action-item-grid">
-                @for (item of FilteredItems; track item['ID']) {
-                    <div class="action-item-card" [class.overdue]="IsOverdue(item)" (click)="OnEditActionItem($any(item['ID']))">
-                        <div [class]="'item-priority ' + GetPriorityClass(item)"></div>
-                        <div class="item-content">
-                            <h4 class="item-title">{{ item['Title'] }}</h4>
-                            @if (item['Description']) {
-                                <p class="item-description">{{ item['Description'] }}</p>
-                            }
-                            <div class="item-meta">
-                                <span class="committee">
-                                    <i class="fa-solid fa-users-rectangle"></i>
-                                    {{ item['Committee'] }}
-                                </span>
-                                @if (item['AssignedToPerson']) {
-                                    <span class="assignee">
-                                        <i class="fa-solid fa-user"></i>
-                                        {{ item['AssignedToPerson'] }}
-                                    </span>
-                                }
-                                @if (item['DueDate']) {
-                                    <span class="due-date" [class.overdue]="IsOverdue(item)">
-                                        <i class="fa-solid fa-calendar"></i>
-                                        Due {{ $any(item['DueDate']) | date:'MMM d, y' }}
-                                    </span>
-                                }
-                                @if (item['Meeting']) {
-                                    <span class="meeting">
-                                        <i class="fa-solid fa-handshake"></i>
-                                        {{ item['Meeting'] }}
-                                    </span>
-                                }
-                            </div>
-                        </div>
-                        <div class="item-status">
-                            <span [class]="'status-badge status-' + ($any(item['Status']) || '').toLowerCase()">
-                                {{ FormatStatus($any(item['Status'])) }}
-                            </span>
-                        </div>
+        @if (Committees.length > 0) {
+            <!-- Committee selector + tab bar -->
+            <div class="controls-bar">
+                @if (ShowDropdown) {
+                    <select class="committee-select"
+                            [ngModel]="SelectedCommitteeID || ''"
+                            (ngModelChange)="OnCommitteeChanged($event)">
+                        <option value="">All Committees</option>
+                        @for (c of Committees; track c.CommitteeID) {
+                            <option [value]="c.CommitteeID">{{ c.CommitteeName }}</option>
+                        }
+                    </select>
+                }
+
+                @if (IsOfficerInSelected) {
+                    <div class="tab-bar">
+                        <button class="tab-pill" [class.active]="ActiveTab === 'mine'"
+                                (click)="OnTabChanged('mine')">
+                            <i class="fa-solid fa-user"></i> My Tasks
+                        </button>
+                        <button class="tab-pill" [class.active]="ActiveTab === 'all'"
+                                (click)="OnTabChanged('all')">
+                            <i class="fa-solid fa-list-check"></i> All Tasks
+                        </button>
                     </div>
                 }
             </div>
+
+            @if (PanelVisible) {
+                <!-- My Tasks -->
+                @if (ActiveTab === 'mine') {
+                    @if (CurrentPersonID) {
+                        <bizapps-task-panel
+                            [CategoryID]="SelectedCategoryID"
+                            [ExtraFilter]="MyTasksFilter"
+                            [ShowCreateButton]="false"
+                            [ShowDelete]="IsOfficerInSelected"
+                            [AssigneeScope]="AssigneeScope"
+                            [PersonID]="CurrentPersonID">
+                        </bizapps-task-panel>
+                    } @else {
+                        <div class="empty-state">
+                            <i class="fa-solid fa-user-slash"></i>
+                            <p>Could not determine your person record. My Tasks requires a linked Person.</p>
+                        </div>
+                    }
+                }
+
+                <!-- All Tasks (officers only) -->
+                @if (ActiveTab === 'all') {
+                    <bizapps-task-panel
+                        [CategoryID]="SelectedCategoryID"
+                        [ShowCreateButton]="IsOfficerInSelected"
+                        [ShowQuickAdd]="IsOfficerInSelected"
+                        [ShowDelete]="IsOfficerInSelected"
+                        [AssigneeScope]="AssigneeScope"
+                        [PersonID]="CurrentPersonID">
+                    </bizapps-task-panel>
+                }
+            }
+        } @else {
+            <div class="empty-state">
+                <i class="fa-solid fa-users-slash"></i>
+                <p>You are not a member of any committees with task categories.</p>
+            </div>
         }
     </div>
-}
-
-<!-- Edit Dialog -->
-@if (ShowEditDialog) {
-    <action-item-edit-dialog
-        [ActionItemID]="EditingActionItemID"
-        (DialogClosed)="OnDialogClosed($event)">
-    </action-item-edit-dialog>
 }

@@ -8,6 +8,9 @@ import { SharedGenericModule } from '@memberjunction/ng-shared-generic';
 // BizAppsCommon reusable components
 import { AddressEditorComponent, ContactMethodListComponent, RelationshipListComponent } from '@mj-biz-apps/common-ng';
 
+// BizAppsTasks reusable components
+import { BizAppsTasksModule, LoadBizAppsTasksClient } from '@mj-biz-apps/tasks-ng';
+
 // Committees components
 import { CommitteeDashboardComponent, LoadCommitteeDashboard } from './dashboard/committee-dashboard.component';
 import { CommitteeListComponent, LoadCommitteeList } from './committee-list/committee-list.component';
@@ -62,6 +65,7 @@ import { MeetingDetailViewComponent, LoadMeetingDetailView } from './meeting-det
         AddressEditorComponent,
         ContactMethodListComponent,
         RelationshipListComponent,
+        BizAppsTasksModule,
     ],
     exports: [
         CommitteeDashboardComponent,
@@ -91,6 +95,7 @@ export class CommitteesModule { }
 
 /** Tree-shaking prevention — call from public-api.ts */
 export function LoadCommitteesModule() {
+    LoadBizAppsTasksClient();
     LoadCommitteeDashboard();
     LoadCommitteeList();
     LoadCommitteeEditDialog();

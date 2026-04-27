@@ -1,52 +1,53 @@
 /* Document Edit Dialog — component-specific overrides only.
-   Base styles from ../shared/slide-panel.css */
+   Base styles from ../shared/slide-panel.css
+   Uses MJ design tokens (--mj-*) from @memberjunction/ng-shared-generic */
 
 /* ─── Mode Toggle ─── */
 .mode-toggle {
     display: flex;
     gap: 0;
-    margin-bottom: 20px;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
+    margin-bottom: var(--mj-space-5);
+    border: 2px solid var(--mj-color-neutral-200);
+    border-radius: var(--mj-radius-lg);
     overflow: hidden;
 }
 
 .mode-btn {
     flex: 1;
-    padding: 12px 16px;
+    padding: var(--mj-space-3) var(--mj-space-4);
     border: none;
-    background: #fff;
-    font-size: 14px;
-    font-weight: 600;
-    color: #64748b;
+    background: var(--mj-color-neutral-0);
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-color-neutral-500);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: var(--mj-space-2);
     transition: all 0.15s ease;
     font-family: inherit;
 }
 
 .mode-btn:first-child {
-    border-right: 2px solid #e2e8f0;
+    border-right: 2px solid var(--mj-color-neutral-200);
 }
 
 .mode-btn.active {
-    background: #eff6ff;
-    color: #2563eb;
+    background: var(--mj-color-info-50);
+    color: var(--mj-color-info-600);
 }
 
 .mode-btn:hover:not(.active) {
-    background: #f8fafc;
-    color: #475569;
+    background: var(--mj-color-neutral-50);
+    color: var(--mj-color-neutral-600);
 }
 
 /* ─── File Upload Drop Zone ─── */
 .drop-zone {
-    border: 2px dashed #cbd5e1;
+    border: 2px dashed var(--mj-color-neutral-300);
     border-radius: 14px;
-    padding: 32px 20px;
+    padding: var(--mj-space-8) var(--mj-space-5);
     text-align: center;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -55,12 +56,12 @@
 
 .drop-zone:hover {
     border-color: #93c5fd;
-    background: #eff6ff;
+    background: var(--mj-color-info-50);
 }
 
 .drop-zone.dragging {
-    border-color: #3b82f6;
-    background: #eff6ff;
+    border-color: var(--mj-color-info-500);
+    background: var(--mj-color-info-50);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
@@ -68,19 +69,19 @@
     font-size: 32px;
     color: #93c5fd;
     display: block;
-    margin-bottom: 10px;
+    margin-bottom: var(--mj-space-2-5);
 }
 
 .drop-text {
-    font-size: 14px;
-    font-weight: 600;
-    color: #475569;
-    margin: 0 0 4px 0;
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-color-neutral-600);
+    margin: 0 0 var(--mj-space-1) 0;
 }
 
 .drop-hint {
-    font-size: 12px;
-    color: #94a3b8;
+    font-size: var(--mj-text-xs);
+    color: var(--mj-color-neutral-400);
     margin: 0;
 }
 
@@ -92,20 +93,20 @@
 .no-storage-notice {
     display: flex;
     align-items: flex-start;
-    gap: 10px;
-    padding: 14px 16px;
-    background: #fffbeb;
-    border: 2px solid #fde68a;
-    border-radius: 12px;
+    gap: var(--mj-space-2-5);
+    padding: 14px var(--mj-space-4);
+    background: var(--mj-color-warning-50);
+    border: 2px solid var(--mj-color-warning-200);
+    border-radius: var(--mj-radius-lg);
     font-size: 13px;
-    font-weight: 500;
-    color: #92400e;
+    font-weight: var(--mj-font-medium);
+    color: var(--mj-color-warning-800);
     line-height: 1.4;
 }
 
 .no-storage-notice i {
-    font-size: 16px;
-    color: #d97706;
+    font-size: var(--mj-text-base);
+    color: var(--mj-color-warning-600);
     flex-shrink: 0;
     margin-top: 1px;
 }
@@ -115,29 +116,29 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 14px 16px;
-    border: 2px solid #e2e8f0;
-    border-radius: 12px;
-    background: #fff;
+    padding: 14px var(--mj-space-4);
+    border: 2px solid var(--mj-color-neutral-200);
+    border-radius: var(--mj-radius-lg);
+    background: var(--mj-color-neutral-0);
 }
 
 .file-info {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--mj-space-3);
     min-width: 0;
 }
 
 .file-info i {
     font-size: 22px;
-    color: #3b82f6;
+    color: var(--mj-color-info-500);
     flex-shrink: 0;
 }
 
 .file-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: #1e293b;
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-color-neutral-800);
     display: block;
     white-space: nowrap;
     overflow: hidden;
@@ -145,19 +146,19 @@
 }
 
 .file-size {
-    font-size: 12px;
-    color: #94a3b8;
-    font-weight: 500;
+    font-size: var(--mj-text-xs);
+    color: var(--mj-color-neutral-400);
+    font-weight: var(--mj-font-medium);
 }
 
 .file-remove {
     width: 32px;
     height: 32px;
     border: none;
-    background: #f1f5f9;
-    border-radius: 8px;
-    font-size: 14px;
-    color: #64748b;
+    background: var(--mj-color-neutral-100);
+    border-radius: var(--mj-radius-md);
+    font-size: var(--mj-text-sm);
+    color: var(--mj-color-neutral-500);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -167,8 +168,8 @@
 }
 
 .file-remove:hover {
-    background: #fee2e2;
-    color: #e11d48;
+    background: var(--mj-color-error-100);
+    color: var(--mj-color-error-500);
 }
 
 /* ─── Divider ─── */
@@ -185,16 +186,16 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: #e2e8f0;
+    background: var(--mj-color-neutral-200);
 }
 
 .divider-text {
     position: relative;
-    background: #fff;
+    background: var(--mj-color-neutral-0);
     padding: 0 14px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #94a3b8;
+    font-size: var(--mj-text-xs);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-color-neutral-400);
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
@@ -203,13 +204,13 @@
 .upload-progress {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px 16px;
-    background: #eff6ff;
+    gap: var(--mj-space-2-5);
+    padding: var(--mj-space-3) var(--mj-space-4);
+    background: var(--mj-color-info-50);
     border: 2px solid #bfdbfe;
-    border-radius: 12px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #2563eb;
+    border-radius: var(--mj-radius-lg);
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-color-info-600);
     margin-bottom: 18px;
 }

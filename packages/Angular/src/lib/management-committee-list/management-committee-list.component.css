@@ -1,0 +1,71 @@
+/* Management Committee List — uses MJ design tokens */
+
+.committee-card {
+    position: relative;
+}
+
+/* Settings button — borderless, colors from MJ tokens, only visible on card hover */
+.btn-edit {
+    position: absolute;
+    top: var(--mj-space-3);
+    right: var(--mj-space-3);
+    width: 28px;
+    height: 28px;
+    border: none;
+    border-radius: var(--mj-radius-md);
+    background: transparent;
+    color: var(--mj-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--mj-text-sm);
+    opacity: 0;
+    transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.committee-card:hover .btn-edit {
+    opacity: 1;
+}
+
+.btn-edit:hover {
+    background: var(--mj-bg-surface-hover);
+    color: var(--mj-text-primary);
+}
+
+.btn-edit:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--mj-border-focus);
+    outline-offset: 2px;
+}
+
+/* Reserve space in the header so the title doesn't run into the edit button */
+.card-header {
+    padding-right: var(--mj-space-9);
+}
+
+/* Expand chevron in the footer */
+.expand-icon {
+    font-size: var(--mj-text-xs);
+    color: var(--mj-text-disabled);
+    transition: transform 0.2s ease;
+    margin-left: auto;
+}
+
+.committee-card.expanded {
+    box-shadow: var(--mj-shadow-md);
+    cursor: default;
+}
+
+.committee-card.expanded:hover {
+    transform: none;
+}
+
+.inline-membership {
+    border-top: 1px solid var(--mj-border-subtle);
+    margin: var(--mj-space-5) calc(-1 * var(--mj-space-6)) calc(-1 * var(--mj-space-6)) calc(-1 * var(--mj-space-6));
+    padding: var(--mj-space-5) var(--mj-space-6);
+    background: var(--mj-bg-surface-card);
+    border-bottom-left-radius: var(--mj-radius-xl);
+    border-bottom-right-radius: var(--mj-radius-xl);
+}

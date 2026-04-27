@@ -29,8 +29,8 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
     LiveMeetingID: string | null = null;
     DetailMeetingID: string | null = null;
 
-    /** Permission state */
-    IsAnyOfficer = false;
+    /** Permission state — staff users see "Schedule Meeting" button */
+    IsStaff = false;
 
     private cdr = inject(ChangeDetectorRef);
 
@@ -105,7 +105,7 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
     }
 
     private async LoadPermissions(): Promise<void> {
-        this.IsAnyOfficer = await CommitteePermissionHelper.IsOfficerInAny();
+        this.IsStaff = await CommitteePermissionHelper.IsStaffUser();
     }
 
     private async LoadMeetings(): Promise<void> {

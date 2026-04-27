@@ -8,8 +8,11 @@
         <div class="page-header">
             <div class="page-header-text">
                 <h1 class="page-title">Committees</h1>
-                <p class="page-subtitle">Browse and manage all committees</p>
+                <p class="page-subtitle">Manage all committees, terms, and memberships</p>
             </div>
+            <button class="btn btn-primary" (click)="OnCreateCommittee()">
+                <i class="fa-solid fa-plus"></i> New Committee
+            </button>
         </div>
 
         <!-- Toolbar -->
@@ -32,6 +35,9 @@
                 <button class="filter-pill"
                     [class.active]="StatusFilter === 'Inactive'"
                     (click)="OnStatusFilterChanged('Inactive')">Inactive</button>
+                <button class="filter-pill"
+                    [class.active]="StatusFilter === 'Dissolved'"
+                    (click)="OnStatusFilterChanged('Dissolved')">Dissolved</button>
             </div>
         </div>
 
@@ -44,16 +50,21 @@
         } @else {
             <div class="committee-grid">
                 @for (committee of FilteredCommittees; track committee['ID']) {
-                    <div class="committee-card"
+                    <div class="committee-card clickable"
                          [class.inactive]="committee['Status'] === 'Inactive'"
-                         [class.clickable]="IsMemberOf($any(committee['ID']))"
-                         (click)="OnEditCommittee($any(committee['ID']))">
+                         [class.expanded]="ExpandedCommitteeID === committee['ID']"
+                         (click)="OnToggleExpand($any(committee['ID']))">
                         <div class="card-header">
                             <h3 class="committee-name">{{ committee['Name'] }}</h3>
                             @if (committee['Type']) {
                                 <span class="committee-type">{{ committee['Type'] }}</span>
                             }
                         </div>
+                        <button class="btn-edit" (click)="OnEditCommittee($any(committee['ID'])); $event.stopPropagation();"
+                            title="Edit committee settings"
+                            aria-label="Edit committee settings">
+                            <i class="fa-solid fa-ellipsis"></i>
+                        </button>
                         @if (committee['Description']) {
                             <p class="committee-description">{{ committee['Description'] }}</p>
                         }
@@ -71,7 +82,18 @@
                             <span [class]="'status-badge status-' + ($any(committee['Status']) || '').toLowerCase()">
                                 {{ committee['Status'] }}
                             </span>
+                            <i [class]="ExpandedCommitteeID === committee['ID'] ? 'fa-solid fa-chevron-up expand-icon' : 'fa-solid fa-chevron-down expand-icon'"></i>
                         </div>
+
+                        <!-- Inline Membership Panel (read-only preview) -->
+                        @if (ExpandedCommitteeID === committee['ID']) {
+                            <div class="inline-membership" (click)="$event.stopPropagation()">
+                                <committees-membership-panel
+                                    [CommitteeID]="$any(committee['ID'])"
+                                    [ReadOnly]="true">
+                                </committees-membership-panel>
+                            </div>
+                        }
                     </div>
                 }
             </div>
@@ -79,11 +101,10 @@
     </div>
 }
 
-<!-- View Dialog (read-only — committee editing is staff-only, in Committee Management app) -->
+<!-- Edit Dialog -->
 @if (ShowEditDialog) {
     <committee-edit-dialog
         [CommitteeID]="EditingCommitteeID"
-        [ReadOnly]="true"
         (DialogClosed)="OnDialogClosed($event)">
     </committee-edit-dialog>
 }

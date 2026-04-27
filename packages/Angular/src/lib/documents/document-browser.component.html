@@ -10,7 +10,7 @@
                 <h1 class="page-title">Documents</h1>
                 <p class="page-subtitle">Browse committee documents and files</p>
             </div>
-            @if (IsAnyOfficer) {
+            @if (CanManageDocuments) {
                 <button class="btn btn-primary" (click)="OnCreateDocument()">
                     <i class="fa-solid fa-plus"></i> Add Document
                 </button>
@@ -19,21 +19,56 @@
 
         <!-- Toolbar -->
         <div class="browser-toolbar">
-            <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input
-                    type="text"
-                    placeholder="Search documents..."
-                    [ngModel]="SearchText"
-                    (ngModelChange)="OnSearchChanged($event)" />
+            <div class="toolbar-row">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input
+                        type="text"
+                        placeholder="Search documents..."
+                        [ngModel]="SearchText"
+                        (ngModelChange)="OnSearchChanged($event)" />
+                </div>
+                @if (ShowCommitteeDropdown) {
+                    <select class="committee-select"
+                        [ngModel]="CommitteeFilter"
+                        (ngModelChange)="OnCommitteeFilterChanged($event)">
+                        <option value="all">All Committees</option>
+                        @for (committee of Committees; track committee.ID) {
+                            <option [value]="committee.ID">{{ committee.Name }}</option>
+                        }
+                    </select>
+                }
             </div>
-            <div class="type-filter">
-                <div class="type-filter-pills">
-                    @for (category of CategoryFilterOptions; track category) {
+            <div class="toolbar-row toolbar-row-pills">
+                <div class="filter-group">
+                    <span class="filter-label">Category</span>
+                    <div class="filter-pills">
+                        @for (category of CategoryFilterOptions; track category) {
+                            <button class="filter-pill"
+                                [class.active]="CategoryFilter === category"
+                                (click)="OnCategoryFilterChanged(category)">{{ category }}</button>
+                        }
+                    </div>
+                </div>
+                <div class="filter-group">
+                    <span class="filter-label">Date</span>
+                    <div class="filter-pills">
                         <button class="filter-pill"
-                            [class.active]="CategoryFilter === category"
-                            (click)="OnCategoryFilterChanged(category)">{{ category }}</button>
-                    }
+                            [class.active]="DateRangeFilter === 'all'"
+                            (click)="OnDateRangeChanged('all')">All time</button>
+                        <button class="filter-pill"
+                            [class.active]="DateRangeFilter === '7d'"
+                            (click)="OnDateRangeChanged('7d')">7 days</button>
+                        <button class="filter-pill"
+                            [class.active]="DateRangeFilter === '30d'"
+                            (click)="OnDateRangeChanged('30d')">30 days</button>
+                        <button class="filter-pill"
+                            [class.active]="DateRangeFilter === '90d'"
+                            (click)="OnDateRangeChanged('90d')">90 days</button>
+                        <button class="filter-pill"
+                            [class.active]="DateRangeFilter === 'year'"
+                            (click)="OnDateRangeChanged('year')">This year</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -47,7 +82,7 @@
         } @else {
             <div class="document-grid">
                 @for (file of FilteredFiles; track file['ID']) {
-                    <div class="document-card" (click)="OnEditDocument($any(file['ID']))">
+                    <div class="document-card" (click)="OnPreviewDocument($any(file['ID']))">
                         <div class="doc-icon">
                             <i [class]="GetDocIcon($any(file['Category']))"></i>
                         </div>
@@ -60,10 +95,22 @@
                                 @if (file['Category']) {
                                     <span class="doc-type">{{ file['Category'] }}</span>
                                 }
+                                @if ($any(file['CommitteeNames']).length > 0) {
+                                    <span class="doc-committee">
+                                        <i class="fa-solid fa-users-rectangle"></i>
+                                        {{ $any(file['CommitteeNames']).join(', ') }}
+                                    </span>
+                                }
                                 @if (file['Provider']) {
                                     <span class="doc-provider">
                                         <i class="fa-solid fa-link"></i>
                                         {{ file['Provider'] }}
+                                    </span>
+                                }
+                                @if (file['__mj_CreatedAt']) {
+                                    <span class="doc-date">
+                                        <i class="fa-regular fa-calendar"></i>
+                                        {{ $any(file['__mj_CreatedAt']) | date:'MMM d, yyyy' }}
                                     </span>
                                 }
                             </div>
@@ -86,7 +133,16 @@
     </div>
 }
 
-<!-- Edit Dialog -->
+<!-- Preview Panel (anyone can view) -->
+@if (ShowPreviewPanel) {
+    <document-preview-panel
+        [FileID]="PreviewFileID"
+        [CanEdit]="CanManageDocuments"
+        (PanelClosed)="OnPreviewClosed($event)">
+    </document-preview-panel>
+}
+
+<!-- Edit Dialog (staff only) -->
 @if (ShowEditDialog) {
     <document-edit-dialog
         [FileID]="EditingFileID"

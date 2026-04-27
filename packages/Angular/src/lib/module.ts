@@ -21,6 +21,7 @@ import { ActionItemTrackerComponent, LoadActionItemTracker } from './action-item
 import { ActionItemEditDialogComponent, LoadActionItemEditDialog } from './action-items/action-item-edit-dialog.component';
 import { DocumentBrowserComponent, LoadDocumentBrowser } from './documents/document-browser.component';
 import { DocumentEditDialogComponent, LoadDocumentEditDialog } from './documents/document-edit-dialog.component';
+import { DocumentPreviewPanelComponent, LoadDocumentPreviewPanel } from './documents/document-preview-panel.component';
 import { PersonPickerComponent } from './shared/person-picker.component';
 import { CommentThreadComponent, LoadCommentThread } from './comments/comment-thread.component';
 import { AgendaItemEditDialogComponent, LoadAgendaItemEditDialog } from './agenda/agenda-item-edit-dialog.component';
@@ -33,6 +34,9 @@ import { MembershipEditDialogComponent, LoadMembershipEditDialog } from './membe
 import { PersonDetailPanelComponent, LoadPersonDetailPanel } from './membership/person-detail-panel.component';
 import { GenerateMinutesPanelComponent, LoadGenerateMinutesPanel } from './minutes/generate-minutes-panel.component';
 import { MeetingDetailViewComponent, LoadMeetingDetailView } from './meeting-detail/meeting-detail-view.component';
+import { ManagementDashboardComponent, LoadManagementDashboard } from './management-dashboard/management-dashboard.component';
+import { ManagementCommitteeListComponent, LoadManagementCommitteeList } from './management-committee-list/management-committee-list.component';
+import { ManagementMembershipListComponent, LoadManagementMembershipList } from './management-membership-list/management-membership-list.component';
 
 @NgModule({
     declarations: [
@@ -45,6 +49,7 @@ import { MeetingDetailViewComponent, LoadMeetingDetailView } from './meeting-det
         ActionItemEditDialogComponent,
         DocumentBrowserComponent,
         DocumentEditDialogComponent,
+        DocumentPreviewPanelComponent,
         PersonPickerComponent,
         CommentThreadComponent,
         AgendaItemEditDialogComponent,
@@ -57,6 +62,9 @@ import { MeetingDetailViewComponent, LoadMeetingDetailView } from './meeting-det
         PersonDetailPanelComponent,
         GenerateMinutesPanelComponent,
         MeetingDetailViewComponent,
+        ManagementDashboardComponent,
+        ManagementCommitteeListComponent,
+        ManagementMembershipListComponent,
     ],
     imports: [
         CommonModule,
@@ -77,6 +85,7 @@ import { MeetingDetailViewComponent, LoadMeetingDetailView } from './meeting-det
         ActionItemEditDialogComponent,
         DocumentBrowserComponent,
         DocumentEditDialogComponent,
+        DocumentPreviewPanelComponent,
         PersonPickerComponent,
         CommentThreadComponent,
         AgendaItemEditDialogComponent,
@@ -89,6 +98,9 @@ import { MeetingDetailViewComponent, LoadMeetingDetailView } from './meeting-det
         PersonDetailPanelComponent,
         GenerateMinutesPanelComponent,
         MeetingDetailViewComponent,
+        ManagementDashboardComponent,
+        ManagementCommitteeListComponent,
+        ManagementMembershipListComponent,
     ]
 })
 export class CommitteesModule { }
@@ -105,6 +117,7 @@ export function LoadCommitteesModule() {
     LoadActionItemEditDialog();
     LoadDocumentBrowser();
     LoadDocumentEditDialog();
+    LoadDocumentPreviewPanel();
     LoadCommentThread();
     LoadAgendaItemEditDialog();
     LoadMotionEditDialog();
@@ -116,6 +129,9 @@ export function LoadCommitteesModule() {
     LoadPersonDetailPanel();
     LoadGenerateMinutesPanel();
     LoadMeetingDetailView();
+    LoadManagementDashboard();
+    LoadManagementCommitteeList();
+    LoadManagementMembershipList();
 }
 
 /** Alias matching the mj-app.json manifest startupExport convention */

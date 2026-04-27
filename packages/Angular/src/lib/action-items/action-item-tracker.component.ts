@@ -32,8 +32,12 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
     /** Currently selected committee (null = all) */
     SelectedCommitteeID: string | null = null;
 
-    /** Whether user is an officer in the selected committee, or all committees if none selected */
+    /** Whether the user is staff (has Committee Management app access) */
+    IsStaff = false;
+
+    /** Whether user is an officer/staff in the selected committee, or all committees if none selected */
     get IsOfficerInSelected(): boolean {
+        if (this.IsStaff) return true;
         if (!this.SelectedCommitteeID) {
             return this.Committees.length > 0 && this.Committees.every(c => c.IsOfficer);
         }
@@ -58,6 +62,14 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
 
     /** Active tab: 'mine' or 'all' */
     ActiveTab: 'mine' | 'all' = 'mine';
+
+    /** Whether the My/All tab bar should be shown.
+     *  Members and officers in the member app see only "My Tasks" (no toggle).
+     *  Staff users see only "All Tasks" (also no toggle — handled by defaulting ActiveTab to 'all').
+     *  Result: the tab bar is never shown — task management is fully scoped per app. */
+    get ShowTabBar(): boolean {
+        return false;
+    }
 
     /** ExtraFilter for "My Tasks" */
     get MyTasksFilter(): string | null {
@@ -120,45 +132,89 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
 
     private async LoadContext(): Promise<void> {
         this.CurrentPersonID = await CommitteePermissionHelper.GetCurrentPersonID();
-        const memberships = await CommitteePermissionHelper.GetCurrentUserMemberships();
+        this.IsStaff = await CommitteePermissionHelper.IsStaffUser();
 
-        // Get unique committee IDs from memberships
-        const committeeMap = new Map<string, boolean>();
-        for (const m of memberships) {
-            if (m.CommitteeID) {
-                const existing = committeeMap.get(m.CommitteeID) ?? false;
-                committeeMap.set(m.CommitteeID, existing || m.IsOfficer);
-            }
+        // Staff users skip the My/All distinction — they always see All Tasks
+        if (this.IsStaff) {
+            this.ActiveTab = 'all';
+        }
+
+        let committeeMap: Map<string, boolean>;
+
+        if (this.IsStaff) {
+            // Staff sees all active committees
+            committeeMap = await this.LoadAllCommitteeIDs();
+        } else {
+            // Members see only their committees
+            committeeMap = await this.LoadMemberCommitteeIDs();
         }
 
         if (committeeMap.size === 0) return;
 
-        // Load committee names
+        await this.LoadCommitteeOptions(committeeMap);
+
+        // If only one committee, auto-select it
+        if (this.Committees.length === 1) {
+            this.SelectedCommitteeID = this.Committees[0].CommitteeID;
+        }
+    }
+
+    private async LoadAllCommitteeIDs(): Promise<Map<string, boolean>> {
+        const rv = new RunView();
+        const result = await rv.RunView<{ ID: string }>({
+            EntityName: 'Committees',
+            ExtraFilter: "Status = 'Active'",
+            Fields: ['ID'],
+            ResultType: 'simple',
+        });
+        const map = new Map<string, boolean>();
+        if (result.Success) {
+            for (const c of result.Results) {
+                map.set(c.ID, true); // Staff = officer-level for all
+            }
+        }
+        return map;
+    }
+
+    private async LoadMemberCommitteeIDs(): Promise<Map<string, boolean>> {
+        const memberships = await CommitteePermissionHelper.GetCurrentUserMemberships();
+        const map = new Map<string, boolean>();
+        for (const m of memberships) {
+            if (m.CommitteeID) {
+                const existing = map.get(m.CommitteeID) ?? false;
+                map.set(m.CommitteeID, existing || m.IsOfficer);
+            }
+        }
+        return map;
+    }
+
+    private async LoadCommitteeOptions(committeeMap: Map<string, boolean>): Promise<void> {
         const committeeIDs = [...committeeMap.keys()];
         const rv = new RunView();
-        const [committeesResult, categoriesResult] = await Promise.all([
-            rv.RunView<any>({
+        const [committeesResult, categoriesResult] = await rv.RunViews([
+            {
                 EntityName: 'Committees',
                 ExtraFilter: `ID IN (${committeeIDs.map(id => `'${id}'`).join(',')})`,
                 Fields: ['ID', 'Name'],
                 ResultType: 'simple',
-            }),
-            new RunView().RunView<any>({
+            },
+            {
                 EntityName: 'MJ.BizApps.Tasks: Task Categories',
                 ExtraFilter: 'IsActive = 1',
+                Fields: ['ID', 'Name'],
                 ResultType: 'simple',
-            }),
+            }
         ]);
 
         const committees = committeesResult?.Results ?? [];
         const categories = categoriesResult?.Results ?? [];
         const categoryByName = new Map<string, string>();
-        for (const cat of categories) {
+        for (const cat of categories as { ID: string; Name: string }[]) {
             categoryByName.set(cat.Name, cat.ID);
         }
 
         this.Committees = [];
-        for (const c of committees) {
+        for (const c of committees as { ID: string; Name: string }[]) {
             const catID = categoryByName.get(c.Name);
             if (catID) {
                 this.Committees.push({
@@ -168,11 +224,6 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
                     IsOfficer: committeeMap.get(c.ID) ?? false,
                 });
             }
-        }
-
-        // If only one committee, auto-select it
-        if (this.Committees.length === 1) {
-            this.SelectedCommitteeID = this.Committees[0].CommitteeID;
         }
     }
 }

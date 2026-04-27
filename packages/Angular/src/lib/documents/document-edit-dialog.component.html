@@ -2,7 +2,7 @@
 <div class="dialog-panel">
     <div class="dialog-header">
         <h2 class="dialog-title">{{ DialogTitle }}</h2>
-        <button class="close-btn" (click)="OnClose()">
+        <button class="dialog-close" (click)="OnClose()">
             <i class="fa-solid fa-xmark"></i>
         </button>
     </div>
@@ -158,35 +158,32 @@
             </div>
         </div>
 
-        <div class="dialog-footer">
-            <div class="footer-left">
-                <button class="btn btn-primary" (click)="OnSave()" [disabled]="IsSaving">
-                    @if (IsSaving) {
-                        <i class="fa-solid fa-spinner fa-spin"></i> Saving...
-                    } @else {
-                        <i class="fa-solid fa-check"></i> Save
-                    }
-                </button>
-                <button class="btn btn-secondary" (click)="OnClose()" [disabled]="IsSaving">
-                    Cancel
-                </button>
-            </div>
+        <div class="dialog-actions">
+            <button class="btn btn-primary" (click)="OnSave()" [disabled]="IsSaving">
+                @if (IsSaving) {
+                    <i class="fa-solid fa-spinner fa-spin"></i> Saving...
+                } @else {
+                    <i class="fa-solid fa-check"></i> Save
+                }
+            </button>
+            <button class="btn btn-secondary" (click)="OnClose()" [disabled]="IsSaving">
+                Cancel
+            </button>
             @if (!IsNew) {
-                <div class="footer-right">
-                    @if (!ShowDeleteConfirm) {
-                        <button class="btn btn-danger-outline" (click)="ShowDeleteConfirm = true">
-                            <i class="fa-solid fa-trash"></i> Delete
-                        </button>
-                    } @else {
-                        <span class="confirm-text">Are you sure?</span>
-                        <button class="btn btn-danger" (click)="OnDelete()" [disabled]="IsSaving">
-                            Yes, Delete
-                        </button>
-                        <button class="btn btn-secondary" (click)="ShowDeleteConfirm = false">
-                            No
-                        </button>
-                    }
-                </div>
+                <div class="actions-spacer"></div>
+                @if (!ShowDeleteConfirm) {
+                    <button class="btn btn-danger-outline" (click)="ShowDeleteConfirm = true" [disabled]="IsSaving">
+                        <i class="fa-solid fa-trash"></i> Delete
+                    </button>
+                } @else {
+                    <span class="confirm-text">Are you sure?</span>
+                    <button class="btn btn-danger" (click)="OnDelete()" [disabled]="IsSaving">
+                        Yes, Delete
+                    </button>
+                    <button class="btn btn-secondary" (click)="ShowDeleteConfirm = false" [disabled]="IsSaving">
+                        No
+                    </button>
+                }
             }
         </div>
     }

@@ -366,10 +366,15 @@ export class DocumentEditDialogComponent implements OnInit {
             ? committeesResult.Results as { ID: string; Name: string }[]
             : [];
 
-        const officerCommitteeIDs = await CommitteePermissionHelper.GetOfficerCommitteeIDs();
-        this.Committees = officerCommitteeIDs.size > 0
-            ? allCommittees.filter(c => officerCommitteeIDs.has(c.ID))
-            : allCommittees;
+        const isStaff = await CommitteePermissionHelper.IsStaffUser();
+        if (isStaff) {
+            this.Committees = allCommittees;
+        } else {
+            const officerCommitteeIDs = await CommitteePermissionHelper.GetOfficerCommitteeIDs();
+            this.Committees = officerCommitteeIDs.size > 0
+                ? allCommittees.filter(c => officerCommitteeIDs.has(c.ID))
+                : allCommittees;
+        }
 
         if (meetingsResult.Success) {
             this.Meetings = meetingsResult.Results as { ID: string; Title: string }[];

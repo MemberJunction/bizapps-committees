@@ -8,8 +8,22 @@
         <div class="dashboard-hero">
             <div class="hero-top">
                 <div class="hero-text">
-                    <h1 class="hero-title">Dashboard</h1>
-                    <p class="hero-subtitle">Welcome back. Here's what's happening across your committees.</p>
+                    <h1 class="hero-title">Committee Management</h1>
+                    <p class="hero-subtitle">Administrative overview of all committees, meetings, and action items.</p>
+                </div>
+                <div class="quick-actions">
+                    <button class="btn-quick" (click)="NavigateToTab('Committees')">
+                        <i class="fa-solid fa-plus"></i> Committee
+                    </button>
+                    <button class="btn-quick" (click)="NavigateToTab('Meetings')">
+                        <i class="fa-solid fa-plus"></i> Meeting
+                    </button>
+                    <button class="btn-quick" (click)="NavigateToTab('Action Items')">
+                        <i class="fa-solid fa-plus"></i> Action Item
+                    </button>
+                    <button class="btn-quick" (click)="NavigateToTab('Documents')">
+                        <i class="fa-solid fa-plus"></i> Document
+                    </button>
                 </div>
             </div>
         </div>
@@ -18,11 +32,11 @@
         <div class="stats-row">
             <div class="stat-card stat-indigo">
                 <div class="stat-number">{{ CommitteeCount }}</div>
-                <div class="stat-label">Committees</div>
+                <div class="stat-label">Active Committees</div>
             </div>
             <div class="stat-card stat-emerald">
                 <div class="stat-number">{{ ActiveMeetingCount }}</div>
-                <div class="stat-label">Upcoming</div>
+                <div class="stat-label">Upcoming Meetings</div>
             </div>
             <div class="stat-card stat-amber">
                 <div class="stat-number">{{ OpenActionItemCount }}</div>
@@ -61,48 +75,43 @@
                                         {{ meeting['Committee'] }}
                                         <span class="meta-sep">&middot;</span>
                                         {{ $any(meeting['StartDateTime']) | date:'h:mm a' }}
-                                        <span class="meta-sep">&middot;</span>
-                                        @if (meeting['LocationType'] === 'Virtual') {
-                                            <i class="fa-solid fa-video"></i>
-                                        } @else if (meeting['LocationType'] === 'InPerson') {
-                                            <i class="fa-solid fa-location-dot"></i>
-                                        } @else {
-                                            <i class="fa-solid fa-arrows-split-up-and-left"></i>
-                                        }
-                                        {{ meeting['LocationType'] }}
                                     </div>
                                 </div>
-                                @if (meeting['VideoJoinURL']) {
-                                    <a class="join-btn" [href]="meeting['VideoJoinURL']" target="_blank" rel="noopener" (click)="$event.stopPropagation()">
-                                        Join
-                                    </a>
-                                }
+                                <span [class]="'tag tag-' + ($any(meeting['Status']) || '').toLowerCase()">
+                                    {{ meeting['Status'] }}
+                                </span>
                             </div>
                         }
                     </div>
                 }
             </div>
 
-            <!-- Action Items -->
+            <!-- Overdue Action Items -->
             <div class="panel">
                 <div class="panel-head">
-                    <h3>Action Items</h3>
-                    <span class="panel-count">{{ MyActionItems.length }}</span>
+                    <h3>Overdue Action Items</h3>
+                    @if (OverdueItems.length > 0) {
+                        <span class="panel-count overdue-count">{{ OverdueItems.length }}</span>
+                    }
                 </div>
-                @if (MyActionItems.length === 0) {
+                @if (OverdueItems.length === 0) {
                     <div class="panel-empty">
                         <i class="fa-regular fa-circle-check"></i>
-                        <span>All caught up!</span>
+                        <span>No overdue items</span>
                     </div>
                 } @else {
                     <div class="panel-body">
-                        @for (item of MyActionItems; track item['ID']) {
-                            <div class="row-item" [class.row-overdue]="item['DueDate'] != null && item['DueDate'] < todayString">
+                        @for (item of OverdueItems; track item['ID']) {
+                            <div class="row-item row-overdue">
                                 <div [class]="'priority-dot dot-' + ($any(item['Priority']) || 'medium').toLowerCase()"></div>
                                 <div class="row-content">
                                     <div class="row-title">{{ item['Title'] }}</div>
                                     <div class="row-meta">
                                         {{ item['Committee'] }}
+                                        @if (item['AssignedToPerson']) {
+                                            <span class="meta-sep">&middot;</span>
+                                            {{ item['AssignedToPerson'] }}
+                                        }
                                         @if (item['DueDate']) {
                                             <span class="meta-sep">&middot;</span>
                                             Due {{ $any(item['DueDate']) | date:'MMM d' }}
@@ -137,31 +146,6 @@
                                 <div class="row-meta">{{ meeting['Committee'] }}</div>
                             </div>
                             <span class="tag tag-completed">Completed</span>
-                        </div>
-                    }
-                </div>
-            </div>
-        }
-
-        <!-- Recent Documents -->
-        @if (RecentDocuments.length > 0) {
-            <div class="panel panel-full">
-                <div class="panel-head">
-                    <h3>Recent Documents</h3>
-                </div>
-                <div class="panel-body">
-                    @for (doc of RecentDocuments; track doc['ID']) {
-                        <div class="row-item">
-                            <div class="doc-icon">
-                                <i [class]="GetDocIcon($any(doc['Category']))"></i>
-                            </div>
-                            <div class="row-content">
-                                <div class="row-title">{{ doc['Name'] }}</div>
-                                <div class="row-meta">{{ doc['Provider'] }}</div>
-                            </div>
-                            @if (doc['Category']) {
-                                <span class="tag tag-neutral">{{ doc['Category'] }}</span>
-                            }
                         </div>
                     }
                 </div>

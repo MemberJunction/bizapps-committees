@@ -1,0 +1,6 @@
+/* Management Dashboard — uses MJ design tokens */
+
+.overdue-count {
+    background: var(--mj-status-error-bg);
+    color: var(--mj-status-error-text);
+}

@@ -177,7 +177,11 @@ export class MeetingDetailViewComponent implements OnInit {
         const md = new Metadata();
         const user = md.CurrentUser as UserInfo;
         if (user) {
-            this.IsOfficer = await CommitteePermissionHelper.IsOfficerInAny();
+            const [isOfficer, isStaff] = await Promise.all([
+                CommitteePermissionHelper.IsOfficerInAny(),
+                CommitteePermissionHelper.IsStaffUser()
+            ]);
+            this.IsOfficer = isOfficer || isStaff;
         }
     }
 

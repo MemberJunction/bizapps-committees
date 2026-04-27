@@ -16,7 +16,7 @@ export class MembershipPanelComponent {
     Terms: { ID: string; Name: string; Status: string }[] = [];
     SelectedTermID: string | null = null;
     IsLoading = true;
-    Permissions: CommitteePermissions = { IsMember: false, IsOfficer: false, CanManageMembers: false, CanManageMeetings: false, CanEditCommittee: false, CanView: false };
+    Permissions: CommitteePermissions = { IsMember: false, IsOfficer: false, IsStaff: false, CanManageMembers: false, CanManageMeetings: false, CanEditCommittee: false, CanView: false };
 
     ShowEditDialog = false;
     EditingMembershipID: string | null = null;
@@ -27,6 +27,23 @@ export class MembershipPanelComponent {
     ShowPersonPanel = false;
     ViewingPersonID: string | null = null;
     CurrentUserPersonID: string | null = null;
+
+    /** When true, hides all edit/create/delete actions regardless of permissions. */
+    @Input() ReadOnly = false;
+
+    /** Effective permissions — respects ReadOnly override. */
+    get EffectivePermissions(): CommitteePermissions {
+        if (this.ReadOnly) {
+            return {
+                ...this.Permissions,
+                CanManageMembers: false,
+                CanManageMeetings: false,
+                CanEditCommittee: false,
+                IsOfficer: false,
+            };
+        }
+        return this.Permissions;
+    }
 
     private cdr = inject(ChangeDetectorRef);
     private RoleSequenceMap = new Map<string, number>();
@@ -170,7 +187,7 @@ export class MembershipPanelComponent {
 
     private async LoadUserPermissions(): Promise<void> {
         if (!this.CommitteeID) {
-            this.Permissions = { IsMember: false, IsOfficer: false, CanManageMembers: false, CanManageMeetings: false, CanEditCommittee: false, CanView: false };
+            this.Permissions = { IsMember: false, IsOfficer: false, IsStaff: false, CanManageMembers: false, CanManageMeetings: false, CanEditCommittee: false, CanView: false };
             return;
         }
         this.Permissions = await CommitteePermissionHelper.GetPermissionsForCommittee(this.CommitteeID);

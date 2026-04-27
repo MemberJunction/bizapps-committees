@@ -257,10 +257,10 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
                 window.open(url, '_blank', 'noopener');
             }
 
-            // Load permissions
+            // Load permissions — staff gets officer-level controls
             const committeeID = this.Meeting['CommitteeID'] as string;
             const perms = await CommitteePermissionHelper.GetPermissionsForCommittee(committeeID);
-            this.IsOfficer = perms.IsOfficer;
+            this.IsOfficer = perms.IsOfficer || perms.IsStaff;
 
             // Resolve current user's membership for voting
             await this.ResolveCurrentMembership(committeeID);

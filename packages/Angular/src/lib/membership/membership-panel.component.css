@@ -1,11 +1,12 @@
 /* ══════════════════════════════════════════════════════════
    Membership Panel — Premium Light
    Nested inside membership-list, no outer padding needed
+   Uses MJ design tokens (--mj-*) from @memberjunction/ng-shared-generic
    ══════════════════════════════════════════════════════════ */
 
 :host {
     display: block;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--mj-font-family);
     -webkit-font-smoothing: antialiased;
 }
 
@@ -24,7 +25,7 @@
 .btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--mj-space-1-5);
     font-family: inherit;
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -36,15 +37,15 @@
     padding: 9px 18px;
     border: none;
     border-radius: 10px;
-    background: #6366f1;
-    font-size: 14px;
-    font-weight: 600;
-    color: #fff;
+    background: var(--mj-color-indigo-500);
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-color-neutral-0);
     box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: #4f46e5;
+    background: var(--mj-color-indigo-600);
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
     transform: translateY(-1px);
 }
@@ -53,15 +54,15 @@
 .success-banner {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: #ecfdf5;
-    border: 1px solid #a7f3d0;
+    gap: var(--mj-space-3);
+    padding: var(--mj-space-3) var(--mj-space-4);
+    background: var(--mj-color-success-50);
+    border: 1px solid var(--mj-color-success-200);
     border-radius: 10px;
     color: #065f46;
-    font-size: 14px;
-    font-weight: 600;
-    margin-bottom: 20px;
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    margin-bottom: var(--mj-space-5);
     animation: fadeSlideIn 0.2s ease;
 }
 
@@ -74,19 +75,20 @@
 .filter-bar {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 24px;
+    gap: var(--mj-space-2-5);
+    margin-bottom: var(--mj-space-5);
     flex-wrap: wrap;
+    padding-right: var(--mj-space-1);
 }
 
 .filter-select {
     padding: 9px 36px 9px 14px;
     border: none;
     border-radius: 10px;
-    background: #fff;
-    font-size: 14px;
-    font-weight: 600;
-    color: #0f172a;
+    background: var(--mj-color-neutral-0);
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-color-neutral-900);
     cursor: pointer;
     outline: none;
     appearance: none;
@@ -99,17 +101,17 @@
 }
 
 .filter-select:focus {
-    box-shadow: 0 0 0 2px #6366f1, 0 4px 12px rgba(99, 102, 241, 0.12);
+    box-shadow: 0 0 0 2px var(--mj-color-indigo-500), 0 4px 12px rgba(99, 102, 241, 0.12);
 }
 
 .btn-term-action {
-    padding: 7px 12px;
+    padding: 7px var(--mj-space-3);
     border: none;
-    border-radius: 8px;
-    background: #f1f5f9;
-    font-size: 12px;
-    font-weight: 600;
-    color: #64748b;
+    border-radius: var(--mj-radius-md);
+    background: var(--mj-color-neutral-100);
+    font-size: var(--mj-text-xs);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-color-neutral-500);
     cursor: pointer;
     transition: all 0.15s ease;
     display: inline-flex;
@@ -119,16 +121,16 @@
 }
 
 .btn-term-action:hover {
-    background: #e2e8f0;
-    color: #0f172a;
+    background: var(--mj-color-neutral-200);
+    color: var(--mj-color-neutral-900);
 }
 
-.empty-action { margin-top: 20px; }
+.empty-action { margin-top: var(--mj-space-5); }
 
 .member-count {
     font-size: 13px;
-    font-weight: 500;
-    color: #94a3b8;
+    font-weight: var(--mj-font-medium);
+    color: var(--mj-color-neutral-400);
     margin-left: auto;
 }
 
@@ -136,13 +138,13 @@
 .member-grid {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: var(--mj-space-2);
 }
 
 .member-card {
-    background: #fff;
+    background: var(--mj-color-neutral-0);
     border-radius: 14px;
-    padding: 16px 20px;
+    padding: var(--mj-space-4) var(--mj-space-5);
     display: flex;
     align-items: center;
     gap: 14px;
@@ -165,9 +167,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #eef2ff;
+    background: var(--mj-color-indigo-50);
     border-radius: 10px;
-    color: #6366f1;
+    color: var(--mj-color-indigo-500);
     font-size: 15px;
 }
 
@@ -175,9 +177,9 @@
 .member-details { flex: 1; min-width: 0; }
 
 .member-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: #0f172a;
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-color-neutral-900);
     margin: 0 0 3px 0;
     white-space: nowrap;
     overflow: hidden;
@@ -187,40 +189,40 @@
 .member-meta {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--mj-space-2);
     flex-wrap: wrap;
 }
 
 .role-badge {
     font-size: 10px;
-    font-weight: 700;
+    font-weight: var(--mj-font-bold);
     padding: 2px 7px;
-    border-radius: 4px;
-    background: #eef2ff;
-    color: #6366f1;
+    border-radius: var(--mj-radius-sm);
+    background: var(--mj-color-indigo-50);
+    color: var(--mj-color-indigo-500);
     text-transform: uppercase;
     letter-spacing: 0.4px;
 }
 
 .term-name {
-    font-size: 12px;
-    font-weight: 500;
-    color: #94a3b8;
+    font-size: var(--mj-text-xs);
+    font-weight: var(--mj-font-medium);
+    color: var(--mj-color-neutral-400);
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--mj-space-1);
 }
 
 .term-name i { font-size: 10px; }
 
 .member-dates {
     font-size: 11px;
-    font-weight: 500;
-    color: #cbd5e1;
+    font-weight: var(--mj-font-medium);
+    color: var(--mj-color-neutral-300);
     margin-top: 2px;
     display: flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--mj-space-1);
 }
 
 .member-dates i { font-size: 10px; }
@@ -229,23 +231,23 @@
 .contact-chips {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--mj-space-2-5);
     flex-wrap: wrap;
-    margin-top: 4px;
+    margin-top: var(--mj-space-1);
 }
 
 .contact-chip {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    font-size: 12px;
-    font-weight: 500;
-    color: #475569;
+    font-size: var(--mj-text-xs);
+    font-weight: var(--mj-font-medium);
+    color: var(--mj-color-neutral-600);
 }
 
 .contact-chip i {
     font-size: 10px;
-    color: #94a3b8;
+    color: var(--mj-color-neutral-400);
 }
 
 /* ─── Member Actions ─── */
@@ -253,20 +255,20 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
-    gap: 8px;
+    gap: var(--mj-space-2);
     flex-shrink: 0;
 }
 
 .btn-icon-sm {
     height: 28px;
-    padding: 0 10px;
+    padding: 0 var(--mj-space-2-5);
     gap: 5px;
     border: none;
     border-radius: 7px;
-    background: #f1f5f9;
-    color: #64748b;
-    font-size: 12px;
-    font-weight: 600;
+    background: var(--mj-color-neutral-100);
+    color: var(--mj-color-neutral-500);
+    font-size: var(--mj-text-xs);
+    font-weight: var(--mj-font-semibold);
     font-family: inherit;
     cursor: pointer;
     display: flex;
@@ -276,47 +278,47 @@
 }
 
 .btn-icon-sm:hover {
-    background: #e2e8f0;
-    color: #0f172a;
+    background: var(--mj-color-neutral-200);
+    color: var(--mj-color-neutral-900);
 }
 
 /* ─── Status Badges ─── */
 .status-badge {
     font-size: 11px;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 6px;
+    font-weight: var(--mj-font-semibold);
+    padding: 3px var(--mj-space-2-5);
+    border-radius: var(--mj-radius-sm);
     flex-shrink: 0;
 }
 
-.status-active { background: #d1fae5; color: #065f46; }
-.status-pending { background: #e0e7ff; color: #3730a3; }
-.status-suspended { background: #fef3c7; color: #92400e; }
-.status-ended { background: #f1f5f9; color: #64748b; }
+.status-active { background: var(--mj-color-success-100); color: #065f46; }
+.status-pending { background: var(--mj-color-indigo-100); color: #3730a3; }
+.status-suspended { background: var(--mj-color-warning-100); color: var(--mj-color-warning-800); }
+.status-ended { background: var(--mj-color-neutral-100); color: var(--mj-color-neutral-500); }
 
 /* ─── Empty State ─── */
 .empty-state {
     text-align: center;
-    padding: 48px 24px;
+    padding: var(--mj-space-12) var(--mj-space-6);
 }
 
 .empty-state i {
     font-size: 36px;
-    color: #e2e8f0;
+    color: var(--mj-color-neutral-200);
     display: block;
-    margin-bottom: 12px;
+    margin-bottom: var(--mj-space-3);
 }
 
 .empty-state p {
     font-size: 15px;
-    font-weight: 500;
-    color: #94a3b8;
+    font-weight: var(--mj-font-medium);
+    color: var(--mj-color-neutral-400);
     margin: 0;
 }
 
 .empty-hint {
-    font-size: 14px !important;
-    margin-top: 8px !important;
+    font-size: var(--mj-text-sm) !important;
+    margin-top: var(--mj-space-2) !important;
     opacity: 0.7;
 }
 

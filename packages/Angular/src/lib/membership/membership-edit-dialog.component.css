@@ -1,20 +1,21 @@
 /* Membership Edit Dialog — component-specific overrides only.
-   Base styles from ../shared/slide-panel.css */
+   Base styles from ../shared/slide-panel.css
+   Uses MJ design tokens (--mj-*) from @memberjunction/ng-shared-generic */
 
 .person-info-section {
-    margin-top: 24px;
-    border-top: 1px solid var(--color-border, #e5e7eb);
-    padding-top: 20px;
+    margin-top: var(--mj-space-6);
+    border-top: 1px solid var(--mj-color-neutral-200);
+    padding-top: var(--mj-space-5);
 }
 
 .person-info-heading {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--mj-font-semibold);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--color-text-secondary, #6b7280);
-    margin: 0 0 12px 0;
+    color: var(--mj-color-neutral-500);
+    margin: 0 0 var(--mj-space-3) 0;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--mj-space-1-5);
 }

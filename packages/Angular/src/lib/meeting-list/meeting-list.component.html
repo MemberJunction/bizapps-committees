@@ -17,7 +17,7 @@
         <!-- Page Header -->
         <div class="page-header">
             <h1 class="page-title">Meetings</h1>
-            @if (IsAnyOfficer) {
+            @if (IsStaff) {
                 <button class="btn btn-primary" (click)="OnCreateMeeting()">
                     <i class="fa-solid fa-plus"></i> Schedule Meeting
                 </button>

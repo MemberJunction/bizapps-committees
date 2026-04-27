@@ -1,4 +1,5 @@
-/* Motion Edit Dialog — Premium Light */
+/* Motion Edit Dialog — Premium Light
+   Uses MJ design tokens (--mj-*) from @memberjunction/ng-shared-generic */
 
 :host {
     z-index: 1001;
@@ -6,17 +7,17 @@
 
 /* ─── Voting Section ─── */
 .voting-section {
-    margin-top: 4px;
-    padding-top: 20px;
-    border-top: 1px solid #f1f5f9;
-    margin-bottom: 20px;
+    margin-top: var(--mj-space-1);
+    padding-top: var(--mj-space-5);
+    border-top: 1px solid var(--mj-color-neutral-100);
+    margin-bottom: var(--mj-space-5);
 }
 
 .voting-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 12px;
+    margin-bottom: var(--mj-space-3);
 }
 
 .voting-header .form-label {
@@ -24,35 +25,35 @@
 }
 
 .vote-tally {
-    font-size: 12px;
-    font-weight: 600;
-    color: #64748b;
-    background: #f1f5f9;
-    padding: 4px 12px;
-    border-radius: 20px;
+    font-size: var(--mj-text-xs);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-color-neutral-500);
+    background: var(--mj-color-neutral-100);
+    padding: var(--mj-space-1) var(--mj-space-3);
+    border-radius: var(--mj-radius-lg);
 }
 
 /* ─── Voter Grid ─── */
 .voter-grid {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--mj-space-1-5);
 }
 
 .voter-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 10px 14px;
-    background: #fff;
+    gap: var(--mj-space-3);
+    padding: var(--mj-space-2-5) 14px;
+    background: var(--mj-color-neutral-0);
     border-radius: 10px;
-    border: 1px solid #f1f5f9;
+    border: 1px solid var(--mj-color-neutral-100);
     transition: border-color 0.15s ease;
 }
 
 .voter-row:hover {
-    border-color: #e2e8f0;
+    border-color: var(--mj-color-neutral-200);
 }
 
 .voter-row.non-voting {
@@ -62,15 +63,15 @@
 .voter-info {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--mj-space-2);
     min-width: 0;
     flex: 1;
 }
 
 .voter-name {
     font-size: 13px;
-    font-weight: 600;
-    color: #0f172a;
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-color-neutral-900);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -78,98 +79,98 @@
 
 .voter-role {
     font-size: 11px;
-    font-weight: 500;
-    color: #94a3b8;
+    font-weight: var(--mj-font-medium);
+    color: var(--mj-color-neutral-400);
     white-space: nowrap;
 }
 
 .non-voting-tag {
     font-size: 10px;
-    font-weight: 600;
-    color: #94a3b8;
-    background: #f1f5f9;
-    padding: 1px 6px;
-    border-radius: 4px;
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-color-neutral-400);
+    background: var(--mj-color-neutral-100);
+    padding: 1px var(--mj-space-1-5);
+    border-radius: var(--mj-radius-sm);
     white-space: nowrap;
 }
 
 /* ─── Vote Buttons ─── */
 .vote-buttons {
     display: flex;
-    gap: 4px;
+    gap: var(--mj-space-1);
     flex-shrink: 0;
 }
 
 .vote-btn {
-    padding: 4px 10px;
-    border: 1px solid #e5e7eb;
-    border-radius: 6px;
-    background: #fff;
+    padding: var(--mj-space-1) var(--mj-space-2-5);
+    border: 1px solid var(--mj-color-neutral-200);
+    border-radius: var(--mj-radius-sm);
+    background: var(--mj-color-neutral-0);
     font-size: 11px;
-    font-weight: 600;
-    color: #94a3b8;
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-color-neutral-400);
     cursor: pointer;
     transition: all 0.15s ease;
     font-family: inherit;
 }
 
 .vote-btn:hover {
-    border-color: #d1d5db;
-    color: #64748b;
+    border-color: var(--mj-color-neutral-300);
+    color: var(--mj-color-neutral-500);
 }
 
 .vote-btn.active {
     border-color: transparent;
-    color: #fff;
+    color: var(--mj-color-neutral-0);
 }
 
 .vote-btn.vote-yes {
-    background: #10b981;
-    border-color: #10b981;
-    color: #fff;
+    background: var(--mj-color-success-500);
+    border-color: var(--mj-color-success-500);
+    color: var(--mj-color-neutral-0);
 }
 
 .vote-btn.vote-no {
-    background: #ef4444;
-    border-color: #ef4444;
-    color: #fff;
+    background: var(--mj-color-error-500);
+    border-color: var(--mj-color-error-500);
+    color: var(--mj-color-neutral-0);
 }
 
 .vote-btn.vote-abstain {
-    background: #6b7280;
-    border-color: #6b7280;
-    color: #fff;
+    background: var(--mj-color-neutral-500);
+    border-color: var(--mj-color-neutral-500);
+    color: var(--mj-color-neutral-0);
 }
 
 .vote-btn.vote-absent {
-    background: #e5e7eb;
-    border-color: #e5e7eb;
-    color: #6b7280;
+    background: var(--mj-color-neutral-200);
+    border-color: var(--mj-color-neutral-200);
+    color: var(--mj-color-neutral-500);
 }
 
 /* ─── Delete Confirmation ─── */
 .delete-confirm-banner {
-    padding: 14px 16px;
-    background: #fef2f2;
-    border: 1px solid #fecaca;
+    padding: 14px var(--mj-space-4);
+    background: var(--mj-color-error-50);
+    border: 1px solid var(--mj-color-error-200);
     border-radius: 10px;
-    margin-bottom: 20px;
+    margin-bottom: var(--mj-space-5);
     animation: fadeIn 0.15s ease;
 }
 
 .delete-confirm-text {
-    font-size: 14px;
-    font-weight: 600;
-    color: #991b1b;
-    margin-bottom: 12px;
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-color-error-700);
+    margin-bottom: var(--mj-space-3);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--mj-space-2);
 }
 
 .delete-confirm-actions {
     display: flex;
-    gap: 8px;
+    gap: var(--mj-space-2);
 }
 
 @keyframes fadeIn {

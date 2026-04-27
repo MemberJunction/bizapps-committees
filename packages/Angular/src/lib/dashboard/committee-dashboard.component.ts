@@ -4,7 +4,6 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { Metadata, RunView } from '@memberjunction/core';
-import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 @RegisterClass(BaseResourceComponent, 'CommitteeDashboardComponent')
 @Component({
@@ -27,7 +26,6 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
     RecentDocuments: Record<string, unknown>[] = [];
 
     IsLoading = true;
-    IsAnyOfficer = false;
     todayString = new Date().toISOString().split('T')[0];
 
     private cdr = inject(ChangeDetectorRef);
@@ -35,10 +33,7 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
 
     async ngOnInit(): Promise<void> {
         this.NotifyLoadStarted();
-        await Promise.all([
-            this.LoadDashboardData(),
-            this.LoadPermissions()
-        ]);
+        await this.LoadDashboardData();
         this.IsLoading = false;
         this.NotifyLoadComplete();
         this.cdr.markForCheck();
@@ -73,10 +68,6 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
     FormatStatus(status: string): string {
         if (!status) return '';
         return status.replace(/([a-z])([A-Z])/g, '$1 $2');
-    }
-
-    private async LoadPermissions(): Promise<void> {
-        this.IsAnyOfficer = await CommitteePermissionHelper.IsOfficerInAny();
     }
 
     private async LoadDashboardData(): Promise<void> {

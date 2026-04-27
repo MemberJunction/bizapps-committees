@@ -11,9 +11,15 @@
                 @if (SingleCommitteeName) {
                     <p class="page-subtitle">{{ SingleCommitteeName }}</p>
                 } @else if (Committees.length === 0) {
-                    <p class="page-subtitle">You are not a member of any committees</p>
+                    <p class="page-subtitle">
+                        @if (IsStaff) { No active committees available }
+                        @else { You are not a member of any committees }
+                    </p>
                 } @else {
-                    <p class="page-subtitle">Track tasks across your committees</p>
+                    <p class="page-subtitle">
+                        @if (IsStaff) { Manage tasks across all committees }
+                        @else { Track tasks across your committees }
+                    </p>
                 }
             </div>
         </div>
@@ -32,7 +38,7 @@
                     </select>
                 }
 
-                @if (IsOfficerInSelected) {
+                @if (ShowTabBar) {
                     <div class="tab-bar">
                         <button class="tab-pill" [class.active]="ActiveTab === 'mine'"
                                 (click)="OnTabChanged('mine')">
@@ -54,7 +60,7 @@
                             [CategoryID]="SelectedCategoryID"
                             [ExtraFilter]="MyTasksFilter"
                             [ShowCreateButton]="false"
-                            [ShowDelete]="IsOfficerInSelected"
+                            [ShowDelete]="IsStaff"
                             [AssigneeScope]="AssigneeScope"
                             [PersonID]="CurrentPersonID">
                         </bizapps-task-panel>
@@ -66,22 +72,23 @@
                     }
                 }
 
-                <!-- All Tasks (officers only) -->
+                <!-- All Tasks (officers only) — full dashboard with view toggle -->
                 @if (ActiveTab === 'all') {
-                    <bizapps-task-panel
+                    <bizapps-task-dashboard
                         [CategoryID]="SelectedCategoryID"
-                        [ShowCreateButton]="IsOfficerInSelected"
-                        [ShowQuickAdd]="IsOfficerInSelected"
-                        [ShowDelete]="IsOfficerInSelected"
-                        [AssigneeScope]="AssigneeScope"
-                        [PersonID]="CurrentPersonID">
-                    </bizapps-task-panel>
+                        [ExtraFilter]="null"
+                        [PersonID]="CurrentPersonID"
+                        [EnabledViews]="['list', 'kanban', 'gantt']">
+                    </bizapps-task-dashboard>
                 }
             }
         } @else {
             <div class="empty-state">
                 <i class="fa-solid fa-users-slash"></i>
-                <p>You are not a member of any committees with task categories.</p>
+                <p>
+                    @if (IsStaff) { No active committees with task categories. }
+                    @else { You are not a member of any committees with task categories. }
+                </p>
             </div>
         }
     </div>

@@ -16,12 +16,12 @@
             <div class="empty-state">
                 <i class="fa-solid fa-calendar-xmark"></i>
                 <p>No terms defined for this committee.</p>
-                @if (Permissions.IsOfficer) {
+                @if (EffectivePermissions.IsStaff) {
                     <button class="btn btn-primary empty-action" (click)="OnCreateTerm()">
                         <i class="fa-solid fa-plus"></i> Create First Term
                     </button>
                 } @else {
-                    <p class="empty-hint">An officer needs to create a term first.</p>
+                    <p class="empty-hint">A staff member needs to create a term first.</p>
                 }
             </div>
         } @else {
@@ -37,7 +37,7 @@
                         </option>
                     }
                 </select>
-                @if (Permissions.IsOfficer) {
+                @if (EffectivePermissions.IsStaff) {
                     <button class="btn-term-action" (click)="OnCreateTerm()" title="New Term">
                         <i class="fa-solid fa-plus"></i> New Term
                     </button>
@@ -50,7 +50,7 @@
                 <span class="member-count">
                     {{ ActiveCount }} active of {{ FilteredMemberships.length }} total
                 </span>
-                @if (Permissions.CanManageMembers) {
+                @if (EffectivePermissions.CanManageMembers) {
                     <button class="btn btn-primary" (click)="OnCreateMembership()" [disabled]="Terms.length === 0">
                         <i class="fa-solid fa-user-plus"></i> Add Member
                     </button>
@@ -113,7 +113,7 @@
                                 <span [class]="GetStatusClass($any(member['Status']))">
                                     {{ member['Status'] }}
                                 </span>
-                                @if (Permissions.CanManageMembers) {
+                                @if (EffectivePermissions.CanManageMembers) {
                                     <button class="btn-icon-sm" title="Edit membership"
                                         (click)="OnEditMembership($any(member['ID']), $event)">
                                         <i class="fa-solid fa-pen"></i> Edit Membership
@@ -150,7 +150,7 @@
 @if (ShowPersonPanel && ViewingPersonID) {
     <person-detail-panel
         [PersonID]="ViewingPersonID"
-        [CanEdit]="Permissions.IsOfficer || ViewingPersonID === CurrentUserPersonID"
+        [CanEdit]="EffectivePermissions.IsStaff || ViewingPersonID === CurrentUserPersonID"
         (PanelClosed)="OnPersonPanelClosed()">
     </person-detail-panel>
 }

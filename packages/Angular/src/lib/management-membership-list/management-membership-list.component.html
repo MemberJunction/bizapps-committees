@@ -10,24 +10,20 @@
             </div>
             <div class="empty-state">
                 <i class="fa-solid fa-users-slash"></i>
-                <p>You are not a member of any committees.</p>
+                <p>No active committees found.</p>
             </div>
         } @else {
-            <!-- Page Header: Title + Committee Selector left, nothing right (Add Member is in panel) -->
+            <!-- Page Header: Title + Committee Selector -->
             <div class="page-header">
                 <div class="header-left">
                     <h1 class="page-title">Members</h1>
-                    @if (Committees.length > 1) {
-                        <select class="committee-select"
-                            [ngModel]="SelectedCommitteeID"
-                            (ngModelChange)="OnCommitteeChanged($event)">
-                            @for (committee of Committees; track committee.ID) {
-                                <option [ngValue]="committee.ID">{{ committee.Name }}</option>
-                            }
-                        </select>
-                    } @else if (Committees.length === 1) {
-                        <span class="single-committee-name">{{ Committees[0].Name }}</span>
-                    }
+                    <select class="committee-select"
+                        [ngModel]="SelectedCommitteeID"
+                        (ngModelChange)="OnCommitteeChanged($event)">
+                        @for (committee of Committees; track committee.ID) {
+                            <option [ngValue]="committee.ID">{{ committee.Name }}</option>
+                        }
+                    </select>
                 </div>
             </div>
 

@@ -6,6 +6,7 @@ import { Metadata, RunView } from '@memberjunction/core';
 export interface CommitteePermissions {
     IsMember: boolean;
     IsOfficer: boolean;
+    IsStaff: boolean;
     CanManageMembers: boolean;
     CanManageMeetings: boolean;
     CanEditCommittee: boolean;
@@ -15,6 +16,7 @@ export interface CommitteePermissions {
 const NO_PERMISSIONS: CommitteePermissions = {
     IsMember: false,
     IsOfficer: false,
+    IsStaff: false,
     CanManageMembers: false,
     CanManageMeetings: false,
     CanEditCommittee: false,
@@ -31,6 +33,7 @@ export class CommitteePermissionHelper {
     private static personID: string | null | undefined = undefined;
     private static membershipCache: MembershipRoleRow[] | null = null;
     private static lastUserID: string | null = null;
+    private static staffCache: boolean | undefined = undefined;
 
     /**
      * Returns the current user's PersonID, resolved via LinkedUserID.
@@ -138,9 +141,56 @@ export class CommitteePermissionHelper {
     }
 
     /**
+     * Returns whether the current user is a staff member (has access to the
+     * "Committee Management" application). Cached after first call.
+     */
+    static async IsStaffUser(): Promise<boolean> {
+        if (this.staffCache !== undefined) return this.staffCache;
+
+        const md = new Metadata();
+        const userID = md.CurrentUser?.ID ?? null;
+        if (!userID) {
+            this.staffCache = false;
+            return false;
+        }
+
+        const rv = new RunView();
+        const result = await rv.RunView<{ ID: string }>({
+            EntityName: 'MJ: User Applications',
+            ExtraFilter: `UserID = '${userID}' AND Application = 'Committee Management'`,
+            Fields: ['ID'],
+            MaxRows: 1,
+            ResultType: 'simple'
+        });
+
+        this.staffCache = result.Success && result.Results != null && result.Results.length > 0;
+        return this.staffCache;
+    }
+
+    /**
      * Returns permissions for the current user in a specific committee.
+     *
+     * Permission model:
+     * - Staff (Committee Management app access): full management — Can* permissions for everything
+     * - Officer (Role.IsOfficer in active membership): IsOfficer flag only, used to gate
+     *   in-meeting authority (chair live meeting, mark complete, generate minutes).
+     *   Officers do NOT get Can* management permissions — those are staff-only.
+     * - Member: IsMember + CanView only.
      */
     static async GetPermissionsForCommittee(committeeID: string): Promise<CommitteePermissions> {
+        const isStaff = await this.IsStaffUser();
+        if (isStaff) {
+            return {
+                IsMember: true,
+                IsOfficer: true,
+                IsStaff: true,
+                CanManageMembers: true,
+                CanManageMeetings: true,
+                CanEditCommittee: true,
+                CanView: true,
+            };
+        }
+
         const memberships = await this.GetCurrentUserMemberships();
         const forCommittee = memberships.filter(m => m.CommitteeID === committeeID);
 
@@ -150,9 +200,13 @@ export class CommitteePermissionHelper {
         return {
             IsMember: true,
             IsOfficer: isOfficer,
-            CanManageMembers: isOfficer,
-            CanManageMeetings: isOfficer,
-            CanEditCommittee: isOfficer,
+            IsStaff: false,
+            // Management permissions are staff-only. Officers retain IsOfficer for
+            // in-meeting authority (live chairing, mark complete, generate minutes)
+            // but cannot manage committee structure (members, terms, meetings, docs).
+            CanManageMembers: false,
+            CanManageMeetings: false,
+            CanEditCommittee: false,
             CanView: true,
         };
     }
@@ -195,6 +249,7 @@ export class CommitteePermissionHelper {
     static ClearCache(): void {
         this.personID = undefined;
         this.membershipCache = null;
+        this.staffCache = undefined;
     }
 }
 

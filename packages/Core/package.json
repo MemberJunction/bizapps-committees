@@ -5,6 +5,16 @@
   "description": "Core business logic services for the Committees OpenApp",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./lookup": {
+      "types": "./dist/engines/CommitteesLookupEngine.d.ts",
+      "import": "./dist/engines/CommitteesLookupEngine.js"
+    }
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -22,10 +32,10 @@
     "typescript": "^5.9.3"
   },
   "dependencies": {
-    "@memberjunction/ai": "5.10.1",
-    "@memberjunction/aiengine": "5.10.1",
-    "@memberjunction/core": "5.10.1",
-    "@memberjunction/global": "5.10.1",
+    "@memberjunction/ai": "5.30.1",
+    "@memberjunction/aiengine": "5.30.1",
+    "@memberjunction/core": "5.30.1",
+    "@memberjunction/global": "5.30.1",
     "@mj-biz-apps/committees-entities": "1.0.0"
   },
   "repository": {

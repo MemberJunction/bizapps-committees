@@ -1,5 +1,12 @@
 /* Management Committee List — uses MJ design tokens */
 
+/* Page header — actions group keeps Bulk Import next to New Committee */
+.page-header-actions {
+    display: flex;
+    gap: var(--mj-space-2);
+    flex-wrap: wrap;
+}
+
 .committee-card {
     position: relative;
 }

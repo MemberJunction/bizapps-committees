@@ -24,6 +24,9 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
     ShowEditDialog = false;
     EditingCommitteeID: string | null = null;
 
+    /** Bulk-import panel visibility */
+    ShowBulkImport = false;
+
     /** Expanded committee for inline membership panel */
     ExpandedCommitteeID: string | null = null;
 
@@ -80,6 +83,19 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
         this.cdr.markForCheck();
     }
 
+    OnOpenBulkImport(): void {
+        this.ShowBulkImport = true;
+        this.cdr.markForCheck();
+    }
+
+    async OnBulkImportClosed(event: { Imported: boolean }): Promise<void> {
+        this.ShowBulkImport = false;
+        if (event.Imported) {
+            await this.LoadCommittees();
+        }
+        this.cdr.markForCheck();
+    }
+
     private ApplyFilters(): void {
         let result = this.Committees;
         if (this.StatusFilter !== 'All') {
@@ -100,19 +116,19 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
         const rv = new RunView();
         const [committeesResult, termsResult, membershipsResult] = await rv.RunViews([
             {
-                EntityName: 'Committees',
+                EntityName: 'Committees: Committees',
                 ExtraFilter: '',
                 Fields: ['ID', 'Name', 'Description', 'Type', 'Status', 'ParentCommittee', 'Organization'],
                 OrderBy: 'Name ASC',
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Terms',
+                EntityName: 'Committees: Terms',
                 Fields: ['ID', 'CommitteeID'],
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Memberships',
+                EntityName: 'Committees: Memberships',
                 ExtraFilter: "Status = 'Active'",
                 Fields: ['TermID'],
                 ResultType: 'simple'

@@ -5,4 +5,6 @@ export * from './services/ActionItemService.js';
 export * from './services/CommitteePermissionService.js';
 export * from './services/MinutesService.js';
 export * from './services/VideoProviderService.js';
+export * from './services/BulkImportService.js';
+export * from './engines/CommitteesLookupEngine.js';
 export * from './drivers/VideoProviderBase.js';

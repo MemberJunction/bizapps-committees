@@ -10,9 +10,14 @@
                 <h1 class="page-title">Committees</h1>
                 <p class="page-subtitle">Manage all committees, terms, and memberships</p>
             </div>
-            <button class="btn btn-primary" (click)="OnCreateCommittee()">
-                <i class="fa-solid fa-plus"></i> New Committee
-            </button>
+            <div class="page-header-actions">
+                <button class="btn btn-secondary" (click)="OnOpenBulkImport()">
+                    <i class="fa-solid fa-file-import"></i> Bulk Import
+                </button>
+                <button class="btn btn-primary" (click)="OnCreateCommittee()">
+                    <i class="fa-solid fa-plus"></i> New Committee
+                </button>
+            </div>
         </div>
 
         <!-- Toolbar -->
@@ -107,4 +112,9 @@
         [CommitteeID]="EditingCommitteeID"
         (DialogClosed)="OnDialogClosed($event)">
     </committee-edit-dialog>
+}
+
+<!-- Bulk Import Slide-In Panel -->
+@if (ShowBulkImport) {
+    <bulk-import-panel (PanelClosed)="OnBulkImportClosed($event)"></bulk-import-panel>
 }

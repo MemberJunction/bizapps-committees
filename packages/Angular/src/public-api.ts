@@ -25,3 +25,4 @@ export * from './lib/meeting-detail/meeting-detail-view.component';
 export * from './lib/management-dashboard/management-dashboard.component';
 export * from './lib/management-committee-list/management-committee-list.component';
 export * from './lib/management-membership-list/management-membership-list.component';
+export * from './lib/bulk-import/bulk-import-panel.component';

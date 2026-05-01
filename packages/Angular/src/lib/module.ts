@@ -37,6 +37,7 @@ import { MeetingDetailViewComponent, LoadMeetingDetailView } from './meeting-det
 import { ManagementDashboardComponent, LoadManagementDashboard } from './management-dashboard/management-dashboard.component';
 import { ManagementCommitteeListComponent, LoadManagementCommitteeList } from './management-committee-list/management-committee-list.component';
 import { ManagementMembershipListComponent, LoadManagementMembershipList } from './management-membership-list/management-membership-list.component';
+import { BulkImportPanelComponent, LoadBulkImportPanelComponent } from './bulk-import/bulk-import-panel.component';
 
 @NgModule({
     declarations: [
@@ -65,6 +66,7 @@ import { ManagementMembershipListComponent, LoadManagementMembershipList } from 
         ManagementDashboardComponent,
         ManagementCommitteeListComponent,
         ManagementMembershipListComponent,
+        BulkImportPanelComponent,
     ],
     imports: [
         CommonModule,
@@ -101,6 +103,7 @@ import { ManagementMembershipListComponent, LoadManagementMembershipList } from 
         ManagementDashboardComponent,
         ManagementCommitteeListComponent,
         ManagementMembershipListComponent,
+        BulkImportPanelComponent,
     ]
 })
 export class CommitteesModule { }
@@ -132,6 +135,7 @@ export function LoadCommitteesModule() {
     LoadManagementDashboard();
     LoadManagementCommitteeList();
     LoadManagementMembershipList();
+    LoadBulkImportPanelComponent();
 }
 
 /** Alias matching the mj-app.json manifest startupExport convention */

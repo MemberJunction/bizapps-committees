@@ -61,13 +61,13 @@ export class ManagementDashboardComponent extends BaseResourceComponent implemen
 
         const [committees, upcoming, recent, actionItems] = await rv.RunViews([
             {
-                EntityName: 'Committees',
+                EntityName: 'Committees: Committees',
                 ExtraFilter: "Status = 'Active'",
                 Fields: ['ID'],
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Meetings',
+                EntityName: 'Committees: Meetings',
                 ExtraFilter: `StartDateTime >= '${today}' AND Status IN ('Scheduled', 'Draft')`,
                 Fields: ['ID', 'Title', 'StartDateTime', 'Committee', 'Status', 'LocationType', 'VideoJoinURL'],
                 OrderBy: 'StartDateTime ASC',
@@ -75,7 +75,7 @@ export class ManagementDashboardComponent extends BaseResourceComponent implemen
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Meetings',
+                EntityName: 'Committees: Meetings',
                 ExtraFilter: "Status = 'Completed'",
                 Fields: ['ID', 'Title', 'StartDateTime', 'Committee', 'Status'],
                 OrderBy: 'StartDateTime DESC',
@@ -83,7 +83,7 @@ export class ManagementDashboardComponent extends BaseResourceComponent implemen
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Action Items',
+                EntityName: 'Committees: Action Items',
                 ExtraFilter: "Status IN ('Open', 'InProgress')",
                 Fields: ['ID', 'Title', 'DueDate', 'Priority', 'Status', 'Committee', 'AssignedToPerson'],
                 OrderBy: 'DueDate ASC',

@@ -7,7 +7,9 @@
     "schema-info",
     "committee-types",
     "roles",
-    "artifact-types"
+    "artifact-types",
+    "prompts",
+    "agents"
   ],
   "emitSyncNotes": false
 }

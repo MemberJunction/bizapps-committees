@@ -83,7 +83,7 @@ export class MembershipEntityCustom extends mjCommitteesMembershipEntity {
 
         const rv = new RunView();
         const dupeCheck = await rv.RunView<mjCommitteesMembershipEntity>({
-            EntityName: 'Memberships',
+            EntityName: 'Committees: Memberships',
             ExtraFilter: `PersonID='${this.PersonID}' AND TermID='${this.TermID}' AND Status='Active' AND ID<>'${this.ID}'`,
             ResultType: 'simple',
         });

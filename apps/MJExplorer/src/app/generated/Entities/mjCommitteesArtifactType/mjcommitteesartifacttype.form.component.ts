@@ -4,7 +4,7 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseFormComponent } from '@memberjunction/ng-base-forms';
 import {  } from "@memberjunction/ng-entity-viewer"
 
-@RegisterClass(BaseFormComponent, 'Artifact Types') // Tell MemberJunction about this class
+@RegisterClass(BaseFormComponent, 'Committees: Artifact Types') // Tell MemberJunction about this class
 @Component({
     standalone: false,
     selector: 'gen-mjcommitteesartifacttype-form',
@@ -19,7 +19,7 @@ export class mjCommitteesArtifactTypeFormComponent extends BaseFormComponent {
             { sectionKey: 'artifactTypeInfo', sectionName: 'Artifact Type Info', isExpanded: true },
             { sectionKey: 'extensionEntity', sectionName: 'Extension Entity', isExpanded: true },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'artifacts', sectionName: 'Artifacts', isExpanded: false }
+            { sectionKey: 'committeesArtifacts', sectionName: 'Committees: Artifacts', isExpanded: false }
         ]);
     }
 }

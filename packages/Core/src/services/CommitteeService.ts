@@ -73,7 +73,7 @@ export class CommitteeService {
             StartDate: Date;
             EndDate: Date | null;
         }>({
-            EntityName: 'Memberships',
+            EntityName: 'Committees: Memberships',
             ExtraFilter: `PersonID='${personID}'`,
             Fields: ['ID', 'CommitteeID', 'Committee', 'RoleID', 'Role', 'Status', 'StartDate', 'EndDate'],
             OrderBy: 'Status, Committee',
@@ -90,7 +90,7 @@ export class CommitteeService {
     /** Loads the committee entity object by ID. */
     private async loadCommittee(committeeID: string, contextUser: UserInfo): Promise<mjCommitteesCommitteeEntity> {
         const md = new Metadata();
-        const committee = await md.GetEntityObject<mjCommitteesCommitteeEntity>('Committees', contextUser);
+        const committee = await md.GetEntityObject<mjCommitteesCommitteeEntity>('Committees: Committees', contextUser);
         const loaded = await committee.Load(committeeID);
         if (!loaded) {
             throw new Error(`Committee not found: ${committeeID}`);
@@ -111,20 +111,20 @@ export class CommitteeService {
 
         const [membersResult, meetingsResult, actionItemsResult] = await rv.RunViews([
             {
-                EntityName: 'Memberships',
+                EntityName: 'Committees: Memberships',
                 ExtraFilter: `CommitteeID='${committeeID}' AND Status='Active'`,
                 OrderBy: 'Role',
                 ResultType: 'entity_object',
             },
             {
-                EntityName: 'Meetings',
+                EntityName: 'Committees: Meetings',
                 ExtraFilter: `CommitteeID='${committeeID}' AND StartDateTime >= '${now}'`,
                 OrderBy: 'StartDateTime ASC',
                 MaxRows: 10,
                 ResultType: 'entity_object',
             },
             {
-                EntityName: 'Action Items',
+                EntityName: 'Committees: Action Items',
                 ExtraFilter: `CommitteeID='${committeeID}' AND Status IN ('Open', 'InProgress')`,
                 OrderBy: 'DueDate ASC',
                 MaxRows: 20,

@@ -156,7 +156,7 @@ export class MeetingDetailViewComponent implements OnInit {
         this.cdr.markForCheck();
         try {
             const md = new Metadata();
-            const entity = await md.GetEntityObject<mjCommitteesMeetingEntity>('Meetings');
+            const entity = await md.GetEntityObject<mjCommitteesMeetingEntity>('Committees: Meetings');
             await entity.Load(this.Meeting.ID);
             entity.Status = 'Completed';
             const saved = await entity.Save();
@@ -189,27 +189,27 @@ export class MeetingDetailViewComponent implements OnInit {
         const rv = new RunView();
         const [meetingResult, attendanceResult, agendaResult, motionResult, minuteResult] = await rv.RunViews([
             {
-                EntityName: 'Meetings',
+                EntityName: 'Committees: Meetings',
                 ExtraFilter: `ID='${this.MeetingID}'`,
                 Fields: ['ID', 'Title', 'StartDateTime', 'EndDateTime', 'Committee', 'Status',
                          'LocationType', 'Location', 'VideoProvider', 'TranscriptURL'],
                 ResultType: 'simple',
             },
             {
-                EntityName: 'Attendances',
+                EntityName: 'Committees: Attendances',
                 ExtraFilter: `MeetingID='${this.MeetingID}'`,
                 Fields: ['ID', 'Person', 'AttendanceStatus'],
                 ResultType: 'simple',
             },
             {
-                EntityName: 'Agenda Items',
+                EntityName: 'Committees: Agenda Items',
                 ExtraFilter: `MeetingID='${this.MeetingID}'`,
                 OrderBy: 'Sequence ASC',
                 Fields: ['ID', 'Sequence', 'Title', 'ItemType', 'Status', 'Notes', 'DurationMinutes'],
                 ResultType: 'simple',
             },
             {
-                EntityName: 'Motions',
+                EntityName: 'Committees: Motions',
                 ExtraFilter: `MeetingID='${this.MeetingID}'`,
                 OrderBy: 'Sequence ASC',
                 Fields: ['ID', 'Sequence', 'Title', 'Description', 'Result', 'ResultSummary',
@@ -217,7 +217,7 @@ export class MeetingDetailViewComponent implements OnInit {
                 ResultType: 'simple',
             },
             {
-                EntityName: 'Minutes',
+                EntityName: 'Committees: Minutes',
                 ExtraFilter: `MeetingID='${this.MeetingID}'`,
                 Fields: ['ID', 'Content', 'ApprovalStatus'],
                 ResultType: 'simple',
@@ -238,7 +238,7 @@ export class MeetingDetailViewComponent implements OnInit {
     private async reloadMinutes(): Promise<void> {
         const rv = new RunView();
         const result = await rv.RunView({
-            EntityName: 'Minutes',
+            EntityName: 'Committees: Minutes',
             ExtraFilter: `MeetingID='${this.MeetingID}'`,
             Fields: ['ID', 'Content', 'ApprovalStatus'],
             ResultType: 'simple',

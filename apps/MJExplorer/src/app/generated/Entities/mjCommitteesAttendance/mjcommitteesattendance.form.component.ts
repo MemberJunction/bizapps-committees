@@ -3,7 +3,7 @@ import { mjCommitteesAttendanceEntity } from '@mj-biz-apps/committees-entities';
 import { RegisterClass } from '@memberjunction/global';
 import { BaseFormComponent } from '@memberjunction/ng-base-forms';
 
-@RegisterClass(BaseFormComponent, 'Attendances') // Tell MemberJunction about this class
+@RegisterClass(BaseFormComponent, 'Committees: Attendances') // Tell MemberJunction about this class
 @Component({
     standalone: false,
     selector: 'gen-mjcommitteesattendance-form',

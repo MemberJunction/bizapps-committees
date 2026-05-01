@@ -9,7 +9,7 @@ export const loadModule = () => {
      
  
 /**
- * zod schema definition for the entity Action Items
+ * zod schema definition for the entity Committees: Action Items
  */
 export const mjCommitteesActionItemSchema = z.object({
     ID: z.string().describe(`
@@ -21,17 +21,17 @@ export const mjCommitteesActionItemSchema = z.object({
         * * Field Name: CommitteeID
         * * Display Name: Committee
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Committees (vwCommittees.ID)`),
+        * * Related Entity/Foreign Key: Committees: Committees (vwCommittees.ID)`),
     MeetingID: z.string().nullable().describe(`
         * * Field Name: MeetingID
         * * Display Name: Meeting
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)`),
+        * * Related Entity/Foreign Key: Committees: Meetings (vwMeetings.ID)`),
     AgendaItemID: z.string().nullable().describe(`
         * * Field Name: AgendaItemID
         * * Display Name: Agenda Item
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Agenda Items (vwAgendaItems.ID)`),
+        * * Related Entity/Foreign Key: Committees: Agenda Items (vwAgendaItems.ID)`),
     Title: z.string().describe(`
         * * Field Name: Title
         * * Display Name: Title
@@ -127,7 +127,7 @@ export const mjCommitteesActionItemSchema = z.object({
 export type mjCommitteesActionItemEntityType = z.infer<typeof mjCommitteesActionItemSchema>;
 
 /**
- * zod schema definition for the entity Agenda Items
+ * zod schema definition for the entity Committees: Agenda Items
  */
 export const mjCommitteesAgendaItemSchema = z.object({
     ID: z.string().describe(`
@@ -139,12 +139,12 @@ export const mjCommitteesAgendaItemSchema = z.object({
         * * Field Name: MeetingID
         * * Display Name: Meeting
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)`),
+        * * Related Entity/Foreign Key: Committees: Meetings (vwMeetings.ID)`),
     ParentAgendaItemID: z.string().nullable().describe(`
         * * Field Name: ParentAgendaItemID
         * * Display Name: Parent Agenda Item
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Agenda Items (vwAgendaItems.ID)`),
+        * * Related Entity/Foreign Key: Committees: Agenda Items (vwAgendaItems.ID)`),
     Sequence: z.number().describe(`
         * * Field Name: Sequence
         * * Display Name: Sequence
@@ -238,7 +238,7 @@ export const mjCommitteesAgendaItemSchema = z.object({
 export type mjCommitteesAgendaItemEntityType = z.infer<typeof mjCommitteesAgendaItemSchema>;
 
 /**
- * zod schema definition for the entity Artifact Types
+ * zod schema definition for the entity Committees: Artifact Types
  */
 export const mjCommitteesArtifactTypeSchema = z.object({
     ID: z.string().describe(`
@@ -286,7 +286,7 @@ export const mjCommitteesArtifactTypeSchema = z.object({
 export type mjCommitteesArtifactTypeEntityType = z.infer<typeof mjCommitteesArtifactTypeSchema>;
 
 /**
- * zod schema definition for the entity Artifacts
+ * zod schema definition for the entity Committees: Artifacts
  */
 export const mjCommitteesArtifactSchema = z.object({
     ID: z.string().describe(`
@@ -298,22 +298,17 @@ export const mjCommitteesArtifactSchema = z.object({
         * * Field Name: CommitteeID
         * * Display Name: Committee
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Committees (vwCommittees.ID)`),
+        * * Related Entity/Foreign Key: Committees: Committees (vwCommittees.ID)`),
     MeetingID: z.string().nullable().describe(`
         * * Field Name: MeetingID
         * * Display Name: Meeting
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)`),
+        * * Related Entity/Foreign Key: Committees: Meetings (vwMeetings.ID)`),
     AgendaItemID: z.string().nullable().describe(`
         * * Field Name: AgendaItemID
         * * Display Name: Agenda Item
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Agenda Items (vwAgendaItems.ID)`),
-    ActionItemID: z.string().nullable().describe(`
-        * * Field Name: ActionItemID
-        * * Display Name: Action Item
-        * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Action Items (vwActionItems.ID)`),
+        * * Related Entity/Foreign Key: Committees: Agenda Items (vwAgendaItems.ID)`),
     Title: z.string().describe(`
         * * Field Name: Title
         * * Display Name: Title
@@ -328,7 +323,7 @@ export const mjCommitteesArtifactSchema = z.object({
         * * Field Name: ArtifactTypeID
         * * Display Name: Artifact Type
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Artifact Types (vwArtifactTypes.ID)`),
+        * * Related Entity/Foreign Key: Committees: Artifact Types (vwArtifactTypes.ID)`),
     Provider: z.union([z.literal('Box'), z.literal('Dropbox'), z.literal('GoogleDrive'), z.literal('OneDrive'), z.literal('SharePoint'), z.literal('URL')]).describe(`
         * * Field Name: Provider
         * * Display Name: Provider
@@ -377,6 +372,11 @@ export const mjCommitteesArtifactSchema = z.object({
         * * Display Name: Updated At
         * * SQL Data Type: datetimeoffset
         * * Default Value: getutcdate()`),
+    TaskID: z.string().nullable().describe(`
+        * * Field Name: TaskID
+        * * Display Name: Task
+        * * SQL Data Type: uniqueidentifier
+        * * Related Entity/Foreign Key: MJ.BizApps.Tasks: Tasks (vwTasks.ID)`),
     Committee: z.string().nullable().describe(`
         * * Field Name: Committee
         * * Display Name: Committee
@@ -389,10 +389,6 @@ export const mjCommitteesArtifactSchema = z.object({
         * * Field Name: AgendaItem
         * * Display Name: Agenda Item
         * * SQL Data Type: nvarchar(255)`),
-    ActionItem: z.string().nullable().describe(`
-        * * Field Name: ActionItem
-        * * Display Name: Action Item
-        * * SQL Data Type: nvarchar(255)`),
     ArtifactType: z.string().describe(`
         * * Field Name: ArtifactType
         * * Display Name: Artifact Type
@@ -401,12 +397,16 @@ export const mjCommitteesArtifactSchema = z.object({
         * * Field Name: UploadedByPerson
         * * Display Name: Uploaded By Person
         * * SQL Data Type: nvarchar(244)`),
+    Task: z.string().nullable().describe(`
+        * * Field Name: Task
+        * * Display Name: Task
+        * * SQL Data Type: nvarchar(255)`),
 });
 
 export type mjCommitteesArtifactEntityType = z.infer<typeof mjCommitteesArtifactSchema>;
 
 /**
- * zod schema definition for the entity Attendances
+ * zod schema definition for the entity Committees: Attendances
  */
 export const mjCommitteesAttendanceSchema = z.object({
     ID: z.string().describe(`
@@ -418,7 +418,7 @@ export const mjCommitteesAttendanceSchema = z.object({
         * * Field Name: MeetingID
         * * Display Name: Meeting
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)`),
+        * * Related Entity/Foreign Key: Committees: Meetings (vwMeetings.ID)`),
     PersonID: z.string().describe(`
         * * Field Name: PersonID
         * * Display Name: Person
@@ -475,7 +475,7 @@ export const mjCommitteesAttendanceSchema = z.object({
 export type mjCommitteesAttendanceEntityType = z.infer<typeof mjCommitteesAttendanceSchema>;
 
 /**
- * zod schema definition for the entity Comments
+ * zod schema definition for the entity Committees: Comments
  */
 export const mjCommitteesCommentSchema = z.object({
     ID: z.string().describe(`
@@ -487,37 +487,31 @@ export const mjCommitteesCommentSchema = z.object({
         * * Field Name: CommitteeID
         * * Display Name: Committee
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Committees (vwCommittees.ID)
+        * * Related Entity/Foreign Key: Committees: Committees (vwCommittees.ID)
         * * Description: Committee this comment belongs to (always set for easy filtering)`),
     MeetingID: z.string().nullable().describe(`
         * * Field Name: MeetingID
         * * Display Name: Meeting
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)
+        * * Related Entity/Foreign Key: Committees: Meetings (vwMeetings.ID)
         * * Description: Optional meeting this comment is attached to`),
     AgendaItemID: z.string().nullable().describe(`
         * * Field Name: AgendaItemID
         * * Display Name: Agenda Item
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Agenda Items (vwAgendaItems.ID)
+        * * Related Entity/Foreign Key: Committees: Agenda Items (vwAgendaItems.ID)
         * * Description: Optional agenda item this comment is attached to`),
-    ActionItemID: z.string().nullable().describe(`
-        * * Field Name: ActionItemID
-        * * Display Name: Action Item
-        * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Action Items (vwActionItems.ID)
-        * * Description: Optional action item this comment is attached to`),
     ArtifactID: z.string().nullable().describe(`
         * * Field Name: ArtifactID
         * * Display Name: Artifact
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Artifacts (vwArtifacts.ID)
+        * * Related Entity/Foreign Key: Committees: Artifacts (vwArtifacts.ID)
         * * Description: Optional artifact/document this comment is attached to`),
     ParentCommentID: z.string().nullable().describe(`
         * * Field Name: ParentCommentID
         * * Display Name: Parent Comment
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Comments (vwComments.ID)
+        * * Related Entity/Foreign Key: Committees: Comments (vwComments.ID)
         * * Description: Parent comment for threading; NULL for top-level comments`),
     PersonID: z.string().describe(`
         * * Field Name: PersonID
@@ -551,6 +545,11 @@ export const mjCommitteesCommentSchema = z.object({
         * * Display Name: Updated At
         * * SQL Data Type: datetimeoffset
         * * Default Value: getutcdate()`),
+    TaskID: z.string().nullable().describe(`
+        * * Field Name: TaskID
+        * * Display Name: Task
+        * * SQL Data Type: uniqueidentifier
+        * * Related Entity/Foreign Key: MJ.BizApps.Tasks: Tasks (vwTasks.ID)`),
     Committee: z.string().describe(`
         * * Field Name: Committee
         * * Display Name: Committee
@@ -562,10 +561,6 @@ export const mjCommitteesCommentSchema = z.object({
     AgendaItem: z.string().nullable().describe(`
         * * Field Name: AgendaItem
         * * Display Name: Agenda Item
-        * * SQL Data Type: nvarchar(255)`),
-    ActionItem: z.string().nullable().describe(`
-        * * Field Name: ActionItem
-        * * Display Name: Action Item
         * * SQL Data Type: nvarchar(255)`),
     Artifact: z.string().nullable().describe(`
         * * Field Name: Artifact
@@ -579,16 +574,20 @@ export const mjCommitteesCommentSchema = z.object({
         * * Field Name: Person
         * * Display Name: Person
         * * SQL Data Type: nvarchar(244)`),
+    Task: z.string().nullable().describe(`
+        * * Field Name: Task
+        * * Display Name: Task
+        * * SQL Data Type: nvarchar(255)`),
     RootParentCommentID: z.string().nullable().describe(`
         * * Field Name: RootParentCommentID
-        * * Display Name: Root Parent Comment ID
+        * * Display Name: Root Parent Comment
         * * SQL Data Type: uniqueidentifier`),
 });
 
 export type mjCommitteesCommentEntityType = z.infer<typeof mjCommitteesCommentSchema>;
 
 /**
- * zod schema definition for the entity Committees
+ * zod schema definition for the entity Committees: Committees
  */
 export const mjCommitteesCommitteeSchema = z.object({
     ID: z.string().describe(`
@@ -610,12 +609,12 @@ export const mjCommitteesCommitteeSchema = z.object({
         * * Field Name: TypeID
         * * Display Name: Committee Type
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Types (vwTypes.ID)`),
+        * * Related Entity/Foreign Key: Committees: Types (vwTypes.ID)`),
     ParentCommitteeID: z.string().nullable().describe(`
         * * Field Name: ParentCommitteeID
         * * Display Name: Parent Committee
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Committees (vwCommittees.ID)`),
+        * * Related Entity/Foreign Key: Committees: Committees (vwCommittees.ID)`),
     OrganizationID: z.string().nullable().describe(`
         * * Field Name: OrganizationID
         * * Display Name: Organization
@@ -690,7 +689,7 @@ export const mjCommitteesCommitteeSchema = z.object({
 export type mjCommitteesCommitteeEntityType = z.infer<typeof mjCommitteesCommitteeSchema>;
 
 /**
- * zod schema definition for the entity Meetings
+ * zod schema definition for the entity Committees: Meetings
  */
 export const mjCommitteesMeetingSchema = z.object({
     ID: z.string().describe(`
@@ -702,7 +701,7 @@ export const mjCommitteesMeetingSchema = z.object({
         * * Field Name: CommitteeID
         * * Display Name: Committee
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Committees (vwCommittees.ID)`),
+        * * Related Entity/Foreign Key: Committees: Committees (vwCommittees.ID)`),
     Title: z.string().describe(`
         * * Field Name: Title
         * * Display Name: Title
@@ -803,7 +802,7 @@ export const mjCommitteesMeetingSchema = z.object({
         * * Field Name: VideoProviderID
         * * Display Name: Video Provider
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Video Providers (vwVideoProviders.ID)
+        * * Related Entity/Foreign Key: Committees: Video Providers (vwVideoProviders.ID)
         * * Description: FK to VideoProvider — when set, video meeting URL is auto-created on save`),
     Committee: z.string().describe(`
         * * Field Name: Committee
@@ -818,7 +817,7 @@ export const mjCommitteesMeetingSchema = z.object({
 export type mjCommitteesMeetingEntityType = z.infer<typeof mjCommitteesMeetingSchema>;
 
 /**
- * zod schema definition for the entity Memberships
+ * zod schema definition for the entity Committees: Memberships
  */
 export const mjCommitteesMembershipSchema = z.object({
     ID: z.string().describe(`
@@ -835,12 +834,12 @@ export const mjCommitteesMembershipSchema = z.object({
         * * Field Name: RoleID
         * * Display Name: Role
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Roles (vwRoles.ID)`),
+        * * Related Entity/Foreign Key: Committees: Roles (vwRoles.ID)`),
     TermID: z.string().describe(`
         * * Field Name: TermID
         * * Display Name: Term
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Terms (vwTerms.ID)`),
+        * * Related Entity/Foreign Key: Committees: Terms (vwTerms.ID)`),
     StartDate: z.date().describe(`
         * * Field Name: StartDate
         * * Display Name: Start Date
@@ -900,7 +899,7 @@ export const mjCommitteesMembershipSchema = z.object({
 export type mjCommitteesMembershipEntityType = z.infer<typeof mjCommitteesMembershipSchema>;
 
 /**
- * zod schema definition for the entity Minutes
+ * zod schema definition for the entity Committees: Minutes
  */
 export const mjCommitteesMinuteSchema = z.object({
     ID: z.string().describe(`
@@ -933,7 +932,7 @@ export const mjCommitteesMinuteSchema = z.object({
         * * Field Name: ApprovedByMeetingID
         * * Display Name: Approved By Meeting
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)
+        * * Related Entity/Foreign Key: Committees: Meetings (vwMeetings.ID)
         * * Description: Reference to the meeting at which these minutes were approved (typically the next meeting)`),
     Notes: z.string().nullable().describe(`
         * * Field Name: Notes
@@ -959,7 +958,7 @@ export const mjCommitteesMinuteSchema = z.object({
         * * Field Name: MeetingID
         * * Display Name: Meeting
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)`),
+        * * Related Entity/Foreign Key: Committees: Meetings (vwMeetings.ID)`),
     Content: z.string().nullable().describe(`
         * * Field Name: Content
         * * Display Name: Content
@@ -981,7 +980,7 @@ export const mjCommitteesMinuteSchema = z.object({
 export type mjCommitteesMinuteEntityType = z.infer<typeof mjCommitteesMinuteSchema>;
 
 /**
- * zod schema definition for the entity Motions
+ * zod schema definition for the entity Committees: Motions
  */
 export const mjCommitteesMotionSchema = z.object({
     ID: z.string().describe(`
@@ -993,12 +992,12 @@ export const mjCommitteesMotionSchema = z.object({
         * * Field Name: MeetingID
         * * Display Name: Meeting
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)`),
+        * * Related Entity/Foreign Key: Committees: Meetings (vwMeetings.ID)`),
     AgendaItemID: z.string().nullable().describe(`
         * * Field Name: AgendaItemID
         * * Display Name: Agenda Item
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Agenda Items (vwAgendaItems.ID)`),
+        * * Related Entity/Foreign Key: Committees: Agenda Items (vwAgendaItems.ID)`),
     Sequence: z.number().describe(`
         * * Field Name: Sequence
         * * Display Name: Sequence
@@ -1019,13 +1018,13 @@ export const mjCommitteesMotionSchema = z.object({
         * * Field Name: MovedByMembershipID
         * * Display Name: Moved By Membership
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Memberships (vwMemberships.ID)
+        * * Related Entity/Foreign Key: Committees: Memberships (vwMemberships.ID)
         * * Description: The committee member who made the motion`),
     SecondedByMembershipID: z.string().nullable().describe(`
         * * Field Name: SecondedByMembershipID
         * * Display Name: Seconded By Membership
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Memberships (vwMemberships.ID)
+        * * Related Entity/Foreign Key: Committees: Memberships (vwMemberships.ID)
         * * Description: The committee member who seconded the motion`),
     Result: z.union([z.literal('Failed'), z.literal('Passed'), z.literal('Pending'), z.literal('Tabled'), z.literal('Withdrawn')]).describe(`
         * * Field Name: Result
@@ -1096,7 +1095,7 @@ export const mjCommitteesMotionSchema = z.object({
 export type mjCommitteesMotionEntityType = z.infer<typeof mjCommitteesMotionSchema>;
 
 /**
- * zod schema definition for the entity Roles
+ * zod schema definition for the entity Committees: Roles
  */
 export const mjCommitteesRoleSchema = z.object({
     ID: z.string().describe(`
@@ -1152,7 +1151,7 @@ export const mjCommitteesRoleSchema = z.object({
 export type mjCommitteesRoleEntityType = z.infer<typeof mjCommitteesRoleSchema>;
 
 /**
- * zod schema definition for the entity Terms
+ * zod schema definition for the entity Committees: Terms
  */
 export const mjCommitteesTermSchema = z.object({
     ID: z.string().describe(`
@@ -1164,7 +1163,7 @@ export const mjCommitteesTermSchema = z.object({
         * * Field Name: CommitteeID
         * * Display Name: Committee
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Committees (vwCommittees.ID)`),
+        * * Related Entity/Foreign Key: Committees: Committees (vwCommittees.ID)`),
     Name: z.string().describe(`
         * * Field Name: Name
         * * Display Name: Term Name
@@ -1210,7 +1209,7 @@ export const mjCommitteesTermSchema = z.object({
 export type mjCommitteesTermEntityType = z.infer<typeof mjCommitteesTermSchema>;
 
 /**
- * zod schema definition for the entity Types
+ * zod schema definition for the entity Committees: Types
  */
 export const mjCommitteesTypeSchema = z.object({
     ID: z.string().describe(`
@@ -1259,7 +1258,7 @@ export const mjCommitteesTypeSchema = z.object({
 export type mjCommitteesTypeEntityType = z.infer<typeof mjCommitteesTypeSchema>;
 
 /**
- * zod schema definition for the entity Video Providers
+ * zod schema definition for the entity Committees: Video Providers
  */
 export const mjCommitteesVideoProviderSchema = z.object({
     ID: z.string().describe(`
@@ -1309,7 +1308,7 @@ export const mjCommitteesVideoProviderSchema = z.object({
 export type mjCommitteesVideoProviderEntityType = z.infer<typeof mjCommitteesVideoProviderSchema>;
 
 /**
- * zod schema definition for the entity Votes
+ * zod schema definition for the entity Committees: Votes
  */
 export const mjCommitteesVoteSchema = z.object({
     ID: z.string().describe(`
@@ -1321,12 +1320,12 @@ export const mjCommitteesVoteSchema = z.object({
         * * Field Name: MotionID
         * * Display Name: Motion
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Motions (vwMotions.ID)`),
+        * * Related Entity/Foreign Key: Committees: Motions (vwMotions.ID)`),
     MembershipID: z.string().describe(`
         * * Field Name: MembershipID
         * * Display Name: Membership
         * * SQL Data Type: uniqueidentifier
-        * * Related Entity/Foreign Key: Memberships (vwMemberships.ID)`),
+        * * Related Entity/Foreign Key: Committees: Memberships (vwMemberships.ID)`),
     VoteValue: z.union([z.literal('Absent'), z.literal('Abstain'), z.literal('No'), z.literal('Yes')]).describe(`
         * * Field Name: VoteValue
         * * Display Name: Vote
@@ -1368,7 +1367,7 @@ export type mjCommitteesVoteEntityType = z.infer<typeof mjCommitteesVoteSchema>;
  
 
 /**
- * Action Items - strongly typed entity sub-class
+ * Committees: Action Items - strongly typed entity sub-class
  * * Schema: __mj_Committees
  * * Base Table: ActionItem
  * * Base View: vwActionItems
@@ -1378,11 +1377,11 @@ export type mjCommitteesVoteEntityType = z.infer<typeof mjCommitteesVoteSchema>;
  * @class
  * @public
  */
-@RegisterClass(BaseEntity, 'Action Items')
+@RegisterClass(BaseEntity, 'Committees: Action Items')
 export class mjCommitteesActionItemEntity extends BaseEntity<mjCommitteesActionItemEntityType> {
     /**
-    * Loads the Action Items record from the database
-    * @param ID: string - primary key value to load the Action Items record.
+    * Loads the Committees: Action Items record from the database
+    * @param ID: string - primary key value to load the Committees: Action Items record.
     * @param EntityRelationshipsToLoad - (optional) the relationships to load
     * @returns {Promise<boolean>} - true if successful, false otherwise
     * @public
@@ -1414,7 +1413,7 @@ export class mjCommitteesActionItemEntity extends BaseEntity<mjCommitteesActionI
     * * Field Name: CommitteeID
     * * Display Name: Committee
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Committees (vwCommittees.ID)
+    * * Related Entity/Foreign Key: Committees: Committees (vwCommittees.ID)
     */
     get CommitteeID(): string {
         return this.Get('CommitteeID');
@@ -1427,7 +1426,7 @@ export class mjCommitteesActionItemEntity extends BaseEntity<mjCommitteesActionI
     * * Field Name: MeetingID
     * * Display Name: Meeting
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)
+    * * Related Entity/Foreign Key: Committees: Meetings (vwMeetings.ID)
     */
     get MeetingID(): string | null {
         return this.Get('MeetingID');
@@ -1440,7 +1439,7 @@ export class mjCommitteesActionItemEntity extends BaseEntity<mjCommitteesActionI
     * * Field Name: AgendaItemID
     * * Display Name: Agenda Item
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Agenda Items (vwAgendaItems.ID)
+    * * Related Entity/Foreign Key: Committees: Agenda Items (vwAgendaItems.ID)
     */
     get AgendaItemID(): string | null {
         return this.Get('AgendaItemID');
@@ -1649,7 +1648,7 @@ export class mjCommitteesActionItemEntity extends BaseEntity<mjCommitteesActionI
 
 
 /**
- * Agenda Items - strongly typed entity sub-class
+ * Committees: Agenda Items - strongly typed entity sub-class
  * * Schema: __mj_Committees
  * * Base Table: AgendaItem
  * * Base View: vwAgendaItems
@@ -1659,11 +1658,11 @@ export class mjCommitteesActionItemEntity extends BaseEntity<mjCommitteesActionI
  * @class
  * @public
  */
-@RegisterClass(BaseEntity, 'Agenda Items')
+@RegisterClass(BaseEntity, 'Committees: Agenda Items')
 export class mjCommitteesAgendaItemEntity extends BaseEntity<mjCommitteesAgendaItemEntityType> {
     /**
-    * Loads the Agenda Items record from the database
-    * @param ID: string - primary key value to load the Agenda Items record.
+    * Loads the Committees: Agenda Items record from the database
+    * @param ID: string - primary key value to load the Committees: Agenda Items record.
     * @param EntityRelationshipsToLoad - (optional) the relationships to load
     * @returns {Promise<boolean>} - true if successful, false otherwise
     * @public
@@ -1695,7 +1694,7 @@ export class mjCommitteesAgendaItemEntity extends BaseEntity<mjCommitteesAgendaI
     * * Field Name: MeetingID
     * * Display Name: Meeting
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)
+    * * Related Entity/Foreign Key: Committees: Meetings (vwMeetings.ID)
     */
     get MeetingID(): string {
         return this.Get('MeetingID');
@@ -1708,7 +1707,7 @@ export class mjCommitteesAgendaItemEntity extends BaseEntity<mjCommitteesAgendaI
     * * Field Name: ParentAgendaItemID
     * * Display Name: Parent Agenda Item
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Agenda Items (vwAgendaItems.ID)
+    * * Related Entity/Foreign Key: Committees: Agenda Items (vwAgendaItems.ID)
     */
     get ParentAgendaItemID(): string | null {
         return this.Get('ParentAgendaItemID');
@@ -1910,7 +1909,7 @@ export class mjCommitteesAgendaItemEntity extends BaseEntity<mjCommitteesAgendaI
 
 
 /**
- * Artifact Types - strongly typed entity sub-class
+ * Committees: Artifact Types - strongly typed entity sub-class
  * * Schema: __mj_Committees
  * * Base Table: ArtifactType
  * * Base View: vwArtifactTypes
@@ -1920,11 +1919,11 @@ export class mjCommitteesAgendaItemEntity extends BaseEntity<mjCommitteesAgendaI
  * @class
  * @public
  */
-@RegisterClass(BaseEntity, 'Artifact Types')
+@RegisterClass(BaseEntity, 'Committees: Artifact Types')
 export class mjCommitteesArtifactTypeEntity extends BaseEntity<mjCommitteesArtifactTypeEntityType> {
     /**
-    * Loads the Artifact Types record from the database
-    * @param ID: string - primary key value to load the Artifact Types record.
+    * Loads the Committees: Artifact Types record from the database
+    * @param ID: string - primary key value to load the Committees: Artifact Types record.
     * @param EntityRelationshipsToLoad - (optional) the relationships to load
     * @returns {Promise<boolean>} - true if successful, false otherwise
     * @public
@@ -2037,7 +2036,7 @@ export class mjCommitteesArtifactTypeEntity extends BaseEntity<mjCommitteesArtif
 
 
 /**
- * Artifacts - strongly typed entity sub-class
+ * Committees: Artifacts - strongly typed entity sub-class
  * * Schema: __mj_Committees
  * * Base Table: Artifact
  * * Base View: vwArtifacts
@@ -2047,11 +2046,11 @@ export class mjCommitteesArtifactTypeEntity extends BaseEntity<mjCommitteesArtif
  * @class
  * @public
  */
-@RegisterClass(BaseEntity, 'Artifacts')
+@RegisterClass(BaseEntity, 'Committees: Artifacts')
 export class mjCommitteesArtifactEntity extends BaseEntity<mjCommitteesArtifactEntityType> {
     /**
-    * Loads the Artifacts record from the database
-    * @param ID: string - primary key value to load the Artifacts record.
+    * Loads the Committees: Artifacts record from the database
+    * @param ID: string - primary key value to load the Committees: Artifacts record.
     * @param EntityRelationshipsToLoad - (optional) the relationships to load
     * @returns {Promise<boolean>} - true if successful, false otherwise
     * @public
@@ -2083,7 +2082,7 @@ export class mjCommitteesArtifactEntity extends BaseEntity<mjCommitteesArtifactE
     * * Field Name: CommitteeID
     * * Display Name: Committee
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Committees (vwCommittees.ID)
+    * * Related Entity/Foreign Key: Committees: Committees (vwCommittees.ID)
     */
     get CommitteeID(): string | null {
         return this.Get('CommitteeID');
@@ -2096,7 +2095,7 @@ export class mjCommitteesArtifactEntity extends BaseEntity<mjCommitteesArtifactE
     * * Field Name: MeetingID
     * * Display Name: Meeting
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)
+    * * Related Entity/Foreign Key: Committees: Meetings (vwMeetings.ID)
     */
     get MeetingID(): string | null {
         return this.Get('MeetingID');
@@ -2109,26 +2108,13 @@ export class mjCommitteesArtifactEntity extends BaseEntity<mjCommitteesArtifactE
     * * Field Name: AgendaItemID
     * * Display Name: Agenda Item
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Agenda Items (vwAgendaItems.ID)
+    * * Related Entity/Foreign Key: Committees: Agenda Items (vwAgendaItems.ID)
     */
     get AgendaItemID(): string | null {
         return this.Get('AgendaItemID');
     }
     set AgendaItemID(value: string | null) {
         this.Set('AgendaItemID', value);
-    }
-
-    /**
-    * * Field Name: ActionItemID
-    * * Display Name: Action Item
-    * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Action Items (vwActionItems.ID)
-    */
-    get ActionItemID(): string | null {
-        return this.Get('ActionItemID');
-    }
-    set ActionItemID(value: string | null) {
-        this.Set('ActionItemID', value);
     }
 
     /**
@@ -2161,7 +2147,7 @@ export class mjCommitteesArtifactEntity extends BaseEntity<mjCommitteesArtifactE
     * * Field Name: ArtifactTypeID
     * * Display Name: Artifact Type
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Artifact Types (vwArtifactTypes.ID)
+    * * Related Entity/Foreign Key: Committees: Artifact Types (vwArtifactTypes.ID)
     */
     get ArtifactTypeID(): string {
         return this.Get('ArtifactTypeID');
@@ -2277,6 +2263,19 @@ export class mjCommitteesArtifactEntity extends BaseEntity<mjCommitteesArtifactE
     }
 
     /**
+    * * Field Name: TaskID
+    * * Display Name: Task
+    * * SQL Data Type: uniqueidentifier
+    * * Related Entity/Foreign Key: MJ.BizApps.Tasks: Tasks (vwTasks.ID)
+    */
+    get TaskID(): string | null {
+        return this.Get('TaskID');
+    }
+    set TaskID(value: string | null) {
+        this.Set('TaskID', value);
+    }
+
+    /**
     * * Field Name: Committee
     * * Display Name: Committee
     * * SQL Data Type: nvarchar(255)
@@ -2304,15 +2303,6 @@ export class mjCommitteesArtifactEntity extends BaseEntity<mjCommitteesArtifactE
     }
 
     /**
-    * * Field Name: ActionItem
-    * * Display Name: Action Item
-    * * SQL Data Type: nvarchar(255)
-    */
-    get ActionItem(): string | null {
-        return this.Get('ActionItem');
-    }
-
-    /**
     * * Field Name: ArtifactType
     * * Display Name: Artifact Type
     * * SQL Data Type: nvarchar(100)
@@ -2329,11 +2319,20 @@ export class mjCommitteesArtifactEntity extends BaseEntity<mjCommitteesArtifactE
     get UploadedByPerson(): string | null {
         return this.Get('UploadedByPerson');
     }
+
+    /**
+    * * Field Name: Task
+    * * Display Name: Task
+    * * SQL Data Type: nvarchar(255)
+    */
+    get Task(): string | null {
+        return this.Get('Task');
+    }
 }
 
 
 /**
- * Attendances - strongly typed entity sub-class
+ * Committees: Attendances - strongly typed entity sub-class
  * * Schema: __mj_Committees
  * * Base Table: Attendance
  * * Base View: vwAttendances
@@ -2343,11 +2342,11 @@ export class mjCommitteesArtifactEntity extends BaseEntity<mjCommitteesArtifactE
  * @class
  * @public
  */
-@RegisterClass(BaseEntity, 'Attendances')
+@RegisterClass(BaseEntity, 'Committees: Attendances')
 export class mjCommitteesAttendanceEntity extends BaseEntity<mjCommitteesAttendanceEntityType> {
     /**
-    * Loads the Attendances record from the database
-    * @param ID: string - primary key value to load the Attendances record.
+    * Loads the Committees: Attendances record from the database
+    * @param ID: string - primary key value to load the Committees: Attendances record.
     * @param EntityRelationshipsToLoad - (optional) the relationships to load
     * @returns {Promise<boolean>} - true if successful, false otherwise
     * @public
@@ -2379,7 +2378,7 @@ export class mjCommitteesAttendanceEntity extends BaseEntity<mjCommitteesAttenda
     * * Field Name: MeetingID
     * * Display Name: Meeting
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)
+    * * Related Entity/Foreign Key: Committees: Meetings (vwMeetings.ID)
     */
     get MeetingID(): string {
         return this.Get('MeetingID');
@@ -2502,7 +2501,7 @@ export class mjCommitteesAttendanceEntity extends BaseEntity<mjCommitteesAttenda
 
 
 /**
- * Comments - strongly typed entity sub-class
+ * Committees: Comments - strongly typed entity sub-class
  * * Schema: __mj_Committees
  * * Base Table: Comment
  * * Base View: vwComments
@@ -2512,11 +2511,11 @@ export class mjCommitteesAttendanceEntity extends BaseEntity<mjCommitteesAttenda
  * @class
  * @public
  */
-@RegisterClass(BaseEntity, 'Comments')
+@RegisterClass(BaseEntity, 'Committees: Comments')
 export class mjCommitteesCommentEntity extends BaseEntity<mjCommitteesCommentEntityType> {
     /**
-    * Loads the Comments record from the database
-    * @param ID: string - primary key value to load the Comments record.
+    * Loads the Committees: Comments record from the database
+    * @param ID: string - primary key value to load the Committees: Comments record.
     * @param EntityRelationshipsToLoad - (optional) the relationships to load
     * @returns {Promise<boolean>} - true if successful, false otherwise
     * @public
@@ -2548,7 +2547,7 @@ export class mjCommitteesCommentEntity extends BaseEntity<mjCommitteesCommentEnt
     * * Field Name: CommitteeID
     * * Display Name: Committee
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Committees (vwCommittees.ID)
+    * * Related Entity/Foreign Key: Committees: Committees (vwCommittees.ID)
     * * Description: Committee this comment belongs to (always set for easy filtering)
     */
     get CommitteeID(): string {
@@ -2562,7 +2561,7 @@ export class mjCommitteesCommentEntity extends BaseEntity<mjCommitteesCommentEnt
     * * Field Name: MeetingID
     * * Display Name: Meeting
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)
+    * * Related Entity/Foreign Key: Committees: Meetings (vwMeetings.ID)
     * * Description: Optional meeting this comment is attached to
     */
     get MeetingID(): string | null {
@@ -2576,7 +2575,7 @@ export class mjCommitteesCommentEntity extends BaseEntity<mjCommitteesCommentEnt
     * * Field Name: AgendaItemID
     * * Display Name: Agenda Item
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Agenda Items (vwAgendaItems.ID)
+    * * Related Entity/Foreign Key: Committees: Agenda Items (vwAgendaItems.ID)
     * * Description: Optional agenda item this comment is attached to
     */
     get AgendaItemID(): string | null {
@@ -2587,24 +2586,10 @@ export class mjCommitteesCommentEntity extends BaseEntity<mjCommitteesCommentEnt
     }
 
     /**
-    * * Field Name: ActionItemID
-    * * Display Name: Action Item
-    * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Action Items (vwActionItems.ID)
-    * * Description: Optional action item this comment is attached to
-    */
-    get ActionItemID(): string | null {
-        return this.Get('ActionItemID');
-    }
-    set ActionItemID(value: string | null) {
-        this.Set('ActionItemID', value);
-    }
-
-    /**
     * * Field Name: ArtifactID
     * * Display Name: Artifact
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Artifacts (vwArtifacts.ID)
+    * * Related Entity/Foreign Key: Committees: Artifacts (vwArtifacts.ID)
     * * Description: Optional artifact/document this comment is attached to
     */
     get ArtifactID(): string | null {
@@ -2618,7 +2603,7 @@ export class mjCommitteesCommentEntity extends BaseEntity<mjCommitteesCommentEnt
     * * Field Name: ParentCommentID
     * * Display Name: Parent Comment
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Comments (vwComments.ID)
+    * * Related Entity/Foreign Key: Committees: Comments (vwComments.ID)
     * * Description: Parent comment for threading; NULL for top-level comments
     */
     get ParentCommentID(): string | null {
@@ -2703,6 +2688,19 @@ export class mjCommitteesCommentEntity extends BaseEntity<mjCommitteesCommentEnt
     }
 
     /**
+    * * Field Name: TaskID
+    * * Display Name: Task
+    * * SQL Data Type: uniqueidentifier
+    * * Related Entity/Foreign Key: MJ.BizApps.Tasks: Tasks (vwTasks.ID)
+    */
+    get TaskID(): string | null {
+        return this.Get('TaskID');
+    }
+    set TaskID(value: string | null) {
+        this.Set('TaskID', value);
+    }
+
+    /**
     * * Field Name: Committee
     * * Display Name: Committee
     * * SQL Data Type: nvarchar(255)
@@ -2727,15 +2725,6 @@ export class mjCommitteesCommentEntity extends BaseEntity<mjCommitteesCommentEnt
     */
     get AgendaItem(): string | null {
         return this.Get('AgendaItem');
-    }
-
-    /**
-    * * Field Name: ActionItem
-    * * Display Name: Action Item
-    * * SQL Data Type: nvarchar(255)
-    */
-    get ActionItem(): string | null {
-        return this.Get('ActionItem');
     }
 
     /**
@@ -2766,8 +2755,17 @@ export class mjCommitteesCommentEntity extends BaseEntity<mjCommitteesCommentEnt
     }
 
     /**
+    * * Field Name: Task
+    * * Display Name: Task
+    * * SQL Data Type: nvarchar(255)
+    */
+    get Task(): string | null {
+        return this.Get('Task');
+    }
+
+    /**
     * * Field Name: RootParentCommentID
-    * * Display Name: Root Parent Comment ID
+    * * Display Name: Root Parent Comment
     * * SQL Data Type: uniqueidentifier
     */
     get RootParentCommentID(): string | null {
@@ -2777,7 +2775,7 @@ export class mjCommitteesCommentEntity extends BaseEntity<mjCommitteesCommentEnt
 
 
 /**
- * Committees - strongly typed entity sub-class
+ * Committees: Committees - strongly typed entity sub-class
  * * Schema: __mj_Committees
  * * Base Table: Committee
  * * Base View: vwCommittees
@@ -2787,11 +2785,11 @@ export class mjCommitteesCommentEntity extends BaseEntity<mjCommitteesCommentEnt
  * @class
  * @public
  */
-@RegisterClass(BaseEntity, 'Committees')
+@RegisterClass(BaseEntity, 'Committees: Committees')
 export class mjCommitteesCommitteeEntity extends BaseEntity<mjCommitteesCommitteeEntityType> {
     /**
-    * Loads the Committees record from the database
-    * @param ID: string - primary key value to load the Committees record.
+    * Loads the Committees: Committees record from the database
+    * @param ID: string - primary key value to load the Committees: Committees record.
     * @param EntityRelationshipsToLoad - (optional) the relationships to load
     * @returns {Promise<boolean>} - true if successful, false otherwise
     * @public
@@ -2849,7 +2847,7 @@ export class mjCommitteesCommitteeEntity extends BaseEntity<mjCommitteesCommitte
     * * Field Name: TypeID
     * * Display Name: Committee Type
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Types (vwTypes.ID)
+    * * Related Entity/Foreign Key: Committees: Types (vwTypes.ID)
     */
     get TypeID(): string {
         return this.Get('TypeID');
@@ -2862,7 +2860,7 @@ export class mjCommitteesCommitteeEntity extends BaseEntity<mjCommitteesCommitte
     * * Field Name: ParentCommitteeID
     * * Display Name: Parent Committee
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Committees (vwCommittees.ID)
+    * * Related Entity/Foreign Key: Committees: Committees (vwCommittees.ID)
     */
     get ParentCommitteeID(): string | null {
         return this.Get('ParentCommitteeID');
@@ -3029,7 +3027,7 @@ export class mjCommitteesCommitteeEntity extends BaseEntity<mjCommitteesCommitte
 
 
 /**
- * Meetings - strongly typed entity sub-class
+ * Committees: Meetings - strongly typed entity sub-class
  * * Schema: __mj_Committees
  * * Base Table: Meeting
  * * Base View: vwMeetings
@@ -3039,11 +3037,11 @@ export class mjCommitteesCommitteeEntity extends BaseEntity<mjCommitteesCommitte
  * @class
  * @public
  */
-@RegisterClass(BaseEntity, 'Meetings')
+@RegisterClass(BaseEntity, 'Committees: Meetings')
 export class mjCommitteesMeetingEntity extends BaseEntity<mjCommitteesMeetingEntityType> {
     /**
-    * Loads the Meetings record from the database
-    * @param ID: string - primary key value to load the Meetings record.
+    * Loads the Committees: Meetings record from the database
+    * @param ID: string - primary key value to load the Committees: Meetings record.
     * @param EntityRelationshipsToLoad - (optional) the relationships to load
     * @returns {Promise<boolean>} - true if successful, false otherwise
     * @public
@@ -3075,7 +3073,7 @@ export class mjCommitteesMeetingEntity extends BaseEntity<mjCommitteesMeetingEnt
     * * Field Name: CommitteeID
     * * Display Name: Committee
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Committees (vwCommittees.ID)
+    * * Related Entity/Foreign Key: Committees: Committees (vwCommittees.ID)
     */
     get CommitteeID(): string {
         return this.Get('CommitteeID');
@@ -3306,7 +3304,7 @@ export class mjCommitteesMeetingEntity extends BaseEntity<mjCommitteesMeetingEnt
     * * Field Name: VideoProviderID
     * * Display Name: Video Provider
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Video Providers (vwVideoProviders.ID)
+    * * Related Entity/Foreign Key: Committees: Video Providers (vwVideoProviders.ID)
     * * Description: FK to VideoProvider — when set, video meeting URL is auto-created on save
     */
     get VideoProviderID(): string | null {
@@ -3337,7 +3335,7 @@ export class mjCommitteesMeetingEntity extends BaseEntity<mjCommitteesMeetingEnt
 
 
 /**
- * Memberships - strongly typed entity sub-class
+ * Committees: Memberships - strongly typed entity sub-class
  * * Schema: __mj_Committees
  * * Base Table: Membership
  * * Base View: vwMemberships
@@ -3347,11 +3345,11 @@ export class mjCommitteesMeetingEntity extends BaseEntity<mjCommitteesMeetingEnt
  * @class
  * @public
  */
-@RegisterClass(BaseEntity, 'Memberships')
+@RegisterClass(BaseEntity, 'Committees: Memberships')
 export class mjCommitteesMembershipEntity extends BaseEntity<mjCommitteesMembershipEntityType> {
     /**
-    * Loads the Memberships record from the database
-    * @param ID: string - primary key value to load the Memberships record.
+    * Loads the Committees: Memberships record from the database
+    * @param ID: string - primary key value to load the Committees: Memberships record.
     * @param EntityRelationshipsToLoad - (optional) the relationships to load
     * @returns {Promise<boolean>} - true if successful, false otherwise
     * @public
@@ -3396,7 +3394,7 @@ export class mjCommitteesMembershipEntity extends BaseEntity<mjCommitteesMembers
     * * Field Name: RoleID
     * * Display Name: Role
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Roles (vwRoles.ID)
+    * * Related Entity/Foreign Key: Committees: Roles (vwRoles.ID)
     */
     get RoleID(): string {
         return this.Get('RoleID');
@@ -3409,7 +3407,7 @@ export class mjCommitteesMembershipEntity extends BaseEntity<mjCommitteesMembers
     * * Field Name: TermID
     * * Display Name: Term
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Terms (vwTerms.ID)
+    * * Related Entity/Foreign Key: Committees: Terms (vwTerms.ID)
     */
     get TermID(): string {
         return this.Get('TermID');
@@ -3540,7 +3538,7 @@ export class mjCommitteesMembershipEntity extends BaseEntity<mjCommitteesMembers
 
 
 /**
- * Minutes - strongly typed entity sub-class
+ * Committees: Minutes - strongly typed entity sub-class
  * * Schema: __mj_Committees
  * * Base Table: Minute
  * * Base View: vwMinutes
@@ -3550,11 +3548,11 @@ export class mjCommitteesMembershipEntity extends BaseEntity<mjCommitteesMembers
  * @class
  * @public
  */
-@RegisterClass(BaseEntity, 'Minutes')
+@RegisterClass(BaseEntity, 'Committees: Minutes')
 export class mjCommitteesMinuteEntity extends BaseEntity<mjCommitteesMinuteEntityType> {
     /**
-    * Loads the Minutes record from the database
-    * @param ID: string - primary key value to load the Minutes record.
+    * Loads the Committees: Minutes record from the database
+    * @param ID: string - primary key value to load the Committees: Minutes record.
     * @param EntityRelationshipsToLoad - (optional) the relationships to load
     * @returns {Promise<boolean>} - true if successful, false otherwise
     * @public
@@ -3631,7 +3629,7 @@ export class mjCommitteesMinuteEntity extends BaseEntity<mjCommitteesMinuteEntit
     * * Field Name: ApprovedByMeetingID
     * * Display Name: Approved By Meeting
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)
+    * * Related Entity/Foreign Key: Committees: Meetings (vwMeetings.ID)
     * * Description: Reference to the meeting at which these minutes were approved (typically the next meeting)
     */
     get ApprovedByMeetingID(): string | null {
@@ -3691,7 +3689,7 @@ export class mjCommitteesMinuteEntity extends BaseEntity<mjCommitteesMinuteEntit
     * * Field Name: MeetingID
     * * Display Name: Meeting
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)
+    * * Related Entity/Foreign Key: Committees: Meetings (vwMeetings.ID)
     */
     get MeetingID(): string | null {
         return this.Get('MeetingID');
@@ -3742,7 +3740,7 @@ export class mjCommitteesMinuteEntity extends BaseEntity<mjCommitteesMinuteEntit
 
 
 /**
- * Motions - strongly typed entity sub-class
+ * Committees: Motions - strongly typed entity sub-class
  * * Schema: __mj_Committees
  * * Base Table: Motion
  * * Base View: vwMotions
@@ -3752,11 +3750,11 @@ export class mjCommitteesMinuteEntity extends BaseEntity<mjCommitteesMinuteEntit
  * @class
  * @public
  */
-@RegisterClass(BaseEntity, 'Motions')
+@RegisterClass(BaseEntity, 'Committees: Motions')
 export class mjCommitteesMotionEntity extends BaseEntity<mjCommitteesMotionEntityType> {
     /**
-    * Loads the Motions record from the database
-    * @param ID: string - primary key value to load the Motions record.
+    * Loads the Committees: Motions record from the database
+    * @param ID: string - primary key value to load the Committees: Motions record.
     * @param EntityRelationshipsToLoad - (optional) the relationships to load
     * @returns {Promise<boolean>} - true if successful, false otherwise
     * @public
@@ -3788,7 +3786,7 @@ export class mjCommitteesMotionEntity extends BaseEntity<mjCommitteesMotionEntit
     * * Field Name: MeetingID
     * * Display Name: Meeting
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Meetings (vwMeetings.ID)
+    * * Related Entity/Foreign Key: Committees: Meetings (vwMeetings.ID)
     */
     get MeetingID(): string {
         return this.Get('MeetingID');
@@ -3801,7 +3799,7 @@ export class mjCommitteesMotionEntity extends BaseEntity<mjCommitteesMotionEntit
     * * Field Name: AgendaItemID
     * * Display Name: Agenda Item
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Agenda Items (vwAgendaItems.ID)
+    * * Related Entity/Foreign Key: Committees: Agenda Items (vwAgendaItems.ID)
     */
     get AgendaItemID(): string | null {
         return this.Get('AgendaItemID');
@@ -3854,7 +3852,7 @@ export class mjCommitteesMotionEntity extends BaseEntity<mjCommitteesMotionEntit
     * * Field Name: MovedByMembershipID
     * * Display Name: Moved By Membership
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Memberships (vwMemberships.ID)
+    * * Related Entity/Foreign Key: Committees: Memberships (vwMemberships.ID)
     * * Description: The committee member who made the motion
     */
     get MovedByMembershipID(): string | null {
@@ -3868,7 +3866,7 @@ export class mjCommitteesMotionEntity extends BaseEntity<mjCommitteesMotionEntit
     * * Field Name: SecondedByMembershipID
     * * Display Name: Seconded By Membership
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Memberships (vwMemberships.ID)
+    * * Related Entity/Foreign Key: Committees: Memberships (vwMemberships.ID)
     * * Description: The committee member who seconded the motion
     */
     get SecondedByMembershipID(): string | null {
@@ -4023,7 +4021,7 @@ export class mjCommitteesMotionEntity extends BaseEntity<mjCommitteesMotionEntit
 
 
 /**
- * Roles - strongly typed entity sub-class
+ * Committees: Roles - strongly typed entity sub-class
  * * Schema: __mj_Committees
  * * Base Table: Role
  * * Base View: vwRoles
@@ -4033,11 +4031,11 @@ export class mjCommitteesMotionEntity extends BaseEntity<mjCommitteesMotionEntit
  * @class
  * @public
  */
-@RegisterClass(BaseEntity, 'Roles')
+@RegisterClass(BaseEntity, 'Committees: Roles')
 export class mjCommitteesRoleEntity extends BaseEntity<mjCommitteesRoleEntityType> {
     /**
-    * Loads the Roles record from the database
-    * @param ID: string - primary key value to load the Roles record.
+    * Loads the Committees: Roles record from the database
+    * @param ID: string - primary key value to load the Committees: Roles record.
     * @param EntityRelationshipsToLoad - (optional) the relationships to load
     * @returns {Promise<boolean>} - true if successful, false otherwise
     * @public
@@ -4169,7 +4167,7 @@ export class mjCommitteesRoleEntity extends BaseEntity<mjCommitteesRoleEntityTyp
 
 
 /**
- * Terms - strongly typed entity sub-class
+ * Committees: Terms - strongly typed entity sub-class
  * * Schema: __mj_Committees
  * * Base Table: Term
  * * Base View: vwTerms
@@ -4179,11 +4177,11 @@ export class mjCommitteesRoleEntity extends BaseEntity<mjCommitteesRoleEntityTyp
  * @class
  * @public
  */
-@RegisterClass(BaseEntity, 'Terms')
+@RegisterClass(BaseEntity, 'Committees: Terms')
 export class mjCommitteesTermEntity extends BaseEntity<mjCommitteesTermEntityType> {
     /**
-    * Loads the Terms record from the database
-    * @param ID: string - primary key value to load the Terms record.
+    * Loads the Committees: Terms record from the database
+    * @param ID: string - primary key value to load the Committees: Terms record.
     * @param EntityRelationshipsToLoad - (optional) the relationships to load
     * @returns {Promise<boolean>} - true if successful, false otherwise
     * @public
@@ -4215,7 +4213,7 @@ export class mjCommitteesTermEntity extends BaseEntity<mjCommitteesTermEntityTyp
     * * Field Name: CommitteeID
     * * Display Name: Committee
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Committees (vwCommittees.ID)
+    * * Related Entity/Foreign Key: Committees: Committees (vwCommittees.ID)
     */
     get CommitteeID(): string {
         return this.Get('CommitteeID');
@@ -4314,7 +4312,7 @@ export class mjCommitteesTermEntity extends BaseEntity<mjCommitteesTermEntityTyp
 
 
 /**
- * Types - strongly typed entity sub-class
+ * Committees: Types - strongly typed entity sub-class
  * * Schema: __mj_Committees
  * * Base Table: Type
  * * Base View: vwTypes
@@ -4324,11 +4322,11 @@ export class mjCommitteesTermEntity extends BaseEntity<mjCommitteesTermEntityTyp
  * @class
  * @public
  */
-@RegisterClass(BaseEntity, 'Types')
+@RegisterClass(BaseEntity, 'Committees: Types')
 export class mjCommitteesTypeEntity extends BaseEntity<mjCommitteesTypeEntityType> {
     /**
-    * Loads the Types record from the database
-    * @param ID: string - primary key value to load the Types record.
+    * Loads the Committees: Types record from the database
+    * @param ID: string - primary key value to load the Committees: Types record.
     * @param EntityRelationshipsToLoad - (optional) the relationships to load
     * @returns {Promise<boolean>} - true if successful, false otherwise
     * @public
@@ -4445,7 +4443,7 @@ export class mjCommitteesTypeEntity extends BaseEntity<mjCommitteesTypeEntityTyp
 
 
 /**
- * Video Providers - strongly typed entity sub-class
+ * Committees: Video Providers - strongly typed entity sub-class
  * * Schema: __mj_Committees
  * * Base Table: VideoProvider
  * * Base View: vwVideoProviders
@@ -4454,11 +4452,11 @@ export class mjCommitteesTypeEntity extends BaseEntity<mjCommitteesTypeEntityTyp
  * @class
  * @public
  */
-@RegisterClass(BaseEntity, 'Video Providers')
+@RegisterClass(BaseEntity, 'Committees: Video Providers')
 export class mjCommitteesVideoProviderEntity extends BaseEntity<mjCommitteesVideoProviderEntityType> {
     /**
-    * Loads the Video Providers record from the database
-    * @param ID: string - primary key value to load the Video Providers record.
+    * Loads the Committees: Video Providers record from the database
+    * @param ID: string - primary key value to load the Committees: Video Providers record.
     * @param EntityRelationshipsToLoad - (optional) the relationships to load
     * @returns {Promise<boolean>} - true if successful, false otherwise
     * @public
@@ -4581,7 +4579,7 @@ export class mjCommitteesVideoProviderEntity extends BaseEntity<mjCommitteesVide
 
 
 /**
- * Votes - strongly typed entity sub-class
+ * Committees: Votes - strongly typed entity sub-class
  * * Schema: __mj_Committees
  * * Base Table: Vote
  * * Base View: vwVotes
@@ -4591,11 +4589,11 @@ export class mjCommitteesVideoProviderEntity extends BaseEntity<mjCommitteesVide
  * @class
  * @public
  */
-@RegisterClass(BaseEntity, 'Votes')
+@RegisterClass(BaseEntity, 'Committees: Votes')
 export class mjCommitteesVoteEntity extends BaseEntity<mjCommitteesVoteEntityType> {
     /**
-    * Loads the Votes record from the database
-    * @param ID: string - primary key value to load the Votes record.
+    * Loads the Committees: Votes record from the database
+    * @param ID: string - primary key value to load the Committees: Votes record.
     * @param EntityRelationshipsToLoad - (optional) the relationships to load
     * @returns {Promise<boolean>} - true if successful, false otherwise
     * @public
@@ -4627,7 +4625,7 @@ export class mjCommitteesVoteEntity extends BaseEntity<mjCommitteesVoteEntityTyp
     * * Field Name: MotionID
     * * Display Name: Motion
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Motions (vwMotions.ID)
+    * * Related Entity/Foreign Key: Committees: Motions (vwMotions.ID)
     */
     get MotionID(): string {
         return this.Get('MotionID');
@@ -4640,7 +4638,7 @@ export class mjCommitteesVoteEntity extends BaseEntity<mjCommitteesVoteEntityTyp
     * * Field Name: MembershipID
     * * Display Name: Membership
     * * SQL Data Type: uniqueidentifier
-    * * Related Entity/Foreign Key: Memberships (vwMemberships.ID)
+    * * Related Entity/Foreign Key: Committees: Memberships (vwMemberships.ID)
     */
     get MembershipID(): string {
         return this.Get('MembershipID');

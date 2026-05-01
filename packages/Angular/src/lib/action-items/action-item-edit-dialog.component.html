@@ -105,13 +105,6 @@
                 </div>
             }
 
-            <!-- Comment thread (only for existing items) -->
-            @if (!IsNew) {
-                <comment-thread
-                    [CommitteeID]="ActionItem.CommitteeID"
-                    [ActionItemID]="ActionItem.ID"
-                ></comment-thread>
-            }
         </div>
 
         <div class="dialog-footer">

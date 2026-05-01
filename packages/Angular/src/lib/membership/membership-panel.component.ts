@@ -196,7 +196,7 @@ export class MembershipPanelComponent {
     private async LoadTerms(): Promise<void> {
         const rv = new RunView();
         const result = await rv.RunView({
-            EntityName: 'Terms',
+            EntityName: 'Committees: Terms',
             Fields: ['ID', 'Name', 'Status'],
             ExtraFilter: `CommitteeID = '${this.CommitteeID}'`,
             OrderBy: 'StartDate DESC',
@@ -217,14 +217,14 @@ export class MembershipPanelComponent {
         const rv = new RunView();
         const [membershipsResult, rolesResult] = await rv.RunViews([
             {
-                EntityName: 'Memberships',
+                EntityName: 'Committees: Memberships',
                 Fields: ['ID', 'PersonID', 'Person', 'RoleID', 'Role', 'TermID', 'Term', 'StartDate', 'EndDate', 'Status'],
                 ExtraFilter: `TermID IN (${termIDs}) AND Status != 'Ended'`,
                 OrderBy: 'Person ASC',
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Roles',
+                EntityName: 'Committees: Roles',
                 Fields: ['ID', 'Sequence'],
                 OrderBy: 'Sequence ASC',
                 ResultType: 'simple'

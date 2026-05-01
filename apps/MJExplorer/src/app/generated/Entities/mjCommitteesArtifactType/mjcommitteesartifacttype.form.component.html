@@ -91,25 +91,25 @@
          RELATED ENTITY PANELS
          ======================================== -->
 
-    <!-- Artifacts Section -->
+    <!-- Committees: Artifacts Section -->
     <mj-collapsible-panel
-        SectionKey="artifacts"
-        SectionName="Artifacts"
+        SectionKey="committeesArtifacts"
+        SectionName="Committees: Artifacts"
         Icon="fa fa-file"
         Variant="related-entity"
         [Form]="this"
         [FormContext]="formContext"
-        [BadgeCount]="GetSectionRowCount('artifacts')"
+        [BadgeCount]="GetSectionRowCount('committeesArtifacts')"
         [DefaultExpanded]="false">
         @if (record.IsSaved) {
         <div>
             <mj-explorer-entity-data-grid
-                [Params]="BuildRelationshipViewParamsByEntityName('Artifacts','ArtifactTypeID')"
-                [NewRecordValues]="NewRecordValues('Artifacts')"
-                [AllowLoad]="IsSectionExpanded('artifacts')"
+                [Params]="BuildRelationshipViewParamsByEntityName('Committees: Artifacts','ArtifactTypeID')"
+                [NewRecordValues]="NewRecordValues('Committees: Artifacts')"
+                [AllowLoad]="IsSectionExpanded('committeesArtifacts')"
                 [ShowToolbar]="false"
                 (Navigate)="OnFormNavigate($event)"
-                (AfterDataLoad)="SetSectionRowCount('artifacts', $event.totalRowCount)"
+                (AfterDataLoad)="SetSectionRowCount('committeesArtifacts', $event.totalRowCount)"
                 >
             </mj-explorer-entity-data-grid>
         </div>

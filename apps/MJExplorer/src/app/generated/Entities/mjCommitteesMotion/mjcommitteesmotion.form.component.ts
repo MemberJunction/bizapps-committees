@@ -4,7 +4,7 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseFormComponent } from '@memberjunction/ng-base-forms';
 import {  } from "@memberjunction/ng-entity-viewer"
 
-@RegisterClass(BaseFormComponent, 'Motions') // Tell MemberJunction about this class
+@RegisterClass(BaseFormComponent, 'Committees: Motions') // Tell MemberJunction about this class
 @Component({
     standalone: false,
     selector: 'gen-mjcommitteesmotion-form',
@@ -20,7 +20,7 @@ export class mjCommitteesMotionFormComponent extends BaseFormComponent {
             { sectionKey: 'memberParticipation', sectionName: 'Member Participation', isExpanded: true },
             { sectionKey: 'votingOutcome', sectionName: 'Voting Outcome', isExpanded: false },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'votes', sectionName: 'Votes', isExpanded: false }
+            { sectionKey: 'committeesVotes', sectionName: 'Committees: Votes', isExpanded: false }
         ]);
     }
 }

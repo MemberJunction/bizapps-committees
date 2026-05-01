@@ -4,7 +4,7 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseFormComponent } from '@memberjunction/ng-base-forms';
 import {  } from "@memberjunction/ng-entity-viewer"
 
-@RegisterClass(BaseFormComponent, 'Video Providers') // Tell MemberJunction about this class
+@RegisterClass(BaseFormComponent, 'Committees: Video Providers') // Tell MemberJunction about this class
 @Component({
     standalone: false,
     selector: 'gen-mjcommitteesvideoprovider-form',
@@ -19,7 +19,7 @@ export class mjCommitteesVideoProviderFormComponent extends BaseFormComponent {
             { sectionKey: 'providerDetails', sectionName: 'Provider Details', isExpanded: true },
             { sectionKey: 'accessConfiguration', sectionName: 'Access Configuration', isExpanded: true },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'meetings', sectionName: 'Meetings', isExpanded: false }
+            { sectionKey: 'committeesMeetings', sectionName: 'Committees: Meetings', isExpanded: false }
         ]);
     }
 }

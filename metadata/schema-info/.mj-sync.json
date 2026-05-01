@@ -1,5 +1,5 @@
 {
-  "entity": "Schema Info",
+  "entity": "MJ: Schema Info",
   "filePattern": "**/.*.json",
   "pull": {
     "createNewFileIfNotFound": true,

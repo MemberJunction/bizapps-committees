@@ -86,7 +86,7 @@ export class CommitteePermissionHelper {
 
         const rv = new RunView();
         const memberResult = await rv.RunView<{ RoleID: string; TermID: string }>({
-            EntityName: 'Memberships',
+            EntityName: 'Committees: Memberships',
             ExtraFilter: `PersonID = '${personID}' AND Status = 'Active'`,
             Fields: ['RoleID', 'TermID'],
             ResultType: 'simple'
@@ -103,13 +103,13 @@ export class CommitteePermissionHelper {
 
         const [roleResult, termResult] = await rv.RunViews([
             {
-                EntityName: 'Roles',
+                EntityName: 'Committees: Roles',
                 ExtraFilter: `ID IN (${roleIDs.map(id => `'${id}'`).join(',')})`,
                 Fields: ['ID', 'IsOfficer'],
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Terms',
+                EntityName: 'Committees: Terms',
                 ExtraFilter: `ID IN (${termIDs.map(id => `'${id}'`).join(',')})`,
                 Fields: ['ID', 'CommitteeID'],
                 ResultType: 'simple'

@@ -162,7 +162,7 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
     private async LoadAllCommitteeIDs(): Promise<Map<string, boolean>> {
         const rv = new RunView();
         const result = await rv.RunView<{ ID: string }>({
-            EntityName: 'Committees',
+            EntityName: 'Committees: Committees',
             ExtraFilter: "Status = 'Active'",
             Fields: ['ID'],
             ResultType: 'simple',
@@ -193,7 +193,7 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
         const rv = new RunView();
         const [committeesResult, categoriesResult] = await rv.RunViews([
             {
-                EntityName: 'Committees',
+                EntityName: 'Committees: Committees',
                 ExtraFilter: `ID IN (${committeeIDs.map(id => `'${id}'`).join(',')})`,
                 Fields: ['ID', 'Name'],
                 ResultType: 'simple',

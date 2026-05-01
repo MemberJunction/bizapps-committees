@@ -109,19 +109,19 @@ export class CommitteeListComponent extends BaseResourceComponent implements OnI
         const rv = new RunView();
         const [committeesResult, termsResult, membershipsResult] = await rv.RunViews([
             {
-                EntityName: 'Committees',
+                EntityName: 'Committees: Committees',
                 ExtraFilter: '',
                 Fields: ['ID', 'Name', 'Description', 'Type', 'Status', 'ParentCommittee', 'Organization'],
                 OrderBy: 'Name ASC',
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Terms',
+                EntityName: 'Committees: Terms',
                 Fields: ['ID', 'CommitteeID'],
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Memberships',
+                EntityName: 'Committees: Memberships',
                 ExtraFilter: "Status = 'Active'",
                 Fields: ['TermID'],
                 ResultType: 'simple'

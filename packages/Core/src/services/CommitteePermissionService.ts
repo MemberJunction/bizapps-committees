@@ -153,7 +153,7 @@ export class CommitteePermissionService {
         // Step 1: Get term IDs for this committee
         const rv = new RunView();
         const termsResult = await rv.RunView<{ ID: string }>({
-            EntityName: 'Terms',
+            EntityName: 'Committees: Terms',
             ExtraFilter: `CommitteeID = '${committeeID}'`,
             Fields: ['ID'],
             ResultType: 'simple',
@@ -167,7 +167,7 @@ export class CommitteePermissionService {
 
         // Step 2: Find active membership for this person in those terms
         const memberResult = await rv.RunView<MembershipRoleRow>({
-            EntityName: 'Memberships',
+            EntityName: 'Committees: Memberships',
             ExtraFilter: `PersonID = '${personID}' AND TermID IN (${termIDs}) AND Status = 'Active'`,
             Fields: ['ID', 'RoleID', 'Role', 'TermID'],
             MaxRows: 1,
@@ -182,7 +182,7 @@ export class CommitteePermissionService {
         // Step 3: Check if the role is an officer role
         const membership = memberResult.Results[0];
         const roleResult = await rv.RunView<{ IsOfficer: boolean | number }>({
-            EntityName: 'Roles',
+            EntityName: 'Committees: Roles',
             ExtraFilter: `ID = '${membership.RoleID}'`,
             Fields: ['IsOfficer'],
             MaxRows: 1,
@@ -208,7 +208,7 @@ export class CommitteePermissionService {
 
         // Load all active memberships with term info
         const memberResult = await rv.RunView<{ ID: string; RoleID: string; Role: string; TermID: string }>({
-            EntityName: 'Memberships',
+            EntityName: 'Committees: Memberships',
             ExtraFilter: `PersonID = '${personID}' AND Status = 'Active'`,
             Fields: ['ID', 'RoleID', 'Role', 'TermID'],
             ResultType: 'simple',
@@ -222,7 +222,7 @@ export class CommitteePermissionService {
         const termIDs = [...new Set(memberResult.Results.map(m => m.TermID))];
         const termIDsStr = termIDs.map(id => `'${id}'`).join(',');
         const termResult = await rv.RunView<{ ID: string; CommitteeID: string }>({
-            EntityName: 'Terms',
+            EntityName: 'Committees: Terms',
             ExtraFilter: `ID IN (${termIDsStr})`,
             Fields: ['ID', 'CommitteeID'],
             ResultType: 'simple',
@@ -239,7 +239,7 @@ export class CommitteePermissionService {
         const roleIDs = [...new Set(memberResult.Results.map(m => m.RoleID))];
         const roleIDsStr = roleIDs.map(id => `'${id}'`).join(',');
         const roleResult = await rv.RunView<{ ID: string; IsOfficer: boolean | number }>({
-            EntityName: 'Roles',
+            EntityName: 'Committees: Roles',
             ExtraFilter: `ID IN (${roleIDsStr})`,
             Fields: ['ID', 'IsOfficer'],
             ResultType: 'simple',

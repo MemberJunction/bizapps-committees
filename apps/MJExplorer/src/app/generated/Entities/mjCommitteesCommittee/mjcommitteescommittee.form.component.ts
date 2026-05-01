@@ -4,7 +4,7 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseFormComponent } from '@memberjunction/ng-base-forms';
 import {  } from "@memberjunction/ng-entity-viewer"
 
-@RegisterClass(BaseFormComponent, 'Committees') // Tell MemberJunction about this class
+@RegisterClass(BaseFormComponent, 'Committees: Committees') // Tell MemberJunction about this class
 @Component({
     standalone: false,
     selector: 'gen-mjcommitteescommittee-form',
@@ -21,13 +21,13 @@ export class mjCommitteesCommitteeFormComponent extends BaseFormComponent {
             { sectionKey: 'hierarchy', sectionName: 'Hierarchy', isExpanded: false },
             { sectionKey: 'governanceStatus', sectionName: 'Governance & Status', isExpanded: false },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'terms', sectionName: 'Terms', isExpanded: false },
-            { sectionKey: 'meetings', sectionName: 'Meetings', isExpanded: false },
-            { sectionKey: 'memberships', sectionName: 'Memberships', isExpanded: false },
-            { sectionKey: 'artifacts', sectionName: 'Artifacts', isExpanded: false },
-            { sectionKey: 'actionItems', sectionName: 'Action Items', isExpanded: false },
-            { sectionKey: 'committees', sectionName: 'Committees', isExpanded: false },
-            { sectionKey: 'comments', sectionName: 'Comments', isExpanded: false }
+            { sectionKey: 'committeesTerms', sectionName: 'Committees: Terms', isExpanded: false },
+            { sectionKey: 'committeesMeetings', sectionName: 'Committees: Meetings', isExpanded: false },
+            { sectionKey: 'committeesMemberships', sectionName: 'Committees: Memberships', isExpanded: false },
+            { sectionKey: 'committeesArtifacts', sectionName: 'Committees: Artifacts', isExpanded: false },
+            { sectionKey: 'committeesActionItems', sectionName: 'Committees: Action Items', isExpanded: false },
+            { sectionKey: 'committeesCommittees', sectionName: 'Committees: Committees', isExpanded: false },
+            { sectionKey: 'committeesComments', sectionName: 'Committees: Comments', isExpanded: false }
         ]);
     }
 }

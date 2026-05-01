@@ -233,7 +233,7 @@ export class MeetingEditDialogComponent implements OnInit {
         if (!this.MeetingID) return;
         const rv = new RunView();
         const result = await rv.RunView({
-            EntityName: 'Motions',
+            EntityName: 'Committees: Motions',
             Fields: ['ID', 'Sequence', 'Title', 'Result', 'ResultSummary', 'MovedByMembership', 'SecondedByMembership', 'YesCount', 'NoCount', 'AbstainCount'],
             ExtraFilter: `MeetingID = '${this.MeetingID}'`,
             OrderBy: 'Sequence ASC',
@@ -282,8 +282,8 @@ export class MeetingEditDialogComponent implements OnInit {
 
         // Persist the two swapped items
         const md = new Metadata();
-        const entityA = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Agenda Items');
-        const entityB = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Agenda Items');
+        const entityA = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Committees: Agenda Items');
+        const entityB = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Committees: Agenda Items');
         await entityA.Load(this.AgendaItems[idx]['ID'] as string);
         await entityB.Load(this.AgendaItems[swapIdx]['ID'] as string);
         entityA.Sequence = this.AgendaItems[idx]['Sequence'] as number;
@@ -311,7 +311,7 @@ export class MeetingEditDialogComponent implements OnInit {
         if (!this.MeetingID) return;
         const rv = new RunView();
         const result = await rv.RunView({
-            EntityName: 'Agenda Items',
+            EntityName: 'Committees: Agenda Items',
             Fields: ['ID', 'Sequence', 'Title', 'ItemType', 'DurationMinutes', 'Status', 'Presenter', 'PresenterPersonID'],
             ExtraFilter: `MeetingID = '${this.MeetingID}'`,
             OrderBy: 'Sequence ASC',
@@ -341,14 +341,14 @@ export class MeetingEditDialogComponent implements OnInit {
     private async LoadOrCreateMeeting(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.Meeting = await md.GetEntityObject<mjCommitteesMeetingEntity>('Meetings');
+            this.Meeting = await md.GetEntityObject<mjCommitteesMeetingEntity>('Committees: Meetings');
             this.Meeting.Status = 'Scheduled';
             this.Meeting.LocationType = 'Virtual';
             const now = new Date();
             now.setHours(now.getHours() + 1, 0, 0, 0);
             this.StartDateTimeLocal = this.ToLocalDateTimeString(now);
         } else {
-            this.Meeting = await md.GetEntityObject<mjCommitteesMeetingEntity>('Meetings');
+            this.Meeting = await md.GetEntityObject<mjCommitteesMeetingEntity>('Committees: Meetings');
             await this.Meeting.Load(this.MeetingID!);
             this.StartDateTimeLocal = this.ToLocalDateTimeString(this.Meeting.StartDateTime);
             if (this.Meeting.EndDateTime) {
@@ -361,7 +361,7 @@ export class MeetingEditDialogComponent implements OnInit {
         const rv = new RunView();
         const [committeesResult, peopleResult] = await rv.RunViews([
             {
-                EntityName: 'Committees',
+                EntityName: 'Committees: Committees',
                 Fields: ['ID', 'Name'],
                 ExtraFilter: "Status = 'Active'",
                 OrderBy: 'Name ASC',
@@ -396,7 +396,7 @@ export class MeetingEditDialogComponent implements OnInit {
 
         // Load default video provider
         const providerResult = await rv.RunView<{ ID: string; Name: string }>({
-            EntityName: 'Video Providers',
+            EntityName: 'Committees: Video Providers',
             Fields: ['ID', 'Name'],
             ExtraFilter: `IsDefault = 1 AND IsActive = 1`,
             MaxRows: 1,
@@ -411,7 +411,7 @@ export class MeetingEditDialogComponent implements OnInit {
     private async LoadAttendees(): Promise<void> {
         const rv = new RunView();
         const result = await rv.RunView({
-            EntityName: 'Attendances',
+            EntityName: 'Committees: Attendances',
             Fields: ['ID', 'PersonID', 'Person', 'AttendanceStatus'],
             ExtraFilter: `MeetingID = '${this.MeetingID}'`,
             OrderBy: 'Person ASC',
@@ -434,14 +434,14 @@ export class MeetingEditDialogComponent implements OnInit {
 
         // Delete removed attendees
         for (const attendee of this.Attendees.filter(a => a.IsRemoved && !a.IsNew)) {
-            const entity = await md.GetEntityObject<mjCommitteesAttendanceEntity>('Attendances');
+            const entity = await md.GetEntityObject<mjCommitteesAttendanceEntity>('Committees: Attendances');
             await entity.Load(attendee.ID!);
             await entity.Delete();
         }
 
         // Create new attendees
         for (const attendee of this.Attendees.filter(a => a.IsNew && !a.IsRemoved)) {
-            const entity = await md.GetEntityObject<mjCommitteesAttendanceEntity>('Attendances');
+            const entity = await md.GetEntityObject<mjCommitteesAttendanceEntity>('Committees: Attendances');
             entity.MeetingID = this.Meeting!.ID;
             entity.PersonID = attendee.PersonID;
             entity.AttendanceStatus = attendee.Status;

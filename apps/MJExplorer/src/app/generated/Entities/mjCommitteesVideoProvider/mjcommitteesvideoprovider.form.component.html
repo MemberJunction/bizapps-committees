@@ -99,25 +99,25 @@
          RELATED ENTITY PANELS
          ======================================== -->
 
-    <!-- Meetings Section -->
+    <!-- Committees: Meetings Section -->
     <mj-collapsible-panel
-        SectionKey="meetings"
-        SectionName="Meetings"
+        SectionKey="committeesMeetings"
+        SectionName="Committees: Meetings"
         Icon="fa fa-handshake"
         Variant="related-entity"
         [Form]="this"
         [FormContext]="formContext"
-        [BadgeCount]="GetSectionRowCount('meetings')"
+        [BadgeCount]="GetSectionRowCount('committeesMeetings')"
         [DefaultExpanded]="false">
         @if (record.IsSaved) {
         <div>
             <mj-explorer-entity-data-grid
-                [Params]="BuildRelationshipViewParamsByEntityName('Meetings','VideoProviderID')"
-                [NewRecordValues]="NewRecordValues('Meetings')"
-                [AllowLoad]="IsSectionExpanded('meetings')"
+                [Params]="BuildRelationshipViewParamsByEntityName('Committees: Meetings','VideoProviderID')"
+                [NewRecordValues]="NewRecordValues('Committees: Meetings')"
+                [AllowLoad]="IsSectionExpanded('committeesMeetings')"
                 [ShowToolbar]="false"
                 (Navigate)="OnFormNavigate($event)"
-                (AfterDataLoad)="SetSectionRowCount('meetings', $event.totalRowCount)"
+                (AfterDataLoad)="SetSectionRowCount('committeesMeetings', $event.totalRowCount)"
                 >
             </mj-explorer-entity-data-grid>
         </div>

@@ -122,13 +122,13 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
 
         if (existingVote) {
             if (existingVote.VoteValue === value) return; // Already voted this way
-            const vote = await md.GetEntityObject<mjCommitteesVoteEntity>('Votes');
+            const vote = await md.GetEntityObject<mjCommitteesVoteEntity>('Committees: Votes');
             await vote.Load(existingVote.VoteID);
             vote.VoteValue = value;
             await vote.Save();
             existingVote.VoteValue = value;
         } else {
-            const vote = await md.GetEntityObject<mjCommitteesVoteEntity>('Votes');
+            const vote = await md.GetEntityObject<mjCommitteesVoteEntity>('Committees: Votes');
             vote.NewRecord();
             vote.MotionID = motion.ID;
             vote.MembershipID = this.CurrentMembershipID;
@@ -149,7 +149,7 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
     // ─── Officer: Agenda Status ───
     async OnAgendaStatusChange(itemID: string, newStatus: string): Promise<void> {
         const md = new Metadata();
-        const item = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Agenda Items');
+        const item = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Committees: Agenda Items');
         await item.Load(itemID);
         item.Status = newStatus as 'Pending' | 'Discussed' | 'Completed' | 'Tabled' | 'Skipped';
         await item.Save();
@@ -162,7 +162,7 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
     // ─── Officer: Close Vote ───
     async OnCloseVote(motion: MotionWithVotes): Promise<void> {
         const md = new Metadata();
-        const entity = await md.GetEntityObject<mjCommitteesMotionEntity>('Motions');
+        const entity = await md.GetEntityObject<mjCommitteesMotionEntity>('Committees: Motions');
         await entity.Load(motion.ID);
 
         const yes = motion.Votes.filter(v => v.VoteValue === 'Yes').length;
@@ -242,7 +242,7 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
         const rv = new RunView();
 
         const meetingResult = await rv.RunView<Record<string, unknown>>({
-            EntityName: 'Meetings',
+            EntityName: 'Committees: Meetings',
             ExtraFilter: `ID = '${this.MeetingID}'`,
             Fields: ['ID', 'Title', 'Committee', 'CommitteeID', 'Status', 'StartDateTime', 'EndDateTime', 'LocationType', 'VideoJoinURL'],
             MaxRows: 1,
@@ -275,14 +275,14 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
 
         const [agendaResult, motionsResult] = await rv.RunViews([
             {
-                EntityName: 'Agenda Items',
+                EntityName: 'Committees: Agenda Items',
                 Fields: ['ID', 'Sequence', 'Title', 'ItemType', 'Status', 'Presenter', 'DurationMinutes'],
                 ExtraFilter: `MeetingID = '${this.MeetingID}'`,
                 OrderBy: 'Sequence ASC',
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Motions',
+                EntityName: 'Committees: Motions',
                 Fields: ['ID', 'Sequence', 'Title', 'Description', 'Result', 'ResultSummary', 'MovedByMembershipID', 'SecondedByMembershipID', 'YesCount', 'NoCount', 'AbstainCount'],
                 ExtraFilter: `MeetingID = '${this.MeetingID}'`,
                 OrderBy: 'Sequence ASC',
@@ -333,7 +333,7 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
         const rv = new RunView();
         const ids = motionIDs.map(id => `'${id}'`).join(',');
         const votesResult = await rv.RunView<{ ID: string; MotionID: string; MembershipID: string; VoteValue: string }>({
-            EntityName: 'Votes',
+            EntityName: 'Committees: Votes',
             ExtraFilter: `MotionID IN (${ids})`,
             Fields: ['ID', 'MotionID', 'MembershipID', 'VoteValue'],
             ResultType: 'simple'
@@ -355,7 +355,7 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
 
         const rv = new RunView();
         const termsResult = await rv.RunView<{ ID: string }>({
-            EntityName: 'Terms',
+            EntityName: 'Committees: Terms',
             ExtraFilter: `CommitteeID = '${committeeID}'`,
             Fields: ['ID'],
             ResultType: 'simple'
@@ -364,7 +364,7 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
 
         const termIDs = termsResult.Results.map(t => `'${t.ID}'`).join(',');
         const memberResult = await rv.RunView<{ ID: string; RoleID: string }>({
-            EntityName: 'Memberships',
+            EntityName: 'Committees: Memberships',
             ExtraFilter: `PersonID = '${personID}' AND TermID IN (${termIDs}) AND Status = 'Active'`,
             Fields: ['ID', 'RoleID'],
             ResultType: 'simple'
@@ -375,7 +375,7 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
 
             // Check if voting role
             const roleResult = await rv.RunView<{ IsVotingRole: boolean | number }>({
-                EntityName: 'Roles',
+                EntityName: 'Committees: Roles',
                 ExtraFilter: `ID = '${memberResult.Results[0].RoleID}'`,
                 Fields: ['IsVotingRole'],
                 MaxRows: 1,
@@ -394,7 +394,7 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
         const rv = new RunView();
         const ids = membershipIDs.map(id => `'${id}'`).join(',');
         const membershipsResult = await rv.RunView<{ ID: string; Person: string }>({
-            EntityName: 'Memberships',
+            EntityName: 'Committees: Memberships',
             ExtraFilter: `ID IN (${ids})`,
             Fields: ['ID', 'Person'],
             ResultType: 'simple'

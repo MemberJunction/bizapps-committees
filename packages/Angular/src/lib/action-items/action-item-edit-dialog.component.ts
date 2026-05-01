@@ -129,11 +129,11 @@ export class ActionItemEditDialogComponent implements OnInit {
     private async LoadOrCreateActionItem(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.ActionItem = await md.GetEntityObject<mjCommitteesActionItemEntity>('Action Items');
+            this.ActionItem = await md.GetEntityObject<mjCommitteesActionItemEntity>('Committees: Action Items');
             this.ActionItem.Priority = 'Medium';
             this.ActionItem.Status = 'Open';
         } else {
-            this.ActionItem = await md.GetEntityObject<mjCommitteesActionItemEntity>('Action Items');
+            this.ActionItem = await md.GetEntityObject<mjCommitteesActionItemEntity>('Committees: Action Items');
             await this.ActionItem.Load(this.ActionItemID!);
             if (this.ActionItem.DueDate) {
                 this.DueDateLocal = this.ToLocalDateString(this.ActionItem.DueDate);
@@ -145,14 +145,14 @@ export class ActionItemEditDialogComponent implements OnInit {
         const rv = new RunView();
         const [committeesResult, meetingsResult, peopleResult] = await rv.RunViews([
             {
-                EntityName: 'Committees',
+                EntityName: 'Committees: Committees',
                 Fields: ['ID', 'Name'],
                 ExtraFilter: "Status = 'Active'",
                 OrderBy: 'Name ASC',
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Meetings',
+                EntityName: 'Committees: Meetings',
                 Fields: ['ID', 'Title'],
                 ExtraFilter: "Status NOT IN ('Cancelled')",
                 OrderBy: 'StartDateTime DESC',

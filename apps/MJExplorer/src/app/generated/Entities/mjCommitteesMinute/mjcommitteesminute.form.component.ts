@@ -3,7 +3,7 @@ import { mjCommitteesMinuteEntity } from '@mj-biz-apps/committees-entities';
 import { RegisterClass } from '@memberjunction/global';
 import { BaseFormComponent } from '@memberjunction/ng-base-forms';
 
-@RegisterClass(BaseFormComponent, 'Minutes') // Tell MemberJunction about this class
+@RegisterClass(BaseFormComponent, 'Committees: Minutes') // Tell MemberJunction about this class
 @Component({
     standalone: false,
     selector: 'gen-mjcommitteesminute-form',

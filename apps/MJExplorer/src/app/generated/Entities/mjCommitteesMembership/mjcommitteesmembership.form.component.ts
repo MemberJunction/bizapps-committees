@@ -4,7 +4,7 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseFormComponent } from '@memberjunction/ng-base-forms';
 import {  } from "@memberjunction/ng-entity-viewer"
 
-@RegisterClass(BaseFormComponent, 'Memberships') // Tell MemberJunction about this class
+@RegisterClass(BaseFormComponent, 'Committees: Memberships') // Tell MemberJunction about this class
 @Component({
     standalone: false,
     selector: 'gen-mjcommitteesmembership-form',
@@ -19,9 +19,9 @@ export class mjCommitteesMembershipFormComponent extends BaseFormComponent {
             { sectionKey: 'membershipAssignment', sectionName: 'Membership Assignment', isExpanded: true },
             { sectionKey: 'timelineStatus', sectionName: 'Timeline & Status', isExpanded: true },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'votes', sectionName: 'Votes', isExpanded: false },
-            { sectionKey: 'motionsSecondedByMembershipID', sectionName: 'Motions (Seconded By Membership)', isExpanded: false },
-            { sectionKey: 'motionsMovedByMembershipID', sectionName: 'Motions (Moved By Membership)', isExpanded: false }
+            { sectionKey: 'committeesVotes', sectionName: 'Committees: Votes', isExpanded: false },
+            { sectionKey: 'committeesMotionsSecondedByMembershipID', sectionName: 'Committees: Motions (Seconded By Membership)', isExpanded: false },
+            { sectionKey: 'committeesMotionsMovedByMembershipID', sectionName: 'Committees: Motions (Moved By Membership)', isExpanded: false }
         ]);
     }
 }

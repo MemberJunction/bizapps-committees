@@ -33,7 +33,7 @@ export interface ProvisionVideoMeetingResult {
  * - Provisioning (auto-creating) a video meeting URL for a given meeting
  */
 export class VideoProviderService {
-    private static readonly ENTITY_NAME = 'Video Providers';
+    private static readonly ENTITY_NAME = 'Committees: Video Providers';
 
     /**
      * Loads the default active VideoProvider record, or null if none is configured.
@@ -153,7 +153,7 @@ export class VideoProviderService {
 
     private async loadMeeting(meetingID: string, contextUser: UserInfo): Promise<mjCommitteesMeetingEntity | null> {
         const md = new Metadata();
-        const meeting = await md.GetEntityObject<mjCommitteesMeetingEntity>('Meetings', contextUser);
+        const meeting = await md.GetEntityObject<mjCommitteesMeetingEntity>('Committees: Meetings', contextUser);
         const loaded = await meeting.Load(meetingID);
         return loaded ? meeting : null;
     }
@@ -180,7 +180,7 @@ export class VideoProviderService {
     private async loadAttendees(meetingID: string, contextUser: UserInfo): Promise<MeetingAttendee[]> {
         const rv = new RunView();
         const attendanceResult = await rv.RunView<{ PersonID: string }>(
-            { EntityName: 'Attendances', ExtraFilter: `MeetingID = '${meetingID}'`, Fields: ['PersonID'], ResultType: 'simple' },
+            { EntityName: 'Committees: Attendances', ExtraFilter: `MeetingID = '${meetingID}'`, Fields: ['PersonID'], ResultType: 'simple' },
             contextUser
         );
 

@@ -84,13 +84,13 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
 
         const [committees, upcoming, recent, actionItems] = await rv.RunViews([
             {
-                EntityName: 'Committees',
+                EntityName: 'Committees: Committees',
                 ExtraFilter: `Status='Active' AND ID IN (${committeeFilter})`,
                 Fields: ['ID'],
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Meetings',
+                EntityName: 'Committees: Meetings',
                 ExtraFilter: `StartDateTime >= '${today}' AND Status IN ('Scheduled', 'Draft') AND CommitteeID IN (${committeeFilter})`,
                 Fields: ['ID', 'Title', 'StartDateTime', 'Committee', 'Status', 'LocationType', 'VideoJoinURL'],
                 OrderBy: 'StartDateTime ASC',
@@ -98,7 +98,7 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Meetings',
+                EntityName: 'Committees: Meetings',
                 ExtraFilter: `Status = 'Completed' AND CommitteeID IN (${committeeFilter})`,
                 Fields: ['ID', 'Title', 'StartDateTime', 'Committee', 'Status'],
                 OrderBy: 'StartDateTime DESC',
@@ -106,7 +106,7 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Action Items',
+                EntityName: 'Committees: Action Items',
                 ExtraFilter: `Status IN ('Open', 'InProgress') AND CommitteeID IN (${committeeFilter})`,
                 Fields: ['ID', 'Title', 'DueDate', 'Priority', 'Status', 'Committee', 'AssignedToPerson'],
                 OrderBy: 'DueDate ASC',
@@ -165,7 +165,7 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
 
         // Person → Active Memberships
         const memberResult = await rv.RunView<{ TermID: string }>({
-            EntityName: 'Memberships',
+            EntityName: 'Committees: Memberships',
             ExtraFilter: `PersonID = '${personID}' AND Status = 'Active'`,
             Fields: ['TermID'],
             ResultType: 'simple'
@@ -176,7 +176,7 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
         const termIDs = [...new Set(memberResult.Results.map(m => m.TermID))];
         const termIDsStr = termIDs.map(id => `'${id}'`).join(',');
         const termResult = await rv.RunView<{ CommitteeID: string }>({
-            EntityName: 'Terms',
+            EntityName: 'Committees: Terms',
             ExtraFilter: `ID IN (${termIDsStr})`,
             Fields: ['CommitteeID'],
             ResultType: 'simple'
@@ -188,7 +188,7 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
 
     private async LoadRecentDocuments(rv: RunView, committeeIDs: string[]): Promise<void> {
         const md = new Metadata();
-        const committeeEntity = md.Entities.find(e => e.Name === 'Committees');
+        const committeeEntity = md.Entities.find(e => e.Name === 'Committees: Committees');
         if (!committeeEntity) return;
 
         const committeeFilter = committeeIDs.map(id => `'${id}'`).join(',');

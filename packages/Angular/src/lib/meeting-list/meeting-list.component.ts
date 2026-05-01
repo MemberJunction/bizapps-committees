@@ -114,7 +114,7 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
 
         const [upcoming, past] = await rv.RunViews([
             {
-                EntityName: 'Meetings',
+                EntityName: 'Committees: Meetings',
                 ExtraFilter: `StartDateTime >= '${now}' AND Status NOT IN ('Cancelled', 'Completed')`,
                 Fields: ['ID', 'Title', 'StartDateTime', 'EndDateTime', 'Committee', 'Status', 'LocationType', 'Location', 'VideoJoinURL'],
                 OrderBy: 'StartDateTime ASC',
@@ -122,7 +122,7 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Meetings',
+                EntityName: 'Committees: Meetings',
                 ExtraFilter: `StartDateTime < '${now}' OR Status IN ('Cancelled', 'Completed')`,
                 Fields: ['ID', 'Title', 'StartDateTime', 'EndDateTime', 'Committee', 'Status', 'LocationType', 'Location', 'VideoJoinURL'],
                 OrderBy: 'StartDateTime DESC',

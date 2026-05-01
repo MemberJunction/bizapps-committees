@@ -138,7 +138,7 @@ export class MinutesService {
     private async findOrCreateMinute(meetingID: string, contextUser: UserInfo): Promise<mjCommitteesMinuteEntity> {
         const rv = new RunView();
         const result = await rv.RunView<mjCommitteesMinuteEntity>({
-            EntityName: 'Minutes',
+            EntityName: 'Committees: Minutes',
             ExtraFilter: `MeetingID='${meetingID}'`,
             ResultType: 'entity_object',
         }, contextUser);
@@ -148,7 +148,7 @@ export class MinutesService {
         }
 
         const md = new Metadata();
-        return await md.GetEntityObject<mjCommitteesMinuteEntity>('Minutes', contextUser);
+        return await md.GetEntityObject<mjCommitteesMinuteEntity>('Committees: Minutes', contextUser);
     }
 
     // -------------------------------------------------------------------------
@@ -163,21 +163,21 @@ export class MinutesService {
         const rv = new RunView();
         const [agendaResult, motionResult, attendanceResult] = await rv.RunViews([
             {
-                EntityName: 'Agenda Items',
+                EntityName: 'Committees: Agenda Items',
                 ExtraFilter: `MeetingID='${meetingID}'`,
                 OrderBy: 'Sequence ASC',
                 Fields: ['ID', 'Sequence', 'Title', 'Description', 'ItemType', 'Status', 'Notes', 'DurationMinutes'],
                 ResultType: 'simple',
             },
             {
-                EntityName: 'Motions',
+                EntityName: 'Committees: Motions',
                 ExtraFilter: `MeetingID='${meetingID}'`,
                 OrderBy: 'Sequence ASC',
                 Fields: ['ID', 'Sequence', 'Title', 'Description', 'Result', 'ResultSummary', 'YesCount', 'NoCount', 'AbstainCount', 'Notes'],
                 ResultType: 'simple',
             },
             {
-                EntityName: 'Attendances',
+                EntityName: 'Committees: Attendances',
                 ExtraFilter: `MeetingID='${meetingID}'`,
                 Fields: ['ID', 'AttendanceStatus', 'Person'],
                 ResultType: 'simple',
@@ -195,7 +195,7 @@ export class MinutesService {
     /** Loads a single Meeting entity by ID, returning null if not found. */
     private async loadMeeting(meetingID: string, contextUser: UserInfo): Promise<mjCommitteesMeetingEntity | null> {
         const md = new Metadata();
-        const meeting = await md.GetEntityObject<mjCommitteesMeetingEntity>('Meetings', contextUser);
+        const meeting = await md.GetEntityObject<mjCommitteesMeetingEntity>('Committees: Meetings', contextUser);
         const loaded = await meeting.Load(meetingID);
         return loaded ? meeting : null;
     }

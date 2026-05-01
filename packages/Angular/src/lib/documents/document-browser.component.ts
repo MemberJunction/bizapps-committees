@@ -215,10 +215,10 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
             ? null  // null = no scoping (staff sees all)
             : await CommitteePermissionHelper.GetMemberCommitteeIDs();
 
-        const committeeEntity = md.Entities.find(e => e.Name === 'Committees');
-        const meetingEntity = md.Entities.find(e => e.Name === 'Meetings');
-        const agendaEntity = md.Entities.find(e => e.Name === 'Agenda Items');
-        const actionEntity = md.Entities.find(e => e.Name === 'Action Items');
+        const committeeEntity = md.Entities.find(e => e.Name === 'Committees: Committees');
+        const meetingEntity = md.Entities.find(e => e.Name === 'Committees: Meetings');
+        const agendaEntity = md.Entities.find(e => e.Name === 'Committees: Agenda Items');
+        const actionEntity = md.Entities.find(e => e.Name === 'Committees: Action Items');
 
         const entityInfos = [committeeEntity, meetingEntity, agendaEntity, actionEntity].filter(e => e != null);
         if (entityInfos.length === 0) {
@@ -252,24 +252,24 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Committees',
+                EntityName: 'Committees: Committees',
                 Fields: ['ID', 'Name'],
                 ExtraFilter: '',
                 OrderBy: 'Name ASC',
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Meetings',
+                EntityName: 'Committees: Meetings',
                 Fields: ['ID', 'CommitteeID'],
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Agenda Items',
+                EntityName: 'Committees: Agenda Items',
                 Fields: ['ID', 'MeetingID'],
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Action Items',
+                EntityName: 'Committees: Action Items',
                 Fields: ['ID', 'CommitteeID'],
                 ResultType: 'simple'
             }

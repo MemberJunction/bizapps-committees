@@ -61,7 +61,7 @@ export class MembershipListComponent extends BaseResourceComponent implements On
 
         // Person → Memberships → Terms
         const memberResult = await rv.RunView<{ TermID: string }>({
-            EntityName: 'Memberships',
+            EntityName: 'Committees: Memberships',
             ExtraFilter: `PersonID = '${personID}' AND Status = 'Active'`,
             Fields: ['TermID'],
             ResultType: 'simple'
@@ -73,7 +73,7 @@ export class MembershipListComponent extends BaseResourceComponent implements On
 
         // Terms → Committees
         const termResult = await rv.RunView<{ CommitteeID: string }>({
-            EntityName: 'Terms',
+            EntityName: 'Committees: Terms',
             ExtraFilter: `ID IN (${termIDsStr})`,
             Fields: ['CommitteeID'],
             ResultType: 'simple'
@@ -85,7 +85,7 @@ export class MembershipListComponent extends BaseResourceComponent implements On
 
         const committeeIDsStr = committeeIDs.map(id => `'${id}'`).join(',');
         const committeesResult = await rv.RunView<{ ID: string; Name: string }>({
-            EntityName: 'Committees',
+            EntityName: 'Committees: Committees',
             ExtraFilter: `ID IN (${committeeIDsStr})`,
             Fields: ['ID', 'Name'],
             OrderBy: 'Name ASC',

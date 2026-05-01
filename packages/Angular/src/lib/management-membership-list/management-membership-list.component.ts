@@ -43,7 +43,7 @@ export class ManagementMembershipListComponent extends BaseResourceComponent imp
     private async LoadAllCommittees(): Promise<void> {
         const rv = new RunView();
         const result = await rv.RunView<{ ID: string; Name: string }>({
-            EntityName: 'Committees',
+            EntityName: 'Committees: Committees',
             ExtraFilter: "Status = 'Active'",
             Fields: ['ID', 'Name'],
             OrderBy: 'Name ASC',

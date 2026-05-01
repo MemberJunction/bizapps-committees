@@ -4,31 +4,15 @@
       "SchemaName": "__mj_Committees",
       "EntityIDMin": 1,
       "EntityIDMax": 1000000,
-      "EntityNamePrefix": "Committees: ",
+      "EntityNamePrefix": null,
       "Description": "Committee management app for governance, meetings, and action tracking"
     },
     "primaryKey": {
-      "ID": "A57C9A73-3FA7-4336-A8F6-C22C998B4854"
+      "ID": "CE11433E-F36B-1410-898B-007AA2BDA0B9"
     },
     "sync": {
-      "lastModified": "2026-02-15T20:43:19.677Z",
+      "lastModified": "2026-04-30T18:59:02.401Z",
       "checksum": "e8ded939815f2b9cf5dc9b4f889cf885638ba0296961c7ee018b41e708cc6ce9"
-    }
-  },
-  {
-    "fields": {
-      "SchemaName": "__mj_BizAppsCommon",
-      "EntityIDMin": 1,
-      "EntityIDMax": 1000000,
-      "EntityNamePrefix": "Common: ",
-      "Description": "Common Business App Data"
-    },
-    "primaryKey": {
-      "ID": "0A9F0FDD-CD4D-4892-BA45-85722B982032"
-    },
-    "sync": {
-      "lastModified": "2026-02-15T20:47:08.228Z",
-      "checksum": "64d109bbd594593e237a8126578dc7eb66917858a7133607c5e231222c71c541"
     }
   }
 ]

@@ -4,7 +4,7 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseFormComponent } from '@memberjunction/ng-base-forms';
 import {  } from "@memberjunction/ng-entity-viewer"
 
-@RegisterClass(BaseFormComponent, 'Action Items') // Tell MemberJunction about this class
+@RegisterClass(BaseFormComponent, 'Committees: Action Items') // Tell MemberJunction about this class
 @Component({
     standalone: false,
     selector: 'gen-mjcommitteesactionitem-form',
@@ -21,8 +21,8 @@ export class mjCommitteesActionItemFormComponent extends BaseFormComponent {
             { sectionKey: 'responsibility', sectionName: 'Responsibility', isExpanded: false },
             { sectionKey: 'timelineCompletion', sectionName: 'Timeline & Completion', isExpanded: false },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'artifacts', sectionName: 'Artifacts', isExpanded: false },
-            { sectionKey: 'comments', sectionName: 'Comments', isExpanded: false }
+            { sectionKey: 'committeesArtifacts', sectionName: 'Committees: Artifacts', isExpanded: false },
+            { sectionKey: 'committeesComments', sectionName: 'Committees: Comments', isExpanded: false }
         ]);
     }
 }

@@ -93,7 +93,7 @@ export class MeetingService {
     /** Loads a single meeting entity by ID. */
     private async loadMeeting(meetingID: string, contextUser: UserInfo): Promise<mjCommitteesMeetingEntity> {
         const md = new Metadata();
-        const meeting = await md.GetEntityObject<mjCommitteesMeetingEntity>('Meetings', contextUser);
+        const meeting = await md.GetEntityObject<mjCommitteesMeetingEntity>('Committees: Meetings', contextUser);
         const loaded = await meeting.Load(meetingID);
         if (!loaded) {
             throw new Error(`Meeting not found: ${meetingID}`);
@@ -113,13 +113,13 @@ export class MeetingService {
 
         const [agendaResult, attendanceResult] = await rv.RunViews([
             {
-                EntityName: 'Agenda Items',
+                EntityName: 'Committees: Agenda Items',
                 ExtraFilter: `MeetingID='${meetingID}'`,
                 OrderBy: 'Sequence ASC',
                 ResultType: 'entity_object',
             },
             {
-                EntityName: 'Attendances',
+                EntityName: 'Committees: Attendances',
                 ExtraFilter: `MeetingID='${meetingID}'`,
                 OrderBy: 'Person',
                 ResultType: 'entity_object',
@@ -139,7 +139,7 @@ export class MeetingService {
         contextUser: UserInfo
     ): Promise<mjCommitteesMeetingEntity> {
         const md = new Metadata();
-        const meeting = await md.GetEntityObject<mjCommitteesMeetingEntity>('Meetings', contextUser);
+        const meeting = await md.GetEntityObject<mjCommitteesMeetingEntity>('Committees: Meetings', contextUser);
         meeting.NewRecord();
 
         meeting.CommitteeID = committeeID;
@@ -184,7 +184,7 @@ export class MeetingService {
     ): Promise<{ PersonID: string }[]> {
         const rv = new RunView();
         const result = await rv.RunView<{ PersonID: string }>({
-            EntityName: 'Memberships',
+            EntityName: 'Committees: Memberships',
             ExtraFilter: `CommitteeID='${committeeID}' AND Status='Active'`,
             Fields: ['PersonID'],
             ResultType: 'simple',
@@ -207,7 +207,7 @@ export class MeetingService {
         const savePromises: Promise<boolean>[] = [];
 
         for (const member of members) {
-            const attendance = await md.GetEntityObject<mjCommitteesAttendanceEntity>('Attendances', contextUser);
+            const attendance = await md.GetEntityObject<mjCommitteesAttendanceEntity>('Committees: Attendances', contextUser);
             attendance.NewRecord();
             attendance.MeetingID = meetingID;
             attendance.PersonID = member.PersonID;
@@ -230,7 +230,7 @@ export class MeetingService {
     ): Promise<mjCommitteesAttendanceEntity> {
         const rv = new RunView();
         const result = await rv.RunView<mjCommitteesAttendanceEntity>({
-            EntityName: 'Attendances',
+            EntityName: 'Committees: Attendances',
             ExtraFilter: `MeetingID='${meetingID}' AND PersonID='${personID}'`,
             ResultType: 'entity_object',
             MaxRows: 1,

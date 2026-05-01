@@ -4,7 +4,7 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseFormComponent } from '@memberjunction/ng-base-forms';
 import {  } from "@memberjunction/ng-entity-viewer"
 
-@RegisterClass(BaseFormComponent, 'Roles') // Tell MemberJunction about this class
+@RegisterClass(BaseFormComponent, 'Committees: Roles') // Tell MemberJunction about this class
 @Component({
     standalone: false,
     selector: 'gen-mjcommitteesrole-form',
@@ -19,7 +19,7 @@ export class mjCommitteesRoleFormComponent extends BaseFormComponent {
             { sectionKey: 'coreRoleInformation', sectionName: 'Core Role Information', isExpanded: true },
             { sectionKey: 'roleSettings', sectionName: 'Role Settings', isExpanded: true },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'memberships', sectionName: 'Memberships', isExpanded: false }
+            { sectionKey: 'committeesMemberships', sectionName: 'Committees: Memberships', isExpanded: false }
         ]);
     }
 }

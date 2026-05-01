@@ -179,50 +179,50 @@
          RELATED ENTITY PANELS
          ======================================== -->
 
-    <!-- Artifacts Section -->
+    <!-- Committees: Artifacts Section -->
     <mj-collapsible-panel
-        SectionKey="artifacts"
-        SectionName="Artifacts"
+        SectionKey="committeesArtifacts"
+        SectionName="Committees: Artifacts"
         Icon="fa fa-file"
         Variant="related-entity"
         [Form]="this"
         [FormContext]="formContext"
-        [BadgeCount]="GetSectionRowCount('artifacts')"
+        [BadgeCount]="GetSectionRowCount('committeesArtifacts')"
         [DefaultExpanded]="false">
         @if (record.IsSaved) {
         <div>
             <mj-explorer-entity-data-grid
-                [Params]="BuildRelationshipViewParamsByEntityName('Artifacts','ActionItemID')"
-                [NewRecordValues]="NewRecordValues('Artifacts')"
-                [AllowLoad]="IsSectionExpanded('artifacts')"
+                [Params]="BuildRelationshipViewParamsByEntityName('Committees: Artifacts','ActionItemID')"
+                [NewRecordValues]="NewRecordValues('Committees: Artifacts')"
+                [AllowLoad]="IsSectionExpanded('committeesArtifacts')"
                 [ShowToolbar]="false"
                 (Navigate)="OnFormNavigate($event)"
-                (AfterDataLoad)="SetSectionRowCount('artifacts', $event.totalRowCount)"
+                (AfterDataLoad)="SetSectionRowCount('committeesArtifacts', $event.totalRowCount)"
                 >
             </mj-explorer-entity-data-grid>
         </div>
         }
     </mj-collapsible-panel>
 
-    <!-- Comments Section -->
+    <!-- Committees: Comments Section -->
     <mj-collapsible-panel
-        SectionKey="comments"
-        SectionName="Comments"
+        SectionKey="committeesComments"
+        SectionName="Committees: Comments"
         Icon="fa fa-comments"
         Variant="related-entity"
         [Form]="this"
         [FormContext]="formContext"
-        [BadgeCount]="GetSectionRowCount('comments')"
+        [BadgeCount]="GetSectionRowCount('committeesComments')"
         [DefaultExpanded]="false">
         @if (record.IsSaved) {
         <div>
             <mj-explorer-entity-data-grid
-                [Params]="BuildRelationshipViewParamsByEntityName('Comments','ActionItemID')"
-                [NewRecordValues]="NewRecordValues('Comments')"
-                [AllowLoad]="IsSectionExpanded('comments')"
+                [Params]="BuildRelationshipViewParamsByEntityName('Committees: Comments','ActionItemID')"
+                [NewRecordValues]="NewRecordValues('Committees: Comments')"
+                [AllowLoad]="IsSectionExpanded('committeesComments')"
                 [ShowToolbar]="false"
                 (Navigate)="OnFormNavigate($event)"
-                (AfterDataLoad)="SetSectionRowCount('comments', $event.totalRowCount)"
+                (AfterDataLoad)="SetSectionRowCount('committeesComments', $event.totalRowCount)"
                 >
             </mj-explorer-entity-data-grid>
         </div>

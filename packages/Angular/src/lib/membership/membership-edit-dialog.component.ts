@@ -164,7 +164,7 @@ export class MembershipEditDialogComponent implements OnInit {
     private async LoadOrCreateMembership(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.Membership = await md.GetEntityObject<mjCommitteesMembershipEntity>('Memberships');
+            this.Membership = await md.GetEntityObject<mjCommitteesMembershipEntity>('Committees: Memberships');
             this.Membership.Status = 'Active';
             // Pre-select active term and apply its dates
             const activeTerm = this.Terms.find(t => t.Status === 'Active');
@@ -173,7 +173,7 @@ export class MembershipEditDialogComponent implements OnInit {
                 this.ApplyTermDates();
             }
         } else {
-            this.Membership = await md.GetEntityObject<mjCommitteesMembershipEntity>('Memberships');
+            this.Membership = await md.GetEntityObject<mjCommitteesMembershipEntity>('Committees: Memberships');
             await this.Membership.Load(this.MembershipID!);
             await this.loadPersonName(this.Membership.PersonID);
         }
@@ -197,13 +197,13 @@ export class MembershipEditDialogComponent implements OnInit {
         const rv = new RunView();
         const [rolesResult, termsResult] = await rv.RunViews([
             {
-                EntityName: 'Roles',
+                EntityName: 'Committees: Roles',
                 Fields: ['ID', 'Name'],
                 OrderBy: 'Sequence ASC',
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Terms',
+                EntityName: 'Committees: Terms',
                 Fields: ['ID', 'Name', 'Status', 'StartDate', 'EndDate'],
                 ExtraFilter: this.CommitteeID ? `CommitteeID = '${this.CommitteeID}'` : '',
                 OrderBy: 'StartDate DESC',

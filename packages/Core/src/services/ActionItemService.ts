@@ -32,7 +32,7 @@ export class ActionItemService {
     ): Promise<ActionItemSummary[]> {
         const rv = new RunView();
         const result = await rv.RunView<ActionItemSummaryRow>({
-            EntityName: 'Action Items',
+            EntityName: 'Committees: Action Items',
             ExtraFilter: `AssignedToPersonID='${personID}' AND Status IN ('Open', 'InProgress')`,
             Fields: ACTION_ITEM_SUMMARY_FIELDS,
             OrderBy: 'DueDate ASC, Priority',
@@ -59,7 +59,7 @@ export class ActionItemService {
 
         const rv = new RunView();
         const result = await rv.RunView<ActionItemSummaryRow>({
-            EntityName: 'Action Items',
+            EntityName: 'Committees: Action Items',
             ExtraFilter: filter,
             Fields: ACTION_ITEM_SUMMARY_FIELDS,
             OrderBy: 'DueDate ASC, Priority',
@@ -102,7 +102,7 @@ export class ActionItemService {
         contextUser: UserInfo
     ): Promise<mjCommitteesActionItemEntity> {
         const md = new Metadata();
-        const actionItem = await md.GetEntityObject<mjCommitteesActionItemEntity>('Action Items', contextUser);
+        const actionItem = await md.GetEntityObject<mjCommitteesActionItemEntity>('Committees: Action Items', contextUser);
         const loaded = await actionItem.Load(actionItemID);
         if (!loaded) {
             throw new Error(`Action item not found: ${actionItemID}`);

@@ -3,7 +3,7 @@ import { mjCommitteesVoteEntity } from '@mj-biz-apps/committees-entities';
 import { RegisterClass } from '@memberjunction/global';
 import { BaseFormComponent } from '@memberjunction/ng-base-forms';
 
-@RegisterClass(BaseFormComponent, 'Votes') // Tell MemberJunction about this class
+@RegisterClass(BaseFormComponent, 'Committees: Votes') // Tell MemberJunction about this class
 @Component({
     standalone: false,
     selector: 'gen-mjcommitteesvote-form',

@@ -4,7 +4,7 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseFormComponent } from '@memberjunction/ng-base-forms';
 import {  } from "@memberjunction/ng-entity-viewer"
 
-@RegisterClass(BaseFormComponent, 'Types') // Tell MemberJunction about this class
+@RegisterClass(BaseFormComponent, 'Committees: Types') // Tell MemberJunction about this class
 @Component({
     standalone: false,
     selector: 'gen-mjcommitteestype-form',
@@ -19,7 +19,7 @@ export class mjCommitteesTypeFormComponent extends BaseFormComponent {
             { sectionKey: 'identification', sectionName: 'Identification', isExpanded: true },
             { sectionKey: 'definition', sectionName: 'Definition', isExpanded: true },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'committees', sectionName: 'Committees', isExpanded: false }
+            { sectionKey: 'committeesCommittees', sectionName: 'Committees: Committees', isExpanded: false }
         ]);
     }
 }

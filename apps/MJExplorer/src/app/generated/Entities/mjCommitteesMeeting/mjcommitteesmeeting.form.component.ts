@@ -4,7 +4,7 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseFormComponent } from '@memberjunction/ng-base-forms';
 import {  } from "@memberjunction/ng-entity-viewer"
 
-@RegisterClass(BaseFormComponent, 'Meetings') // Tell MemberJunction about this class
+@RegisterClass(BaseFormComponent, 'Committees: Meetings') // Tell MemberJunction about this class
 @Component({
     standalone: false,
     selector: 'gen-mjcommitteesmeeting-form',
@@ -21,14 +21,14 @@ export class mjCommitteesMeetingFormComponent extends BaseFormComponent {
             { sectionKey: 'locationAccess', sectionName: 'Location & Access', isExpanded: false },
             { sectionKey: 'videoRecording', sectionName: 'Video & Recording', isExpanded: false },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'attendances', sectionName: 'Attendances', isExpanded: false },
-            { sectionKey: 'minutesMeetingID', sectionName: 'Minutes (Meeting)', isExpanded: false },
-            { sectionKey: 'agendaItems', sectionName: 'Agenda Items', isExpanded: false },
-            { sectionKey: 'minutesApprovedByMeetingID', sectionName: 'Minutes (Approved By Meeting)', isExpanded: false },
-            { sectionKey: 'motions', sectionName: 'Motions', isExpanded: false },
-            { sectionKey: 'actionItems', sectionName: 'Action Items', isExpanded: false },
-            { sectionKey: 'artifacts', sectionName: 'Artifacts', isExpanded: false },
-            { sectionKey: 'comments', sectionName: 'Comments', isExpanded: false }
+            { sectionKey: 'committeesAttendances', sectionName: 'Committees: Attendances', isExpanded: false },
+            { sectionKey: 'committeesMinutesMeetingID', sectionName: 'Committees: Minutes (Meeting)', isExpanded: false },
+            { sectionKey: 'committeesAgendaItems', sectionName: 'Committees: Agenda Items', isExpanded: false },
+            { sectionKey: 'committeesMinutesApprovedByMeetingID', sectionName: 'Committees: Minutes (Approved By Meeting)', isExpanded: false },
+            { sectionKey: 'committeesMotions', sectionName: 'Committees: Motions', isExpanded: false },
+            { sectionKey: 'committeesActionItems', sectionName: 'Committees: Action Items', isExpanded: false },
+            { sectionKey: 'committeesArtifacts', sectionName: 'Committees: Artifacts', isExpanded: false },
+            { sectionKey: 'committeesComments', sectionName: 'Committees: Comments', isExpanded: false }
         ]);
     }
 }

@@ -82,7 +82,7 @@ export class TermEditDialogComponent implements OnInit {
         // Re-check for members at delete time
         const rv = new RunView();
         const memberCheck = await rv.RunView<{ ID: string }>({
-            EntityName: 'Memberships',
+            EntityName: 'Committees: Memberships',
             ExtraFilter: `TermID = '${this.Term.ID}'`,
             Fields: ['ID'],
             MaxRows: 1,
@@ -130,7 +130,7 @@ export class TermEditDialogComponent implements OnInit {
             : `CommitteeID = '${this.Term!.CommitteeID}' AND Name = '${this.Term!.Name.trim()}' AND ID != '${this.Term!.ID}'`;
 
         const result = await rv.RunView<{ ID: string }>({
-            EntityName: 'Terms',
+            EntityName: 'Committees: Terms',
             ExtraFilter: existingFilter,
             Fields: ['ID'],
             MaxRows: 1,
@@ -147,7 +147,7 @@ export class TermEditDialogComponent implements OnInit {
     private async LoadOrCreateTerm(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.Term = await md.GetEntityObject<mjCommitteesTermEntity>('Terms');
+            this.Term = await md.GetEntityObject<mjCommitteesTermEntity>('Committees: Terms');
             this.Term.Status = 'Upcoming';
             if (this.CommitteeID) {
                 this.Term.CommitteeID = this.CommitteeID;
@@ -158,7 +158,7 @@ export class TermEditDialogComponent implements OnInit {
             this.StartDateLocal = `${year}-07-01`;
             this.EndDateLocal = `${year + 1}-06-30`;
         } else {
-            this.Term = await md.GetEntityObject<mjCommitteesTermEntity>('Terms');
+            this.Term = await md.GetEntityObject<mjCommitteesTermEntity>('Committees: Terms');
             await this.Term.Load(this.TermID!);
             this.StartDateLocal = this.ToLocalDateString(this.Term.StartDate);
             if (this.Term.EndDate) {
@@ -167,7 +167,7 @@ export class TermEditDialogComponent implements OnInit {
             // Check if term has members (can't delete if so)
             const rv = new RunView();
             const memberResult = await rv.RunView<{ ID: string }>({
-                EntityName: 'Memberships',
+                EntityName: 'Committees: Memberships',
                 ExtraFilter: `TermID = '${this.TermID}'`,
                 Fields: ['ID'],
                 MaxRows: 1,

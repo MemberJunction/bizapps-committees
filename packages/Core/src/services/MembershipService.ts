@@ -44,7 +44,7 @@ export class MembershipService {
         contextUser: UserInfo
     ): Promise<mjCommitteesMembershipEntity> {
         const md = new Metadata();
-        const membership = await md.GetEntityObject<mjCommitteesMembershipEntity>('Memberships', contextUser);
+        const membership = await md.GetEntityObject<mjCommitteesMembershipEntity>('Committees: Memberships', contextUser);
         membership.NewRecord();
 
         membership.PersonID = personID;
@@ -73,7 +73,7 @@ export class MembershipService {
 
         // Step 1: Get term IDs for this committee
         const termsResult = await rv.RunView<{ ID: string }>({
-            EntityName: 'Terms',
+            EntityName: 'Committees: Terms',
             ExtraFilter: `CommitteeID='${committeeID}'`,
             Fields: ['ID'],
             ResultType: 'simple',
@@ -95,7 +95,7 @@ export class MembershipService {
             StartDate: Date;
             Status: string;
         }>({
-            EntityName: 'Memberships',
+            EntityName: 'Committees: Memberships',
             ExtraFilter: `TermID IN (${termIDs}) AND Status='Active'`,
             Fields: ['ID', 'PersonID', 'Person', 'RoleID', 'Role', 'StartDate', 'Status'],
             OrderBy: 'Role, Person',
@@ -145,7 +145,7 @@ export class MembershipService {
     private async getCommitteeIDForMeeting(meetingID: string, contextUser: UserInfo): Promise<string> {
         const rv = new RunView();
         const result = await rv.RunView<{ CommitteeID: string }>({
-            EntityName: 'Meetings',
+            EntityName: 'Committees: Meetings',
             ExtraFilter: `ID='${meetingID}'`,
             Fields: ['CommitteeID'],
             ResultType: 'simple',
@@ -172,7 +172,7 @@ export class MembershipService {
 
         // First get term IDs for the committee
         const termsResult = await rv.RunView<{ ID: string }>({
-            EntityName: 'Terms',
+            EntityName: 'Committees: Terms',
             ExtraFilter: `CommitteeID='${committeeID}'`,
             Fields: ['ID'],
             ResultType: 'simple',
@@ -186,13 +186,13 @@ export class MembershipService {
 
         const [membersResult, attendanceResult] = await rv.RunViews([
             {
-                EntityName: 'Memberships',
+                EntityName: 'Committees: Memberships',
                 ExtraFilter: `TermID IN (${termIDs}) AND Status='Active'`,
                 Fields: ['PersonID', 'RoleID'],
                 ResultType: 'simple',
             },
             {
-                EntityName: 'Attendances',
+                EntityName: 'Committees: Attendances',
                 ExtraFilter: `MeetingID='${meetingID}'`,
                 Fields: ['PersonID', 'AttendanceStatus'],
                 ResultType: 'simple',
@@ -222,7 +222,7 @@ export class MembershipService {
     private async getVotingRoleIDs(contextUser: UserInfo): Promise<Set<string>> {
         const rv = new RunView();
         const result = await rv.RunView<{ ID: string }>({
-            EntityName: 'Roles',
+            EntityName: 'Committees: Roles',
             ExtraFilter: `IsVotingRole=1`,
             Fields: ['ID'],
             ResultType: 'simple',

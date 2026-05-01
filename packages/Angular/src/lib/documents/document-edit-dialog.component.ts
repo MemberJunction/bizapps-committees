@@ -327,14 +327,14 @@ export class DocumentEditDialogComponent implements OnInit {
         const rv = new RunView();
         const [committeesResult, meetingsResult, categoriesResult, externalProvidersResult, storageProvidersResult] = await rv.RunViews([
             {
-                EntityName: 'Committees',
+                EntityName: 'Committees: Committees',
                 Fields: ['ID', 'Name'],
                 ExtraFilter: "Status = 'Active'",
                 OrderBy: 'Name ASC',
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Meetings',
+                EntityName: 'Committees: Meetings',
                 Fields: ['ID', 'Title'],
                 ExtraFilter: "Status NOT IN ('Cancelled')",
                 OrderBy: 'StartDateTime DESC',
@@ -401,9 +401,9 @@ export class DocumentEditDialogComponent implements OnInit {
         if (result.Success) {
             for (const link of result.Results) {
                 const entityName = link.Entity;
-                if (entityName === 'Committees') {
+                if (entityName === 'Committees: Committees') {
                     this.SelectedCommitteeID = link.RecordID;
-                } else if (entityName === 'Meetings') {
+                } else if (entityName === 'Committees: Meetings') {
                     this.SelectedMeetingID = link.RecordID;
                 }
             }
@@ -431,10 +431,10 @@ export class DocumentEditDialogComponent implements OnInit {
         const linkPromises: Promise<boolean>[] = [];
 
         if (this.SelectedCommitteeID) {
-            linkPromises.push(this.CreateLink(md, 'Committees', this.SelectedCommitteeID));
+            linkPromises.push(this.CreateLink(md, 'Committees: Committees', this.SelectedCommitteeID));
         }
         if (this.SelectedMeetingID) {
-            linkPromises.push(this.CreateLink(md, 'Meetings', this.SelectedMeetingID));
+            linkPromises.push(this.CreateLink(md, 'Committees: Meetings', this.SelectedMeetingID));
         }
 
         await Promise.all(linkPromises);

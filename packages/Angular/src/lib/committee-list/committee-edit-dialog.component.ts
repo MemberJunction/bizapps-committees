@@ -120,11 +120,11 @@ export class CommitteeEditDialogComponent implements OnInit {
     private async LoadOrCreateCommittee(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.Committee = await md.GetEntityObject<mjCommitteesCommitteeEntity>('Committees');
+            this.Committee = await md.GetEntityObject<mjCommitteesCommitteeEntity>('Committees: Committees');
             this.Committee.Status = 'Active';
             this.Committee.IsPublic = true;
         } else {
-            this.Committee = await md.GetEntityObject<mjCommitteesCommitteeEntity>('Committees');
+            this.Committee = await md.GetEntityObject<mjCommitteesCommitteeEntity>('Committees: Committees');
             await this.Committee.Load(this.CommitteeID!);
         }
     }
@@ -133,7 +133,7 @@ export class CommitteeEditDialogComponent implements OnInit {
         const rv = new RunView();
         const [typesResult, orgsResult, committeesResult] = await rv.RunViews([
             {
-                EntityName: 'Types',
+                EntityName: 'Committees: Types',
                 Fields: ['ID', 'Name'],
                 OrderBy: 'Name ASC',
                 ResultType: 'simple'
@@ -145,7 +145,7 @@ export class CommitteeEditDialogComponent implements OnInit {
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Committees',
+                EntityName: 'Committees: Committees',
                 Fields: ['ID', 'Name'],
                 OrderBy: 'Name ASC',
                 ResultType: 'simple'

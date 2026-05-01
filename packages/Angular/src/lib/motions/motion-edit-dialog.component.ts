@@ -138,12 +138,12 @@ export class MotionEditDialogComponent implements OnInit {
     private async LoadOrCreateMotion(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.Motion = await md.GetEntityObject<mjCommitteesMotionEntity>('Motions');
+            this.Motion = await md.GetEntityObject<mjCommitteesMotionEntity>('Committees: Motions');
             this.Motion.MeetingID = this.MeetingID!;
             this.Motion.Sequence = 1;
             this.Motion.Result = 'Pending';
         } else {
-            this.Motion = await md.GetEntityObject<mjCommitteesMotionEntity>('Motions');
+            this.Motion = await md.GetEntityObject<mjCommitteesMotionEntity>('Committees: Motions');
             await this.Motion.Load(this.MotionID!);
         }
     }
@@ -152,7 +152,7 @@ export class MotionEditDialogComponent implements OnInit {
         const rv = new RunView();
         const queries: Parameters<typeof rv.RunViews>[0] = [
             {
-                EntityName: 'Roles',
+                EntityName: 'Committees: Roles',
                 Fields: ['ID', 'IsVotingRole'],
                 ResultType: 'simple'
             }
@@ -160,7 +160,7 @@ export class MotionEditDialogComponent implements OnInit {
 
         if (this.MeetingID) {
             queries.push({
-                EntityName: 'Agenda Items',
+                EntityName: 'Committees: Agenda Items',
                 Fields: ['ID', 'Title'],
                 ExtraFilter: `MeetingID = '${this.MeetingID}'`,
                 OrderBy: 'Sequence ASC',
@@ -184,7 +184,7 @@ export class MotionEditDialogComponent implements OnInit {
         // Load committee members through terms
         if (this.CommitteeID) {
             const termsResult = await rv.RunView<{ ID: string }>({
-                EntityName: 'Terms',
+                EntityName: 'Committees: Terms',
                 ExtraFilter: `CommitteeID = '${this.CommitteeID}'`,
                 Fields: ['ID'],
                 ResultType: 'simple'
@@ -193,7 +193,7 @@ export class MotionEditDialogComponent implements OnInit {
             if (termsResult.Success && termsResult.Results && termsResult.Results.length > 0) {
                 const termIDs = termsResult.Results.map(t => `'${t.ID}'`).join(',');
                 const membersResult = await rv.RunView<{ ID: string; PersonID: string; Person: string; RoleID: string; Role: string }>({
-                    EntityName: 'Memberships',
+                    EntityName: 'Committees: Memberships',
                     ExtraFilter: `TermID IN (${termIDs}) AND Status = 'Active'`,
                     Fields: ['ID', 'PersonID', 'Person', 'RoleID', 'Role'],
                     OrderBy: 'Role ASC, Person ASC',
@@ -229,7 +229,7 @@ export class MotionEditDialogComponent implements OnInit {
 
         const rv = new RunView();
         const result = await rv.RunView<{ ID: string; MembershipID: string; VoteValue: string }>({
-            EntityName: 'Votes',
+            EntityName: 'Committees: Votes',
             ExtraFilter: `MotionID = '${this.MotionID}'`,
             Fields: ['ID', 'MembershipID', 'VoteValue'],
             ResultType: 'simple'
@@ -254,19 +254,19 @@ export class MotionEditDialogComponent implements OnInit {
             if (voter.VoteID) {
                 // Update existing vote
                 if (voter.VoteValue) {
-                    const vote = await md.GetEntityObject<mjCommitteesVoteEntity>('Votes');
+                    const vote = await md.GetEntityObject<mjCommitteesVoteEntity>('Committees: Votes');
                     await vote.Load(voter.VoteID);
                     vote.VoteValue = voter.VoteValue;
                     await vote.Save();
                 } else {
                     // Clear vote — delete it
-                    const vote = await md.GetEntityObject<mjCommitteesVoteEntity>('Votes');
+                    const vote = await md.GetEntityObject<mjCommitteesVoteEntity>('Committees: Votes');
                     await vote.Load(voter.VoteID);
                     try { await vote.Delete(); } catch { /* ignore */ }
                 }
             } else if (voter.VoteValue) {
                 // Create new vote
-                const vote = await md.GetEntityObject<mjCommitteesVoteEntity>('Votes');
+                const vote = await md.GetEntityObject<mjCommitteesVoteEntity>('Committees: Votes');
                 vote.NewRecord();
                 vote.MotionID = this.Motion!.ID;
                 vote.MembershipID = voter.MembershipID;

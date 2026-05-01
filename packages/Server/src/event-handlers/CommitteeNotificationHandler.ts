@@ -22,9 +22,9 @@ import { MJEventType, MJGlobal, MJEvent } from '@memberjunction/global';
 import { Subscription } from 'rxjs';
 
 /** Entity names we listen for */
-const MEETINGS_ENTITY = 'Meetings';
-const ACTION_ITEMS_ENTITY = 'Action Items';
-const COMMENTS_ENTITY = 'Comments';
+const MEETINGS_ENTITY = 'Committees: Meetings';
+const ACTION_ITEMS_ENTITY = 'Committees: Action Items';
+const COMMENTS_ENTITY = 'Committees: Comments';
 
 
 /**
@@ -252,7 +252,7 @@ async function handleCommentSave(event: BaseEntityEvent): Promise<void> {
 async function getCommentAuthorPersonID(commentID: string, contextUser: UserInfo): Promise<string | null> {
     const rv = new RunView();
     const result = await rv.RunView<{ PersonID: string }>({
-        EntityName: 'Comments',
+        EntityName: 'Committees: Comments',
         ExtraFilter: `ID='${commentID}'`,
         Fields: ['ID', 'PersonID'],
         ResultType: 'simple',
@@ -293,7 +293,7 @@ async function getCommitteeMemberUserIDs(committeeID: string, contextUser: UserI
 
     // Step 1: Get all active member PersonIDs
     const memberships = await rv.RunView<{ PersonID: string }>({
-        EntityName: 'Memberships',
+        EntityName: 'Committees: Memberships',
         ExtraFilter: `CommitteeID='${committeeID}' AND Status='Active'`,
         Fields: ['ID', 'PersonID'],
         ResultType: 'simple',

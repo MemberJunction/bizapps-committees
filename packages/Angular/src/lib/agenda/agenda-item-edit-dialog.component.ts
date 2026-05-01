@@ -125,13 +125,13 @@ export class AgendaItemEditDialogComponent implements OnInit {
     private async LoadOrCreateItem(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.AgendaItem = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Agenda Items');
+            this.AgendaItem = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Committees: Agenda Items');
             this.AgendaItem.MeetingID = this.MeetingID!;
             this.AgendaItem.Sequence = this.NextSequence;
             this.AgendaItem.ItemType = 'Discussion';
             this.AgendaItem.Status = 'Pending';
         } else {
-            this.AgendaItem = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Agenda Items');
+            this.AgendaItem = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Committees: Agenda Items');
             await this.AgendaItem.Load(this.AgendaItemID!);
         }
     }

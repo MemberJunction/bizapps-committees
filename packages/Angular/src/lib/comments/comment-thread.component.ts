@@ -30,7 +30,7 @@ export class CommentThreadComponent implements OnInit {
     /** Set exactly one of these to attach comments to an entity record */
     @Input() MeetingID: string | null = null;
     @Input() AgendaItemID: string | null = null;
-    @Input() ActionItemID: string | null = null;
+    @Input() TaskID: string | null = null;
     @Input() ArtifactID: string | null = null;
 
     IsLoading = true;
@@ -59,7 +59,7 @@ export class CommentThreadComponent implements OnInit {
 
         const rv = new RunView();
         const result = await rv.RunView<mjCommitteesCommentEntity>({
-            EntityName: 'Comments',
+            EntityName: 'Committees: Comments',
             ExtraFilter: filter,
             OrderBy: '__mj_CreatedAt ASC',
             ResultType: 'entity_object',
@@ -140,7 +140,7 @@ export class CommentThreadComponent implements OnInit {
         this.cdr.markForCheck();
 
         const md = new Metadata();
-        const comment = await md.GetEntityObject<mjCommitteesCommentEntity>('Comments');
+        const comment = await md.GetEntityObject<mjCommitteesCommentEntity>('Committees: Comments');
         comment.CommitteeID = this.CommitteeID!;
         comment.PersonID = this.CurrentPersonID!;
         comment.CommentText = text;
@@ -148,7 +148,7 @@ export class CommentThreadComponent implements OnInit {
         if (parentCommentID) comment.ParentCommentID = parentCommentID;
         if (this.MeetingID) comment.MeetingID = this.MeetingID;
         if (this.AgendaItemID) comment.AgendaItemID = this.AgendaItemID;
-        if (this.ActionItemID) comment.ActionItemID = this.ActionItemID;
+        if (this.TaskID) comment.TaskID = this.TaskID;
         if (this.ArtifactID) comment.ArtifactID = this.ArtifactID;
 
         await comment.Save();
@@ -165,8 +165,8 @@ export class CommentThreadComponent implements OnInit {
         else parts.push('MeetingID IS NULL');
         if (this.AgendaItemID) parts.push(`AgendaItemID='${this.AgendaItemID}'`);
         else parts.push('AgendaItemID IS NULL');
-        if (this.ActionItemID) parts.push(`ActionItemID='${this.ActionItemID}'`);
-        else parts.push('ActionItemID IS NULL');
+        if (this.TaskID) parts.push(`TaskID='${this.TaskID}'`);
+        else parts.push('TaskID IS NULL');
         if (this.ArtifactID) parts.push(`ArtifactID='${this.ArtifactID}'`);
         else parts.push('ArtifactID IS NULL');
         return parts.join(' AND ');

@@ -4,6 +4,10 @@ node_modules/
 .turbo/
 .angular/
 .playwright-cli/
+.vscode/
+tmp/
+test-data/
+plans/BIZAPPS_TASKS_PLAN.md
 dashboard-*.png
 dashboard-*.yml
 home.yml

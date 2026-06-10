@@ -367,7 +367,7 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
 
         const filesResult = await rv.RunView<Record<string, unknown>>({
             EntityName: 'MJ: Files',
-            Fields: ['ID', 'Name', 'Description', 'Category', 'Provider', 'ContentType', 'Status', 'URL', '__mj_CreatedAt'],
+            Fields: ['ID', 'Name', 'Description', 'Category', 'Provider', 'ContentType', 'Status', 'ProviderKey', '__mj_CreatedAt'],
             ExtraFilter: `ID IN (${fileIDFilter}) AND Status != 'Deleted'`,
             OrderBy: '__mj_CreatedAt DESC',
             MaxRows: 200,

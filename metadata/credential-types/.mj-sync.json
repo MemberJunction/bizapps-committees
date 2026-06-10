@@ -1,9 +1,9 @@
 {
-  "entity": "MJ: Schema Info",
+  "entity": "MJ: Credential Types",
   "filePattern": "**/.*.json",
   "pull": {
     "createNewFileIfNotFound": true,
-    "newFileName": ".schema-info.json",
+    "newFileName": ".credential-types.json",
     "appendRecordsToExistingFile": true,
     "updateExistingRecords": true,
     "ignoreNullFields": true,

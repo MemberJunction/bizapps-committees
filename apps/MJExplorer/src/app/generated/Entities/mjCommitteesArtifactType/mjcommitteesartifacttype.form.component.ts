@@ -17,9 +17,9 @@ export class mjCommitteesArtifactTypeFormComponent extends BaseFormComponent {
         await super.ngOnInit();
         this.initSections([
             { sectionKey: 'artifactTypeInfo', sectionName: 'Artifact Type Info', isExpanded: true },
-            { sectionKey: 'extensionEntity', sectionName: 'Extension Entity', isExpanded: true },
+            { sectionKey: 'extensionSettings', sectionName: 'Extension Settings', isExpanded: true },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'committeesArtifacts', sectionName: 'Committees: Artifacts', isExpanded: false }
+            { sectionKey: 'committeesArtifacts', sectionName: 'Artifacts', isExpanded: false }
         ]);
     }
 }

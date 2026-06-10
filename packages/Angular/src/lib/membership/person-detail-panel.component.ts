@@ -70,7 +70,7 @@ export class PersonDetailPanelComponent implements OnInit {
     private async LoadPerson(): Promise<void> {
         if (!this.PersonID) return;
         const md = new Metadata();
-        const entity = await md.GetEntityObject<mjBizAppsCommonPersonEntity>('MJ.BizApps.Common: People');
+        const entity = await md.GetEntityObject<mjBizAppsCommonPersonEntity>('MJ_BizApps_Common: People');
         await entity.Load(this.PersonID);
         this.Person = entity;
     }

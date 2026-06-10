@@ -43,11 +43,13 @@ export class UploadProxyMiddleware extends BaseServerMiddleware {
             }
 
             try {
-                const chunks: Buffer[] = [];
+                const chunks: Uint8Array[] = [];
                 for await (const chunk of req) {
                     chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
                 }
-                const body = Buffer.concat(chunks);
+                // Use Uint8Array (not Buffer) so the body satisfies fetch's BodyInit type
+                // under @types/node 20+, which models Buffer's backing store as ArrayBufferLike.
+                const body = new Uint8Array(Buffer.concat(chunks));
                 console.log(`[upload-proxy] ${method} ${targetUrl.substring(0, 80)}... (${body.length} bytes)`);
 
                 const response = await fetch(targetUrl, {

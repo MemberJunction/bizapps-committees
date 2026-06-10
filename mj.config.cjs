@@ -153,14 +153,24 @@ module.exports = {
   // ---------------------------------------------------------------------------
   // SQL Output (for migrations)
   // ---------------------------------------------------------------------------
-  // Default v3.x: enabled: true, folderPath: './migrations/v3/'
-  // SQLOutput: {
-  //   enabled: true,
-  //   folderPath: './migrations/v3/',
-  //   appendToFile: true,
-  //   convertCoreSchemaToFlywayMigrationFile: true,
-  //   omitRecurringScriptsFromLog: true,
-  // },
+  // schemaPlaceholders drives flyway placeholder resolution at migrate time:
+  //   ${flyway:defaultSchema} -> __mj_Committees (this repo's app schema)
+  //   ${mjSchema}             -> __mj            (MJ core schema)
+  //   ${mjBACSchema}          -> __mj_BizAppsCommon
+  // Migrations must use ${mjSchema} for core MJ tables (File, Entity, etc.),
+  // NOT ${flyway:defaultSchema} which points at our own schema.
+  SQLOutput: {
+    enabled: true,
+    folderPath: './migrations/codegen/',
+    appendToFile: false,
+    convertCoreSchemaToFlywayMigrationFile: true,
+    omitRecurringScriptsFromLog: false,
+    schemaPlaceholders: [
+      { schema: '__mj', placeholder: '${mjSchema}' },
+      { schema: '__mj_Committees', placeholder: '${flyway:defaultSchema}' },
+      { schema: '__mj_BizAppsCommon', placeholder: '${mjBACSchema}' },
+    ],
+  },
 
   // ---------------------------------------------------------------------------
   // Force Regeneration Options

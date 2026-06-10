@@ -4,10 +4,11 @@
     "autoCreateMissingRecords": true
   },
   "directoryOrder": [
-    "schema-info",
+    "credential-types",
     "committee-types",
     "roles",
     "artifact-types",
+    "file-storage-providers",
     "prompts",
     "agents"
   ],

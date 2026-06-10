@@ -23,6 +23,14 @@ type AIPromptRunResult {
   validationResult: String
 }
 
+type AcceptInvitationResultType {
+  ListID: String
+  Message: String!
+  PermissionID: String
+  ResultCode: String!
+  Success: Boolean!
+}
+
 type AccountSearchResultPayload {
   accountID: String!
   accountName: String!
@@ -68,8 +76,18 @@ type ActionResultOutput {
 }
 
 input AdhocQueryInput {
+  """
+  Maximum number of rows to return; applied at the database via the render pipeline.
+  """
+  MaxRows: Int
+
   """SQL query to execute. Must be a SELECT or WITH (CTE) statement."""
   SQL: String!
+
+  """
+  Zero-based offset for pagination. When > 0, the row cap switches to OFFSET/FETCH pagination.
+  """
+  StartRow: Int
 
   """Query timeout in seconds. Defaults to 30."""
   TimeoutSeconds: Int
@@ -211,6 +229,33 @@ type ApplyAllOutput {
   Warnings: [String!]
 }
 
+input ApplyDeltaInput {
+  AddCount: Int!
+  ConfirmDrops: Boolean!
+  DeltaToken: String!
+  EntityName: String!
+  RemoveCount: Int!
+  SourceTotal: Int!
+  TargetListId: String!
+  TargetTotal: Int!
+  ToAdd: [String!]!
+  ToRemove: [String!]!
+  Unchanged: [String!]!
+  UnchangedCount: Int!
+}
+
+type ApplyListResultType {
+  AddedCount: Int
+  CreatedListId: String
+  Errors: [String!]
+  FailedCount: Int
+  Message: String!
+  RemovedCount: Int
+  ResultCode: String!
+  Success: Boolean!
+  TargetListId: String
+}
+
 input ApplySchemaBatchItemInput {
   CompanyIntegrationID: String!
   Objects: [SchemaPreviewObjectInput!]!
@@ -254,6 +299,11 @@ type AutotagPipelineResult {
   PipelineRunID: String
   Status: String
   Success: Boolean!
+}
+
+type AvailableSearchProviderGQL {
+  DriverClass: String!
+  SourceType: String!
 }
 
 type CacheEntityBreakdownGQL {
@@ -414,6 +464,18 @@ type ComponentSpecWithHashType {
   specification: String
 }
 
+input ComposeListsInput {
+  Inputs: [ListSourceInput!]!
+
+  """Set-op kind: union | intersection | difference."""
+  Op: String!
+
+  """
+  Optional target list (for in-place set-op). Omit to preview against a new list.
+  """
+  Target: ListSourceInput
+}
+
 input CompositeKeyInput {
   KeyValuePairs: [KeyValuePairInput!]!
 }
@@ -424,6 +486,15 @@ input CompositeKeyInputType {
 
 type CompositeKeyOutputType {
   KeyValuePairs: [KeyValuePairOutputType!]!
+}
+
+input ComputeDeltaInput {
+  """Refresh mode: Additive | Sync."""
+  Mode: String!
+  Source: ListSourceInput!
+
+  """TargetListId, or the literal string "new" to materialize."""
+  Target: String!
 }
 
 type ConfirmCommitteeImportResponse {
@@ -672,6 +743,7 @@ input CreateMJAIAgentExampleInput {
 }
 
 input CreateMJAIAgentInput {
+  AcceptUnregisteredFiles: Boolean
   AgentTypePromptParams: String
   AllowEphemeralClientTools: Boolean
   ArtifactCreationMode: String
@@ -730,6 +802,7 @@ input CreateMJAIAgentInput {
   RerankerConfiguration: String
   RestoreContext___: RestoreContextInput
   ScopeConfig: String
+  SearchScopeAccess: String
   StartingPayloadValidation: String
   StartingPayloadValidationMode: String
   Status: String
@@ -971,6 +1044,23 @@ input CreateMJAIAgentRunStepInput {
   Success: Boolean
   TargetID: String
   TargetLogID: String
+}
+
+input CreateMJAIAgentSearchScopeInput {
+  AgentID: String
+  EndAt: Timestamp
+  FusionWeightsOverride: String
+  ID: String
+  IsDefault: Boolean
+  MaxResults: Int
+  MinScore: Float
+  Phase: String
+  Priority: Int
+  QueryTemplateID: String
+  RestoreContext___: RestoreContextInput
+  SearchScopeID: String
+  StartAt: Timestamp
+  Status: String
 }
 
 input CreateMJAIAgentStepInput {
@@ -1420,7 +1510,7 @@ input CreateMJAIResultCacheInput {
   ConfigurationID: String
   ExpiredOn: Timestamp
   ID: String
-  PromptEmbedding: Int
+  PromptEmbedding: String
   PromptRunID: String
   PromptText: String
   RestoreContext___: RestoreContextInput
@@ -1804,6 +1894,7 @@ input CreateMJArtifactPermissionInput {
 input CreateMJArtifactTypeInput {
   ContentCategory: String
   ContentType: String
+  DefaultDeliveryMode: String
   Description: String
   DriverClass: String
   ExtractRules: String
@@ -1812,7 +1903,9 @@ input CreateMJArtifactTypeInput {
   IsEnabled: Boolean
   Name: String
   ParentID: String
+  Priority: Int
   RestoreContext___: RestoreContextInput
+  SystemSupplied: Boolean
   ToolLibraryClass: String
 }
 
@@ -1846,6 +1939,7 @@ input CreateMJArtifactVersionInput {
   Description: String
   FileID: String
   FileName: String
+  ForceToolsOnly: Boolean
   ID: String
   MimeType: String
   Name: String
@@ -2170,6 +2264,7 @@ input CreateMJComponentLibraryInput {
   Name: String
   RestoreContext___: RestoreContextInput
   Status: String
+  UsageInstructions: String
   UsageType: String
   Version: String
 }
@@ -2397,6 +2492,7 @@ input CreateMJConversationDetailArtifactInput {
 }
 
 input CreateMJConversationDetailAttachmentInput {
+  ArtifactVersionID: String
   ConversationDetailID: String
   Description: String
   DisplayOrder: Int
@@ -2453,7 +2549,11 @@ input CreateMJConversationDetailRatingInput {
 }
 
 input CreateMJConversationInput {
+  AdditionalData: String
+  ApplicationID: String
+  ApplicationScope: String
   DataContextID: String
+  DefaultAgentID: String
   Description: String
   EnvironmentID: String
   ExternalID: String
@@ -2930,6 +3030,7 @@ input CreateMJEntityFieldInput {
   IncludeInGeneratedForm: Boolean
   IncludeInUserSearchAPI: Boolean
   IncludeRelatedEntityNameFieldInBaseView: Boolean
+  IsComputed: Boolean
   IsNameField: Boolean
   IsPrimaryKey: Boolean
   IsSoftForeignKey: Boolean
@@ -2962,6 +3063,21 @@ input CreateMJEntityFieldValueInput {
   RestoreContext___: RestoreContextInput
   Sequence: Int
   Value: String
+}
+
+input CreateMJEntityFormOverrideInput {
+  ComponentID: String
+  Description: String
+  EntityID: String
+  ID: String
+  Name: String
+  Notes: String
+  Priority: Int
+  RestoreContext___: RestoreContextInput
+  RoleID: String
+  Scope: String
+  Status: String
+  UserID: String
 }
 
 input CreateMJEntityInput {
@@ -3407,8 +3523,14 @@ input CreateMJListInput {
   EntityID: String
   ExternalSystemRecordID: String
   ID: String
+  LastRefreshedAt: Timestamp
+  LastRefreshedByUserID: String
   Name: String
+  RefreshMode: String
   RestoreContext___: RestoreContextInput
+  SourceFilterSnapshot: String
+  SourceViewID: String
+  UseSnapshot: Boolean
   UserID: String
 }
 
@@ -4222,6 +4344,22 @@ input CreateMJSchemaInfoInput {
   SchemaName: String
 }
 
+input CreateMJSearchExecutionLogInput {
+  AIAgentID: String
+  FailureReason: String
+  ID: String
+  ProvidersJSON: String
+  Query: String
+  RerankerCostCents: Float
+  RerankerName: String
+  RestoreContext___: RestoreContextInput
+  ResultCount: Int
+  SearchScopeID: String
+  Status: String
+  TotalDurationMs: Int
+  UserID: String
+}
+
 input CreateMJSearchProviderInput {
   Comments: String
   CredentialID: String
@@ -4237,6 +4375,82 @@ input CreateMJSearchProviderInput {
   RestoreContext___: RestoreContextInput
   Status: String
   SupportsPreview: Boolean
+}
+
+input CreateMJSearchScopeEntityInput {
+  EntityID: String
+  ExtraFilter: String
+  ID: String
+  RestoreContext___: RestoreContextInput
+  SearchScopeID: String
+  UserSearchString: String
+}
+
+input CreateMJSearchScopeExternalIndexInput {
+  ExternalIndexConfig: String
+  ExternalIndexName: String
+  ID: String
+  IndexType: String
+  MetadataFilter: String
+  RestoreContext___: RestoreContextInput
+  SearchScopeID: String
+  VectorIndexID: String
+}
+
+input CreateMJSearchScopeInput {
+  Description: String
+  EndAt: Timestamp
+  ID: String
+  Icon: String
+  IsDefault: Boolean
+  IsGlobal: Boolean
+  Name: String
+  OwnerUserID: String
+  RerankerBudgetCents: Int
+  RestoreContext___: RestoreContextInput
+  ScopeConfig: String
+  SearchContextConfig: String
+  StartAt: Timestamp
+  Status: String
+}
+
+input CreateMJSearchScopePermissionInput {
+  ID: String
+  PermissionLevel: String
+  RestoreContext___: RestoreContextInput
+  RoleID: String
+  SearchScopeID: String
+  UserID: String
+}
+
+input CreateMJSearchScopeProviderInput {
+  Enabled: Boolean
+  ID: String
+  MaxResultsOverride: Int
+  ProviderConfigOverride: String
+  QueryTransformTemplateID: String
+  RestoreContext___: RestoreContextInput
+  SearchProviderID: String
+  SearchScopeID: String
+}
+
+input CreateMJSearchScopeStorageAccountInput {
+  FileStorageAccountID: String
+  FolderPath: String
+  ID: String
+  RestoreContext___: RestoreContextInput
+  SearchScopeID: String
+}
+
+input CreateMJSearchScopeTestQueryInput {
+  ExpectedTopResultEntity: String
+  ExpectedTopResultRecordID: String
+  ID: String
+  Label: String
+  Notes: String
+  Query: String
+  RestoreContext___: RestoreContextInput
+  SearchScopeID: String
 }
 
 input CreateMJSkillInput {
@@ -4279,14 +4493,57 @@ input CreateMJTagCoOccurrenceInput {
 }
 
 input CreateMJTagInput {
+  AllowAutoGrow: Boolean
   Description: String
   DisplayName: String
+  EmbeddingModelID: String
+  EmbeddingVector: String
   ID: String
+  IsFrozen: Boolean
+  IsGlobal: Boolean
+  MaxChildren: Int
+  MaxDescendantDepth: Int
   MergedIntoTagID: String
+  MinWeight: Float
   Name: String
   ParentID: String
+  RequiresReview: Boolean
   RestoreContext___: RestoreContextInput
   Status: String
+}
+
+input CreateMJTagScopeInput {
+  ID: String
+  RestoreContext___: RestoreContextInput
+  ScopeEntityID: String
+  ScopeRecordID: String
+  TagID: String
+}
+
+input CreateMJTagSuggestionInput {
+  BestMatchScore: Float
+  BestMatchTagID: String
+  ID: String
+  ProposedName: String
+  ProposedParentID: String
+  Reason: String
+  ResolvedTagID: String
+  RestoreContext___: RestoreContextInput
+  ReviewedAt: Timestamp
+  ReviewedByUserID: String
+  ReviewerNotes: String
+  SourceContentItemID: String
+  SourceContentSourceID: String
+  SourceText: String
+  Status: String
+}
+
+input CreateMJTagSynonymInput {
+  ID: String
+  RestoreContext___: RestoreContextInput
+  Source: String
+  Synonym: String
+  TagID: String
 }
 
 input CreateMJTaggedItemInput {
@@ -4866,6 +5123,7 @@ type CreatePreAuthUploadUrlPayload {
 
 input CreateQuerySystemUserInput {
   AuditQueryRuns: Boolean
+  AutoResolveCollision: Boolean = false
   CacheEnabled: Boolean
   CacheMaxSize: Float
   CacheTTLMinutes: Float
@@ -4876,6 +5134,7 @@ input CreateQuerySystemUserInput {
   Feedback: String
   Name: String!
   OriginalSQL: String
+  ParameterHints: [QueryParameterHintInput!]
   Permissions: [QueryPermissionInputType!]
   QualityRank: Float
   SQL: String
@@ -4931,6 +5190,7 @@ input CreatemjBizAppsCommonAddressInput {
   Line3: String
   Longitude: Float
   PostalCode: String
+  RestoreContext___: RestoreContextInput
   StateProvince: String
 }
 
@@ -4942,6 +5202,7 @@ input CreatemjBizAppsCommonAddressLinkInput {
   IsPrimary: Boolean
   Rank: Int
   RecordID: String
+  RestoreContext___: RestoreContextInput
 }
 
 input CreatemjBizAppsCommonAddressTypeInput {
@@ -4951,6 +5212,7 @@ input CreatemjBizAppsCommonAddressTypeInput {
   IconClass: String
   IsActive: Boolean
   Name: String
+  RestoreContext___: RestoreContextInput
 }
 
 input CreatemjBizAppsCommonContactMethodInput {
@@ -4960,6 +5222,7 @@ input CreatemjBizAppsCommonContactMethodInput {
   Label: String
   OrganizationID: String
   PersonID: String
+  RestoreContext___: RestoreContextInput
   Value: String
 }
 
@@ -4970,6 +5233,7 @@ input CreatemjBizAppsCommonContactTypeInput {
   IconClass: String
   IsActive: Boolean
   Name: String
+  RestoreContext___: RestoreContextInput
 }
 
 input CreatemjBizAppsCommonOrganizationInput {
@@ -4983,6 +5247,7 @@ input CreatemjBizAppsCommonOrganizationInput {
   OrganizationTypeID: String
   ParentID: String
   Phone: String
+  RestoreContext___: RestoreContextInput
   Status: String
   TaxID: String
   Website: String
@@ -4995,6 +5260,7 @@ input CreatemjBizAppsCommonOrganizationTypeInput {
   IconClass: String
   IsActive: Boolean
   Name: String
+  RestoreContext___: RestoreContextInput
 }
 
 input CreatemjBizAppsCommonPersonInput {
@@ -5011,6 +5277,7 @@ input CreatemjBizAppsCommonPersonInput {
   PhotoURL: String
   PreferredName: String
   Prefix: String
+  RestoreContext___: RestoreContextInput
   Status: String
   Suffix: String
   Title: String
@@ -5023,6 +5290,7 @@ input CreatemjBizAppsCommonRelationshipInput {
   ID: String
   Notes: String
   RelationshipTypeID: String
+  RestoreContext___: RestoreContextInput
   StartDate: Timestamp
   Status: String
   Title: String
@@ -5038,6 +5306,7 @@ input CreatemjBizAppsCommonRelationshipTypeInput {
   IsActive: Boolean
   IsDirectional: Boolean
   Name: String
+  RestoreContext___: RestoreContextInput
   ReverseLabel: String
 }
 
@@ -5183,7 +5452,6 @@ input CreatemjCommitteesMinuteInput {
   ApprovedByMeetingID: String
   ArtifactID: String
   Content: String
-  FileID: String
   ID: String
   MeetingID: String
   Notes: String
@@ -5728,6 +5996,31 @@ type IntegrationStatusOutput {
   TotalEntityMaps: Float
 }
 
+type InviteResultType {
+  ExpiresAt: Timestamp
+  InvitationID: String
+  Message: String!
+  ResultCode: String!
+  Success: Boolean!
+  Token: String
+}
+
+input InviteToListInput {
+  Email: String!
+  ListID: String!
+
+  """Role: Editor | Viewer."""
+  Role: String!
+
+  """Optional TTL in hours. Defaults to 7 days."""
+  TtlHours: Int
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+
 """
 The `JSONObject` scalar type represents JSON objects as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
 """
@@ -5754,6 +6047,31 @@ type ListConnectionsOutput {
   Success: Boolean!
 }
 
+type ListDeltaCountsType {
+  Add: Int!
+  Remove: Int!
+  SourceTotal: Int!
+  TargetTotal: Int!
+  Unchanged: Int!
+}
+
+type ListDeltaType {
+  Counts: ListDeltaCountsType!
+  DeltaToken: String!
+  EntityName: String!
+  TargetListId: String
+  ToAdd: [String!]!
+  ToRemove: [String!]!
+  Unchanged: [String!]!
+  Warnings: [ListDeltaWarningType!]!
+}
+
+type ListDeltaWarningType {
+  Code: String!
+  DetailsJSON: String
+  Message: String!
+}
+
 type ListEntityMapsOutput {
   EntityMaps: [EntityMapSummaryOutput!]
   Message: String!
@@ -5770,6 +6088,33 @@ type ListSchedulesOutput {
   Message: String!
   Schedules: [ScheduleSummaryOutput!]
   Success: Boolean!
+}
+
+type ListShareSummaryType {
+  CreatedAt: Timestamp!
+  ListID: String!
+  PermissionID: String!
+  PermissionLevel: String!
+  SharedByUserID: String
+  Status: String!
+  Target: ShareTargetType!
+}
+
+input ListSourceInput {
+  """Entity name, required when Kind=adhoc."""
+  EntityName: String
+
+  """WHERE clause expression, required when Kind=adhoc."""
+  ExtraFilter: String
+
+  """Discriminator. One of: list | view | adhoc."""
+  Kind: String!
+
+  """List ID, required when Kind=list."""
+  ListID: String
+
+  """User View ID, required when Kind=view."""
+  ViewID: String
 }
 
 type ListSourceObjectsItem {
@@ -6910,7 +7255,7 @@ type MJAIAgentRunStep_ {
   StepNumber: Int!
 
   """
-  Type of execution step: Prompt, Actions, Sub-Agent, Decision, Chat, Validation
+  Type of execution step: Prompt, Actions, Sub-Agent, Decision, Chat, Validation, ForEach, While, Tool
   """
   StepType: String!
 
@@ -7163,6 +7508,68 @@ type MJAIAgentRun_ {
 }
 
 """
+Many-to-many between agents and search scopes, with phase and scheduling control. Drives both pre-execution RAG and agent-invoked scoped search.
+"""
+type MJAIAgentSearchScope_ {
+  Agent: String
+  AgentID: String!
+
+  """
+  Time-windowed deactivation for this agent-scope assignment. NULL = no expiry.
+  """
+  EndAt: Timestamp
+
+  """
+  JSON override for RRF per-provider fusion weights when this agent uses this scope. Resolution order: AIAgentSearchScope.FusionWeightsOverride > SearchScope.ScopeConfig.fusionWeights > engine defaults. Example: { "vector": 2.0, "fulltext": 1.0, "entity": 1.0 }.
+  """
+  FusionWeightsOverride: String
+  ID: String!
+
+  """
+  If true, this is the agent's default scope when no scope is specified in a tool call.
+  """
+  IsDefault: Boolean!
+
+  """
+  Override max results for this scope when used by this agent. NULL = use scope/engine default.
+  """
+  MaxResults: Int
+
+  """
+  Override min score threshold (0.0000–1.0000). NULL = use engine default.
+  """
+  MinScore: Float
+
+  """
+  When this scope is used: PreExecution (injected as retrieved context before the agent runs), AgentInvoked (callable via the scoped search Action), or Both.
+  """
+  Phase: String!
+
+  """
+  Ordering within Phase. Lower = higher priority. Used for pre-execution ordering and as default preference for agent-invoked scope selection.
+  """
+  Priority: Int!
+  QueryTemplate: String
+
+  """
+  FK to Templates. MJ Template used to generate the search query from conversation context (lastUserMessage, recentMessages, payload, etc.). NULL = use lastUserMessage as-is. Can be further specialized per-provider via SearchScopeProvider.QueryTransformTemplateID.
+  """
+  QueryTemplateID: String
+  SearchScope: String!
+  SearchScopeID: String!
+
+  """
+  Time-windowed activation for this agent-scope assignment. NULL = immediately active.
+  """
+  StartAt: Timestamp
+
+  """Lifecycle status. Only Active rows are considered at runtime."""
+  Status: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+"""
 Defines paths (edges) between steps in a flow-based AI agent execution graph
 """
 type MJAIAgentStepPath_ {
@@ -7322,6 +7729,11 @@ type MJAIAgentType_ {
 
 """Table to store information about AI agents."""
 type MJAIAgent_ {
+  """
+  Per-agent opt-in to a Generic Binary fallback for file uploads whose MIME type does not match any registered Artifact Type. When false (default), unrecognized uploads are rejected at upload time with an actionable error. When true, unrecognized uploads resolve to the Generic Binary artifact type, exposing only get_full and get_metadata tools. Scoped per agent — there is no system-wide global flag.
+  """
+  AcceptUnregisteredFiles: Boolean!
+
   """
   JSON object containing parameter values that customize how this agent's type-level system prompt is rendered. The schema is defined by the agent type's PromptParamsSchema field. Allows per-agent control over which prompt sections are included, enabling token savings by excluding unused documentation.
   """
@@ -7505,6 +7917,7 @@ type MJAIAgent_ {
   MJAIAgentRelationships_SubAgentIDArray: [MJAIAgentRelationship_!]!
   MJAIAgentRequests_AgentIDArray: [MJAIAgentRequest_!]!
   MJAIAgentRuns_AgentIDArray: [MJAIAgentRun_!]!
+  MJAIAgentSearchScopes_AgentIDArray: [MJAIAgentSearchScope_!]!
   MJAIAgentSteps_AgentIDArray: [MJAIAgentStep_!]!
   MJAIAgentSteps_SubAgentIDArray: [MJAIAgentStep_!]!
   MJAIAgents_ParentIDArray: [MJAIAgent_!]!
@@ -7512,6 +7925,8 @@ type MJAIAgent_ {
   MJAIResultCache_AgentIDArray: [MJAIResultCache_!]!
   MJActions_CreatedByAgentIDArray: [MJAction_!]!
   MJConversationDetails_AgentIDArray: [MJConversationDetail_!]!
+  MJConversations_DefaultAgentIDArray: [MJConversation_!]!
+  MJSearchExecutionLogs_AIAgentIDArray: [MJSearchExecutionLog_!]!
   MJTasks_AgentIDArray: [MJTask_!]!
 
   """
@@ -7631,6 +8046,11 @@ type MJAIAgent_ {
   JSON configuration defining scope dimensions for multi-tenant deployments. Example: {"dimensions":[{"name":"OrganizationID","entityId":"...","isPrimary":true,"required":true},{"name":"ContactID","entityId":"...","isPrimary":false,"required":false}],"inheritanceMode":"cascading"}
   """
   ScopeConfig: String
+
+  """
+  Controls the agent's search capability. All = may use any scope including Global; search action does not restrict. Assigned = may use ONLY scopes explicitly linked via AIAgentSearchScope; scoped search action enforces this. None = agent has no search capability; the scoped search action rejects all requests.
+  """
+  SearchScopeAccess: String!
 
   """
   Optional JSON schema validation to apply to the input payload before agent execution begins. Uses the same JSONValidator format as FinalPayloadValidation.
@@ -8254,6 +8674,7 @@ type MJAIModel_ {
   MJEntityDocuments_AIModelIDArray: [MJEntityDocument_!]!
   MJGeneratedCodes_GeneratedByModelIDArray: [MJGeneratedCode_!]!
   MJQueries_EmbeddingModelIDArray: [MJQuery_!]!
+  MJTags_EmbeddingModelIDArray: [MJTag_!]!
   MJVectorIndexes_EmbeddingModelIDArray: [MJVectorIndex_!]!
 
   """
@@ -9066,7 +9487,7 @@ type MJAIResultCache_ {
   ID: String!
 
   """Vector representation of the prompt for similarity matching."""
-  PromptEmbedding: Int
+  PromptEmbedding: String
   PromptRun: String
 
   """Reference to the AIPromptRun that created this cache entry."""
@@ -9936,6 +10357,7 @@ type MJApplication_ {
   MJApplicationEntities_ApplicationIDArray: [MJApplicationEntity_!]!
   MJApplicationRoles_ApplicationIDArray: [MJApplicationRole_!]!
   MJApplicationSettings_ApplicationIDArray: [MJApplicationSetting_!]!
+  MJConversations_ApplicationIDArray: [MJConversation_!]!
   MJDashboardUserPreferences_ApplicationIDArray: [MJDashboardUserPreference_!]!
   MJDashboards_ApplicationIDArray: [MJDashboard_!]!
   MJUserApplications_ApplicationIDArray: [MJUserApplication_!]!
@@ -10233,6 +10655,11 @@ type MJArtifactType_ {
   """MIME type or content identifier for this artifact type"""
   ContentType: String!
 
+  """
+  How artifacts of this type are delivered to the LLM by default. Inline: emitted as an inline content block (image_url, audio_url, small text, etc.) when the model supports the modality and the size is under the inline cap. ToolsOnly: never inlined; the agent reaches the bytes only through tool calls (get_full, library-specific tools). Per-instance override is one-way via ConversationArtifactVersion.ForceToolsOnly — an instance can opt out of inline but never opt in when the type default is ToolsOnly.
+  """
+  DefaultDeliveryMode: String!
+
   """Detailed description of the artifact type"""
   Description: String
 
@@ -10268,7 +10695,17 @@ type MJArtifactType_ {
   Parent artifact type ID for hierarchical artifact type organization. Child types inherit ExtractRules from parent but can override.
   """
   ParentID: String
+
+  """
+  Deterministic tiebreaker when multiple Artifact Types match the same MIME pattern. Higher values win. Within a specificity tier (exact > subtype-wildcard), the resolver sorts by Priority desc, then SystemSupplied = false beats SystemSupplied = true, then lowest ID wins.
+  """
+  Priority: Int!
   RootParentID: String
+
+  """
+  True for Artifact Types shipped as part of the MemberJunction default registry (JSON, PDF, Office variants, Image/Audio/Video, Generic Text, Generic Binary). False for user/org-supplied customizations. Used as a tiebreaker in MIME pattern resolution: user customizations win over shipped defaults at equal Priority.
+  """
+  SystemSupplied: Boolean!
 
   """
   Class name for the BaseArtifactToolLibrary subclass that provides type-specific artifact exploration tools for agents. Resolved via ClassFactory. When NULL, ArtifactToolManager uses name-based fallback resolution.
@@ -10378,11 +10815,17 @@ type MJArtifactVersion_ {
   Original filename of the stored file (e.g. report.pdf). Denormalized from the File entity for display without joins. Only populated when ContentMode is 'File'.
   """
   FileName: String
+
+  """
+  One-way override that forces this artifact version to be delivered via tools regardless of the Artifact Type's DefaultDeliveryMode. When true, the resolver never emits an inline content block for this version. There is no inverse override — an instance cannot be widened from ToolsOnly to Inline. Default false.
+  """
+  ForceToolsOnly: Boolean!
   ID: String!
   MJArtifactUses_ArtifactVersionIDArray: [MJArtifactUse_!]!
   MJArtifactVersionAttributes_ArtifactVersionIDArray: [MJArtifactVersionAttribute_!]!
   MJCollectionArtifacts_ArtifactVersionIDArray: [MJCollectionArtifact_!]!
   MJConversationDetailArtifacts_ArtifactVersionIDArray: [MJConversationDetailArtifact_!]!
+  MJConversationDetailAttachments_ArtifactVersionIDArray: [MJConversationDetailAttachment_!]!
 
   """
   MIME type of the stored file (e.g. application/pdf). Denormalized from the File entity for display without joins. Only populated when ContentMode is 'File'.
@@ -11230,6 +11673,11 @@ type MJComponentLibrary_ {
   Status: String!
 
   """
+  Markdown-formatted usage instructions for AI code generators and agents. Injected into prompts when a component references this library. Covers container requirements, initialization patterns, required config options, and common pitfalls. Distinct from Description which is a high-level summary of what the library does.
+  """
+  UsageInstructions: String
+
+  """
   Controls how the library can be used: Direct (by components), Dependency (only as dependency), or Both
   """
   UsageType: String!
@@ -11330,6 +11778,7 @@ type MJComponent_ {
   MJComponentDependencies_ComponentIDArray: [MJComponentDependency_!]!
   MJComponentDependencies_DependencyComponentIDArray: [MJComponentDependency_!]!
   MJComponentLibraryLinks_ComponentIDArray: [MJComponentLibraryLink_!]!
+  MJEntityFormOverrides_ComponentIDArray: [MJEntityFormOverride_!]!
 
   """Component name within the namespace (e.g., revenue-tracker)"""
   Name: String!
@@ -11536,6 +11985,7 @@ type MJContentItem_ {
   MJContentItemDuplicates_ContentItemAIDArray: [MJContentItemDuplicate_!]!
   MJContentItemDuplicates_ContentItemBIDArray: [MJContentItemDuplicate_!]!
   MJContentItemTags_ItemIDArray: [MJContentItemTag_!]!
+  MJTagSuggestions_SourceContentItemIDArray: [MJTagSuggestion_!]!
   Name: String
 
   """
@@ -11801,6 +12251,7 @@ type MJContentSource_ {
   MJContentProcessRunDetails_ContentSourceIDArray: [MJContentProcessRunDetail_!]!
   MJContentProcessRuns_SourceIDArray: [MJContentProcessRun_!]!
   MJContentSourceParams_ContentSourceIDArray: [MJContentSourceParam_!]!
+  MJTagSuggestions_SourceContentSourceIDArray: [MJTagSuggestion_!]!
   Name: String
   ScheduledAction: String
 
@@ -11975,9 +12426,15 @@ type MJConversationDetailArtifact_ {
 }
 
 """
-Stores attachments (images, videos, audio, documents) for conversation messages. Supports both inline base64 storage for small files and reference to MJStorage for large files.
+DEPRECATED: file uploads now flow through ConversationArtifactVersion so they share storage, identity, versioning, permissions, and the artifact-tool dispatch path. Table, generated entity class, GraphQL types, and stored procedures all remain functional — runtime use produces a console warning per the framework's standard handling of Status='Deprecated'. See packages/AI/Agents/docs/ARTIFACT_TOOLS_GUIDE.md for migration guidance. Originally: Stores attachments (images, videos, audio, documents) for conversation messages.
 """
 type MJConversationDetailAttachment_ {
+  ArtifactVersion: String
+
+  """
+  Foreign key to the ArtifactVersion created alongside this attachment by the storage-unification path. When set, the agent resolver routes via the artifact path (manifest + tool dispatch) and skips inline embedding of the attachment to avoid double-processing. NULL for pre-v5.35 attachment rows authored before storage unification.
+  """
+  ArtifactVersionID: String
   ConversationDetail: String!
   ConversationDetailID: String!
 
@@ -12198,8 +12655,29 @@ type MJConversationDetail_ {
 Tracks conversation sessions between users and AI agents or between users, including context, participants, and metadata.
 """
 type MJConversation_ {
+  """
+  Free-form JSON extensibility column. Apps that want to attach conversation-scoped metadata (UI state, draft notes, custom analytics tags, etc.) can stuff it here without a schema change. **Namespace your keys** to avoid collisions across apps — store e.g. {"form-builder.lastPreviewRecordId":"...","my-app.fooFlag":true} rather than top-level lastPreviewRecordId. Core MJ code paths do NOT read this column; it's purely for downstream apps. NVARCHAR(MAX) so callers can store arbitrarily large blobs, but treat that as a smell — heavy data belongs in a real entity, not a JSON dump.
+  """
+  AdditionalData: String
+  Application: String
+
+  """
+  Optional Application this conversation is bound to. Required when ApplicationScope is 'Application' or 'Both'; must be NULL when ApplicationScope is 'Global'. Enforced by the CK_Conversation_ScopeAppBinding cross-column CHECK. Used by embedded chat surfaces (e.g. the Form Builder cockpit) to filter their conversation list to just their own application's conversations.
+  """
+  ApplicationID: String
+
+  """
+  Controls where this conversation surfaces in the UI. Global = appears in the main Chat app (no application binding). Application = scoped to a specific Application's embedded chat surface (e.g. the Form Builder cockpit); hidden from the main chat list by default. Both = explicitly promoted to appear in BOTH the main chat list and the bound Application's embedded surface. Defaults to Global so pre-existing conversations stay visible in main chat. Paired with ApplicationID via a cross-column CHECK constraint: Global => ApplicationID IS NULL; Application or Both => ApplicationID IS NOT NULL.
+  """
+  ApplicationScope: String!
   DataContext: String
   DataContextID: String
+  DefaultAgent: String
+
+  """
+  Optional per-conversation default AI agent. When set, the message router targets this agent for non-mention, non-continuity messages instead of falling through to the embedder-supplied default (e.g. Form Builder) or to Sage. Lets a user pin a conversation to a specific specialist agent (e.g. Research Agent) so Sage is never invoked for that thread. Routing precedence: @mention > continuity (last responder) > Conversation.DefaultAgentID > embedder's defaultAgentId input > Sage fallback.
+  """
+  DefaultAgentID: String
   Description: String
   Environment: String!
   EnvironmentID: String!
@@ -12216,10 +12694,14 @@ type MJConversation_ {
   """Indicates if this conversation is pinned to the top of lists"""
   IsPinned: Boolean!
   LinkedEntity: String
+
+  """
+  Generic 'what is this conversation about?' pointer. Names the Entity whose record this conversation references (e.g. MJ: Components when the conversation was started in the Form Builder cockpit about a specific form). Paired with LinkedRecordID via the CK_Conversation_LinkBinding cross-column CHECK — both NULL or both populated. Surfaces use this to filter their conversation list to entries about the currently-loaded record (e.g. 'show prior conversations about THIS form'). Reusable beyond Form Builder by any future dashboard / record-context surface that wants the same UX without further schema work.
+  """
   LinkedEntityID: String
 
   """
-  ID of a related record this conversation is about (support ticket, order, etc.).
+  The primary key of the record this conversation is about, serialized as a string so any entity type can be referenced regardless of its PK shape (UUID, int, composite). Used together with LinkedEntityID — see CK_Conversation_LinkBinding. Wide enough (NVARCHAR(500) in the baseline schema) to handle chunky composite keys. Surfaces query by (LinkedEntityID, LinkedRecordID) — or by LinkedRecordID IN (...) when a lineage of records shares conversation context (e.g. multiple Component versions of the same form lineage).
   """
   LinkedRecordID: String
   MJAIAgentExamples_SourceConversationIDArray: [MJAIAgentExample_!]!
@@ -13598,6 +14080,11 @@ type MJEntityField_ {
   IncludeRelatedEntityNameFieldInBaseView: Boolean!
 
   """
+  When 1, this field is a SQL Server computed column or PostgreSQL generated column — physically present in the base table but read-only at the SQL layer. Distinct from IsVirtual, which means the column is not in the base table at all (e.g., joined name lookups in the base view). A computed column has both IsVirtual=1 (read-only at the API layer) and IsComputed=1 (physically in the table). The difference matters for base-view JOIN target selection: when an FK's related Name Field is computed, the generated view joins to the related entity's base table instead of its view.
+  """
+  IsComputed: Boolean!
+
+  """
   If set to 1, this column will be used as the "Name" field for the entity and will be used to display the name of the record in various places in the UI.
   """
   IsNameField: Boolean!
@@ -13620,7 +14107,9 @@ type MJEntityField_ {
   """Indicates if the field must have unique values within the entity."""
   IsUnique: Boolean!
 
-  """NULL"""
+  """
+  When 1, this field is read-only at the API layer (excluded from spCreate / spUpdate / GraphQL input types). Set automatically when the column is either (a) not present in the base table — e.g., a joined name lookup in the base view, or (b) a SQL Server computed column or PostgreSQL generated column. Cases (a) and (b) are distinguished by the IsComputed flag: IsVirtual=1, IsComputed=0 means view-only; IsVirtual=1, IsComputed=1 means computed/generated and physically present in the base table.
+  """
   IsVirtual: Boolean!
 
   """
@@ -13720,6 +14209,63 @@ type MJEntityField_ {
 
   """NULL"""
   ViewCellTemplate: String
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+"""
+Points an Entity at a Component to serve as its form at runtime. Scoped to User > Role > Global with priority-based resolution. When present and Active, takes precedence over the entity's @RegisterClass-registered or CodeGen-generated Angular form.
+"""
+type MJEntityFormOverride_ {
+  Component: String!
+
+  """
+  Foreign key to Component — the component that renders the form. Must declare componentRole='form' and implement the FormHostProps contract.
+  """
+  ComponentID: String!
+
+  """
+  Optional longer description of what this override is for and when it applies.
+  """
+  Description: String
+  Entity: String!
+
+  """Foreign key to Entity — which entity this override is for."""
+  EntityID: String!
+  ID: String!
+
+  """
+  Human-readable label for this override (e.g., "CSR Customer Form", "Compact Mobile Variant").
+  """
+  Name: String!
+
+  """
+  Optional free-form commentary about this override — e.g. who authored it, why it exists, what should change before it goes Global, links to related discussions. Does not affect resolution.
+  """
+  Notes: String
+
+  """
+  Higher value wins within a scope tier. Ties broken by __mj_CreatedAt DESC. No IsDefault — Priority is the only mechanism.
+  """
+  Priority: Int!
+  Role: String
+
+  """Required when Scope='Role'. The role whose members see this override."""
+  RoleID: String
+
+  """
+  Resolution tier: User (requires UserID), Role (requires RoleID), or Global. The resolver evaluates in that order — a User row beats a Role row beats a Global row.
+  """
+  Scope: String!
+
+  """
+  Active = eligible for resolution. Inactive = ignored. Pending = AI-authored, awaiting human activation (resolver treats as Inactive).
+  """
+  Status: String!
+  User: String
+
+  """Required when Scope='User'. The single user this override applies to."""
+  UserID: String
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
 }
@@ -14225,6 +14771,7 @@ type MJEntity_ {
   MJEntityDocuments_EntityIDArray: [MJEntityDocument_!]!
   MJEntityFields_EntityIDArray: [MJEntityField_!]!
   MJEntityFields_RelatedEntityIDArray: [MJEntityField_!]!
+  MJEntityFormOverrides_EntityIDArray: [MJEntityFormOverride_!]!
   MJEntityOrganicKeyRelatedEntities_RelatedEntityIDArray: [MJEntityOrganicKeyRelatedEntity_!]!
   MJEntityOrganicKeys_EntityIDArray: [MJEntityOrganicKey_!]!
   MJEntityPermissions_EntityIDArray: [MJEntityPermission_!]!
@@ -14247,6 +14794,8 @@ type MJEntity_ {
   MJRecordMergeLogs_EntityIDArray: [MJRecordMergeLog_!]!
   MJResourceTypes_CategoryEntityIDArray: [MJResourceType_!]!
   MJResourceTypes_EntityIDArray: [MJResourceType_!]!
+  MJSearchScopeEntities_EntityIDArray: [MJSearchScopeEntity_!]!
+  MJTagScopes_ScopeEntityIDArray: [MJTagScope_!]!
   MJTaggedItems_EntityIDArray: [MJTaggedItem_!]!
   MJTemplateParams_EntityIDArray: [MJTemplateParam_!]!
   MJTestRuns_TargetLogEntityIDArray: [MJTestRun_!]!
@@ -14581,6 +15130,7 @@ type MJFileStorageAccount_ {
   MJAIAgents_DefaultStorageAccountIDArray: [MJAIAgent_!]!
   MJArchiveConfigurations_StorageAccountIDArray: [MJArchiveConfiguration_!]!
   MJFileStorageAccountPermissions_FileStorageAccountIDArray: [MJFileStorageAccountPermission_!]!
+  MJSearchScopeStorageAccounts_FileStorageAccountIDArray: [MJSearchScopeStorageAccount_!]!
 
   """
   Display name for the storage account (e.g., Marketing Files, Engineering Docs). Must be unique per provider.
@@ -15217,11 +15767,43 @@ type MJList_ {
   """
   ExternalSystemRecordID: String
   ID: String!
+
+  """
+  Timestamp (UTC) of the most recent successful RefreshFromSource. Null when the list has never been refreshed.
+  """
+  LastRefreshedAt: Timestamp
+  LastRefreshedByUser: String
+
+  """
+  User who triggered the most recent successful RefreshFromSource. Null when the list has never been refreshed.
+  """
+  LastRefreshedByUserID: String
   MJDuplicateRuns_SourceListIDArray: [MJDuplicateRun_!]!
   MJListDetails_ListIDArray: [MJListDetail_!]!
   MJListInvitations_ListIDArray: [MJListInvitation_!]!
   MJListShares_ListIDArray: [MJListShare_!]!
   Name: String!
+
+  """
+  Default refresh mode for this list. Additive only adds new members; Sync reconciles in both directions (may remove members no longer in the source — requires explicit drop-confirmation).
+  """
+  RefreshMode: String!
+
+  """
+  JSON snapshot of the source filter at materialization time. When UseSnapshot=1, refreshes re-apply this snapshot rather than re-reading the live source view. Null when no snapshot was captured.
+  """
+  SourceFilterSnapshot: String
+  SourceView: String
+
+  """
+  Optional ID of the User View this list was materialized from. NULL for hand-built lists. When set, the list can be refreshed against this view via ListOperations.RefreshFromSource.
+  """
+  SourceViewID: String
+
+  """
+  When 1, RefreshFromSource uses SourceFilterSnapshot as the source. When 0 (default), it re-reads the live SourceView.
+  """
+  UseSnapshot: Boolean!
   User: String!
   UserID: String!
   _mj__CreatedAt: Timestamp!
@@ -16554,7 +17136,7 @@ type MJRecordGeoCode_ {
   GeocodedAt: Timestamp
 
   """
-  How this geocode was produced: google (Google Geocoding API), reference_data (resolved via Country/StateProvince tables), manual (user-entered), ip_geolocation (IP lookup), native (copied from entity lat/lng fields), reverse (reverse geocode from coordinates).
+  Source that produced this geocode. One of: google, geocodio, here, reference_data, manual, ip_geolocation, native, reverse.
   """
   GeocodingSource: String
   ID: String!
@@ -16940,11 +17522,13 @@ type MJRole_ {
   MJApplicationRoles_RoleIDArray: [MJApplicationRole_!]!
   MJAuthorizationRoles_RoleIDArray: [MJAuthorizationRole_!]!
   MJEmployeeRoles_RoleIDArray: [MJEmployeeRole_!]!
+  MJEntityFormOverrides_RoleIDArray: [MJEntityFormOverride_!]!
   MJEntityPermissions_RoleIDArray: [MJEntityPermission_!]!
   MJFileStorageAccountPermissions_RoleIDArray: [MJFileStorageAccountPermission_!]!
   MJMCPServerConnectionPermissions_RoleIDArray: [MJMCPServerConnectionPermission_!]!
   MJQueryPermissions_RoleIDArray: [MJQueryPermission_!]!
   MJResourcePermissions_RoleIDArray: [MJResourcePermission_!]!
+  MJSearchScopePermissions_RoleIDArray: [MJSearchScopePermission_!]!
   MJUserRoles_RoleIDArray: [MJUserRole_!]!
 
   """
@@ -17331,6 +17915,73 @@ type MJSchemaInfo_ {
   _mj__UpdatedAt: Timestamp!
 }
 
+"""
+One row per SearchEngine.search invocation. Populated by SearchEngine's post-fusion logging hook (Phase 3.2). Read by the Knowledge Hub Search Analytics dashboard (Phase 3.3) and the per-scope tuning CSV export (Phase 3.4).
+"""
+type MJSearchExecutionLog_ {
+  AIAgent: String
+
+  """
+  The AIAgent identity if the search was invoked from an agent (e.g. ScopedSearchAction). NULL for direct human-initiated searches.
+  """
+  AIAgentID: String
+
+  """
+  Short human-readable failure reason when Status = 'Failure' or 'Forbidden'. NULL on success.
+  """
+  FailureReason: String
+  ID: String!
+
+  """
+  JSON array of per-provider breakdown entries: [{"Provider":"Vector","DurationMs":123,"ResultCount":5,"ErrorMessage":null}, ...]. Used by the analytics dashboard for p50/p95 latency-by-provider charts and to spot consistently slow providers.
+  """
+  ProvidersJSON: String
+
+  """
+  Raw query string the user / agent submitted. NVARCHAR(MAX) because some queries are long (full sentences, snippets). Stored verbatim for analytics — do NOT rely on this for permission decisions.
+  """
+  Query: String!
+
+  """
+  Total reranker spend in cents for this invocation, populated from the BaseReRanker.CostReporter callback via RerankerBudgetGuard. NULL when no rerank ran or no real-provider cost was incurred (Noop / BGE).
+  """
+  RerankerCostCents: Float
+
+  """
+  BaseReRanker.Name of the reranker that ran (e.g. 'Cohere', 'Voyage', 'OpenAI', 'BGE', 'NoopReRanker'). NULL when no rerank stage executed for this invocation.
+  """
+  RerankerName: String
+
+  """
+  Number of results returned to the caller after permission filtering, deduplication, and score-threshold trimming. Use this as the hit-rate denominator (rows where ResultCount > 0).
+  """
+  ResultCount: Int!
+  SearchScope: String
+
+  """
+  The SearchScope this invocation targeted. NULL for unscoped global search.
+  """
+  SearchScopeID: String
+
+  """
+  Outcome of the search: 'Success' (results returned, possibly empty), 'Failure' (an exception bubbled out — see FailureReason), 'Forbidden' (the caller lacked SearchScopePermission for the requested scope). Constrained by CK_SearchExecutionLog_Status.
+  """
+  Status: String!
+
+  """
+  End-to-end search duration in milliseconds, measured at the SearchEngine.search call boundary (provider runs + fusion + rerank + permission filter + enrichment).
+  """
+  TotalDurationMs: Int!
+  User: String
+
+  """
+  The User who initiated the search. NULL for system / unauthenticated callers.
+  """
+  UserID: String
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
 type MJSearchProvider_ {
   """Free-form notes about this provider configuration"""
   Comments: String
@@ -17361,6 +18012,7 @@ type MJSearchProvider_ {
   CSS icon class for UI display in filter facets and result badges (e.g., "fa-solid fa-database", "fa-solid fa-brain"). Supports any CSS-based icon library. When NULL, a default icon is used.
   """
   Icon: String
+  MJSearchScopeProviders_SearchProviderIDArray: [MJSearchScopeProvider_!]!
 
   """
   Optional per-provider cap on the number of results to return. Useful for rate-limited or pay-per-query external APIs. When NULL, uses the SearchEngine default.
@@ -17391,6 +18043,257 @@ type MJSearchProvider_ {
   Whether this provider should run during fast preview/autocomplete searches. Expensive providers (external APIs) may set this to 0.
   """
   SupportsPreview: Boolean!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+"""
+Controls which entities participate in entity and full-text search within a scope, with optional per-entity filter and user-search-string overrides.
+"""
+type MJSearchScopeEntity_ {
+  Entity: String!
+  EntityID: String!
+
+  """
+  Optional SQL filter applied to this entity's search within this scope. Example: Status='Published' AND DepartmentID='abc'. Rendered as a Nunjucks template with SearchContext variables for multi-tenant filtering.
+  """
+  ExtraFilter: String
+  ID: String!
+  SearchScope: String!
+  SearchScopeID: String!
+
+  """
+  Optional override for the UserSearchString passed to RunView for this entity within this scope. Nunjucks template (e.g., "{{ query }} AND type:policy"). NULL = pass the user's actual query through as-is.
+  """
+  UserSearchString: String
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+"""
+Scoped external/provider-owned indexes. Generic — covers vector stores (Pinecone, Qdrant, PGVector) and text/hybrid engines (Elasticsearch, Typesense, Azure AI Search, OpenSearch). A single scope can mix types; each row is consumed only by the provider matching its IndexType.
+"""
+type MJSearchScopeExternalIndex_ {
+  """
+  JSON with extra connection/config hints the provider needs (cluster alias, routing key, custom analyzer, etc.). Provider-interpreted.
+  """
+  ExternalIndexConfig: String
+
+  """
+  For non-vector IndexTypes: the remote engine's index/collection/alias name (e.g., Elasticsearch index "kb_docs_v3", Typesense collection "articles"). NULL for IndexType='Vector' (VectorIndexID resolves the name instead).
+  """
+  ExternalIndexName: String
+  ID: String!
+
+  """
+  Discriminator. Determines which provider class consumes this row: Vector | Elasticsearch | Typesense | AzureAISearch | OpenSearch | Other.
+  """
+  IndexType: String!
+
+  """
+  JSON filter expression applied as a native metadata filter on the remote engine. Pinecone/Qdrant/PGVector metadata filter, or Elasticsearch filter DSL, etc. Rendered as a Nunjucks template so SearchContext.PrimaryScopeRecordID and SearchContext.SecondaryScopes.* can be interpolated for multi-tenant filtering.
+  """
+  MetadataFilter: String
+  SearchScope: String!
+  SearchScopeID: String!
+  VectorIndex: String
+
+  """
+  FK to VectorIndex. REQUIRED when IndexType='Vector'. NULL for all other IndexType values.
+  """
+  VectorIndexID: String
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+"""
+Per-user or per-role permission grant on a SearchScope. Exactly one of UserID or RoleID is set on each row; the other is NULL. PermissionLevel is one of None, Read, Search, Manage. Combined with AIAgent.SearchScopeAccess for agent-side fallbacks via the SearchScopePermissionResolver.
+"""
+type MJSearchScopePermission_ {
+  """Primary key. Auto-generated."""
+  ID: String!
+
+  """
+  Capability granted on this SearchScope. None = explicit deny (overrides role grants), Read = view scope metadata, Search = invoke ScopedSearchAction, Manage = full edit including authoring of permission rows. The resolver picks the highest level when multiple grants apply (direct + role).
+  """
+  PermissionLevel: String!
+  Role: String
+
+  """
+  The role this permission applies to. Mutually exclusive with UserID — exactly one must be set. Permissions granted via roles flow to all users in that role.
+  """
+  RoleID: String
+  SearchScope: String!
+
+  """The SearchScope this permission row applies to."""
+  SearchScopeID: String!
+  User: String
+
+  """
+  The user this permission applies to. Mutually exclusive with RoleID — exactly one must be set.
+  """
+  UserID: String
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+"""
+Controls which SearchProviders participate in a given SearchScope. Each row enables one provider within one scope, with optional overrides.
+"""
+type MJSearchScopeProvider_ {
+  """
+  Whether this provider is active for this scope. Lets an admin toggle providers off per-scope without deleting the row.
+  """
+  Enabled: Boolean!
+  ID: String!
+
+  """
+  Override the max-results value for this provider within this scope. NULL = use the provider's default.
+  """
+  MaxResultsOverride: Int
+
+  """
+  JSON override for provider-specific configuration within this scope. Provider interprets.
+  """
+  ProviderConfigOverride: String
+  QueryTransformTemplate: String
+
+  """
+  Optional FK to Templates. When set, the user/agent query is rewritten through this Template before being sent to this provider. Lets vector providers get a chunk-shaped rewrite while FTS providers get keyword extraction within the same scope. Resolution order: this > AIAgentSearchScope.QueryTemplateID > raw lastUserMessage.
+  """
+  QueryTransformTemplateID: String
+  SearchProvider: String!
+  SearchProviderID: String!
+  SearchScope: String!
+  SearchScopeID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+"""Controls which file storage accounts/folders participate in a scope."""
+type MJSearchScopeStorageAccount_ {
+  FileStorageAccount: String!
+  FileStorageAccountID: String!
+
+  """
+  Optional folder path restriction. NULL = entire storage account. Example: /policies/hr/. Rendered as a Nunjucks template with SearchContext variables so platforms can do per-tenant folder routing like /tenants/{{ context.PrimaryScopeRecordID }}/.
+  """
+  FolderPath: String
+  ID: String!
+  SearchScope: String!
+  SearchScopeID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+"""
+Canonical test queries owned by a SearchScope. Used by scope authors to validate tuning changes — re-run a saved query after swapping the reranker or adjusting fusion weights and compare results to the prior run.
+"""
+type MJSearchScopeTestQuery_ {
+  """
+  Optional MJ entity name (e.g. "Contacts", "Documents") of the expected top result. When set together with ExpectedTopResultRecordID, lets the test runner assert that the tuned scope returns the right record at rank #1 — a regression tripwire for fusion / reranker changes.
+  """
+  ExpectedTopResultEntity: String
+
+  """
+  Optional record ID of the expected top result, paired with ExpectedTopResultEntity. NULL = no assertion (the query is exploratory).
+  """
+  ExpectedTopResultRecordID: String
+  ID: String!
+
+  """
+  Short human-readable label for the test query, shown in the form's test-query grid (e.g. "VIP customer escalation", "expense reimbursement policy").
+  """
+  Label: String!
+
+  """
+  Free-form notes explaining why this query is canonical or what edge case it represents.
+  """
+  Notes: String
+
+  """
+  The query text itself. NVARCHAR(MAX) because canonical queries can be full sentences or chunks of natural-language context.
+  """
+  Query: String!
+  SearchScope: String!
+
+  """
+  The SearchScope this test query belongs to. Cascade-restricted via FK so accidental scope deletion preserves test history.
+  """
+  SearchScopeID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+"""
+A named, reusable boundary defining WHICH content participates in a search (providers, external indexes, entities, storage accounts). Combined with a runtime SearchContext, it enables multi-tenant, permission-aware, agent-friendly retrieval. See plans/search-scopes-rag-plus.md.
+"""
+type MJSearchScope_ {
+  """
+  Detailed description of what this scope covers. Surfaced to agents in the available-scopes prompt injection so the LLM can choose a scope.
+  """
+  Description: String
+
+  """
+  Optional time-window deactivation. Scope is inactive after EndAt. NULL = no expiry.
+  """
+  EndAt: Timestamp
+  ID: String!
+
+  """Font Awesome (or equivalent) icon class used by the scope selector UI."""
+  Icon: String
+
+  """
+  If true, this is the default scope for users/agents that do not specify one.
+  """
+  IsDefault: Boolean!
+
+  """
+  If true, this scope includes everything (equivalent to no scope filtering). Exactly one Global scope should exist; it is seeded via metadata sync.
+  """
+  IsGlobal: Boolean!
+  MJAIAgentSearchScopes_SearchScopeIDArray: [MJAIAgentSearchScope_!]!
+  MJSearchExecutionLogs_SearchScopeIDArray: [MJSearchExecutionLog_!]!
+  MJSearchScopeEntities_SearchScopeIDArray: [MJSearchScopeEntity_!]!
+  MJSearchScopeExternalIndexes_SearchScopeIDArray: [MJSearchScopeExternalIndex_!]!
+  MJSearchScopePermissions_SearchScopeIDArray: [MJSearchScopePermission_!]!
+  MJSearchScopeProviders_SearchScopeIDArray: [MJSearchScopeProvider_!]!
+  MJSearchScopeStorageAccounts_SearchScopeIDArray: [MJSearchScopeStorageAccount_!]!
+  MJSearchScopeTestQueries_SearchScopeIDArray: [MJSearchScopeTestQuery_!]!
+
+  """
+  Human-readable scope name (e.g., "HR Policies", "Engineering Docs"). Unique across the system.
+  """
+  Name: String!
+  OwnerUser: String
+
+  """
+  NULL = organization-wide scope. Set = personal scope owned by this user (visible/usable only by that user unless explicitly shared).
+  """
+  OwnerUserID: String
+
+  """
+  Optional cap on reranker spend (in cents) per search invocation against this scope. NULL means uncapped — existing behavior. When set, the SearchEngine's budget guard short-circuits any reranker call whose projected cost would push the run total past this value, and accumulates actual post-call cost via each reranker's CostReporter callback (BaseReRanker.CostReporter). Real-provider rerankers (Cohere, Voyage, OpenAI) report cost; NoopReRanker and BGEReRanker report zero (local / pass-through).
+  """
+  RerankerBudgetCents: Int
+
+  """
+  JSON configuration for advanced scope behavior. Recognized keys: rrfK (RRF k parameter), fusionWeights (per-provider weights), reRanker (optional re-ranker stage config: driverClass, inputTopN, outputTopN, config), permissionOverfetchFactor.
+  """
+  ScopeConfig: String
+
+  """
+  JSON defining available multi-tenant SearchContext dimensions, inheritance modes, and validation rules. Uses the SecondaryScopeConfig structure shared with the agent memory system (@memberjunction/ai-core-plus). NULL = scope is not multi-tenant aware.
+  """
+  SearchContextConfig: String
+
+  """
+  Optional time-window activation. Scope is inactive before StartAt. NULL = immediately active.
+  """
+  StartAt: Timestamp
+
+  """Lifecycle status. Only Active scopes are considered at query time."""
+  Status: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
 }
@@ -17511,31 +18414,201 @@ type MJTagCoOccurrence_ {
 }
 
 """
+Polymorphic junction binding a Tag to one or more (Entity, Record) scope rows. A Tag with one or more TagScope rows is only visible inside those scopes; a Tag with no rows AND IsGlobal=1 is visible everywhere. Mirrors the shape of TaggedItem.
+"""
+type MJTagScope_ {
+  ID: String!
+  ScopeEntity: String!
+
+  """
+  Entity that the scope record belongs to (e.g., Companies, AI Agents). Combined with ScopeRecordID identifies the specific tenant or context that may see the tag.
+  """
+  ScopeEntityID: String!
+
+  """
+  Primary key value of the scope record. Stored as NVARCHAR(450) to match the polymorphic RecordID convention used by TaggedItem.
+  """
+  ScopeRecordID: String!
+  Tag: String!
+
+  """The Tag whose visibility this row constrains."""
+  TagID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+"""
+Human-in-the-loop review queue for tag changes the autotagger could not commit autonomously: ambiguous matches, governance-blocked auto-grows, low-usage deprecation candidates, and merge candidates from co-occurrence analysis.
+"""
+type MJTagSuggestion_ {
+  """
+  Cosine similarity score (0.000-1.000) between the proposed name embedding and BestMatchTagID's embedding, when applicable.
+  """
+  BestMatchScore: Float
+  BestMatchTag: String
+
+  """
+  When non-null, the existing Tag the system believes is the closest match. The reviewer may accept this as a merge target instead of creating a new tag.
+  """
+  BestMatchTagID: String
+  ID: String!
+
+  """The proposed tag name as seen by the classifier or analyzer."""
+  ProposedName: String!
+  ProposedParent: String
+
+  """
+  Tag under which the suggestion would be created if approved as a new tag. NULL = root.
+  """
+  ProposedParentID: String
+
+  """
+  Why this suggestion was created. Free-form NVARCHAR for forward compatibility; conventional values include ConstrainedMode, BelowThreshold, ParentFrozen, AutoGrowDisabled, MaxChildrenExceeded, MaxDepthExceeded, BelowMinWeight, RequiresReview, MergeCandidate, LowUsage, WideNode.
+  """
+  Reason: String!
+  ResolvedTag: String
+
+  """
+  When Approved or Merged, points to the resulting Tag (the new tag for Approved, the merge target for Merged).
+  """
+  ResolvedTagID: String
+
+  """Timestamp of the review action."""
+  ReviewedAt: Timestamp
+  ReviewedByUser: String
+
+  """User who took action on this suggestion."""
+  ReviewedByUserID: String
+
+  """
+  Free-form notes captured at review time. Useful for rejection rationale or merge decisions.
+  """
+  ReviewerNotes: String
+  SourceContentItem: String
+
+  """
+  ContentItem that triggered this suggestion, when item-level. NULL for taxonomy-level suggestions (merge candidates, low-usage alerts).
+  """
+  SourceContentItemID: String
+  SourceContentSource: String
+
+  """
+  ContentSource that triggered this suggestion, when source-attributable.
+  """
+  SourceContentSourceID: String
+
+  """
+  Optional snippet of source text that prompted the suggestion. Useful for reviewer context.
+  """
+  SourceText: String
+
+  """
+  Pending = awaiting review; Approved = accepted as a new tag; Merged = accepted as a merge into BestMatchTagID; Rejected = dismissed.
+  """
+  Status: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+"""
+Alternate names that should resolve to a Tag during autotagging. Consulted before exact/fuzzy/semantic match tiers in TagEngine.ResolveTag.
+"""
+type MJTagSynonym_ {
+  ID: String!
+
+  """
+  How this synonym was introduced. Manual = admin-authored; LLM = suggested by an LLM run; Imported = bulk-loaded; Merged = inherited from a tag merged into this one.
+  """
+  Source: String!
+
+  """
+  The alternate name that should resolve to the Tag. Case-insensitive; uniqueness is enforced per-Tag via UQ_TagSynonym_Tag_Synonym.
+  """
+  Synonym: String!
+  Tag: String!
+
+  """The Tag this synonym maps to."""
+  TagID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+"""
 Tags are used to arbitrarily associate any record in any entity with addtional information.
 """
 type MJTag_ {
+  """
+  When 1, the autotagger may auto-create new child tags under this node when running in AutoGrow or FreeFlow mode. When 0, new children must come through the TagSuggestion review queue.
+  """
+  AllowAutoGrow: Boolean!
   Description: String
 
   """Field DisplayName for entity Tags."""
   DisplayName: String!
+  EmbeddingModel: String
+
+  """
+  AI model whose embedding produced EmbeddingVector. When the configured tag-embedding model differs from this value, the cached vector is treated as stale and recomputed.
+  """
+  EmbeddingModelID: String
+
+  """
+  JSON-encoded numeric vector representing the tag's embedding under the model identified by EmbeddingModelID. Refreshed automatically on Save() when Name or Description changes. Used to seed the in-memory tag vector cache without a cold-start LLM round-trip.
+  """
+  EmbeddingVector: String
   ID: String!
+
+  """
+  When 1, this subtree is locked: no new children may be created under this node or any descendant, regardless of taxonomy mode. Existing children remain editable.
+  """
+  IsFrozen: Boolean!
+
+  """
+  When 1, the tag is visible to every tenant/scope. When 0, the tag is only visible to the (Entity, Record) pairs listed in TagScope. Cannot be set together with TagScope rows — enforced in entity Save() override.
+  """
+  IsGlobal: Boolean!
   MJContentItemTags_TagIDArray: [MJContentItemTag_!]!
   MJTagAuditLogs_RelatedTagIDArray: [MJTagAuditLog_!]!
   MJTagAuditLogs_TagIDArray: [MJTagAuditLog_!]!
   MJTagCoOccurrences_TagAIDArray: [MJTagCoOccurrence_!]!
   MJTagCoOccurrences_TagBIDArray: [MJTagCoOccurrence_!]!
+  MJTagScopes_TagIDArray: [MJTagScope_!]!
+  MJTagSuggestions_BestMatchTagIDArray: [MJTagSuggestion_!]!
+  MJTagSuggestions_ProposedParentIDArray: [MJTagSuggestion_!]!
+  MJTagSuggestions_ResolvedTagIDArray: [MJTagSuggestion_!]!
+  MJTagSynonyms_TagIDArray: [MJTagSynonym_!]!
   MJTaggedItems_TagIDArray: [MJTaggedItem_!]!
   MJTags_MergedIntoTagIDArray: [MJTag_!]!
   MJTags_ParentIDArray: [MJTag_!]!
+
+  """
+  Optional cap on the number of direct children allowed under this tag. NULL = unlimited. Auto-grow is blocked once this cap is reached and routed to the TagSuggestion queue.
+  """
+  MaxChildren: Int
+
+  """
+  Optional cap on the depth of the subtree rooted at this tag. NULL = unlimited. 0 = leaf-only (no children at all). Enforced via ancestor walk during auto-grow.
+  """
+  MaxDescendantDepth: Int
   MergedIntoTag: String
 
   """
   When Status is Merged, points to the surviving tag this tag was merged into. All TaggedItem and ContentItemTag references are re-pointed during merge.
   """
   MergedIntoTagID: String
+
+  """
+  Optional minimum classifier confidence (0.00-1.00) required for this tag to be applied. Items below this floor are routed to the TagSuggestion queue instead of being tagged.
+  """
+  MinWeight: Float
   Name: String!
   Parent: String
   ParentID: String
+
+  """
+  When 1, every classifier-applied use of this tag is routed to the TagSuggestion queue for human approval before being persisted as a ContentItemTag → TaggedItem.
+  """
+  RequiresReview: Boolean!
   RootMergedIntoTagID: String
   RootParentID: String
 
@@ -17794,8 +18867,10 @@ type MJTemplate_ {
   If set to 0, the template will be disabled regardless of the values in ActiveAt/DisabledAt. 
   """
   IsActive: Boolean!
+  MJAIAgentSearchScopes_QueryTemplateIDArray: [MJAIAgentSearchScope_!]!
   MJAIPrompts_TemplateIDArray: [MJAIPrompt_!]!
   MJEntityDocuments_TemplateIDArray: [MJEntityDocument_!]!
+  MJSearchScopeProviders_QueryTransformTemplateIDArray: [MJSearchScopeProvider_!]!
   MJTemplateContents_TemplateIDArray: [MJTemplateContent_!]!
   MJTemplateParams_TemplateIDArray: [MJTemplateParam_!]!
   MJUserNotificationTypes_EmailTemplateIDArray: [MJUserNotificationType_!]!
@@ -18719,6 +19794,7 @@ type MJUserView_ {
   IsShared: Boolean!
   MJDataContextItems_ViewIDArray: [MJDataContextItem_!]!
   MJEntityRelationships_DisplayUserViewIDArray: [MJEntityRelationship_!]!
+  MJLists_SourceViewIDArray: [MJList_!]!
   MJUserViewRuns_UserViewIDArray: [MJUserViewRun_!]!
   Name: String!
 
@@ -18825,11 +19901,13 @@ type MJUser_ {
   MJDataContexts_UserIDArray: [MJDataContext_!]!
   MJDuplicateRuns_ApprovedByUserIDArray: [MJDuplicateRun_!]!
   MJDuplicateRuns_StartedByUserIDArray: [MJDuplicateRun_!]!
+  MJEntityFormOverrides_UserIDArray: [MJEntityFormOverride_!]!
   MJFileStorageAccountPermissions_UserIDArray: [MJFileStorageAccountPermission_!]!
   MJKnowledgeHubSavedSearches_UserIDArray: [MJKnowledgeHubSavedSearch_!]!
   MJListCategories_UserIDArray: [MJListCategory_!]!
   MJListInvitations_CreatedByUserIDArray: [MJListInvitation_!]!
   MJListShares_UserIDArray: [MJListShare_!]!
+  MJLists_LastRefreshedByUserIDArray: [MJList_!]!
   MJLists_UserIDArray: [MJList_!]!
   MJMCPServerConnectionPermissions_UserIDArray: [MJMCPServerConnectionPermission_!]!
   MJMCPToolExecutionLogs_UserIDArray: [MJMCPToolExecutionLog_!]!
@@ -18855,7 +19933,11 @@ type MJUser_ {
   MJScheduledJobRuns_ExecutedByUserIDArray: [MJScheduledJobRun_!]!
   MJScheduledJobs_NotifyUserIDArray: [MJScheduledJob_!]!
   MJScheduledJobs_OwnerUserIDArray: [MJScheduledJob_!]!
+  MJSearchExecutionLogs_UserIDArray: [MJSearchExecutionLog_!]!
+  MJSearchScopePermissions_UserIDArray: [MJSearchScopePermission_!]!
+  MJSearchScopes_OwnerUserIDArray: [MJSearchScope_!]!
   MJTagAuditLogs_PerformedByUserIDArray: [MJTagAuditLog_!]!
+  MJTagSuggestions_ReviewedByUserIDArray: [MJTagSuggestion_!]!
   MJTasks_UserIDArray: [MJTask_!]!
   MJTemplateCategories_UserIDArray: [MJTemplateCategory_!]!
   MJTemplates_UserIDArray: [MJTemplate_!]!
@@ -18945,6 +20027,7 @@ type MJVectorIndex_ {
   MJContentTypes_VectorIndexIDArray: [MJContentType_!]!
   MJEntityDocuments_VectorIndexIDArray: [MJEntityDocument_!]!
   MJEntityRecordDocuments_VectorIndexIDArray: [MJEntityRecordDocument_!]!
+  MJSearchScopeExternalIndexes_VectorIndexIDArray: [MJSearchScopeExternalIndex_!]!
 
   """
   The distance metric used for similarity calculations in this index. Common values: cosine (default, measures angular similarity), euclidean (L2 distance), dotproduct (inner product). Must match what the vector database provider was configured with.
@@ -19253,6 +20336,17 @@ type MJWorkspace_ {
   _mj__UpdatedAt: Timestamp!
 }
 
+input MaterializeOptionsInput {
+  CategoryId: String
+  Description: String
+  ListName: String!
+
+  """Refresh mode: Additive | Sync."""
+  RefreshMode: String!
+  RememberLineage: Boolean!
+  UseSnapshot: Boolean!
+}
+
 type MemorySnapshotGQL {
   heapTotal: Float!
   heapUsed: Float!
@@ -19279,8 +20373,20 @@ input MoveStorageObjectInput {
 }
 
 type Mutation {
+  AcceptListInvitation(token: String!): AcceptInvitationResultType!
+  AddViewResultsToList(listId: String!, viewId: String!): ApplyListResultType!
   AnalyzeCommitteeImport(fileBase64: String!, fileName: String!, mimeType: String!): AnalyzeCommitteeImportResponse!
+
+  """
+  Apply a previously-previewed delta. Server enforces the drop-guard regardless of UI.
+  """
+  ApplyListDelta(input: ApplyDeltaInput!): ApplyListResultType!
   ClassifyFeedback(input: ClassifyFeedbackInput!): FeedbackClassificationResult!
+
+  """
+  Preview a set-op (union / intersection / difference) across N sources, optionally projected into a target list.
+  """
+  ComposeLists(input: ComposeListsInput!): ListDeltaType!
   ConfirmCommitteeImport(plan: ImportPlanInput!): ConfirmCommitteeImportResponse!
   CopyObjectBetweenAccounts(input: CopyObjectBetweenAccountsInput!): CopyObjectBetweenAccountsPayload!
   CopyStorageObject(input: CopyStorageObjectInput!): Boolean!
@@ -19309,6 +20415,7 @@ type Mutation {
   CreateMJAIAgentRun(input: CreateMJAIAgentRunInput!): MJAIAgentRun_!
   CreateMJAIAgentRunMedia(input: CreateMJAIAgentRunMediaInput!): MJAIAgentRunMedia_!
   CreateMJAIAgentRunStep(input: CreateMJAIAgentRunStepInput!): MJAIAgentRunStep_!
+  CreateMJAIAgentSearchScope(input: CreateMJAIAgentSearchScopeInput!): MJAIAgentSearchScope_!
   CreateMJAIAgentStep(input: CreateMJAIAgentStepInput!): MJAIAgentStep_!
   CreateMJAIAgentStepPath(input: CreateMJAIAgentStepPathInput!): MJAIAgentStepPath_!
   CreateMJAIAgentType(input: CreateMJAIAgentTypeInput!): MJAIAgentType_!
@@ -19458,6 +20565,7 @@ type Mutation {
   CreateMJEntityDocumentType(input: CreateMJEntityDocumentTypeInput!): MJEntityDocumentType_!
   CreateMJEntityField(input: CreateMJEntityFieldInput!): MJEntityField_!
   CreateMJEntityFieldValue(input: CreateMJEntityFieldValueInput!): MJEntityFieldValue_!
+  CreateMJEntityFormOverride(input: CreateMJEntityFormOverrideInput!): MJEntityFormOverride_!
   CreateMJEntityOrganicKey(input: CreateMJEntityOrganicKeyInput!): MJEntityOrganicKey_!
   CreateMJEntityOrganicKeyRelatedEntity(input: CreateMJEntityOrganicKeyRelatedEntityInput!): MJEntityOrganicKeyRelatedEntity_!
   CreateMJEntityPermission(input: CreateMJEntityPermissionInput!): MJEntityPermission_!
@@ -19548,12 +20656,23 @@ type Mutation {
   CreateMJScheduledJobRun(input: CreateMJScheduledJobRunInput!): MJScheduledJobRun_!
   CreateMJScheduledJobType(input: CreateMJScheduledJobTypeInput!): MJScheduledJobType_!
   CreateMJSchemaInfo(input: CreateMJSchemaInfoInput!): MJSchemaInfo_!
+  CreateMJSearchExecutionLog(input: CreateMJSearchExecutionLogInput!): MJSearchExecutionLog_!
   CreateMJSearchProvider(input: CreateMJSearchProviderInput!): MJSearchProvider_!
+  CreateMJSearchScope(input: CreateMJSearchScopeInput!): MJSearchScope_!
+  CreateMJSearchScopeEntity(input: CreateMJSearchScopeEntityInput!): MJSearchScopeEntity_!
+  CreateMJSearchScopeExternalIndex(input: CreateMJSearchScopeExternalIndexInput!): MJSearchScopeExternalIndex_!
+  CreateMJSearchScopePermission(input: CreateMJSearchScopePermissionInput!): MJSearchScopePermission_!
+  CreateMJSearchScopeProvider(input: CreateMJSearchScopeProviderInput!): MJSearchScopeProvider_!
+  CreateMJSearchScopeStorageAccount(input: CreateMJSearchScopeStorageAccountInput!): MJSearchScopeStorageAccount_!
+  CreateMJSearchScopeTestQuery(input: CreateMJSearchScopeTestQueryInput!): MJSearchScopeTestQuery_!
   CreateMJSkill(input: CreateMJSkillInput!): MJSkill_!
   CreateMJStateProvince(input: CreateMJStateProvinceInput!): MJStateProvince_!
   CreateMJTag(input: CreateMJTagInput!): MJTag_!
   CreateMJTagAuditLog(input: CreateMJTagAuditLogInput!): MJTagAuditLog_!
   CreateMJTagCoOccurrence(input: CreateMJTagCoOccurrenceInput!): MJTagCoOccurrence_!
+  CreateMJTagScope(input: CreateMJTagScopeInput!): MJTagScope_!
+  CreateMJTagSuggestion(input: CreateMJTagSuggestionInput!): MJTagSuggestion_!
+  CreateMJTagSynonym(input: CreateMJTagSynonymInput!): MJTagSynonym_!
   CreateMJTaggedItem(input: CreateMJTaggedItemInput!): MJTaggedItem_!
   CreateMJTask(input: CreateMJTaskInput!): MJTask_!
   CreateMJTaskDependency(input: CreateMJTaskDependencyInput!): MJTaskDependency_!
@@ -19652,6 +20771,7 @@ type Mutation {
   DeleteMJAIAgentRun(ID: String!, options___: DeleteOptionsInput!): MJAIAgentRun_!
   DeleteMJAIAgentRunMedia(ID: String!, options___: DeleteOptionsInput!): MJAIAgentRunMedia_!
   DeleteMJAIAgentRunStep(ID: String!, options___: DeleteOptionsInput!): MJAIAgentRunStep_!
+  DeleteMJAIAgentSearchScope(ID: String!, options___: DeleteOptionsInput!): MJAIAgentSearchScope_!
   DeleteMJAIAgentStep(ID: String!, options___: DeleteOptionsInput!): MJAIAgentStep_!
   DeleteMJAIAgentStepPath(ID: String!, options___: DeleteOptionsInput!): MJAIAgentStepPath_!
   DeleteMJAIAgentType(ID: String!, options___: DeleteOptionsInput!): MJAIAgentType_!
@@ -19801,6 +20921,7 @@ type Mutation {
   DeleteMJEntityDocumentType(ID: String!, options___: DeleteOptionsInput!): MJEntityDocumentType_!
   DeleteMJEntityField(ID: String!, options___: DeleteOptionsInput!): MJEntityField_!
   DeleteMJEntityFieldValue(ID: String!, options___: DeleteOptionsInput!): MJEntityFieldValue_!
+  DeleteMJEntityFormOverride(ID: String!, options___: DeleteOptionsInput!): MJEntityFormOverride_!
   DeleteMJEntityOrganicKey(ID: String!, options___: DeleteOptionsInput!): MJEntityOrganicKey_!
   DeleteMJEntityOrganicKeyRelatedEntity(ID: String!, options___: DeleteOptionsInput!): MJEntityOrganicKeyRelatedEntity_!
   DeleteMJEntityPermission(ID: String!, options___: DeleteOptionsInput!): MJEntityPermission_!
@@ -19891,12 +21012,23 @@ type Mutation {
   DeleteMJScheduledJobRun(ID: String!, options___: DeleteOptionsInput!): MJScheduledJobRun_!
   DeleteMJScheduledJobType(ID: String!, options___: DeleteOptionsInput!): MJScheduledJobType_!
   DeleteMJSchemaInfo(ID: String!, options___: DeleteOptionsInput!): MJSchemaInfo_!
+  DeleteMJSearchExecutionLog(ID: String!, options___: DeleteOptionsInput!): MJSearchExecutionLog_!
   DeleteMJSearchProvider(ID: String!, options___: DeleteOptionsInput!): MJSearchProvider_!
+  DeleteMJSearchScope(ID: String!, options___: DeleteOptionsInput!): MJSearchScope_!
+  DeleteMJSearchScopeEntity(ID: String!, options___: DeleteOptionsInput!): MJSearchScopeEntity_!
+  DeleteMJSearchScopeExternalIndex(ID: String!, options___: DeleteOptionsInput!): MJSearchScopeExternalIndex_!
+  DeleteMJSearchScopePermission(ID: String!, options___: DeleteOptionsInput!): MJSearchScopePermission_!
+  DeleteMJSearchScopeProvider(ID: String!, options___: DeleteOptionsInput!): MJSearchScopeProvider_!
+  DeleteMJSearchScopeStorageAccount(ID: String!, options___: DeleteOptionsInput!): MJSearchScopeStorageAccount_!
+  DeleteMJSearchScopeTestQuery(ID: String!, options___: DeleteOptionsInput!): MJSearchScopeTestQuery_!
   DeleteMJSkill(ID: String!, options___: DeleteOptionsInput!): MJSkill_!
   DeleteMJStateProvince(ID: String!, options___: DeleteOptionsInput!): MJStateProvince_!
   DeleteMJTag(ID: String!, options___: DeleteOptionsInput!): MJTag_!
   DeleteMJTagAuditLog(ID: String!, options___: DeleteOptionsInput!): MJTagAuditLog_!
   DeleteMJTagCoOccurrence(ID: String!, options___: DeleteOptionsInput!): MJTagCoOccurrence_!
+  DeleteMJTagScope(ID: String!, options___: DeleteOptionsInput!): MJTagScope_!
+  DeleteMJTagSuggestion(ID: String!, options___: DeleteOptionsInput!): MJTagSuggestion_!
+  DeleteMJTagSynonym(ID: String!, options___: DeleteOptionsInput!): MJTagSynonym_!
   DeleteMJTaggedItem(ID: String!, options___: DeleteOptionsInput!): MJTaggedItem_!
   DeleteMJTask(ID: String!, options___: DeleteOptionsInput!): MJTask_!
   DeleteMJTaskDependency(ID: String!, options___: DeleteOptionsInput!): MJTaskDependency_!
@@ -20023,6 +21155,8 @@ type Mutation {
     """create, update, or delete"""
     operation: String!
   ): WriteRecordOutput!
+  InviteToList(input: InviteToListInput!): InviteResultType!
+  MaterializeListFromView(options: MaterializeOptionsInput!, viewId: String!): ApplyListResultType!
   MergeRecords(request: RecordMergeRequest!): RecordMergeResult!
   MoveStorageObject(input: MoveStorageObjectInput!): Boolean!
   PauseClassificationPipeline(processRunID: String!): AutotagPipelineResult!
@@ -20031,14 +21165,19 @@ type Mutation {
   PreviewRuntimeSchemaUpdate(input: RSUPipelineInputGQL!): RSUPreviewResultGQL!
   PreviewSearch(maxResults: Float = 8, query: String!): SearchKnowledgeResult!
   PreviewSearchAsSystemUser(maxResults: Float = 8, query: String!): SearchKnowledgeResult!
+  PromoteTagSuggestion(strategy: String!, suggestionID: String!, targetTagID: String): PromoteSuggestionResult!
   ProvisionVideoMeeting(MeetingID: String!): ProvisionVideoMeetingResponse!
   PublishPipelineProgress(currentItem: String, elapsedMs: Float!, estimatedRemainingMs: Float, pipelineRunID: String!, processedItems: Float!, stage: String!, totalItems: Float!): Boolean!
   ReassignAgentRequest(newUserID: String!, note: String, requestId: String!): AIAgentRunResult!
+  RebuildTagEmbeddings: RebuildTagEmbeddingsResult!
+  RefreshListFromSource(confirmDrops: Boolean!, listId: String!, mode: String!): ApplyListResultType!
   RefreshMCPOAuthToken(input: RefreshMCPOAuthTokenInput!): RefreshMCPOAuthTokenResult!
+  RejectTagSuggestion(reviewerNotes: String, suggestionID: String!): RejectSuggestionResult!
   RespondToAgentRequest(requestId: String!, response: String, responseData: String, resumeAgent: Boolean, status: String!): AIAgentRunResult!
   RespondToClientToolRequest(errorMessage: String, requestID: String!, result: String, success: Boolean!): Boolean!
   ResumeClassificationPipeline(processRunID: String!): AutotagPipelineResult!
   RevokeAPIKey(apiKeyId: String!): RevokeAPIKeyResult!
+  RevokeListInvitation(invitationId: String!): ShareResultType!
   RevokeMCPOAuth(input: RevokeMCPOAuthInput!): RevokeMCPOAuthResult!
   RunAIAgent(agentId: String!, autoPopulateLastRunPayload: Boolean, configurationId: String, conversationDetailId: String, createArtifacts: Boolean, createNotification: Boolean, data: String, fireAndForget: Boolean, lastRunId: String, messages: String!, payload: String, sessionId: String!, sourceArtifactId: String, sourceArtifactVersionId: String, templateData: String): AIAgentRunResult!
   RunAIAgentFromConversationDetail(agentId: String!, autoPopulateLastRunPayload: Boolean, configurationId: String, conversationDetailId: String!, createArtifacts: Boolean, createNotification: Boolean, data: String, fireAndForget: Boolean, lastRunId: String, maxHistoryMessages: Int, payload: String, sessionId: String!, sourceArtifactId: String, sourceArtifactVersionId: String): AIAgentRunResult!
@@ -20054,20 +21193,24 @@ type Mutation {
   Execute Runtime Schema Update for a batch of inputs. Requires system user.
   """
   RunRuntimeSchemaUpdateBatch(inputs: [RSUPipelineInputGQL!]!): RSUPipelineBatchResultGQL!
+  RunTagHealth(maxImplicitChildren: Int, maxUsage: Int, minCoOccurrence: Int, minEmbeddingSimilarity: Float, minNameSimilarity: Float): RunTagHealthResult!
   RunTemplate(contextData: String, templateId: String!): TemplateRunResult!
   RunTest(environment: String, fireAndForget: Boolean, tags: String, testId: String!, variables: String, verbose: Boolean): TestRunResult!
   RunTestSuite(environment: String, fireAndForget: Boolean, parallel: Boolean, selectedTestIds: String, sequenceEnd: Int, sequenceStart: Int, suiteId: String!, tags: String, variables: String, verbose: Boolean): TestSuiteRunResult!
   SaveMinutesDraft(Content: String!, MeetingID: String!): MinutesSaveDraftResponse!
-  SearchKnowledge(filters: SearchFiltersInput, maxResults: Float, minScore: Float, query: String!): SearchKnowledgeResult!
+  SearchKnowledge(agentID: ID, filters: SearchFiltersInput, maxResults: Float, minScore: Float, query: String!, scopeIDs: [ID!], searchContext: SearchContextInput): SearchKnowledgeResult!
   SearchKnowledgeAsSystemUser(filters: SearchFiltersInput, maxResults: Float, minScore: Float, query: String!): SearchKnowledgeResult!
   SendComponentFeedback(feedback: ComponentFeedbackInput!): ComponentFeedbackResponse!
   SetRecordFavoriteStatus(params: UserFavoriteSetParams!): UserFavoriteResult!
+  ShareList(input: ShareListInput!): ShareResultType!
+  StreamScopedSearch(agentID: ID, maxResults: Float, minScore: Float, query: String!, scopeIDs: [ID!], searchContext: JSON): SearchStreamStartResult!
   SubmitFeedback(input: SubmitFeedbackInput!): FeedbackResponseType!
   SyncData(items: [ActionItemInputType!]!): SyncDataResultType!
   SyncMCPTools(input: SyncMCPToolsInput!): SyncMCPToolsResult!
   SyncRoles(roles: [RoleInputType!]!): SyncRolesAndUsersResultType!
   SyncRolesAndUsers(data: RolesAndUsersInputType!): SyncRolesAndUsersResultType!
   SyncUsers(users: [UserInputType!]!): SyncRolesAndUsersResultType!
+  UnshareList(permissionId: String!): ShareResultType!
   UpdateClientToolDefinitions(sessionID: String!, tools: String!): Boolean!
   UpdateFile(input: UpdateMJFileInput!): MJFile_!
   UpdateMJAIAction(input: UpdateMJAIActionInput!): MJAIAction_!
@@ -20092,6 +21235,7 @@ type Mutation {
   UpdateMJAIAgentRun(input: UpdateMJAIAgentRunInput!): MJAIAgentRun_!
   UpdateMJAIAgentRunMedia(input: UpdateMJAIAgentRunMediaInput!): MJAIAgentRunMedia_!
   UpdateMJAIAgentRunStep(input: UpdateMJAIAgentRunStepInput!): MJAIAgentRunStep_!
+  UpdateMJAIAgentSearchScope(input: UpdateMJAIAgentSearchScopeInput!): MJAIAgentSearchScope_!
   UpdateMJAIAgentStep(input: UpdateMJAIAgentStepInput!): MJAIAgentStep_!
   UpdateMJAIAgentStepPath(input: UpdateMJAIAgentStepPathInput!): MJAIAgentStepPath_!
   UpdateMJAIAgentType(input: UpdateMJAIAgentTypeInput!): MJAIAgentType_!
@@ -20241,6 +21385,7 @@ type Mutation {
   UpdateMJEntityDocumentType(input: UpdateMJEntityDocumentTypeInput!): MJEntityDocumentType_!
   UpdateMJEntityField(input: UpdateMJEntityFieldInput!): MJEntityField_!
   UpdateMJEntityFieldValue(input: UpdateMJEntityFieldValueInput!): MJEntityFieldValue_!
+  UpdateMJEntityFormOverride(input: UpdateMJEntityFormOverrideInput!): MJEntityFormOverride_!
   UpdateMJEntityOrganicKey(input: UpdateMJEntityOrganicKeyInput!): MJEntityOrganicKey_!
   UpdateMJEntityOrganicKeyRelatedEntity(input: UpdateMJEntityOrganicKeyRelatedEntityInput!): MJEntityOrganicKeyRelatedEntity_!
   UpdateMJEntityPermission(input: UpdateMJEntityPermissionInput!): MJEntityPermission_!
@@ -20331,12 +21476,23 @@ type Mutation {
   UpdateMJScheduledJobRun(input: UpdateMJScheduledJobRunInput!): MJScheduledJobRun_!
   UpdateMJScheduledJobType(input: UpdateMJScheduledJobTypeInput!): MJScheduledJobType_!
   UpdateMJSchemaInfo(input: UpdateMJSchemaInfoInput!): MJSchemaInfo_!
+  UpdateMJSearchExecutionLog(input: UpdateMJSearchExecutionLogInput!): MJSearchExecutionLog_!
   UpdateMJSearchProvider(input: UpdateMJSearchProviderInput!): MJSearchProvider_!
+  UpdateMJSearchScope(input: UpdateMJSearchScopeInput!): MJSearchScope_!
+  UpdateMJSearchScopeEntity(input: UpdateMJSearchScopeEntityInput!): MJSearchScopeEntity_!
+  UpdateMJSearchScopeExternalIndex(input: UpdateMJSearchScopeExternalIndexInput!): MJSearchScopeExternalIndex_!
+  UpdateMJSearchScopePermission(input: UpdateMJSearchScopePermissionInput!): MJSearchScopePermission_!
+  UpdateMJSearchScopeProvider(input: UpdateMJSearchScopeProviderInput!): MJSearchScopeProvider_!
+  UpdateMJSearchScopeStorageAccount(input: UpdateMJSearchScopeStorageAccountInput!): MJSearchScopeStorageAccount_!
+  UpdateMJSearchScopeTestQuery(input: UpdateMJSearchScopeTestQueryInput!): MJSearchScopeTestQuery_!
   UpdateMJSkill(input: UpdateMJSkillInput!): MJSkill_!
   UpdateMJStateProvince(input: UpdateMJStateProvinceInput!): MJStateProvince_!
   UpdateMJTag(input: UpdateMJTagInput!): MJTag_!
   UpdateMJTagAuditLog(input: UpdateMJTagAuditLogInput!): MJTagAuditLog_!
   UpdateMJTagCoOccurrence(input: UpdateMJTagCoOccurrenceInput!): MJTagCoOccurrence_!
+  UpdateMJTagScope(input: UpdateMJTagScopeInput!): MJTagScope_!
+  UpdateMJTagSuggestion(input: UpdateMJTagSuggestionInput!): MJTagSuggestion_!
+  UpdateMJTagSynonym(input: UpdateMJTagSynonymInput!): MJTagSynonym_!
   UpdateMJTaggedItem(input: UpdateMJTaggedItemInput!): MJTaggedItem_!
   UpdateMJTask(input: UpdateMJTaskInput!): MJTask_!
   UpdateMJTaskDependency(input: UpdateMJTaskDependencyInput!): MJTaskDependency_!
@@ -20485,6 +21641,13 @@ type PreviewRecordOutput {
   Data: String!
 }
 
+type PromoteSuggestionResult {
+  ErrorMessage: String
+  ResolvedTagID: String
+  ResolvedTagName: String
+  Success: Boolean!
+}
+
 type ProvisionVideoMeetingResponse {
   ErrorMessage: String
   JoinURL: String
@@ -20532,6 +21695,7 @@ type Query {
   Returns a pre-authenticated download URL for an artifact version whose ContentMode is "File".
   """
   ArtifactFileDownloadUrl(artifactVersionId: String!): String!
+  AvailableSearchProviders: [AvailableSearchProviderGQL!]!
   CacheStats: CacheStatsGQL!
   CacheStatsDetail: CacheStatsDetailGQL!
   CreatePreAuthDownloadUrl(input: CreatePreAuthDownloadUrlInput!): String!
@@ -20601,7 +21765,9 @@ type Query {
   IntegrationSchemaPreview(companyIntegrationID: String!, objects: [SchemaPreviewObjectInput!]!, platform: String! = "sqlserver"): SchemaPreviewOutput!
   IntegrationTestConnection(companyIntegrationID: String!): ConnectionTestOutput!
   IsTestRunning(testId: String!): Boolean!
+  ListSharesForList(listId: String!): [ListShareSummaryType!]!
   ListStorageObjects(input: ListStorageObjectsInput!): StorageListResult!
+  ListsSharedWithMe: [SharedListSummaryType!]!
   MJAIAction(ID: String!): MJAIAction_
   MJAIAgent(ID: String!): MJAIAgent_
   MJAIAgentAction(ID: String!): MJAIAgentAction_
@@ -20624,6 +21790,7 @@ type Query {
   MJAIAgentRun(ID: String!): MJAIAgentRun_
   MJAIAgentRunMedia(ID: String!): MJAIAgentRunMedia_
   MJAIAgentRunStep(ID: String!): MJAIAgentRunStep_
+  MJAIAgentSearchScope(ID: String!): MJAIAgentSearchScope_
   MJAIAgentStep(ID: String!): MJAIAgentStep_
   MJAIAgentStepPath(ID: String!): MJAIAgentStepPath_
   MJAIAgentType(ID: String!): MJAIAgentType_
@@ -20773,6 +21940,7 @@ type Query {
   MJEntityDocumentType(ID: String!): MJEntityDocumentType_
   MJEntityField(ID: String!): MJEntityField_
   MJEntityFieldValue(ID: String!): MJEntityFieldValue_
+  MJEntityFormOverride(ID: String!): MJEntityFormOverride_
   MJEntityOrganicKey(ID: String!): MJEntityOrganicKey_
   MJEntityOrganicKeyRelatedEntity(ID: String!): MJEntityOrganicKeyRelatedEntity_
   MJEntityPermission(ID: String!): MJEntityPermission_
@@ -20863,12 +22031,23 @@ type Query {
   MJScheduledJobRun(ID: String!): MJScheduledJobRun_
   MJScheduledJobType(ID: String!): MJScheduledJobType_
   MJSchemaInfo(ID: String!): MJSchemaInfo_
+  MJSearchExecutionLog(ID: String!): MJSearchExecutionLog_
   MJSearchProvider(ID: String!): MJSearchProvider_
+  MJSearchScope(ID: String!): MJSearchScope_
+  MJSearchScopeEntity(ID: String!): MJSearchScopeEntity_
+  MJSearchScopeExternalIndex(ID: String!): MJSearchScopeExternalIndex_
+  MJSearchScopePermission(ID: String!): MJSearchScopePermission_
+  MJSearchScopeProvider(ID: String!): MJSearchScopeProvider_
+  MJSearchScopeStorageAccount(ID: String!): MJSearchScopeStorageAccount_
+  MJSearchScopeTestQuery(ID: String!): MJSearchScopeTestQuery_
   MJSkill(ID: String!): MJSkill_
   MJStateProvince(ID: String!): MJStateProvince_
   MJTag(ID: String!): MJTag_
   MJTagAuditLog(ID: String!): MJTagAuditLog_
   MJTagCoOccurrence(ID: String!): MJTagCoOccurrence_
+  MJTagScope(ID: String!): MJTagScope_
+  MJTagSuggestion(ID: String!): MJTagSuggestion_
+  MJTagSynonym(ID: String!): MJTagSynonym_
   MJTaggedItem(ID: String!): MJTaggedItem_
   MJTask(ID: String!): MJTask_
   MJTaskDependency(ID: String!): MJTaskDependency_
@@ -20913,6 +22092,11 @@ type Query {
   MJWorkflowRun(ID: String!): MJWorkflowRun_
   MJWorkspace(ID: String!): MJWorkspace_
   MJWorkspaceItem(ID: String!): MJWorkspaceItem_
+
+  """
+  Preview a list operation. Returns a signed DeltaToken that ApplyListDelta will accept (subject to TTL + drift checks).
+  """
+  PreviewListDelta(input: ComputeDeltaInput!): ListDeltaType!
   ResolveComponentDependencies(componentId: String!, registryName: String!): ComponentDependencyTreeType
   ResolveCountry(input: String!): GeoResolveResult!
   ResolveStateProvince(countryInput: String!, stateInput: String!): GeoResolveResult!
@@ -20985,6 +22169,9 @@ type Query {
   RunMJAIAgentRunStepViewByName(input: RunViewByNameInput!): RunMJAIAgentRunStepViewResult!
   RunMJAIAgentRunViewByID(input: RunViewByIDInput!): RunMJAIAgentRunViewResult!
   RunMJAIAgentRunViewByName(input: RunViewByNameInput!): RunMJAIAgentRunViewResult!
+  RunMJAIAgentSearchScopeDynamicView(input: RunDynamicViewInput!): RunMJAIAgentSearchScopeViewResult!
+  RunMJAIAgentSearchScopeViewByID(input: RunViewByIDInput!): RunMJAIAgentSearchScopeViewResult!
+  RunMJAIAgentSearchScopeViewByName(input: RunViewByNameInput!): RunMJAIAgentSearchScopeViewResult!
   RunMJAIAgentStepDynamicView(input: RunDynamicViewInput!): RunMJAIAgentStepViewResult!
   RunMJAIAgentStepPathDynamicView(input: RunDynamicViewInput!): RunMJAIAgentStepPathViewResult!
   RunMJAIAgentStepPathViewByID(input: RunViewByIDInput!): RunMJAIAgentStepPathViewResult!
@@ -21432,6 +22619,9 @@ type Query {
   RunMJEntityFieldValueViewByName(input: RunViewByNameInput!): RunMJEntityFieldValueViewResult!
   RunMJEntityFieldViewByID(input: RunViewByIDInput!): RunMJEntityFieldViewResult!
   RunMJEntityFieldViewByName(input: RunViewByNameInput!): RunMJEntityFieldViewResult!
+  RunMJEntityFormOverrideDynamicView(input: RunDynamicViewInput!): RunMJEntityFormOverrideViewResult!
+  RunMJEntityFormOverrideViewByID(input: RunViewByIDInput!): RunMJEntityFormOverrideViewResult!
+  RunMJEntityFormOverrideViewByName(input: RunViewByNameInput!): RunMJEntityFormOverrideViewResult!
   RunMJEntityOrganicKeyDynamicView(input: RunDynamicViewInput!): RunMJEntityOrganicKeyViewResult!
   RunMJEntityOrganicKeyRelatedEntityDynamicView(input: RunDynamicViewInput!): RunMJEntityOrganicKeyRelatedEntityViewResult!
   RunMJEntityOrganicKeyRelatedEntityViewByID(input: RunViewByIDInput!): RunMJEntityOrganicKeyRelatedEntityViewResult!
@@ -21704,9 +22894,33 @@ type Query {
   RunMJSchemaInfoDynamicView(input: RunDynamicViewInput!): RunMJSchemaInfoViewResult!
   RunMJSchemaInfoViewByID(input: RunViewByIDInput!): RunMJSchemaInfoViewResult!
   RunMJSchemaInfoViewByName(input: RunViewByNameInput!): RunMJSchemaInfoViewResult!
+  RunMJSearchExecutionLogDynamicView(input: RunDynamicViewInput!): RunMJSearchExecutionLogViewResult!
+  RunMJSearchExecutionLogViewByID(input: RunViewByIDInput!): RunMJSearchExecutionLogViewResult!
+  RunMJSearchExecutionLogViewByName(input: RunViewByNameInput!): RunMJSearchExecutionLogViewResult!
   RunMJSearchProviderDynamicView(input: RunDynamicViewInput!): RunMJSearchProviderViewResult!
   RunMJSearchProviderViewByID(input: RunViewByIDInput!): RunMJSearchProviderViewResult!
   RunMJSearchProviderViewByName(input: RunViewByNameInput!): RunMJSearchProviderViewResult!
+  RunMJSearchScopeDynamicView(input: RunDynamicViewInput!): RunMJSearchScopeViewResult!
+  RunMJSearchScopeEntityDynamicView(input: RunDynamicViewInput!): RunMJSearchScopeEntityViewResult!
+  RunMJSearchScopeEntityViewByID(input: RunViewByIDInput!): RunMJSearchScopeEntityViewResult!
+  RunMJSearchScopeEntityViewByName(input: RunViewByNameInput!): RunMJSearchScopeEntityViewResult!
+  RunMJSearchScopeExternalIndexDynamicView(input: RunDynamicViewInput!): RunMJSearchScopeExternalIndexViewResult!
+  RunMJSearchScopeExternalIndexViewByID(input: RunViewByIDInput!): RunMJSearchScopeExternalIndexViewResult!
+  RunMJSearchScopeExternalIndexViewByName(input: RunViewByNameInput!): RunMJSearchScopeExternalIndexViewResult!
+  RunMJSearchScopePermissionDynamicView(input: RunDynamicViewInput!): RunMJSearchScopePermissionViewResult!
+  RunMJSearchScopePermissionViewByID(input: RunViewByIDInput!): RunMJSearchScopePermissionViewResult!
+  RunMJSearchScopePermissionViewByName(input: RunViewByNameInput!): RunMJSearchScopePermissionViewResult!
+  RunMJSearchScopeProviderDynamicView(input: RunDynamicViewInput!): RunMJSearchScopeProviderViewResult!
+  RunMJSearchScopeProviderViewByID(input: RunViewByIDInput!): RunMJSearchScopeProviderViewResult!
+  RunMJSearchScopeProviderViewByName(input: RunViewByNameInput!): RunMJSearchScopeProviderViewResult!
+  RunMJSearchScopeStorageAccountDynamicView(input: RunDynamicViewInput!): RunMJSearchScopeStorageAccountViewResult!
+  RunMJSearchScopeStorageAccountViewByID(input: RunViewByIDInput!): RunMJSearchScopeStorageAccountViewResult!
+  RunMJSearchScopeStorageAccountViewByName(input: RunViewByNameInput!): RunMJSearchScopeStorageAccountViewResult!
+  RunMJSearchScopeTestQueryDynamicView(input: RunDynamicViewInput!): RunMJSearchScopeTestQueryViewResult!
+  RunMJSearchScopeTestQueryViewByID(input: RunViewByIDInput!): RunMJSearchScopeTestQueryViewResult!
+  RunMJSearchScopeTestQueryViewByName(input: RunViewByNameInput!): RunMJSearchScopeTestQueryViewResult!
+  RunMJSearchScopeViewByID(input: RunViewByIDInput!): RunMJSearchScopeViewResult!
+  RunMJSearchScopeViewByName(input: RunViewByNameInput!): RunMJSearchScopeViewResult!
   RunMJSkillDynamicView(input: RunDynamicViewInput!): RunMJSkillViewResult!
   RunMJSkillViewByID(input: RunViewByIDInput!): RunMJSkillViewResult!
   RunMJSkillViewByName(input: RunViewByNameInput!): RunMJSkillViewResult!
@@ -21720,6 +22934,15 @@ type Query {
   RunMJTagCoOccurrenceViewByID(input: RunViewByIDInput!): RunMJTagCoOccurrenceViewResult!
   RunMJTagCoOccurrenceViewByName(input: RunViewByNameInput!): RunMJTagCoOccurrenceViewResult!
   RunMJTagDynamicView(input: RunDynamicViewInput!): RunMJTagViewResult!
+  RunMJTagScopeDynamicView(input: RunDynamicViewInput!): RunMJTagScopeViewResult!
+  RunMJTagScopeViewByID(input: RunViewByIDInput!): RunMJTagScopeViewResult!
+  RunMJTagScopeViewByName(input: RunViewByNameInput!): RunMJTagScopeViewResult!
+  RunMJTagSuggestionDynamicView(input: RunDynamicViewInput!): RunMJTagSuggestionViewResult!
+  RunMJTagSuggestionViewByID(input: RunViewByIDInput!): RunMJTagSuggestionViewResult!
+  RunMJTagSuggestionViewByName(input: RunViewByNameInput!): RunMJTagSuggestionViewResult!
+  RunMJTagSynonymDynamicView(input: RunDynamicViewInput!): RunMJTagSynonymViewResult!
+  RunMJTagSynonymViewByID(input: RunViewByIDInput!): RunMJTagSynonymViewResult!
+  RunMJTagSynonymViewByName(input: RunViewByNameInput!): RunMJTagSynonymViewResult!
   RunMJTagViewByID(input: RunViewByIDInput!): RunMJTagViewResult!
   RunMJTagViewByName(input: RunViewByNameInput!): RunMJTagViewResult!
   RunMJTaggedItemDynamicView(input: RunDynamicViewInput!): RunMJTaggedItemViewResult!
@@ -21954,6 +23177,7 @@ type Query {
   RuntimeSchemaUpdateStatus: RSUStatusGQL!
   SearchAcrossAccounts(input: SearchAcrossAccountsInput!): SearchAcrossAccountsPayload!
   SearchRegistryComponents(params: SearchRegistryComponentsInput!): RegistryComponentSearchResultType!
+  SearchScopes(agentID: ID): [SearchScopeInfo!]!
 
   """
   Test transient SQL with full composition + Nunjucks template processing without requiring a saved query
@@ -22025,6 +23249,11 @@ type QueryMutationResultType {
   ErrorMessage: String
   Query: MJQuery_
   Success: Boolean!
+}
+
+input QueryParameterHintInput {
+  Name: String!
+  Value: String!
 }
 
 input QueryPermissionInputType {
@@ -22121,6 +23350,13 @@ type RSUStepOutput {
   Status: String!
 }
 
+type RebuildTagEmbeddingsResult {
+  ErrorMessage: String
+  Refreshed: Int!
+  Success: Boolean!
+  Total: Int!
+}
+
 type RecordDependencyResult {
   CompositeKey: CompositeKeyOutputType!
   EntityName: String!
@@ -22175,6 +23411,11 @@ type RegistryComponentSearchResultType {
   total: Float!
 }
 
+type RejectSuggestionResult {
+  ErrorMessage: String
+  Success: Boolean!
+}
+
 input RestoreContextInput {
   Reason: String
   SourceChangeID: String!
@@ -22215,6 +23456,11 @@ input RunActionInput {
 
 input RunDynamicViewInput {
   """
+  Keyset (seek) pagination cursor. When provided, returns the next page of records after the given PK value, ordered by the PK column. Requires a single-column PK on the entity. Cannot be combined with StartRow.
+  """
+  AfterKey: CompositeKeyInputType
+
+  """
   Optional aggregate expressions to calculate on the full result set (e.g., SUM, COUNT, AVG). Results are returned in AggregateResults.
   """
   Aggregates: [AggregateExpressionInput!]
@@ -22223,6 +23469,11 @@ input RunDynamicViewInput {
   if provided and either ForceAuditLog is set, or the entity's property settings for logging view runs are set to true, this will be used as the Audit Log Description.
   """
   AuditLogDescription: String
+
+  """
+  Optional, when true bypasses ALL server-side caching for this view run — the pre-check cache lookup is skipped and the result is not stored in the cache. Use for maintenance/audit queries that must see true database state, or to force-refresh views whose filters reference rows the server cache invalidator cannot follow (e.g., cross-entity subqueries against vwListDetails).
+  """
+  BypassCache: Boolean
   EntityName: String!
 
   """
@@ -22487,6 +23738,16 @@ type RunMJAIAgentRunViewResult {
   ErrorMessage: String
   ExecutionTime: Int
   Results: [MJAIAgentRun_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunMJAIAgentSearchScopeViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJAIAgentSearchScope_!]!
   RowCount: Int
   Success: Boolean!
   TotalRowCount: Int
@@ -23983,6 +25244,16 @@ type RunMJEntityFieldViewResult {
   UserViewRunID: String
 }
 
+type RunMJEntityFormOverrideViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJEntityFormOverride_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
 type RunMJEntityOrganicKeyRelatedEntityViewResult {
   ErrorMessage: String
   ExecutionTime: Int
@@ -24893,10 +26164,90 @@ type RunMJSchemaInfoViewResult {
   UserViewRunID: String
 }
 
+type RunMJSearchExecutionLogViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJSearchExecutionLog_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
 type RunMJSearchProviderViewResult {
   ErrorMessage: String
   ExecutionTime: Int
   Results: [MJSearchProvider_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunMJSearchScopeEntityViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJSearchScopeEntity_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunMJSearchScopeExternalIndexViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJSearchScopeExternalIndex_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunMJSearchScopePermissionViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJSearchScopePermission_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunMJSearchScopeProviderViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJSearchScopeProvider_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunMJSearchScopeStorageAccountViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJSearchScopeStorageAccount_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunMJSearchScopeTestQueryViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJSearchScopeTestQuery_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunMJSearchScopeViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJSearchScope_!]!
   RowCount: Int
   Success: Boolean!
   TotalRowCount: Int
@@ -24937,6 +26288,36 @@ type RunMJTagCoOccurrenceViewResult {
   ErrorMessage: String
   ExecutionTime: Int
   Results: [MJTagCoOccurrence_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunMJTagScopeViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJTagScope_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunMJTagSuggestionViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJTagSuggestion_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunMJTagSynonymViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJTagSynonym_!]!
   RowCount: Int
   Success: Boolean!
   TotalRowCount: Int
@@ -25501,7 +26882,21 @@ type RunReportResultType {
   Success: Boolean!
 }
 
+type RunTagHealthResult {
+  DurationMs: Int!
+  ErrorMessage: String
+  LowUsageCount: Int!
+  MergeCount: Int!
+  Success: Boolean!
+  WideNodeCount: Int!
+}
+
 input RunViewByIDInput {
+  """
+  Keyset (seek) pagination cursor. When provided, returns the next page of records after the given PK value, ordered by the PK column. Requires a single-column PK on the entity. Cannot be combined with StartRow.
+  """
+  AfterKey: CompositeKeyInputType
+
   """
   Optional aggregate expressions to calculate on the full result set (e.g., SUM, COUNT, AVG). Results are returned in AggregateResults.
   """
@@ -25511,6 +26906,11 @@ input RunViewByIDInput {
   if provided and either ForceAuditLog is set, or the entity's property settings for logging view runs are set to true, this will be used as the Audit Log Description.
   """
   AuditLogDescription: String
+
+  """
+  Optional, when true bypasses ALL server-side caching for this view run — the pre-check cache lookup is skipped and the result is not stored in the cache. Use for maintenance/audit queries that must see true database state, or to force-refresh views whose filters reference rows the server cache invalidator cannot follow (e.g., cross-entity subqueries against vwListDetails).
+  """
+  BypassCache: Boolean
 
   """
   if set to true, the resulting data will filter out ANY records that were ever returned by this view, when the SaveViewResults property was set to true. This is useful if you want to run a particular view over time and make sure the results returned each time are new to the view.
@@ -25577,6 +26977,11 @@ input RunViewByIDInput {
 
 input RunViewByNameInput {
   """
+  Keyset (seek) pagination cursor. When provided, returns the next page of records after the given PK value, ordered by the PK column. Requires a single-column PK on the entity. Cannot be combined with StartRow.
+  """
+  AfterKey: CompositeKeyInputType
+
+  """
   Optional aggregate expressions to calculate on the full result set (e.g., SUM, COUNT, AVG). Results are returned in AggregateResults.
   """
   Aggregates: [AggregateExpressionInput!]
@@ -25585,6 +26990,11 @@ input RunViewByNameInput {
   if provided and either ForceAuditLog is set, or the entity's property settings for logging view runs are set to true, this will be used as the Audit Log Description.
   """
   AuditLogDescription: String
+
+  """
+  Optional, when true bypasses ALL server-side caching for this view run — the pre-check cache lookup is skipped and the result is not stored in the cache. Use for maintenance/audit queries that must see true database state, or to force-refresh views whose filters reference rows the server cache invalidator cannot follow (e.g., cross-entity subqueries against vwListDetails).
+  """
+  BypassCache: Boolean
 
   """
   if set to true, the resulting data will filter out ANY records that were ever returned by this view, when the SaveViewResults property was set to true. This is useful if you want to run a particular view over time and make sure the results returned each time are new to the view.
@@ -25659,6 +27069,11 @@ input RunViewCacheStatusInput {
 
 input RunViewGenericInput {
   """
+  Keyset (seek) pagination cursor. When provided, returns the next page of records after the given PK value, ordered by the PK column. Requires a single-column PK on the entity. Cannot be combined with StartRow.
+  """
+  AfterKey: CompositeKeyInputType
+
+  """
   Optional aggregate expressions to calculate on the full result set (e.g., SUM, COUNT, AVG). Results are returned in AggregateResults.
   """
   Aggregates: [AggregateExpressionInput!]
@@ -25667,6 +27082,11 @@ input RunViewGenericInput {
   if provided and either ForceAuditLog is set, or the entity's property settings for logging view runs are set to true, this will be used as the Audit Log Description.
   """
   AuditLogDescription: String
+
+  """
+  Optional, when true bypasses ALL server-side caching for this view run — the pre-check cache lookup is skipped and the result is not stored in the cache. Use for maintenance/audit queries that must see true database state, or to force-refresh views whose filters reference rows the server cache invalidator cannot follow (e.g., cross-entity subqueries against vwListDetails).
+  """
+  BypassCache: Boolean
 
   """
   The entity name for a dynamic view. Provide either ViewID, ViewName, or EntityName.
@@ -26177,6 +27597,12 @@ type SearchAcrossAccountsPayload {
   totalResultsReturned: Int!
 }
 
+input SearchContextInput {
+  PrimaryScopeEntityID: String
+  PrimaryScopeRecordID: String
+  SecondaryScopes: JSON
+}
+
 input SearchFiltersInput {
   EntityNames: [String!]
   SourceTypes: [String!]
@@ -26232,6 +27658,16 @@ input SearchRegistryComponentsInput {
   type: String
 }
 
+type SearchScopeInfo {
+  Description: String
+  ID: ID!
+  Icon: String
+  IsDefault: Boolean!
+  IsGlobal: Boolean!
+  IsPersonal: Boolean!
+  Name: String!
+}
+
 type SearchScoreBreakdown {
   Entity: Float
   FullText: Float
@@ -26246,6 +27682,23 @@ type SearchSourceCounts {
   Vector: Float!
 }
 
+type SearchStreamNotification {
+  DurationMs: Float
+  ElapsedMs: Float
+  ErrorMessage: String
+  Phase: String!
+  ProviderName: String
+  Results: [SearchKnowledgeResultItem!]
+  SourceCounts: SearchSourceCounts
+  StreamID: ID!
+}
+
+type SearchStreamStartResult {
+  ErrorMessage: String
+  StreamID: ID!
+  Success: Boolean!
+}
+
 type ServerInfo {
   Arch: String!
   CpuModel: String!
@@ -26253,6 +27706,46 @@ type ServerInfo {
   IsSystemUser: Boolean!
   Platform: String!
   Version: String!
+}
+
+input ShareListInput {
+  ListID: String!
+
+  """Permission level: View | Edit | Owner."""
+  PermissionLevel: String!
+  Target: ShareTargetInput!
+}
+
+type ShareResultType {
+  Message: String!
+  PermissionID: String
+  ResultCode: String!
+  Success: Boolean!
+}
+
+input ShareTargetInput {
+  """Target kind: user | role."""
+  Kind: String!
+
+  """Role ID, required when Kind=role."""
+  RoleID: String
+
+  """User ID, required when Kind=user."""
+  UserID: String
+}
+
+type ShareTargetType {
+  Kind: String!
+  RoleID: String
+  UserID: String
+}
+
+type SharedListSummaryType {
+  ListID: String!
+  ListName: String!
+  PermissionLevel: String!
+  SharedAt: Timestamp!
+  SharedByUserID: String
 }
 
 type SimpleEntityFieldOutputType {
@@ -26416,6 +27909,7 @@ input SubmitFeedbackInput {
 type Subscription {
   ClientToolRequest(sessionID: String!): ClientToolRequestNotification!
   PipelineProgress(pipelineRunID: String!): PipelineProgressNotification!
+  SearchStreamEvents(streamID: ID!): SearchStreamNotification!
   cacheInvalidation: CacheInvalidationNotification!
   colorSubscription: ColorNotification!
   onMCPOAuthEvent: MCPOAuthEventNotification!
@@ -26820,6 +28314,7 @@ input UpdateMJAIAgentExampleInput {
 }
 
 input UpdateMJAIAgentInput {
+  AcceptUnregisteredFiles: Boolean
   AgentTypePromptParams: String
   AllowEphemeralClientTools: Boolean
   ArtifactCreationMode: String
@@ -26879,6 +28374,7 @@ input UpdateMJAIAgentInput {
   RerankerConfiguration: String
   RestoreContext___: RestoreContextInput
   ScopeConfig: String
+  SearchScopeAccess: String
   StartingPayloadValidation: String
   StartingPayloadValidationMode: String
   Status: String
@@ -27133,6 +28629,24 @@ input UpdateMJAIAgentRunStepInput {
   Success: Boolean
   TargetID: String
   TargetLogID: String
+}
+
+input UpdateMJAIAgentSearchScopeInput {
+  AgentID: String
+  EndAt: Timestamp
+  FusionWeightsOverride: String
+  ID: String!
+  IsDefault: Boolean
+  MaxResults: Int
+  MinScore: Float
+  OldValues___: [KeyValuePairInput!]
+  Phase: String
+  Priority: Int
+  QueryTemplateID: String
+  RestoreContext___: RestoreContextInput
+  SearchScopeID: String
+  StartAt: Timestamp
+  Status: String
 }
 
 input UpdateMJAIAgentStepInput {
@@ -27607,7 +29121,7 @@ input UpdateMJAIResultCacheInput {
   ExpiredOn: Timestamp
   ID: String!
   OldValues___: [KeyValuePairInput!]
-  PromptEmbedding: Int
+  PromptEmbedding: String
   PromptRunID: String
   PromptText: String
   RestoreContext___: RestoreContextInput
@@ -28022,6 +29536,7 @@ input UpdateMJArtifactPermissionInput {
 input UpdateMJArtifactTypeInput {
   ContentCategory: String
   ContentType: String
+  DefaultDeliveryMode: String
   Description: String
   DriverClass: String
   ExtractRules: String
@@ -28031,7 +29546,9 @@ input UpdateMJArtifactTypeInput {
   Name: String
   OldValues___: [KeyValuePairInput!]
   ParentID: String
+  Priority: Int
   RestoreContext___: RestoreContextInput
+  SystemSupplied: Boolean
   ToolLibraryClass: String
 }
 
@@ -28067,6 +29584,7 @@ input UpdateMJArtifactVersionInput {
   Description: String
   FileID: String
   FileName: String
+  ForceToolsOnly: Boolean
   ID: String!
   MimeType: String
   Name: String
@@ -28416,6 +29934,7 @@ input UpdateMJComponentLibraryInput {
   OldValues___: [KeyValuePairInput!]
   RestoreContext___: RestoreContextInput
   Status: String
+  UsageInstructions: String
   UsageType: String
   Version: String
 }
@@ -28663,6 +30182,7 @@ input UpdateMJConversationDetailArtifactInput {
 }
 
 input UpdateMJConversationDetailAttachmentInput {
+  ArtifactVersionID: String
   ConversationDetailID: String
   Description: String
   DisplayOrder: Int
@@ -28722,7 +30242,11 @@ input UpdateMJConversationDetailRatingInput {
 }
 
 input UpdateMJConversationInput {
+  AdditionalData: String
+  ApplicationID: String
+  ApplicationScope: String
   DataContextID: String
+  DefaultAgentID: String
   Description: String
   EnvironmentID: String
   ExternalID: String
@@ -29238,6 +30762,7 @@ input UpdateMJEntityFieldInput {
   IncludeInGeneratedForm: Boolean
   IncludeInUserSearchAPI: Boolean
   IncludeRelatedEntityNameFieldInBaseView: Boolean
+  IsComputed: Boolean
   IsNameField: Boolean
   IsPrimaryKey: Boolean
   IsSoftForeignKey: Boolean
@@ -29272,6 +30797,22 @@ input UpdateMJEntityFieldValueInput {
   RestoreContext___: RestoreContextInput
   Sequence: Int
   Value: String
+}
+
+input UpdateMJEntityFormOverrideInput {
+  ComponentID: String
+  Description: String
+  EntityID: String
+  ID: String!
+  Name: String
+  Notes: String
+  OldValues___: [KeyValuePairInput!]
+  Priority: Int
+  RestoreContext___: RestoreContextInput
+  RoleID: String
+  Scope: String
+  Status: String
+  UserID: String
 }
 
 input UpdateMJEntityInput {
@@ -29747,9 +31288,15 @@ input UpdateMJListInput {
   EntityID: String
   ExternalSystemRecordID: String
   ID: String!
+  LastRefreshedAt: Timestamp
+  LastRefreshedByUserID: String
   Name: String
   OldValues___: [KeyValuePairInput!]
+  RefreshMode: String
   RestoreContext___: RestoreContextInput
+  SourceFilterSnapshot: String
+  SourceViewID: String
+  UseSnapshot: Boolean
   UserID: String
 }
 
@@ -30623,6 +32170,23 @@ input UpdateMJSchemaInfoInput {
   SchemaName: String
 }
 
+input UpdateMJSearchExecutionLogInput {
+  AIAgentID: String
+  FailureReason: String
+  ID: String!
+  OldValues___: [KeyValuePairInput!]
+  ProvidersJSON: String
+  Query: String
+  RerankerCostCents: Float
+  RerankerName: String
+  RestoreContext___: RestoreContextInput
+  ResultCount: Int
+  SearchScopeID: String
+  Status: String
+  TotalDurationMs: Int
+  UserID: String
+}
+
 input UpdateMJSearchProviderInput {
   Comments: String
   CredentialID: String
@@ -30639,6 +32203,89 @@ input UpdateMJSearchProviderInput {
   RestoreContext___: RestoreContextInput
   Status: String
   SupportsPreview: Boolean
+}
+
+input UpdateMJSearchScopeEntityInput {
+  EntityID: String
+  ExtraFilter: String
+  ID: String!
+  OldValues___: [KeyValuePairInput!]
+  RestoreContext___: RestoreContextInput
+  SearchScopeID: String
+  UserSearchString: String
+}
+
+input UpdateMJSearchScopeExternalIndexInput {
+  ExternalIndexConfig: String
+  ExternalIndexName: String
+  ID: String!
+  IndexType: String
+  MetadataFilter: String
+  OldValues___: [KeyValuePairInput!]
+  RestoreContext___: RestoreContextInput
+  SearchScopeID: String
+  VectorIndexID: String
+}
+
+input UpdateMJSearchScopeInput {
+  Description: String
+  EndAt: Timestamp
+  ID: String!
+  Icon: String
+  IsDefault: Boolean
+  IsGlobal: Boolean
+  Name: String
+  OldValues___: [KeyValuePairInput!]
+  OwnerUserID: String
+  RerankerBudgetCents: Int
+  RestoreContext___: RestoreContextInput
+  ScopeConfig: String
+  SearchContextConfig: String
+  StartAt: Timestamp
+  Status: String
+}
+
+input UpdateMJSearchScopePermissionInput {
+  ID: String!
+  OldValues___: [KeyValuePairInput!]
+  PermissionLevel: String
+  RestoreContext___: RestoreContextInput
+  RoleID: String
+  SearchScopeID: String
+  UserID: String
+}
+
+input UpdateMJSearchScopeProviderInput {
+  Enabled: Boolean
+  ID: String!
+  MaxResultsOverride: Int
+  OldValues___: [KeyValuePairInput!]
+  ProviderConfigOverride: String
+  QueryTransformTemplateID: String
+  RestoreContext___: RestoreContextInput
+  SearchProviderID: String
+  SearchScopeID: String
+}
+
+input UpdateMJSearchScopeStorageAccountInput {
+  FileStorageAccountID: String
+  FolderPath: String
+  ID: String!
+  OldValues___: [KeyValuePairInput!]
+  RestoreContext___: RestoreContextInput
+  SearchScopeID: String
+}
+
+input UpdateMJSearchScopeTestQueryInput {
+  ExpectedTopResultEntity: String
+  ExpectedTopResultRecordID: String
+  ID: String!
+  Label: String
+  Notes: String
+  OldValues___: [KeyValuePairInput!]
+  Query: String
+  RestoreContext___: RestoreContextInput
+  SearchScopeID: String
 }
 
 input UpdateMJSkillInput {
@@ -30685,15 +32332,61 @@ input UpdateMJTagCoOccurrenceInput {
 }
 
 input UpdateMJTagInput {
+  AllowAutoGrow: Boolean
   Description: String
   DisplayName: String
+  EmbeddingModelID: String
+  EmbeddingVector: String
   ID: String!
+  IsFrozen: Boolean
+  IsGlobal: Boolean
+  MaxChildren: Int
+  MaxDescendantDepth: Int
   MergedIntoTagID: String
+  MinWeight: Float
   Name: String
   OldValues___: [KeyValuePairInput!]
   ParentID: String
+  RequiresReview: Boolean
   RestoreContext___: RestoreContextInput
   Status: String
+}
+
+input UpdateMJTagScopeInput {
+  ID: String!
+  OldValues___: [KeyValuePairInput!]
+  RestoreContext___: RestoreContextInput
+  ScopeEntityID: String
+  ScopeRecordID: String
+  TagID: String
+}
+
+input UpdateMJTagSuggestionInput {
+  BestMatchScore: Float
+  BestMatchTagID: String
+  ID: String!
+  OldValues___: [KeyValuePairInput!]
+  ProposedName: String
+  ProposedParentID: String
+  Reason: String
+  ResolvedTagID: String
+  RestoreContext___: RestoreContextInput
+  ReviewedAt: Timestamp
+  ReviewedByUserID: String
+  ReviewerNotes: String
+  SourceContentItemID: String
+  SourceContentSourceID: String
+  SourceText: String
+  Status: String
+}
+
+input UpdateMJTagSynonymInput {
+  ID: String!
+  OldValues___: [KeyValuePairInput!]
+  RestoreContext___: RestoreContextInput
+  Source: String
+  Synonym: String
+  TagID: String
 }
 
 input UpdateMJTaggedItemInput {
@@ -31312,6 +33005,7 @@ input UpdateQuerySystemUserInput {
   ID: String!
   Name: String
   OriginalSQL: String
+  ParameterHints: [QueryParameterHintInput!]
   Permissions: [QueryPermissionInputType!]
   QualityRank: Float
   SQL: String
@@ -31332,6 +33026,7 @@ input UpdatemjBizAppsCommonAddressInput {
   Longitude: Float
   OldValues___: [KeyValuePairInput!]
   PostalCode: String
+  RestoreContext___: RestoreContextInput
   StateProvince: String
 }
 
@@ -31344,6 +33039,7 @@ input UpdatemjBizAppsCommonAddressLinkInput {
   OldValues___: [KeyValuePairInput!]
   Rank: Int
   RecordID: String
+  RestoreContext___: RestoreContextInput
 }
 
 input UpdatemjBizAppsCommonAddressTypeInput {
@@ -31354,6 +33050,7 @@ input UpdatemjBizAppsCommonAddressTypeInput {
   IsActive: Boolean
   Name: String
   OldValues___: [KeyValuePairInput!]
+  RestoreContext___: RestoreContextInput
 }
 
 input UpdatemjBizAppsCommonContactMethodInput {
@@ -31364,6 +33061,7 @@ input UpdatemjBizAppsCommonContactMethodInput {
   OldValues___: [KeyValuePairInput!]
   OrganizationID: String
   PersonID: String
+  RestoreContext___: RestoreContextInput
   Value: String
 }
 
@@ -31375,6 +33073,7 @@ input UpdatemjBizAppsCommonContactTypeInput {
   IsActive: Boolean
   Name: String
   OldValues___: [KeyValuePairInput!]
+  RestoreContext___: RestoreContextInput
 }
 
 input UpdatemjBizAppsCommonOrganizationInput {
@@ -31389,6 +33088,7 @@ input UpdatemjBizAppsCommonOrganizationInput {
   OrganizationTypeID: String
   ParentID: String
   Phone: String
+  RestoreContext___: RestoreContextInput
   Status: String
   TaxID: String
   Website: String
@@ -31402,6 +33102,7 @@ input UpdatemjBizAppsCommonOrganizationTypeInput {
   IsActive: Boolean
   Name: String
   OldValues___: [KeyValuePairInput!]
+  RestoreContext___: RestoreContextInput
 }
 
 input UpdatemjBizAppsCommonPersonInput {
@@ -31419,6 +33120,7 @@ input UpdatemjBizAppsCommonPersonInput {
   PhotoURL: String
   PreferredName: String
   Prefix: String
+  RestoreContext___: RestoreContextInput
   Status: String
   Suffix: String
   Title: String
@@ -31432,6 +33134,7 @@ input UpdatemjBizAppsCommonRelationshipInput {
   Notes: String
   OldValues___: [KeyValuePairInput!]
   RelationshipTypeID: String
+  RestoreContext___: RestoreContextInput
   StartDate: Timestamp
   Status: String
   Title: String
@@ -31448,6 +33151,7 @@ input UpdatemjBizAppsCommonRelationshipTypeInput {
   IsDirectional: Boolean
   Name: String
   OldValues___: [KeyValuePairInput!]
+  RestoreContext___: RestoreContextInput
   ReverseLabel: String
 }
 
@@ -31602,7 +33306,6 @@ input UpdatemjCommitteesMinuteInput {
   ApprovedByMeetingID: String
   ArtifactID: String
   Content: String
-  FileID: String
   ID: String!
   MeetingID: String
   Notes: String
@@ -31964,6 +33667,7 @@ type mjBizAppsCommonPerson_ {
 
   """Date of birth"""
   DateOfBirth: Timestamp
+  DisplayName: String!
 
   """Primary email address for this person"""
   Email: String
@@ -32083,386 +33787,229 @@ type mjBizAppsCommonRelationship_ {
   _mj__UpdatedAt: Timestamp!
 }
 
-"""Tasks and action items assigned from committees or meetings"""
+"""
+Legacy action items assigned from committees or meetings (superseded by BizAppsTasks)
+"""
 type mjCommitteesActionItem_ {
-  AgendaItem: String
   AgendaItemID: String
   AssignedByPerson: String
   AssignedByPersonID: String
-  AssignedToPerson: String
+  AssignedToPerson: String!
   AssignedToPersonID: String!
   Committee: String!
   CommitteeID: String!
-
-  """Timestamp when the action item was completed"""
   CompletedAt: Timestamp
-
-  """Notes about how the item was completed"""
   CompletionNotes: String
-
-  """Detailed description of what needs to be done"""
   Description: String
-
-  """Due date for completion"""
   DueDate: Timestamp
   ID: String!
-  Meeting: String
   MeetingID: String
-
-  """Priority level: Low, Medium, High, Critical"""
   Priority: String!
-
-  """Current status: Open, InProgress, Blocked, Completed, Cancelled"""
   Status: String!
-
-  """Title of the action item"""
   Title: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
-  mjCommitteesArtifacts_ActionItemIDArray: [mjCommitteesArtifact_!]!
-  mjCommitteesComments_ActionItemIDArray: [mjCommitteesComment_!]!
 }
 
 """Structured agenda items for meetings with hierarchy support"""
 type mjCommitteesAgendaItem_ {
-  """Detailed description of the agenda item"""
   Description: String
-
-  """Estimated duration in minutes"""
   DurationMinutes: Int
   ID: String!
-
-  """Type of item: Information, Discussion, Action, Vote, Report, Other"""
   ItemType: String!
-  Meeting: String!
   MeetingID: String!
-
-  """Discussion notes and outcomes captured during the meeting"""
   Notes: String
-  ParentAgendaItem: String
   ParentAgendaItemID: String
   PresenterPerson: String
   PresenterPersonID: String
-
-  """URL to related document for this item"""
   RelatedDocumentURL: String
   RootParentAgendaItemID: String
-
-  """Display order within the meeting agenda"""
   Sequence: Int!
-
-  """Current status: Pending, Discussed, Tabled, Completed, Skipped"""
   Status: String!
-
-  """Title of the agenda item"""
   Title: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
-  mjCommitteesActionItems_AgendaItemIDArray: [mjCommitteesActionItem_!]!
-  mjCommitteesAgendaItems_ParentAgendaItemIDArray: [mjCommitteesAgendaItem_!]!
-  mjCommitteesArtifacts_AgendaItemIDArray: [mjCommitteesArtifact_!]!
-  mjCommitteesComments_AgendaItemIDArray: [mjCommitteesComment_!]!
-  mjCommitteesMotions_AgendaItemIDArray: [mjCommitteesMotion_!]!
+  mjCommitteesCommittees_ActionItems_AgendaItemIDArray: [mjCommitteesActionItem_!]!
+  mjCommitteesCommittees_AgendaItems_ParentAgendaItemIDArray: [mjCommitteesAgendaItem_!]!
+  mjCommitteesCommittees_Artifacts_AgendaItemIDArray: [mjCommitteesArtifact_!]!
+  mjCommitteesCommittees_Comments_AgendaItemIDArray: [mjCommitteesComment_!]!
+  mjCommitteesCommittees_Motions_AgendaItemIDArray: [mjCommitteesMotion_!]!
 }
 
 """
-DEPRECATED: Migrated to MJ: File Categories. Will be dropped in a future migration.
+Categories of committee artifacts with optional extension entity for type-specific fields
 """
 type mjCommitteesArtifactType_ {
-  """Detailed description of this artifact type"""
   Description: String
   ExtendedEntity: String
-
-  """
-  Optional reference to an MJ Entity that provides additional fields for this artifact type via a 1:1 extension table
-  """
   ExtendedEntityID: String
   ID: String!
-
-  """Font Awesome icon class for UI display"""
   IconClass: String
-
-  """Display name for the artifact type"""
   Name: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
-  mjCommitteesArtifacts_ArtifactTypeIDArray: [mjCommitteesArtifact_!]!
+  mjCommitteesCommittees_Artifacts_ArtifactTypeIDArray: [mjCommitteesArtifact_!]!
 }
 
-"""
-DEPRECATED: Migrated to MJ: Files + File Entity Record Links. Will be dropped in a future migration.
-"""
+"""Links to external documents and files from various providers"""
 type mjCommitteesArtifact_ {
-  AgendaItem: String
   AgendaItemID: String
   ArtifactType: String!
   ArtifactTypeID: String!
   Committee: String
   CommitteeID: String
-
-  """Description of the artifact contents"""
   Description: String
-
-  """Provider-specific document or file ID"""
   ExternalID: String
-
-  """File size in bytes"""
   FileSize: Int
   ID: String!
-  Meeting: String
   MeetingID: String
-
-  """MIME type of the file"""
   MimeType: String
-
-  """Storage provider: GoogleDrive, SharePoint, Box, OneDrive, Dropbox, URL"""
   Provider: String!
   Task: String
   TaskID: String
-
-  """Display title for the artifact"""
   Title: String!
-
-  """Direct URL to access the artifact"""
   URL: String!
   UploadedByPerson: String
   UploadedByPersonID: String
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
-  mjCommitteesComments_ArtifactIDArray: [mjCommitteesComment_!]!
-  mjCommitteesMinutes_ArtifactIDArray: [mjCommitteesMinute_!]!
+  mjCommitteesCommittees_Comments_ArtifactIDArray: [mjCommitteesComment_!]!
+  mjCommitteesCommittees_Minutes_ArtifactIDArray: [mjCommitteesMinute_!]!
 }
 
 """Meeting attendance records for committee members"""
 type mjCommitteesAttendance_ {
-  """Attendance status: Expected, Present, Absent, Excused, Partial"""
   AttendanceStatus: String!
   ID: String!
-
-  """Timestamp when the attendee joined the meeting"""
   JoinedAt: Timestamp
-
-  """Timestamp when the attendee left the meeting"""
   LeftAt: Timestamp
-  Meeting: String!
   MeetingID: String!
-
-  """Additional notes about attendance"""
   Notes: String
-  Person: String
+  Person: String!
   PersonID: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
 }
 
 """
-Threaded discussion comments on committee meetings, agenda items, action items, and documents
+Threaded discussion comments on committee meetings, agenda items, tasks, and documents
 """
 type mjCommitteesComment_ {
-  AgendaItem: String
-
-  """Optional agenda item this comment is attached to"""
   AgendaItemID: String
-  Artifact: String
-
-  """Optional artifact/document this comment is attached to"""
   ArtifactID: String
-
-  """Comment body text"""
   CommentText: String!
   Committee: String!
-
-  """Committee this comment belongs to (always set for easy filtering)"""
   CommitteeID: String!
   ID: String!
-
-  """Whether this comment thread has been resolved"""
   IsResolved: Boolean!
-  Meeting: String
-
-  """Optional meeting this comment is attached to"""
   MeetingID: String
-
-  """JSON array of PersonIDs mentioned via @mentions"""
   MentionedPersonIDs: String
-  ParentComment: String
-
-  """Parent comment for threading; NULL for top-level comments"""
   ParentCommentID: String
-  Person: String
-
-  """Person who wrote the comment"""
+  Person: String!
   PersonID: String!
   RootParentCommentID: String
   Task: String
   TaskID: String
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
-  mjCommitteesComments_ParentCommentIDArray: [mjCommitteesComment_!]!
+  mjCommitteesCommittees_Comments_ParentCommentIDArray: [mjCommitteesComment_!]!
 }
 
 """Core committee records with hierarchy support"""
 type mjCommitteesCommittee_ {
-  """URL to the committee charter document"""
   CharterDocumentURL: String
-
-  """Detailed description of the committee purpose and scope"""
   Description: String
-
-  """Date the committee was dissolved, if applicable"""
   DissolutionDate: Timestamp
-
-  """Date the committee was formed"""
   FormationDate: Timestamp
   ID: String!
-
-  """Whether the committee is visible to all users"""
   IsPublic: Boolean!
-
-  """Brief statement of the committee mission"""
   MissionStatement: String
-
-  """Official name of the committee"""
   Name: String!
   Organization: String
   OrganizationID: String
   ParentCommittee: String
   ParentCommitteeID: String
   RootParentCommitteeID: String
-
-  """Current status: Active, Inactive, Pending, or Dissolved"""
   Status: String!
   Type: String!
   TypeID: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
-  mjCommitteesActionItems_CommitteeIDArray: [mjCommitteesActionItem_!]!
-  mjCommitteesArtifacts_CommitteeIDArray: [mjCommitteesArtifact_!]!
-  mjCommitteesComments_CommitteeIDArray: [mjCommitteesComment_!]!
-  mjCommitteesCommittees_ParentCommitteeIDArray: [mjCommitteesCommittee_!]!
-  mjCommitteesMeetings_CommitteeIDArray: [mjCommitteesMeeting_!]!
-  mjCommitteesMemberships_CommitteeIDArray: [mjCommitteesMembership_!]!
-  mjCommitteesTerms_CommitteeIDArray: [mjCommitteesTerm_!]!
+  mjCommitteesCommittees_ActionItems_CommitteeIDArray: [mjCommitteesActionItem_!]!
+  mjCommitteesCommittees_Artifacts_CommitteeIDArray: [mjCommitteesArtifact_!]!
+  mjCommitteesCommittees_Comments_CommitteeIDArray: [mjCommitteesComment_!]!
+  mjCommitteesCommittees_Committees_ParentCommitteeIDArray: [mjCommitteesCommittee_!]!
+  mjCommitteesCommittees_Meetings_CommitteeIDArray: [mjCommitteesMeeting_!]!
+  mjCommitteesCommittees_Terms_CommitteeIDArray: [mjCommitteesTerm_!]!
 }
 
 """Committee meeting records with scheduling and video conferencing info"""
 type mjCommitteesMeeting_ {
-  """External calendar event ID for sync purposes"""
   CalendarEventID: String
   Committee: String!
   CommitteeID: String!
-
-  """Detailed description or purpose of the meeting"""
   Description: String
-
-  """Scheduled end date and time with timezone offset"""
   EndDateTime: Timestamp
   ID: String!
-
-  """Physical address or room name for in-person meetings"""
   LocationText: String
-
-  """Meeting format: Virtual, InPerson, or Hybrid"""
   LocationType: String!
-
-  """Scheduled start date and time with timezone offset"""
   StartDateTime: Timestamp!
-
-  """
-  Current status: Draft, Scheduled, InProgress, Completed, Cancelled, Postponed
-  """
   Status: String!
-
-  """IANA timezone identifier for the meeting"""
   TimeZone: String!
-
-  """Title of the meeting"""
   Title: String!
-
-  """URL to the meeting transcript"""
   TranscriptURL: String
-
-  """URL to join the video meeting"""
   VideoJoinURL: String
-
-  """External meeting ID from the video provider"""
   VideoMeetingID: String
-
-  """Video conferencing provider: Zoom, Teams, Meet, etc."""
   VideoProvider: String
-
-  """
-  FK to VideoProvider — when set, video meeting URL is auto-created on save
-  """
   VideoProviderID: String
   VideoProvider_Virtual: String
-
-  """URL to the meeting recording after completion"""
   VideoRecordingURL: String
   _mj__CreatedAt: Timestamp!
+  _mj__Latitude: Float
+  _mj__Longitude: Float
   _mj__UpdatedAt: Timestamp!
-  mjCommitteesActionItems_MeetingIDArray: [mjCommitteesActionItem_!]!
-  mjCommitteesAgendaItems_MeetingIDArray: [mjCommitteesAgendaItem_!]!
-  mjCommitteesArtifacts_MeetingIDArray: [mjCommitteesArtifact_!]!
-  mjCommitteesAttendances_MeetingIDArray: [mjCommitteesAttendance_!]!
-  mjCommitteesComments_MeetingIDArray: [mjCommitteesComment_!]!
-  mjCommitteesMinutes_ApprovedByMeetingIDArray: [mjCommitteesMinute_!]!
-  mjCommitteesMinutes_MeetingIDArray: [mjCommitteesMinute_!]!
-  mjCommitteesMotions_MeetingIDArray: [mjCommitteesMotion_!]!
+  mjCommitteesCommittees_ActionItems_MeetingIDArray: [mjCommitteesActionItem_!]!
+  mjCommitteesCommittees_AgendaItems_MeetingIDArray: [mjCommitteesAgendaItem_!]!
+  mjCommitteesCommittees_Artifacts_MeetingIDArray: [mjCommitteesArtifact_!]!
+  mjCommitteesCommittees_Attendances_MeetingIDArray: [mjCommitteesAttendance_!]!
+  mjCommitteesCommittees_Comments_MeetingIDArray: [mjCommitteesComment_!]!
+  mjCommitteesCommittees_Minutes_ApprovedByMeetingIDArray: [mjCommitteesMinute_!]!
+  mjCommitteesCommittees_Minutes_MeetingIDArray: [mjCommitteesMinute_!]!
+  mjCommitteesCommittees_Motions_MeetingIDArray: [mjCommitteesMotion_!]!
 }
 
 """Person assignments to committees with roles and terms"""
 type mjCommitteesMembership_ {
-  """Date the membership ended, if applicable"""
   EndDate: Timestamp
-
-  """Reason the membership ended: Term ended, Resigned, Removed, etc."""
   EndReason: String
   ID: String!
-
-  """Additional notes about this membership"""
   Notes: String
-  Person: String
+  Person: String!
   PersonID: String!
   Role: String!
   RoleID: String!
-
-  """Date the membership started"""
   StartDate: Timestamp!
-
-  """Current status: Active, Pending, Ended, or Suspended"""
   Status: String!
   Term: String!
   TermID: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
-  mjCommitteesMotions_MovedByMembershipIDArray: [mjCommitteesMotion_!]!
-  mjCommitteesMotions_SecondedByMembershipIDArray: [mjCommitteesMotion_!]!
-  mjCommitteesVotes_MembershipIDArray: [mjCommitteesVote_!]!
+  mjCommitteesCommittees_Motions_MovedByMembershipIDArray: [mjCommitteesMotion_!]!
+  mjCommitteesCommittees_Motions_SecondedByMembershipIDArray: [mjCommitteesMotion_!]!
+  mjCommitteesCommittees_Votes_MembershipIDArray: [mjCommitteesVote_!]!
 }
 
-"""Extension entity for Minutes artifacts with approval tracking"""
+"""
+Meeting minutes with approval tracking; stored as markdown Content or linked Artifact
+"""
 type mjCommitteesMinute_ {
-  """Current approval status: Draft, PendingApproval, Approved, Rejected"""
   ApprovalStatus: String!
-
-  """Timestamp when the minutes were approved"""
   ApprovedAt: Timestamp
-  ApprovedByMeeting: String
-
-  """
-  Reference to the meeting at which these minutes were approved (typically the next meeting)
-  """
   ApprovedByMeetingID: String
   ArtifactID: String
   Content: String
-  File: String
-  FileID: String
   ID: String!
-  Meeting: String
   MeetingID: String
-
-  """Additional notes about the minutes"""
   Notes: String
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
@@ -32470,119 +34017,67 @@ type mjCommitteesMinute_ {
 
 """Formal motions put to vote during committee meetings"""
 type mjCommitteesMotion_ {
-  """Number of Abstain votes"""
   AbstainCount: Int
-  AgendaItem: String
   AgendaItemID: String
-
-  """Full text or description of the motion"""
   Description: String
   ID: String!
-  Meeting: String!
   MeetingID: String!
-  MovedByMembership: String
-
-  """The committee member who made the motion"""
   MovedByMembershipID: String
-
-  """Number of No votes"""
   NoCount: Int
-
-  """Additional notes about the motion or vote"""
   Notes: String
-
-  """Outcome of the vote: Pending, Passed, Failed, Tabled, Withdrawn"""
   Result: String!
-
-  """Human-readable vote tally, e.g. 7-2-1 or Passed unanimously"""
   ResultSummary: String
-  SecondedByMembership: String
-
-  """The committee member who seconded the motion"""
   SecondedByMembershipID: String
-
-  """Display order when multiple motions exist for the same agenda item"""
   Sequence: Int!
-
-  """Title of the motion"""
   Title: String!
-
-  """Number of Yes votes"""
   YesCount: Int
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
-  mjCommitteesVotes_MotionIDArray: [mjCommitteesVote_!]!
+  mjCommitteesCommittees_Votes_MotionIDArray: [mjCommitteesVote_!]!
 }
 
 """Roles that members can hold on committees"""
 type mjCommitteesRole_ {
-  """JSON object defining default permissions for this role"""
   DefaultPermissionsJSON: String
-
-  """Detailed description of role responsibilities"""
   Description: String
   ID: String!
-
-  """Whether this is an officer role like Chair or Secretary"""
   IsOfficer: Boolean!
-
-  """Whether members in this role can vote"""
   IsVotingRole: Boolean!
-
-  """Display name for the role"""
   Name: String!
-
-  """Display order for sorting roles"""
   Sequence: Int!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
-  mjCommitteesMemberships_RoleIDArray: [mjCommitteesMembership_!]!
+  mjCommitteesCommittees_Memberships_RoleIDArray: [mjCommitteesMembership_!]!
 }
 
 """Time periods for committee membership cycles"""
 type mjCommitteesTerm_ {
   Committee: String!
   CommitteeID: String!
-
-  """End date of the term"""
   EndDate: Timestamp
   ID: String!
-
-  """Display name for the term, e.g. 2025-2026"""
   Name: String!
-
-  """Start date of the term"""
   StartDate: Timestamp!
-
-  """Current status: Active, Upcoming, or Completed"""
   Status: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
-  mjCommitteesMemberships_TermIDArray: [mjCommitteesMembership_!]!
+  mjCommitteesCommittees_Memberships_TermIDArray: [mjCommitteesMembership_!]!
 }
 
 """Categories of committees such as Board, Standing, Ad Hoc, Workgroup"""
 type mjCommitteesType_ {
-  """Default term length in months for committees of this type"""
   DefaultTermMonths: Int
-
-  """Detailed description of this committee type"""
   Description: String
   ID: String!
-
-  """Font Awesome icon class for UI display"""
   IconClass: String
-
-  """Whether this type is for standards development committees"""
   IsStandards: Boolean!
-
-  """Display name for the committee type"""
   Name: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
-  mjCommitteesCommittees_TypeIDArray: [mjCommitteesCommittee_!]!
+  mjCommitteesCommittees_Committees_TypeIDArray: [mjCommitteesCommittee_!]!
 }
 
+"""Configured video conferencing providers for auto-creating meeting URLs"""
 type mjCommitteesVideoProvider_ {
   Credential: String
   CredentialID: String
@@ -32593,21 +34088,15 @@ type mjCommitteesVideoProvider_ {
   ServerDriverKey: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
-  mjCommitteesMeetings_VideoProviderIDArray: [mjCommitteesMeeting_!]!
+  mjCommitteesCommittees_Meetings_VideoProviderIDArray: [mjCommitteesMeeting_!]!
 }
 
 """Individual vote records for committee motions"""
 type mjCommitteesVote_ {
   ID: String!
-  Membership: String!
   MembershipID: String!
-  Motion: String!
   MotionID: String!
-
-  """Optional notes explaining the vote"""
   Notes: String
-
-  """The vote cast: Yes, No, Abstain, or Absent"""
   VoteValue: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!

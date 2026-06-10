@@ -5,6 +5,8 @@
     (HistoryRequested)="OnHistoryRequested()"
     (ListManagementRequested)="OnListManagementRequested()">
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="before-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          FIELD PANELS
          ======================================== -->
@@ -12,7 +14,7 @@
     <mj-collapsible-panel
         SectionKey="artifactTypeInfo"
         SectionName="Artifact Type Info"
-        Icon="fa fa-file-alt"
+        Icon="fa fa-tag"
         [Form]="this"
         [FormContext]="formContext">
         <mj-form-field 
@@ -42,10 +44,10 @@
 
     </mj-collapsible-panel>
 
-    <!-- Extension Entity Section -->
+    <!-- Extension Settings Section -->
     <mj-collapsible-panel
-        SectionKey="extensionEntity"
-        SectionName="Extension Entity"
+        SectionKey="extensionSettings"
+        SectionName="Extension Settings"
         Icon="fa fa-puzzle-piece"
         [Form]="this"
         [FormContext]="formContext">
@@ -87,15 +89,17 @@
 
     </mj-collapsible-panel>
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          RELATED ENTITY PANELS
          ======================================== -->
 
-    <!-- Committees: Artifacts Section -->
+    <!-- Artifacts Section -->
     <mj-collapsible-panel
         SectionKey="committeesArtifacts"
-        SectionName="Committees: Artifacts"
-        Icon="fa fa-file"
+        SectionName="Artifacts"
+        Icon="fa fa-paperclip"
         Variant="related-entity"
         [Form]="this"
         [FormContext]="formContext"
@@ -115,5 +119,7 @@
         </div>
         }
     </mj-collapsible-panel>
+
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-related" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
 </mj-record-form-container>
         

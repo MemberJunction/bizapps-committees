@@ -16,12 +16,16 @@ export class mjCommitteesMembershipFormComponent extends BaseFormComponent {
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'membershipAssignment', sectionName: 'Membership Assignment', isExpanded: true },
-            { sectionKey: 'timelineStatus', sectionName: 'Timeline & Status', isExpanded: true },
+            { sectionKey: 'personAssignment', sectionName: 'Person Assignment', isExpanded: true },
+            { sectionKey: 'roleAssignment', sectionName: 'Role Assignment', isExpanded: true },
+            { sectionKey: 'termAssignment', sectionName: 'Term Assignment', isExpanded: true },
+            { sectionKey: 'membershipTimeline', sectionName: 'Membership Timeline', isExpanded: true },
+            { sectionKey: 'membershipStatus', sectionName: 'Membership Status', isExpanded: true },
+            { sectionKey: 'additionalInformation', sectionName: 'Additional Information', isExpanded: true },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'committeesVotes', sectionName: 'Committees: Votes', isExpanded: false },
-            { sectionKey: 'committeesMotionsSecondedByMembershipID', sectionName: 'Committees: Motions (Seconded By Membership)', isExpanded: false },
-            { sectionKey: 'committeesMotionsMovedByMembershipID', sectionName: 'Committees: Motions (Moved By Membership)', isExpanded: false }
+            { sectionKey: 'committeesMotionsMovedByMembershipID', sectionName: 'Motions (Moved By)', isExpanded: false },
+            { sectionKey: 'committeesMotionsSecondedByMembershipID', sectionName: 'Motions (Seconded By)', isExpanded: false },
+            { sectionKey: 'committeesVotes', sectionName: 'Votes', isExpanded: false }
         ]);
     }
 }

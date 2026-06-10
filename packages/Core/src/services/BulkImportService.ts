@@ -416,7 +416,7 @@ export class BulkImportService {
                     continue;
                 }
 
-                const entity = await md.GetEntityObject<mjBizAppsCommonPersonEntity>('MJ.BizApps.Common: People', contextUser);
+                const entity = await md.GetEntityObject<mjBizAppsCommonPersonEntity>('MJ_BizApps_Common: People', contextUser);
                 entity.FirstName = row.FirstName ?? '';
                 entity.LastName = row.LastName ?? '';
                 entity.Email = row.Email;
@@ -511,7 +511,7 @@ export class BulkImportService {
     private async findExistingPersonID(email: string, contextUser: UserInfo): Promise<string | null> {
         const rv = new RunView();
         const result = await rv.RunView({
-            EntityName: 'MJ.BizApps.Common: People',
+            EntityName: 'MJ_BizApps_Common: People',
             ExtraFilter: `Email='${email.replace(/'/g, "''")}'`,
             Fields: ['ID'],
             MaxRows: 1,

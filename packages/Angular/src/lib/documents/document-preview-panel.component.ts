@@ -11,7 +11,7 @@ export interface DocumentPreviewClosedEvent {
 interface FilePreviewData {
     ID: string;
     Name: string;
-    URL: string | null;
+    ProviderKey: string | null;
     Category: string | null;
     Provider: string | null;
     ContentType: string | null;
@@ -45,7 +45,8 @@ export class DocumentPreviewPanelComponent implements OnInit {
     }
 
     get FileURL(): string | null {
-        return this.File?.URL ?? null;
+        // External-URL files store the document link in ProviderKey.
+        return this.File?.ProviderKey ?? null;
     }
 
     get FileCategory(): string | null {
@@ -91,7 +92,7 @@ export class DocumentPreviewPanelComponent implements OnInit {
         const result = await rv.RunView<FilePreviewData>({
             EntityName: 'MJ: Files',
             ExtraFilter: `ID = '${this.FileID}'`,
-            Fields: ['ID', 'Name', 'URL', 'Category', 'Provider', 'ContentType'],
+            Fields: ['ID', 'Name', 'ProviderKey', 'Category', 'Provider', 'ContentType'],
             MaxRows: 1,
             ResultType: 'simple'
         });

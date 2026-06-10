@@ -5,13 +5,15 @@
     (HistoryRequested)="OnHistoryRequested()"
     (ListManagementRequested)="OnListManagementRequested()">
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="before-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          FIELD PANELS
          ======================================== -->
-    <!-- Associations Section -->
+    <!-- Context References Section -->
     <mj-collapsible-panel
-        SectionKey="associations"
-        SectionName="Associations"
+        SectionKey="contextReferences"
+        SectionName="Context References"
         Icon="fa fa-link"
         [Form]="this"
         [FormContext]="formContext">
@@ -45,34 +47,35 @@
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
+            FieldName="TaskID"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+            LinkType="Record"
+        ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
             FieldName="ArtifactID"
             Type="textbox"
             [EditMode]="EditMode"
             [FormContext]="formContext"
             LinkType="Record"
         ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- Threading Section -->
+    <mj-collapsible-panel
+        SectionKey="threading"
+        SectionName="Threading"
+        Icon="fa fa-sitemap"
+        [Form]="this"
+        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
             FieldName="ParentCommentID"
-            Type="textbox"
-            [EditMode]="EditMode"
-            [FormContext]="formContext"
-            LinkType="Record"
-        ></mj-form-field>
-        <mj-form-field 
-            [Record]="record"
-            [ShowLabel]="true"
-            FieldName="PersonID"
-            Type="textbox"
-            [EditMode]="EditMode"
-            [FormContext]="formContext"
-            LinkType="Record"
-        ></mj-form-field>
-        <mj-form-field 
-            [Record]="record"
-            [ShowLabel]="true"
-            FieldName="TaskID"
             Type="textbox"
             [EditMode]="EditMode"
             [FormContext]="formContext"
@@ -89,11 +92,30 @@
 
     </mj-collapsible-panel>
 
-    <!-- Discussion Content Section -->
+    <!-- Author Information Section -->
     <mj-collapsible-panel
-        SectionKey="discussionContent"
-        SectionName="Discussion Content"
-        Icon="fa fa-comment"
+        SectionKey="authorInformation"
+        SectionName="Author Information"
+        Icon="fa fa-user"
+        [Form]="this"
+        [FormContext]="formContext">
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="false"
+            FieldName="PersonID"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+            LinkType="Record"
+        ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- Comment Content Section -->
+    <mj-collapsible-panel
+        SectionKey="commentContent"
+        SectionName="Comment Content"
+        Icon="fa fa-align-left"
         [Form]="this"
         [FormContext]="formContext">
         <mj-form-field 
@@ -112,14 +134,34 @@
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- Comment Status Section -->
+    <mj-collapsible-panel
+        SectionKey="commentStatus"
+        SectionName="Comment Status"
+        Icon="fa fa-flag-checkered"
+        [Form]="this"
+        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
-            [ShowLabel]="true"
+            [ShowLabel]="false"
             FieldName="IsResolved"
             Type="checkbox"
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- Display Values Section -->
+    <mj-collapsible-panel
+        SectionKey="displayValues"
+        SectionName="Display Values"
+        Icon="fa fa-eye"
+        [Form]="this"
+        [FormContext]="formContext">
 
     </mj-collapsible-panel>
 
@@ -149,15 +191,17 @@
 
     </mj-collapsible-panel>
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          RELATED ENTITY PANELS
          ======================================== -->
 
-    <!-- Committees: Comments Section -->
+    <!-- Comments Section -->
     <mj-collapsible-panel
         SectionKey="committeesComments"
-        SectionName="Committees: Comments"
-        Icon="fa fa-comments"
+        SectionName="Comments"
+        Icon="fa fa-comment"
         Variant="related-entity"
         [Form]="this"
         [FormContext]="formContext"
@@ -177,5 +221,7 @@
         </div>
         }
     </mj-collapsible-panel>
+
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-related" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
 </mj-record-form-container>
         

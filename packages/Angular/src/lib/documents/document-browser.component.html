@@ -116,9 +116,9 @@
                             </div>
                         </div>
                         <div class="doc-actions">
-                            @if (file['URL']) {
+                            @if (file['ProviderKey']) {
                                 <button class="btn-icon" title="Open in new tab"
-                                    (click)="OnOpenDocument($any(file['URL']), $event)">
+                                    (click)="OnOpenDocument($any(file['ProviderKey']), $event)">
                                     <i class="fa-solid fa-arrow-up-right-from-square"></i>
                                 </button>
                             }

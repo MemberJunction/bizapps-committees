@@ -75,7 +75,7 @@ export class PersonPickerComponent implements OnInit {
     private async LoadPeople(): Promise<void> {
         const rv = new RunView();
         const result = await rv.RunView({
-            EntityName: 'MJ.BizApps.Common: People',
+            EntityName: 'MJ_BizApps_Common: People',
             ExtraFilter: '',
             Fields: ['ID', 'DisplayName', 'Email'],
             OrderBy: 'DisplayName ASC',

@@ -5,25 +5,37 @@
     (HistoryRequested)="OnHistoryRequested()"
     (ListManagementRequested)="OnListManagementRequested()">
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="before-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          FIELD PANELS
          ======================================== -->
-    <!-- Term Overview Section -->
+    <!-- Committee Relationship Section -->
     <mj-collapsible-panel
-        SectionKey="termOverview"
-        SectionName="Term Overview"
-        Icon="fa fa-info-circle"
+        SectionKey="committeeRelationship"
+        SectionName="Committee Relationship"
+        Icon="fa fa-link"
         [Form]="this"
         [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
-            [ShowLabel]="true"
+            [ShowLabel]="false"
             FieldName="CommitteeID"
             Type="textbox"
             [EditMode]="EditMode"
             [FormContext]="formContext"
             LinkType="Record"
         ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- Term Details Section -->
+    <mj-collapsible-panel
+        SectionKey="termDetails"
+        SectionName="Term Details"
+        Icon="fa fa-info-circle"
+        [Form]="this"
+        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
@@ -43,10 +55,10 @@
 
     </mj-collapsible-panel>
 
-    <!-- Term Schedule Section -->
+    <!-- Term Timeline Section -->
     <mj-collapsible-panel
-        SectionKey="termSchedule"
-        SectionName="Term Schedule"
+        SectionKey="termTimeline"
+        SectionName="Term Timeline"
         Icon="fa fa-calendar"
         [Form]="this"
         [FormContext]="formContext">
@@ -95,14 +107,16 @@
 
     </mj-collapsible-panel>
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          RELATED ENTITY PANELS
          ======================================== -->
 
-    <!-- Committees: Memberships Section -->
+    <!-- Memberships Section -->
     <mj-collapsible-panel
         SectionKey="committeesMemberships"
-        SectionName="Committees: Memberships"
+        SectionName="Memberships"
         Icon="fa fa-users"
         Variant="related-entity"
         [Form]="this"
@@ -123,5 +137,7 @@
         </div>
         }
     </mj-collapsible-panel>
+
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-related" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
 </mj-record-form-container>
         

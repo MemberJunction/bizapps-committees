@@ -258,7 +258,7 @@ export class MembershipPanelComponent {
 
         const rv = new RunView();
         const result = await rv.RunView<{ PersonID: string; Value: string; ContactType: string; IsPrimary: boolean }>({
-            EntityName: 'MJ.BizApps.Common: Contact Methods',
+            EntityName: 'MJ_BizApps_Common: Contact Methods',
             ExtraFilter: `PersonID IN (${personIDs.map(id => `'${id}'`).join(',')}) AND IsPrimary = 1`,
             Fields: ['PersonID', 'Value', 'ContactType', 'IsPrimary'],
             ResultType: 'simple'

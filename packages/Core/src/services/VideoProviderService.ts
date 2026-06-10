@@ -189,7 +189,7 @@ export class VideoProviderService {
 
         const peopleResult = await rv.RunView<{ ID: string; Email: string; DisplayName: string }>(
             {
-                EntityName: 'MJ.BizApps.Common: People',
+                EntityName: 'MJ_BizApps_Common: People',
                 ExtraFilter: `ID IN (${personIDs.map(id => `'${id}'`).join(',')})`,
                 Fields: ['ID', 'Email', 'DisplayName'],
                 ResultType: 'simple',

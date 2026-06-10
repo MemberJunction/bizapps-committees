@@ -1,0 +1,21 @@
+[
+  {
+    "fields": {
+      "Name": "External URL",
+      "Description": "Reference-only provider for externally-hosted documents. The full URL is stored in each File's ProviderKey; no bytes are stored or uploaded. Used by the Committees document feature for linking Google Docs, SharePoint, etc.",
+      "ServerDriverKey": "ExternalURL",
+      "ClientDriverKey": "ExternalURL",
+      "Priority": 0,
+      "IsActive": true,
+      "SupportsSearch": false,
+      "RequiresOAuth": false
+    },
+    "primaryKey": {
+      "ID": "93DBCFC9-5B2A-48D6-9D95-E93B319C88E5"
+    },
+    "sync": {
+      "lastModified": "2026-06-10T04:40:29.704Z",
+      "checksum": "71d18f0aacfed9fbc5971cd33737d3fc38b2f82fe991871af18da6ffea3d11c9"
+    }
+  }
+]

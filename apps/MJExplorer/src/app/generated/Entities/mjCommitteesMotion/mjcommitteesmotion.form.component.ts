@@ -16,11 +16,14 @@ export class mjCommitteesMotionFormComponent extends BaseFormComponent {
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
+            { sectionKey: 'meetingContext', sectionName: 'Meeting Context', isExpanded: true },
             { sectionKey: 'motionDetails', sectionName: 'Motion Details', isExpanded: true },
-            { sectionKey: 'memberParticipation', sectionName: 'Member Participation', isExpanded: true },
-            { sectionKey: 'votingOutcome', sectionName: 'Voting Outcome', isExpanded: false },
+            { sectionKey: 'participation', sectionName: 'Participation', isExpanded: true },
+            { sectionKey: 'outcome', sectionName: 'Outcome', isExpanded: true },
+            { sectionKey: 'votingTally', sectionName: 'Voting Tally', isExpanded: true },
+            { sectionKey: 'additionalInformation', sectionName: 'Additional Information', isExpanded: true },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'committeesVotes', sectionName: 'Committees: Votes', isExpanded: false }
+            { sectionKey: 'committeesVotes', sectionName: 'Votes', isExpanded: false }
         ]);
     }
 }

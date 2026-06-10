@@ -16,11 +16,13 @@ export class mjCommitteesArtifactFormComponent extends BaseFormComponent {
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'relatedEntities', sectionName: 'Related Entities', isExpanded: true },
+            { sectionKey: 'relationships', sectionName: 'Relationships', isExpanded: true },
             { sectionKey: 'artifactDetails', sectionName: 'Artifact Details', isExpanded: true },
+            { sectionKey: 'externalReference', sectionName: 'External Reference', isExpanded: true },
+            { sectionKey: 'fileMetadata', sectionName: 'File Metadata', isExpanded: false },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'committeesMinutes', sectionName: 'Committees: Minutes', isExpanded: false },
-            { sectionKey: 'committeesComments', sectionName: 'Committees: Comments', isExpanded: false }
+            { sectionKey: 'committeesMinutes', sectionName: 'Minutes', isExpanded: false },
+            { sectionKey: 'committeesComments', sectionName: 'Comments', isExpanded: false }
         ]);
     }
 }

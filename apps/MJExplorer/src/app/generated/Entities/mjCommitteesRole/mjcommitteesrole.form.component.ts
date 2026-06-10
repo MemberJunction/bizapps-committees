@@ -16,10 +16,11 @@ export class mjCommitteesRoleFormComponent extends BaseFormComponent {
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'coreRoleInformation', sectionName: 'Core Role Information', isExpanded: true },
-            { sectionKey: 'roleSettings', sectionName: 'Role Settings', isExpanded: true },
+            { sectionKey: 'roleDefinition', sectionName: 'Role Definition', isExpanded: true },
+            { sectionKey: 'rolePermissions', sectionName: 'Role Permissions', isExpanded: true },
+            { sectionKey: 'displaySettings', sectionName: 'Display Settings', isExpanded: true },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'committeesMemberships', sectionName: 'Committees: Memberships', isExpanded: false }
+            { sectionKey: 'committeesMemberships', sectionName: 'Memberships', isExpanded: false }
         ]);
     }
 }

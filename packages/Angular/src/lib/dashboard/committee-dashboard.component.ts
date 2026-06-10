@@ -153,7 +153,7 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
 
         // User → Person
         const personResult = await rv.RunView<{ ID: string }>({
-            EntityName: 'MJ.BizApps.Common: People',
+            EntityName: 'MJ_BizApps_Common: People',
             ExtraFilter: `LinkedUserID = '${userID}'`,
             Fields: ['ID'],
             MaxRows: 1,

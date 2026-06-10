@@ -16,19 +16,22 @@ export class mjCommitteesMeetingFormComponent extends BaseFormComponent {
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'generalInformation', sectionName: 'General Information', isExpanded: true },
-            { sectionKey: 'scheduleTiming', sectionName: 'Schedule & Timing', isExpanded: true },
-            { sectionKey: 'locationAccess', sectionName: 'Location & Access', isExpanded: false },
-            { sectionKey: 'videoRecording', sectionName: 'Video & Recording', isExpanded: false },
+            { sectionKey: 'committeeReference', sectionName: 'Committee Reference', isExpanded: true },
+            { sectionKey: 'meetingDetails', sectionName: 'Meeting Details', isExpanded: true },
+            { sectionKey: 'schedule', sectionName: 'Schedule', isExpanded: true },
+            { sectionKey: 'location', sectionName: 'Location', isExpanded: true },
+            { sectionKey: 'virtualMeeting', sectionName: 'Virtual Meeting', isExpanded: true },
+            { sectionKey: 'meetingStatus', sectionName: 'Meeting Status', isExpanded: true },
+            { sectionKey: 'details', sectionName: 'Details', isExpanded: true },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'committeesAttendances', sectionName: 'Committees: Attendances', isExpanded: false },
-            { sectionKey: 'committeesMinutesMeetingID', sectionName: 'Committees: Minutes (Meeting)', isExpanded: false },
-            { sectionKey: 'committeesAgendaItems', sectionName: 'Committees: Agenda Items', isExpanded: false },
-            { sectionKey: 'committeesMinutesApprovedByMeetingID', sectionName: 'Committees: Minutes (Approved By Meeting)', isExpanded: false },
-            { sectionKey: 'committeesMotions', sectionName: 'Committees: Motions', isExpanded: false },
-            { sectionKey: 'committeesActionItems', sectionName: 'Committees: Action Items', isExpanded: false },
-            { sectionKey: 'committeesArtifacts', sectionName: 'Committees: Artifacts', isExpanded: false },
-            { sectionKey: 'committeesComments', sectionName: 'Committees: Comments', isExpanded: false }
+            { sectionKey: 'committeesComments', sectionName: 'Comments', isExpanded: false },
+            { sectionKey: 'committeesActionItems', sectionName: 'Action Items', isExpanded: false },
+            { sectionKey: 'committeesAttendances', sectionName: 'Attendances', isExpanded: false },
+            { sectionKey: 'committeesMotions', sectionName: 'Motions', isExpanded: false },
+            { sectionKey: 'committeesMinutesMeetingID', sectionName: 'Minutes (Meeting)', isExpanded: false },
+            { sectionKey: 'committeesMinutesApprovedByMeetingID', sectionName: 'Minutes (Approved By Meeting)', isExpanded: false },
+            { sectionKey: 'committeesAgendaItems', sectionName: 'Agenda Items', isExpanded: false },
+            { sectionKey: 'committeesArtifacts', sectionName: 'Artifacts', isExpanded: false }
         ]);
     }
 }

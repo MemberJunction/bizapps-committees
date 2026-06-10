@@ -5,37 +5,59 @@
     (HistoryRequested)="OnHistoryRequested()"
     (ListManagementRequested)="OnListManagementRequested()">
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="before-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          FIELD PANELS
          ======================================== -->
-    <!-- Membership Assignment Section -->
+    <!-- Person Assignment Section -->
     <mj-collapsible-panel
-        SectionKey="membershipAssignment"
-        SectionName="Membership Assignment"
-        Icon="fa fa-users"
+        SectionKey="personAssignment"
+        SectionName="Person Assignment"
+        Icon="fa fa-user"
         [Form]="this"
         [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
-            [ShowLabel]="true"
+            [ShowLabel]="false"
             FieldName="PersonID"
             Type="textbox"
             [EditMode]="EditMode"
             [FormContext]="formContext"
             LinkType="Record"
         ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- Role Assignment Section -->
+    <mj-collapsible-panel
+        SectionKey="roleAssignment"
+        SectionName="Role Assignment"
+        Icon="fa fa-id-badge"
+        [Form]="this"
+        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
-            [ShowLabel]="true"
+            [ShowLabel]="false"
             FieldName="RoleID"
             Type="textbox"
             [EditMode]="EditMode"
             [FormContext]="formContext"
             LinkType="Record"
         ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- Term Assignment Section -->
+    <mj-collapsible-panel
+        SectionKey="termAssignment"
+        SectionName="Term Assignment"
+        Icon="fa fa-calendar-alt"
+        [Form]="this"
+        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
-            [ShowLabel]="true"
+            [ShowLabel]="false"
             FieldName="TermID"
             Type="textbox"
             [EditMode]="EditMode"
@@ -45,10 +67,10 @@
 
     </mj-collapsible-panel>
 
-    <!-- Timeline & Status Section -->
+    <!-- Membership Timeline Section -->
     <mj-collapsible-panel
-        SectionKey="timelineStatus"
-        SectionName="Timeline & Status"
+        SectionKey="membershipTimeline"
+        SectionName="Membership Timeline"
         Icon="fa fa-calendar"
         [Form]="this"
         [FormContext]="formContext">
@@ -68,6 +90,16 @@
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- Membership Status Section -->
+    <mj-collapsible-panel
+        SectionKey="membershipStatus"
+        SectionName="Membership Status"
+        Icon="fa fa-flag-checkered"
+        [Form]="this"
+        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
@@ -84,9 +116,19 @@
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- Additional Information Section -->
+    <mj-collapsible-panel
+        SectionKey="additionalInformation"
+        SectionName="Additional Information"
+        Icon="fa fa-align-left"
+        [Form]="this"
+        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
-            [ShowLabel]="true"
+            [ShowLabel]="false"
             FieldName="Notes"
             Type="textarea"
             [EditMode]="EditMode"
@@ -121,39 +163,41 @@
 
     </mj-collapsible-panel>
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          RELATED ENTITY PANELS
          ======================================== -->
 
-    <!-- Committees: Votes Section -->
+    <!-- Motions (Moved By) Section -->
     <mj-collapsible-panel
-        SectionKey="committeesVotes"
-        SectionName="Committees: Votes"
-        Icon="fa fa-ballot"
+        SectionKey="committeesMotionsMovedByMembershipID"
+        SectionName="Motions (Moved By)"
+        Icon="fa fa-gavel"
         Variant="related-entity"
         [Form]="this"
         [FormContext]="formContext"
-        [BadgeCount]="GetSectionRowCount('committeesVotes')"
+        [BadgeCount]="GetSectionRowCount('committeesMotionsMovedByMembershipID')"
         [DefaultExpanded]="false">
         @if (record.IsSaved) {
         <div>
             <mj-explorer-entity-data-grid
-                [Params]="BuildRelationshipViewParamsByEntityName('Committees: Votes','MembershipID')"
-                [NewRecordValues]="NewRecordValues('Committees: Votes')"
-                [AllowLoad]="IsSectionExpanded('committeesVotes')"
+                [Params]="BuildRelationshipViewParamsByEntityName('Committees: Motions','MovedByMembershipID')"
+                [NewRecordValues]="NewRecordValues('Committees: Motions')"
+                [AllowLoad]="IsSectionExpanded('committeesMotionsMovedByMembershipID')"
                 [ShowToolbar]="false"
                 (Navigate)="OnFormNavigate($event)"
-                (AfterDataLoad)="SetSectionRowCount('committeesVotes', $event.totalRowCount)"
+                (AfterDataLoad)="SetSectionRowCount('committeesMotionsMovedByMembershipID', $event.totalRowCount)"
                 >
             </mj-explorer-entity-data-grid>
         </div>
         }
     </mj-collapsible-panel>
 
-    <!-- Committees: Motions (Seconded By Membership) Section -->
+    <!-- Motions (Seconded By) Section -->
     <mj-collapsible-panel
         SectionKey="committeesMotionsSecondedByMembershipID"
-        SectionName="Committees: Motions (Seconded By Membership)"
+        SectionName="Motions (Seconded By)"
         Icon="fa fa-gavel"
         Variant="related-entity"
         [Form]="this"
@@ -175,29 +219,31 @@
         }
     </mj-collapsible-panel>
 
-    <!-- Committees: Motions (Moved By Membership) Section -->
+    <!-- Votes Section -->
     <mj-collapsible-panel
-        SectionKey="committeesMotionsMovedByMembershipID"
-        SectionName="Committees: Motions (Moved By Membership)"
-        Icon="fa fa-gavel"
+        SectionKey="committeesVotes"
+        SectionName="Votes"
+        Icon="fa fa-check-square"
         Variant="related-entity"
         [Form]="this"
         [FormContext]="formContext"
-        [BadgeCount]="GetSectionRowCount('committeesMotionsMovedByMembershipID')"
+        [BadgeCount]="GetSectionRowCount('committeesVotes')"
         [DefaultExpanded]="false">
         @if (record.IsSaved) {
         <div>
             <mj-explorer-entity-data-grid
-                [Params]="BuildRelationshipViewParamsByEntityName('Committees: Motions','MovedByMembershipID')"
-                [NewRecordValues]="NewRecordValues('Committees: Motions')"
-                [AllowLoad]="IsSectionExpanded('committeesMotionsMovedByMembershipID')"
+                [Params]="BuildRelationshipViewParamsByEntityName('Committees: Votes','MembershipID')"
+                [NewRecordValues]="NewRecordValues('Committees: Votes')"
+                [AllowLoad]="IsSectionExpanded('committeesVotes')"
                 [ShowToolbar]="false"
                 (Navigate)="OnFormNavigate($event)"
-                (AfterDataLoad)="SetSectionRowCount('committeesMotionsMovedByMembershipID', $event.totalRowCount)"
+                (AfterDataLoad)="SetSectionRowCount('committeesVotes', $event.totalRowCount)"
                 >
             </mj-explorer-entity-data-grid>
         </div>
         }
     </mj-collapsible-panel>
+
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-related" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
 </mj-record-form-container>
         

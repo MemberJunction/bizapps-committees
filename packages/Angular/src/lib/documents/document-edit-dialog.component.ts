@@ -55,10 +55,10 @@ export class DocumentEditDialogComponent implements OnInit {
     }
 
     async ngOnInit(): Promise<void> {
-        await Promise.all([
-            this.LoadLookups(),
-            this.LoadOrCreateFile()
-        ]);
+        // Lookups must finish first — LoadOrCreateFile reads ExternalProviders to
+        // set the default provider (new) and to detect link-vs-upload mode (existing).
+        await this.LoadLookups();
+        await this.LoadOrCreateFile();
         this.IsLoading = false;
         this.cdr.markForCheck();
     }
@@ -277,7 +277,6 @@ export class DocumentEditDialogComponent implements OnInit {
                 this.FileRecord.Name = file.name.replace(/\.[^/.]+$/, '');
             }
             this.FileRecord.ContentType = file.type || null;
-            this.FileRecord.Set('FileSize', file.size);
         }
         this.cdr.markForCheck();
     }
@@ -287,7 +286,7 @@ export class DocumentEditDialogComponent implements OnInit {
             return 'Title is required.';
         }
         if (this.DocumentMode === 'link') {
-            if (!(this.FileRecord!.Get('URL') as string)?.trim()) {
+            if (!this.FileRecord!.ProviderKey?.trim()) {
                 return 'Please provide a URL.';
             }
             if (!this.FileRecord!.ProviderID) {
@@ -316,8 +315,10 @@ export class DocumentEditDialogComponent implements OnInit {
         } else {
             this.FileRecord = await md.GetEntityObject<MJFileEntity>('MJ: Files');
             await this.FileRecord.Load(this.FileID!);
-            // Determine mode from existing record
-            this.DocumentMode = this.FileRecord.Get('URL') ? 'link' : 'upload';
+            // Determine mode from the provider: external-URL providers store the link
+            // in ProviderKey; anything else is an uploaded file in a storage backend.
+            const isExternal = this.ExternalProviders.some(p => p.ID === this.FileRecord!.ProviderID);
+            this.DocumentMode = isExternal ? 'link' : 'upload';
             // Load existing context links
             await this.LoadExistingLinks();
         }

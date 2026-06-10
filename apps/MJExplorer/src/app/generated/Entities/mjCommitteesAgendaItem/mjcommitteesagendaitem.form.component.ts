@@ -17,14 +17,16 @@ export class mjCommitteesAgendaItemFormComponent extends BaseFormComponent {
         await super.ngOnInit();
         this.initSections([
             { sectionKey: 'agendaStructure', sectionName: 'Agenda Structure', isExpanded: true },
-            { sectionKey: 'itemContent', sectionName: 'Item Content', isExpanded: true },
-            { sectionKey: 'presentationTiming', sectionName: 'Presentation & Timing', isExpanded: false },
+            { sectionKey: 'agendaDetails', sectionName: 'Agenda Details', isExpanded: true },
+            { sectionKey: 'presenterInformation', sectionName: 'Presenter Information', isExpanded: true },
+            { sectionKey: 'timing', sectionName: 'Timing', isExpanded: true },
+            { sectionKey: 'resources', sectionName: 'Resources', isExpanded: true },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'committeesArtifacts', sectionName: 'Committees: Artifacts', isExpanded: false },
-            { sectionKey: 'committeesMotions', sectionName: 'Committees: Motions', isExpanded: false },
-            { sectionKey: 'committeesActionItems', sectionName: 'Committees: Action Items', isExpanded: false },
-            { sectionKey: 'committeesAgendaItems', sectionName: 'Committees: Agenda Items', isExpanded: false },
-            { sectionKey: 'committeesComments', sectionName: 'Committees: Comments', isExpanded: false }
+            { sectionKey: 'committeesActionItems', sectionName: 'Action Items', isExpanded: false },
+            { sectionKey: 'committeesAgendaItems', sectionName: 'Agenda Items', isExpanded: false },
+            { sectionKey: 'committeesArtifacts', sectionName: 'Artifacts', isExpanded: false },
+            { sectionKey: 'committeesMotions', sectionName: 'Motions', isExpanded: false },
+            { sectionKey: 'committeesComments', sectionName: 'Comments', isExpanded: false }
         ]);
     }
 }

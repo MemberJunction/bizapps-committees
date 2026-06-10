@@ -139,7 +139,7 @@ export class CommitteeEditDialogComponent implements OnInit {
                 ResultType: 'simple'
             },
             {
-                EntityName: 'MJ.BizApps.Common: Organizations',
+                EntityName: 'MJ_BizApps_Common: Organizations',
                 Fields: ['ID', 'Name'],
                 OrderBy: 'Name ASC',
                 ResultType: 'simple'

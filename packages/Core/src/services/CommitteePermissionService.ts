@@ -128,7 +128,7 @@ export class CommitteePermissionService {
     private async resolvePersonID(userID: string, contextUser?: UserInfo): Promise<string | null> {
         const rv = new RunView();
         const result = await rv.RunView<{ ID: string }>({
-            EntityName: 'MJ.BizApps.Common: People',
+            EntityName: 'MJ_BizApps_Common: People',
             ExtraFilter: `LinkedUserID = '${userID}'`,
             Fields: ['ID'],
             MaxRows: 1,

@@ -183,7 +183,7 @@ export class MembershipEditDialogComponent implements OnInit {
         if (!personID) return;
         const rv = new RunView();
         const result = await rv.RunView({
-            EntityName: 'MJ.BizApps.Common: People',
+            EntityName: 'MJ_BizApps_Common: People',
             ExtraFilter: `ID='${personID}'`,
             Fields: ['ID', 'DisplayName'],
             ResultType: 'simple',

@@ -2,7 +2,6 @@ import { Component } from '@angular/core';
 import { mjCommitteesActionItemEntity } from '@mj-biz-apps/committees-entities';
 import { RegisterClass } from '@memberjunction/global';
 import { BaseFormComponent } from '@memberjunction/ng-base-forms';
-import {  } from "@memberjunction/ng-entity-viewer"
 
 @RegisterClass(BaseFormComponent, 'Committees: Action Items') // Tell MemberJunction about this class
 @Component({
@@ -16,13 +15,13 @@ export class mjCommitteesActionItemFormComponent extends BaseFormComponent {
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'context', sectionName: 'Context', isExpanded: true },
-            { sectionKey: 'actionDetails', sectionName: 'Action Details', isExpanded: true },
-            { sectionKey: 'responsibility', sectionName: 'Responsibility', isExpanded: false },
-            { sectionKey: 'timelineCompletion', sectionName: 'Timeline & Completion', isExpanded: false },
-            { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'committeesArtifacts', sectionName: 'Committees: Artifacts', isExpanded: false },
-            { sectionKey: 'committeesComments', sectionName: 'Committees: Comments', isExpanded: false }
+            { sectionKey: 'committeeContext', sectionName: 'Committee Context', isExpanded: true },
+            { sectionKey: 'actionItemDetails', sectionName: 'Action Item Details', isExpanded: true },
+            { sectionKey: 'assignment', sectionName: 'Assignment', isExpanded: true },
+            { sectionKey: 'schedule', sectionName: 'Schedule', isExpanded: true },
+            { sectionKey: 'progress', sectionName: 'Progress', isExpanded: true },
+            { sectionKey: 'displayValues', sectionName: 'Display Values', isExpanded: true },
+            { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false }
         ]);
     }
 }

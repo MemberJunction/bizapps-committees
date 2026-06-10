@@ -16,18 +16,15 @@ export class mjCommitteesCommitteeFormComponent extends BaseFormComponent {
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'committeeOverview', sectionName: 'Committee Overview', isExpanded: true },
-            { sectionKey: 'classification', sectionName: 'Classification', isExpanded: true },
-            { sectionKey: 'hierarchy', sectionName: 'Hierarchy', isExpanded: false },
-            { sectionKey: 'governanceStatus', sectionName: 'Governance & Status', isExpanded: false },
+            { sectionKey: 'committeeProfile', sectionName: 'Committee Profile', isExpanded: true },
+            { sectionKey: 'hierarchy', sectionName: 'Hierarchy', isExpanded: true },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'committeesTerms', sectionName: 'Committees: Terms', isExpanded: false },
-            { sectionKey: 'committeesMeetings', sectionName: 'Committees: Meetings', isExpanded: false },
-            { sectionKey: 'committeesMemberships', sectionName: 'Committees: Memberships', isExpanded: false },
-            { sectionKey: 'committeesArtifacts', sectionName: 'Committees: Artifacts', isExpanded: false },
-            { sectionKey: 'committeesActionItems', sectionName: 'Committees: Action Items', isExpanded: false },
-            { sectionKey: 'committeesCommittees', sectionName: 'Committees: Committees', isExpanded: false },
-            { sectionKey: 'committeesComments', sectionName: 'Committees: Comments', isExpanded: false }
+            { sectionKey: 'committeesActionItems', sectionName: 'Action Items', isExpanded: false },
+            { sectionKey: 'committeesCommittees', sectionName: 'Committees', isExpanded: false },
+            { sectionKey: 'committeesMeetings', sectionName: 'Meetings', isExpanded: false },
+            { sectionKey: 'committeesComments', sectionName: 'Comments', isExpanded: false },
+            { sectionKey: 'committeesTerms', sectionName: 'Terms', isExpanded: false },
+            { sectionKey: 'committeesArtifacts', sectionName: 'Artifacts', isExpanded: false }
         ]);
     }
 }

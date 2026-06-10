@@ -311,7 +311,7 @@ async function getCommitteeMemberUserIDs(committeeID: string, contextUser: UserI
     // Step 2: Resolve PersonIDs → LinkedUserIDs
     const inClause = personIDs.map(id => `'${id}'`).join(',');
     const people = await rv.RunView<{ ID: string; LinkedUserID: string | null }>({
-        EntityName: 'MJ.BizApps.Common: People',
+        EntityName: 'MJ_BizApps_Common: People',
         ExtraFilter: `ID IN (${inClause}) AND LinkedUserID IS NOT NULL`,
         Fields: ['ID', 'LinkedUserID'],
         ResultType: 'simple',
@@ -333,7 +333,7 @@ async function getCommitteeMemberUserIDs(committeeID: string, contextUser: UserI
 async function getPersonLinkedUserID(personID: string, contextUser: UserInfo): Promise<string | null> {
     const rv = new RunView();
     const result = await rv.RunView<{ ID: string; LinkedUserID: string | null }>({
-        EntityName: 'MJ.BizApps.Common: People',
+        EntityName: 'MJ_BizApps_Common: People',
         ExtraFilter: `ID='${personID}'`,
         Fields: ['ID', 'LinkedUserID'],
         ResultType: 'simple',

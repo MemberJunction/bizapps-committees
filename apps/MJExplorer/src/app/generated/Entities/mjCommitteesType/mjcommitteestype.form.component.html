@@ -5,14 +5,16 @@
     (HistoryRequested)="OnHistoryRequested()"
     (ListManagementRequested)="OnListManagementRequested()">
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="before-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          FIELD PANELS
          ======================================== -->
-    <!-- Identification Section -->
+    <!-- Committee Definition Section -->
     <mj-collapsible-panel
-        SectionKey="identification"
-        SectionName="Identification"
-        Icon="fa fa-id-card"
+        SectionKey="committeeDefinition"
+        SectionName="Committee Definition"
+        Icon="fa fa-file-alt"
         [Form]="this"
         [FormContext]="formContext">
         <mj-form-field 
@@ -26,29 +28,21 @@
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
-            FieldName="IconClass"
-            Type="textbox"
+            FieldName="Description"
+            Type="textarea"
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
 
     </mj-collapsible-panel>
 
-    <!-- Definition Section -->
+    <!-- Committee Attributes Section -->
     <mj-collapsible-panel
-        SectionKey="definition"
-        SectionName="Definition"
-        Icon="fa fa-info-circle"
+        SectionKey="committeeAttributes"
+        SectionName="Committee Attributes"
+        Icon="fa fa-sliders-h"
         [Form]="this"
         [FormContext]="formContext">
-        <mj-form-field 
-            [Record]="record"
-            [ShowLabel]="true"
-            FieldName="Description"
-            Type="textarea"
-            [EditMode]="EditMode"
-            [FormContext]="formContext"
-        ></mj-form-field>
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
@@ -62,6 +56,24 @@
             [ShowLabel]="true"
             FieldName="DefaultTermMonths"
             Type="number"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- Presentation Section -->
+    <mj-collapsible-panel
+        SectionKey="presentation"
+        SectionName="Presentation"
+        Icon="fa fa-paint-brush"
+        [Form]="this"
+        [FormContext]="formContext">
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="false"
+            FieldName="IconClass"
+            Type="textbox"
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
@@ -94,15 +106,17 @@
 
     </mj-collapsible-panel>
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          RELATED ENTITY PANELS
          ======================================== -->
 
-    <!-- Committees: Committees Section -->
+    <!-- Committees Section -->
     <mj-collapsible-panel
         SectionKey="committeesCommittees"
-        SectionName="Committees: Committees"
-        Icon="fa fa-users"
+        SectionName="Committees"
+        Icon="fa fa-users-cog"
         Variant="related-entity"
         [Form]="this"
         [FormContext]="formContext"
@@ -122,5 +136,7 @@
         </div>
         }
     </mj-collapsible-panel>
+
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-related" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
 </mj-record-form-container>
         

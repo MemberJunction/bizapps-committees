@@ -16,10 +16,14 @@ export class mjCommitteesCommentFormComponent extends BaseFormComponent {
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'associations', sectionName: 'Associations', isExpanded: true },
-            { sectionKey: 'discussionContent', sectionName: 'Discussion Content', isExpanded: true },
+            { sectionKey: 'contextReferences', sectionName: 'Context References', isExpanded: true },
+            { sectionKey: 'threading', sectionName: 'Threading', isExpanded: true },
+            { sectionKey: 'authorInformation', sectionName: 'Author Information', isExpanded: true },
+            { sectionKey: 'commentContent', sectionName: 'Comment Content', isExpanded: true },
+            { sectionKey: 'commentStatus', sectionName: 'Comment Status', isExpanded: true },
+            { sectionKey: 'displayValues', sectionName: 'Display Values', isExpanded: true },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'committeesComments', sectionName: 'Committees: Comments', isExpanded: false }
+            { sectionKey: 'committeesComments', sectionName: 'Comments', isExpanded: false }
         ]);
     }
 }

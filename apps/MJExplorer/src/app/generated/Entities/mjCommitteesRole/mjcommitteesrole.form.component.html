@@ -5,14 +5,16 @@
     (HistoryRequested)="OnHistoryRequested()"
     (ListManagementRequested)="OnListManagementRequested()">
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="before-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          FIELD PANELS
          ======================================== -->
-    <!-- Core Role Information Section -->
+    <!-- Role Definition Section -->
     <mj-collapsible-panel
-        SectionKey="coreRoleInformation"
-        SectionName="Core Role Information"
-        Icon="fa fa-id-card"
+        SectionKey="roleDefinition"
+        SectionName="Role Definition"
+        Icon="fa fa-file-alt"
         [Form]="this"
         [FormContext]="formContext">
         <mj-form-field 
@@ -31,22 +33,14 @@
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
-        <mj-form-field 
-            [Record]="record"
-            [ShowLabel]="true"
-            FieldName="Sequence"
-            Type="number"
-            [EditMode]="EditMode"
-            [FormContext]="formContext"
-        ></mj-form-field>
 
     </mj-collapsible-panel>
 
-    <!-- Role Settings Section -->
+    <!-- Role Permissions Section -->
     <mj-collapsible-panel
-        SectionKey="roleSettings"
-        SectionName="Role Settings"
-        Icon="fa fa-sliders-h"
+        SectionKey="rolePermissions"
+        SectionName="Role Permissions"
+        Icon="fa fa-lock"
         [Form]="this"
         [FormContext]="formContext">
         <mj-form-field 
@@ -70,6 +64,24 @@
             [ShowLabel]="true"
             FieldName="DefaultPermissionsJSON"
             Type="textarea"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- Display Settings Section -->
+    <mj-collapsible-panel
+        SectionKey="displaySettings"
+        SectionName="Display Settings"
+        Icon="fa fa-sort-amount-asc"
+        [Form]="this"
+        [FormContext]="formContext">
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="false"
+            FieldName="Sequence"
+            Type="number"
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
@@ -102,14 +114,16 @@
 
     </mj-collapsible-panel>
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          RELATED ENTITY PANELS
          ======================================== -->
 
-    <!-- Committees: Memberships Section -->
+    <!-- Memberships Section -->
     <mj-collapsible-panel
         SectionKey="committeesMemberships"
-        SectionName="Committees: Memberships"
+        SectionName="Memberships"
         Icon="fa fa-users"
         Variant="related-entity"
         [Form]="this"
@@ -130,5 +144,7 @@
         </div>
         }
     </mj-collapsible-panel>
+
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-related" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
 </mj-record-form-container>
         

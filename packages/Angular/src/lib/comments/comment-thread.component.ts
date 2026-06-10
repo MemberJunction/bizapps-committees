@@ -123,7 +123,7 @@ export class CommentThreadComponent implements OnInit {
 
         const rv = new RunView();
         const result = await rv.RunView<{ ID: string }>({
-            EntityName: 'MJ.BizApps.Common: People',
+            EntityName: 'MJ_BizApps_Common: People',
             ExtraFilter: `LinkedUserID='${userID}'`,
             Fields: ['ID'],
             ResultType: 'simple',

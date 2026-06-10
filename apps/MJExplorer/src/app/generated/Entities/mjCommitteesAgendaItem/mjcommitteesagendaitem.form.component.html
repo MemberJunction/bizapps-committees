@@ -5,6 +5,8 @@
     (HistoryRequested)="OnHistoryRequested()"
     (ListManagementRequested)="OnListManagementRequested()">
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="before-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          FIELD PANELS
          ======================================== -->
@@ -36,14 +38,6 @@
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
-            FieldName="Sequence"
-            Type="number"
-            [EditMode]="EditMode"
-            [FormContext]="formContext"
-        ></mj-form-field>
-        <mj-form-field 
-            [Record]="record"
-            [ShowLabel]="true"
             FieldName="RootParentAgendaItemID"
             Type="textbox"
             [EditMode]="EditMode"
@@ -52,13 +46,21 @@
 
     </mj-collapsible-panel>
 
-    <!-- Item Content Section -->
+    <!-- Agenda Details Section -->
     <mj-collapsible-panel
-        SectionKey="itemContent"
-        SectionName="Item Content"
-        Icon="fa fa-file-alt"
+        SectionKey="agendaDetails"
+        SectionName="Agenda Details"
+        Icon="fa fa-align-left"
         [Form]="this"
         [FormContext]="formContext">
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="Sequence"
+            Type="number"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
@@ -86,15 +88,6 @@
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
-            FieldName="RelatedDocumentURL"
-            Type="textbox"
-            [EditMode]="EditMode"
-            [FormContext]="formContext"
-            LinkType="URL"
-        ></mj-form-field>
-        <mj-form-field 
-            [Record]="record"
-            [ShowLabel]="true"
             FieldName="Status"
             Type="select"
             [EditMode]="EditMode"
@@ -103,29 +96,58 @@
 
     </mj-collapsible-panel>
 
-    <!-- Presentation & Timing Section -->
+    <!-- Presenter Information Section -->
     <mj-collapsible-panel
-        SectionKey="presentationTiming"
-        SectionName="Presentation & Timing"
-        Icon="fa fa-clock"
+        SectionKey="presenterInformation"
+        SectionName="Presenter Information"
+        Icon="fa fa-user"
         [Form]="this"
         [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
-            [ShowLabel]="true"
+            [ShowLabel]="false"
             FieldName="PresenterPersonID"
             Type="textbox"
             [EditMode]="EditMode"
             [FormContext]="formContext"
             LinkType="Record"
         ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- Timing Section -->
+    <mj-collapsible-panel
+        SectionKey="timing"
+        SectionName="Timing"
+        Icon="fa fa-clock"
+        [Form]="this"
+        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
-            [ShowLabel]="true"
+            [ShowLabel]="false"
             FieldName="DurationMinutes"
             Type="number"
             [EditMode]="EditMode"
             [FormContext]="formContext"
+        ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- Resources Section -->
+    <mj-collapsible-panel
+        SectionKey="resources"
+        SectionName="Resources"
+        Icon="fa fa-file"
+        [Form]="this"
+        [FormContext]="formContext">
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="RelatedDocumentURL"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+            LinkType="URL"
         ></mj-form-field>
         <mj-form-field 
             [Record]="record"
@@ -164,64 +186,16 @@
 
     </mj-collapsible-panel>
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          RELATED ENTITY PANELS
          ======================================== -->
 
-    <!-- Committees: Artifacts Section -->
-    <mj-collapsible-panel
-        SectionKey="committeesArtifacts"
-        SectionName="Committees: Artifacts"
-        Icon="fa fa-file"
-        Variant="related-entity"
-        [Form]="this"
-        [FormContext]="formContext"
-        [BadgeCount]="GetSectionRowCount('committeesArtifacts')"
-        [DefaultExpanded]="false">
-        @if (record.IsSaved) {
-        <div>
-            <mj-explorer-entity-data-grid
-                [Params]="BuildRelationshipViewParamsByEntityName('Committees: Artifacts','AgendaItemID')"
-                [NewRecordValues]="NewRecordValues('Committees: Artifacts')"
-                [AllowLoad]="IsSectionExpanded('committeesArtifacts')"
-                [ShowToolbar]="false"
-                (Navigate)="OnFormNavigate($event)"
-                (AfterDataLoad)="SetSectionRowCount('committeesArtifacts', $event.totalRowCount)"
-                >
-            </mj-explorer-entity-data-grid>
-        </div>
-        }
-    </mj-collapsible-panel>
-
-    <!-- Committees: Motions Section -->
-    <mj-collapsible-panel
-        SectionKey="committeesMotions"
-        SectionName="Committees: Motions"
-        Icon="fa fa-gavel"
-        Variant="related-entity"
-        [Form]="this"
-        [FormContext]="formContext"
-        [BadgeCount]="GetSectionRowCount('committeesMotions')"
-        [DefaultExpanded]="false">
-        @if (record.IsSaved) {
-        <div>
-            <mj-explorer-entity-data-grid
-                [Params]="BuildRelationshipViewParamsByEntityName('Committees: Motions','AgendaItemID')"
-                [NewRecordValues]="NewRecordValues('Committees: Motions')"
-                [AllowLoad]="IsSectionExpanded('committeesMotions')"
-                [ShowToolbar]="false"
-                (Navigate)="OnFormNavigate($event)"
-                (AfterDataLoad)="SetSectionRowCount('committeesMotions', $event.totalRowCount)"
-                >
-            </mj-explorer-entity-data-grid>
-        </div>
-        }
-    </mj-collapsible-panel>
-
-    <!-- Committees: Action Items Section -->
+    <!-- Action Items Section -->
     <mj-collapsible-panel
         SectionKey="committeesActionItems"
-        SectionName="Committees: Action Items"
+        SectionName="Action Items"
         Icon="fa fa-tasks"
         Variant="related-entity"
         [Form]="this"
@@ -243,11 +217,11 @@
         }
     </mj-collapsible-panel>
 
-    <!-- Committees: Agenda Items Section -->
+    <!-- Agenda Items Section -->
     <mj-collapsible-panel
         SectionKey="committeesAgendaItems"
-        SectionName="Committees: Agenda Items"
-        Icon="fa fa-clipboard-list"
+        SectionName="Agenda Items"
+        Icon="fa fa-list"
         Variant="related-entity"
         [Form]="this"
         [FormContext]="formContext"
@@ -268,11 +242,61 @@
         }
     </mj-collapsible-panel>
 
-    <!-- Committees: Comments Section -->
+    <!-- Artifacts Section -->
+    <mj-collapsible-panel
+        SectionKey="committeesArtifacts"
+        SectionName="Artifacts"
+        Icon="fa fa-paperclip"
+        Variant="related-entity"
+        [Form]="this"
+        [FormContext]="formContext"
+        [BadgeCount]="GetSectionRowCount('committeesArtifacts')"
+        [DefaultExpanded]="false">
+        @if (record.IsSaved) {
+        <div>
+            <mj-explorer-entity-data-grid
+                [Params]="BuildRelationshipViewParamsByEntityName('Committees: Artifacts','AgendaItemID')"
+                [NewRecordValues]="NewRecordValues('Committees: Artifacts')"
+                [AllowLoad]="IsSectionExpanded('committeesArtifacts')"
+                [ShowToolbar]="false"
+                (Navigate)="OnFormNavigate($event)"
+                (AfterDataLoad)="SetSectionRowCount('committeesArtifacts', $event.totalRowCount)"
+                >
+            </mj-explorer-entity-data-grid>
+        </div>
+        }
+    </mj-collapsible-panel>
+
+    <!-- Motions Section -->
+    <mj-collapsible-panel
+        SectionKey="committeesMotions"
+        SectionName="Motions"
+        Icon="fa fa-gavel"
+        Variant="related-entity"
+        [Form]="this"
+        [FormContext]="formContext"
+        [BadgeCount]="GetSectionRowCount('committeesMotions')"
+        [DefaultExpanded]="false">
+        @if (record.IsSaved) {
+        <div>
+            <mj-explorer-entity-data-grid
+                [Params]="BuildRelationshipViewParamsByEntityName('Committees: Motions','AgendaItemID')"
+                [NewRecordValues]="NewRecordValues('Committees: Motions')"
+                [AllowLoad]="IsSectionExpanded('committeesMotions')"
+                [ShowToolbar]="false"
+                (Navigate)="OnFormNavigate($event)"
+                (AfterDataLoad)="SetSectionRowCount('committeesMotions', $event.totalRowCount)"
+                >
+            </mj-explorer-entity-data-grid>
+        </div>
+        }
+    </mj-collapsible-panel>
+
+    <!-- Comments Section -->
     <mj-collapsible-panel
         SectionKey="committeesComments"
-        SectionName="Committees: Comments"
-        Icon="fa fa-comments"
+        SectionName="Comments"
+        Icon="fa fa-comment"
         Variant="related-entity"
         [Form]="this"
         [FormContext]="formContext"
@@ -292,5 +316,7 @@
         </div>
         }
     </mj-collapsible-panel>
+
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-related" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
 </mj-record-form-container>
         

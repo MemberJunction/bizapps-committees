@@ -139,7 +139,7 @@ export class AgendaItemEditDialogComponent implements OnInit {
     private async LoadLookups(): Promise<void> {
         const rv = new RunView();
         const result = await rv.RunView<{ ID: string; DisplayName: string }>({
-            EntityName: 'MJ.BizApps.Common: People',
+            EntityName: 'MJ_BizApps_Common: People',
             Fields: ['ID', 'DisplayName'],
             OrderBy: 'DisplayName ASC',
             MaxRows: 500,

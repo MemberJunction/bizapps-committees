@@ -92,8 +92,7 @@
                     <div class="form-group" style="flex: 2">
                         <label class="form-label required">URL</label>
                         <input type="url" class="form-input"
-                            [ngModel]="FileRecord.Get('URL')"
-                            (ngModelChange)="FileRecord.Set('URL', $event)"
+                            [(ngModel)]="FileRecord.ProviderKey"
                             placeholder="https://docs.google.com/...">
                     </div>
                 </div>

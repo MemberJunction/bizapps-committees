@@ -5,14 +5,16 @@
     (HistoryRequested)="OnHistoryRequested()"
     (ListManagementRequested)="OnListManagementRequested()">
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="before-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          FIELD PANELS
          ======================================== -->
-    <!-- Related Entities Section -->
+    <!-- Relationships Section -->
     <mj-collapsible-panel
-        SectionKey="relatedEntities"
-        SectionName="Related Entities"
-        Icon="fa fa-link"
+        SectionKey="relationships"
+        SectionName="Relationships"
+        Icon="fa fa-users"
         [Form]="this"
         [FormContext]="formContext">
         <mj-form-field 
@@ -45,7 +47,7 @@
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
-            FieldName="ArtifactTypeID"
+            FieldName="TaskID"
             Type="textbox"
             [EditMode]="EditMode"
             [FormContext]="formContext"
@@ -55,15 +57,6 @@
             [Record]="record"
             [ShowLabel]="true"
             FieldName="UploadedByPersonID"
-            Type="textbox"
-            [EditMode]="EditMode"
-            [FormContext]="formContext"
-            LinkType="Record"
-        ></mj-form-field>
-        <mj-form-field 
-            [Record]="record"
-            [ShowLabel]="true"
-            FieldName="TaskID"
             Type="textbox"
             [EditMode]="EditMode"
             [FormContext]="formContext"
@@ -98,6 +91,25 @@
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
+            FieldName="ArtifactTypeID"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+            LinkType="Record"
+        ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- External Reference Section -->
+    <mj-collapsible-panel
+        SectionKey="externalReference"
+        SectionName="External Reference"
+        Icon="fa fa-link"
+        [Form]="this"
+        [FormContext]="formContext">
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
             FieldName="Provider"
             Type="select"
             [EditMode]="EditMode"
@@ -120,6 +132,16 @@
             [FormContext]="formContext"
             LinkType="URL"
         ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- File Metadata Section -->
+    <mj-collapsible-panel
+        SectionKey="fileMetadata"
+        SectionName="File Metadata"
+        Icon="fa fa-file"
+        [Form]="this"
+        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
@@ -165,15 +187,17 @@
 
     </mj-collapsible-panel>
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          RELATED ENTITY PANELS
          ======================================== -->
 
-    <!-- Committees: Minutes Section -->
+    <!-- Minutes Section -->
     <mj-collapsible-panel
         SectionKey="committeesMinutes"
-        SectionName="Committees: Minutes"
-        Icon="fa fa-clipboard-check"
+        SectionName="Minutes"
+        Icon="fa fa-file-alt"
         Variant="related-entity"
         [Form]="this"
         [FormContext]="formContext"
@@ -194,11 +218,11 @@
         }
     </mj-collapsible-panel>
 
-    <!-- Committees: Comments Section -->
+    <!-- Comments Section -->
     <mj-collapsible-panel
         SectionKey="committeesComments"
-        SectionName="Committees: Comments"
-        Icon="fa fa-comments"
+        SectionName="Comments"
+        Icon="fa fa-comment"
         Variant="related-entity"
         [Form]="this"
         [FormContext]="formContext"
@@ -218,5 +242,7 @@
         </div>
         }
     </mj-collapsible-panel>
+
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-related" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
 </mj-record-form-container>
         

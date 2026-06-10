@@ -17,9 +17,10 @@ export class mjCommitteesVideoProviderFormComponent extends BaseFormComponent {
         await super.ngOnInit();
         this.initSections([
             { sectionKey: 'providerDetails', sectionName: 'Provider Details', isExpanded: true },
-            { sectionKey: 'accessConfiguration', sectionName: 'Access Configuration', isExpanded: true },
+            { sectionKey: 'statusDefaults', sectionName: 'Status & Defaults', isExpanded: true },
+            { sectionKey: 'credentials', sectionName: 'Credentials', isExpanded: true },
             { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'committeesMeetings', sectionName: 'Committees: Meetings', isExpanded: false }
+            { sectionKey: 'committeesMeetings', sectionName: 'Meetings', isExpanded: false }
         ]);
     }
 }

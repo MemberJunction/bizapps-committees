@@ -5,14 +5,16 @@
     (HistoryRequested)="OnHistoryRequested()"
     (ListManagementRequested)="OnListManagementRequested()">
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="before-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          FIELD PANELS
          ======================================== -->
-    <!-- Motion Details Section -->
+    <!-- Meeting Context Section -->
     <mj-collapsible-panel
-        SectionKey="motionDetails"
-        SectionName="Motion Details"
-        Icon="fa fa-file-alt"
+        SectionKey="meetingContext"
+        SectionName="Meeting Context"
+        Icon="fa fa-calendar-alt"
         [Form]="this"
         [FormContext]="formContext">
         <mj-form-field 
@@ -41,6 +43,16 @@
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- Motion Details Section -->
+    <mj-collapsible-panel
+        SectionKey="motionDetails"
+        SectionName="Motion Details"
+        Icon="fa fa-file-alt"
+        [Form]="this"
+        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
@@ -60,11 +72,11 @@
 
     </mj-collapsible-panel>
 
-    <!-- Member Participation Section -->
+    <!-- Participation Section -->
     <mj-collapsible-panel
-        SectionKey="memberParticipation"
-        SectionName="Member Participation"
-        Icon="fa fa-users"
+        SectionKey="participation"
+        SectionName="Participation"
+        Icon="fa fa-user-friends"
         [Form]="this"
         [FormContext]="formContext">
         <mj-form-field 
@@ -85,22 +97,14 @@
             [FormContext]="formContext"
             LinkType="Record"
         ></mj-form-field>
-        <mj-form-field 
-            [Record]="record"
-            [ShowLabel]="true"
-            FieldName="Notes"
-            Type="textarea"
-            [EditMode]="EditMode"
-            [FormContext]="formContext"
-        ></mj-form-field>
 
     </mj-collapsible-panel>
 
-    <!-- Voting Outcome Section -->
+    <!-- Outcome Section -->
     <mj-collapsible-panel
-        SectionKey="votingOutcome"
-        SectionName="Voting Outcome"
-        Icon="fa fa-check-circle"
+        SectionKey="outcome"
+        SectionName="Outcome"
+        Icon="fa fa-flag-checkered"
         [Form]="this"
         [FormContext]="formContext">
         <mj-form-field 
@@ -119,6 +123,16 @@
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- Voting Tally Section -->
+    <mj-collapsible-panel
+        SectionKey="votingTally"
+        SectionName="Voting Tally"
+        Icon="fa fa-chart-bar"
+        [Form]="this"
+        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
@@ -140,6 +154,24 @@
             [ShowLabel]="true"
             FieldName="AbstainCount"
             Type="number"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+
+    </mj-collapsible-panel>
+
+    <!-- Additional Information Section -->
+    <mj-collapsible-panel
+        SectionKey="additionalInformation"
+        SectionName="Additional Information"
+        Icon="fa fa-comment-dots"
+        [Form]="this"
+        [FormContext]="formContext">
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="false"
+            FieldName="Notes"
+            Type="textarea"
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
@@ -172,15 +204,17 @@
 
     </mj-collapsible-panel>
 
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-fields" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
+
     <!-- ========================================
          RELATED ENTITY PANELS
          ======================================== -->
 
-    <!-- Committees: Votes Section -->
+    <!-- Votes Section -->
     <mj-collapsible-panel
         SectionKey="committeesVotes"
-        SectionName="Committees: Votes"
-        Icon="fa fa-ballot"
+        SectionName="Votes"
+        Icon="fa fa-check-square"
         Variant="related-entity"
         [Form]="this"
         [FormContext]="formContext"
@@ -200,5 +234,7 @@
         </div>
         }
     </mj-collapsible-panel>
+
+    <mj-form-panel-slot Entity="{{record.EntityInfo.Name}}" Slot="after-related" [Record]="record" [FormComponent]="this" [FormContext]="formContext"></mj-form-panel-slot>
 </mj-record-form-container>
         

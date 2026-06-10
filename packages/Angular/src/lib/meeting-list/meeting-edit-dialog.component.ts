@@ -368,7 +368,7 @@ export class MeetingEditDialogComponent implements OnInit {
                 ResultType: 'simple'
             },
             {
-                EntityName: 'MJ.BizApps.Common: People',
+                EntityName: 'MJ_BizApps_Common: People',
                 Fields: ['ID', 'DisplayName'],
                 OrderBy: 'DisplayName ASC',
                 MaxRows: 500,

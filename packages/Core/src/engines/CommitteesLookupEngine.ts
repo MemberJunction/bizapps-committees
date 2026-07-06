@@ -1,4 +1,4 @@
-import { BaseEngine, IMetadataProvider, UserInfo } from '@memberjunction/core';
+import { BaseEngine, IMetadataProvider, Metadata, UserInfo } from '@memberjunction/core';
 import {
     mjBizAppsCommitteesRoleEntity,
     mjBizAppsCommitteesTypeEntity,
@@ -48,7 +48,7 @@ export class CommitteesLookupEngine extends BaseEngine<CommitteesLookupEngine> {
             { EntityName: 'Committees: Types',          PropertyName: '_CommitteeTypes', CacheLocal: true },
             { EntityName: 'Committees: Artifact Types', PropertyName: '_ArtifactTypes',  CacheLocal: true },
         ];
-        await this.Load(configs, provider, forceRefresh, contextUser);
+        await this.Load(configs, provider ?? Metadata.Provider, forceRefresh, contextUser);
     }
 
     /** All committee roles (Chair, Vice Chair, Secretary, Member, Liaison, etc.). */

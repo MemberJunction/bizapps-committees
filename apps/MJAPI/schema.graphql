@@ -39906,8 +39906,6 @@ type mjBizAppsCommitteesMeeting_ {
   VideoProvider_Virtual: String
   VideoRecordingURL: String
   _mj__CreatedAt: Timestamp!
-  _mj__Latitude: Float
-  _mj__Longitude: Float
   _mj__UpdatedAt: Timestamp!
   mjBizAppsCommitteesCommittees_ActionItems_MeetingIDArray: [mjBizAppsCommitteesActionItem_!]!
   mjBizAppsCommitteesCommittees_AgendaItems_MeetingIDArray: [mjBizAppsCommitteesAgendaItem_!]!

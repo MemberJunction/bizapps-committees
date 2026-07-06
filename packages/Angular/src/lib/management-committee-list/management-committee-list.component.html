@@ -1,3 +1,11 @@
+@if (WorkspaceCommitteeID) {
+    <div class="ws-wrap">
+        <button type="button" class="ws-back" (click)="CloseWorkspace()">
+            <i class="fa-solid fa-arrow-left"></i> All committees
+        </button>
+        <committee-workspace [CommitteeID]="WorkspaceCommitteeID"></committee-workspace>
+    </div>
+} @else {
 @if (IsLoading) {
     <div class="list-loading">
         <mj-loading text="Loading committees..."></mj-loading>
@@ -117,4 +125,6 @@
 <!-- Bulk Import Slide-In Panel -->
 @if (ShowBulkImport) {
     <bulk-import-panel (PanelClosed)="OnBulkImportClosed($event)"></bulk-import-panel>
+}
+
 }

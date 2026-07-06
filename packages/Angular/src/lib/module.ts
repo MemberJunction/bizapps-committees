@@ -38,6 +38,12 @@ import { ManagementDashboardComponent, LoadManagementDashboard } from './managem
 import { ManagementCommitteeListComponent, LoadManagementCommitteeList } from './management-committee-list/management-committee-list.component';
 import { ManagementMembershipListComponent, LoadManagementMembershipList } from './management-membership-list/management-membership-list.component';
 import { BulkImportPanelComponent, LoadBulkImportPanelComponent } from './bulk-import/bulk-import-panel.component';
+import { CommandCenterComponent, LoadCommandCenter } from './command-center/command-center.component';
+import { CommandCenterStatsComponent } from './command-center/command-center-stats.component';
+import { HealthGridComponent } from './command-center/health-grid.component';
+import { WeekRailComponent } from './command-center/week-rail.component';
+import { AttentionRailComponent } from './command-center/attention-rail.component';
+import { CommitteeWorkspaceComponent, LoadCommitteeWorkspace } from './committee-workspace/committee-workspace.component';
 
 @NgModule({
     declarations: [
@@ -67,6 +73,12 @@ import { BulkImportPanelComponent, LoadBulkImportPanelComponent } from './bulk-i
         ManagementCommitteeListComponent,
         ManagementMembershipListComponent,
         BulkImportPanelComponent,
+        CommandCenterComponent,
+        CommandCenterStatsComponent,
+        HealthGridComponent,
+        WeekRailComponent,
+        AttentionRailComponent,
+        CommitteeWorkspaceComponent,
     ],
     imports: [
         CommonModule,
@@ -104,6 +116,8 @@ import { BulkImportPanelComponent, LoadBulkImportPanelComponent } from './bulk-i
         ManagementCommitteeListComponent,
         ManagementMembershipListComponent,
         BulkImportPanelComponent,
+        CommandCenterComponent,
+        CommitteeWorkspaceComponent,
     ]
 })
 export class CommitteesModule { }
@@ -136,6 +150,8 @@ export function LoadCommitteesModule() {
     LoadManagementCommitteeList();
     LoadManagementMembershipList();
     LoadBulkImportPanelComponent();
+    LoadCommandCenter();
+    LoadCommitteeWorkspace();
 }
 
 /** Alias matching the mj-app.json manifest startupExport convention */

@@ -1,6 +1,6 @@
 import { Arg, Ctx, Mutation, Resolver, Field, ObjectType, InputType } from '@memberjunction/server';
 import { AppContext, ResolverBase } from '@memberjunction/server';
-import { MinutesService } from '@mj-biz-apps/committees-core';
+import { MinutesService } from '@mj-biz-apps/committees-core-entities-server';
 
 @ObjectType()
 export class MinutesSaveDraftResponse {

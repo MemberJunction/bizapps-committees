@@ -31,6 +31,11 @@ export interface VideoMeetingResult {
 /**
  * Credential values expected in the MJ: Credentials record for video providers.
  * Stored encrypted via CredentialEngine.
+ *
+ * Provider-specific keys ride on the index signature (which CredentialEngine's
+ * `getCredential<T extends Record<string, string>>` constraint requires):
+ *   - Teams only: `organizer_user_id` — AAD Object ID or UPN of the meeting
+ *     organizer, required for Graph API app-only online meeting creation.
  */
 export interface VideoProviderCredentials extends Record<string, string> {
     client_id: string;
@@ -41,11 +46,6 @@ export interface VideoProviderCredentials extends Record<string, string> {
      * Google Meet: impersonated user email (domain-wide delegation)
      */
     account_id: string;
-    /**
-     * Teams only: AAD Object ID or UPN of the meeting organizer.
-     * Required for Graph API app-only online meeting creation.
-     */
-    organizer_user_id?: string;
 }
 
 /**

@@ -2,7 +2,7 @@
 # Validates repository.url in all @mj-biz-apps packages
 # Required for npm provenance verification (OIDC trusted publishing)
 
-EXPECTED_URL="https://github.com/MemberJunction/committees"
+EXPECTED_URL="https://github.com/MemberJunction/bizapps-committees"
 ERRORS=0
 
 echo "Checking repository.url in all @mj-biz-apps packages..."

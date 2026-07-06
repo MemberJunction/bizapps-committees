@@ -10,7 +10,7 @@ import {
     ImportPersonRow,
     ImportMembershipRow,
     ImportRowError,
-} from '@mj-biz-apps/committees-core';
+} from '@mj-biz-apps/committees-core-entities-server';
 
 // =============================================================================
 // GraphQL types — outputs

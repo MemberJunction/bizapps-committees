@@ -1,6 +1,6 @@
 import { Arg, Ctx, Mutation, Resolver, Field, ObjectType } from '@memberjunction/server';
 import { AppContext, ResolverBase } from '@memberjunction/server';
-import { VideoProviderService } from '@mj-biz-apps/committees-core';
+import { VideoProviderService } from '@mj-biz-apps/committees-core-entities-server';
 
 @ObjectType()
 export class ProvisionVideoMeetingResponse {

@@ -76,3 +76,27 @@
     border-bottom-left-radius: var(--mj-radius-xl);
     border-bottom-right-radius: var(--mj-radius-xl);
 }
+
+/* Workspace mode — paint the page token so the strip behind the back link
+   and any area below the workspace flips with the theme */
+.ws-wrap {
+    min-height: 100%;
+    background: var(--mj-bg-page);
+}
+
+/* Back link shown above the embedded committee workspace */
+.ws-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 12px 0 0 16px;
+    padding: 6px 12px;
+    border: 1px solid var(--mj-border-subtle);
+    border-radius: 8px;
+    background: var(--mj-bg-surface-card);
+    color: var(--mj-text-secondary, var(--mj-color-neutral-600));
+    font: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+.ws-back:hover { background: var(--mj-bg-surface-hover); }

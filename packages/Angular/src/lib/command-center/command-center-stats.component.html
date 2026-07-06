@@ -1,0 +1,30 @@
+<div class="stats">
+    <div class="stat">
+        <span class="k"><i class="fa-solid fa-users"></i> Committees</span>
+        <span class="v">{{ Summary.TotalCommittees }}</span>
+        <span class="d up">+{{ Summary.NewThisYear }} this year</span>
+    </div>
+    <div class="stat">
+        <span class="k"><i class="fa-solid fa-user"></i> Serving members</span>
+        <span class="v">{{ Summary.ServingMembers }}</span>
+        <span class="d">across {{ Summary.TotalSeats }} seats</span>
+    </div>
+    <div class="stat">
+        <span class="k"><i class="fa-solid fa-timeline"></i> Terms expiring &le; 90 days</span>
+        <span class="v">{{ Summary.TermsExpiringSoon }}</span>
+        @if (Summary.NearestExpiryDate) {
+            <span class="d warn">renewal season &mdash; {{ Summary.NearestExpiryDate | date:'MMM d':'UTC' }}</span>
+        } @else {
+            <span class="d">no terms expiring soon</span>
+        }
+    </div>
+    <div class="stat">
+        <span class="k"><i class="fa-solid fa-square-check"></i> Overdue actions</span>
+        <span class="v">{{ Summary.OverdueActions }}</span>
+        @if (Summary.OverdueActions > 0) {
+            <span class="d down">oldest: {{ Summary.OldestOverdueDays }} days</span>
+        } @else {
+            <span class="d">all current</span>
+        }
+    </div>
+</div>

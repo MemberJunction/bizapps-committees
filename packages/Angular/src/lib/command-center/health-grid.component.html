@@ -1,0 +1,98 @@
+<section class="card" aria-labelledby="hg-title">
+    <div class="card-h">
+        <i class="fa-solid fa-chart-simple"></i>
+        <h2 id="hg-title">Governance health</h2>
+        <span class="badge neutral">sorted: needs attention first</span>
+        <span class="spacer"></span>
+        <span class="small muted signals-note">signals computed from Terms, Attendance, Minutes &amp; Action Items</span>
+    </div>
+
+    @if (Rows.length === 0) {
+        <div class="empty">
+            <span class="eicon"><i class="fa-solid fa-magnifying-glass"></i></span>
+            <b>No committees match</b>
+            <p>Try a different search term.</p>
+        </div>
+    } @else {
+        <div class="tbl-scroll">
+            <table class="tbl health-tbl">
+                <thead>
+                    <tr>
+                        <th class="col-committee">Committee</th>
+                        <th>Health</th>
+                        <th class="num">Size</th>
+                        <th>Quorum</th>
+                        <th>Term</th>
+                        <th>Minutes</th>
+                        <th>Actions</th>
+                        <th>Next</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (row of Rows; track row.CommitteeID) {
+                        @if (row.IsLocked) {
+                            <tr class="locked">
+                                <td>
+                                    <div class="health-name">
+                                        <span class="cicon"><i class="fa-solid fa-lock"></i></span>
+                                        <div>
+                                            <span class="locked-name">{{ row.Name }}</span>
+                                            <small>{{ row.TypeName }} &middot; Private</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td colspan="6">
+                                    <span class="small muted locked-msg">
+                                        <i class="fa-solid fa-lock"></i>
+                                        Private committee &mdash; you don't have access.
+                                    </span>
+                                </td>
+                                <td class="num">
+                                    <!-- TODO: wire access-request flow when available -->
+                                    <button type="button" class="btn sm ghost">Request</button>
+                                </td>
+                            </tr>
+                        } @else {
+                            @let quorum = QuorumBadge(row);
+                            @let term = TermBadge(row);
+                            @let minutes = MinutesBadge(row);
+                            @let actions = ActionsBadge(row);
+                            <tr [class.dim]="row.Health === 'Dissolved'">
+                                <td>
+                                    <div class="health-name">
+                                        <span class="cicon"><i [class]="CommitteeIcon(row)"></i></span>
+                                        <div>
+                                            <button type="button" class="name-link" (click)="RowSelected.emit(row)">
+                                                {{ row.Name }}
+                                            </button>
+                                            <small>{{ row.TypeName }} &middot; {{ row.ChairName ?? 'No chair' }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="hcell">
+                                        <span [class]="'dot ' + HealthDotClass(row.Health)"></span>
+                                        {{ HealthLabel(row.Health) }}
+                                    </span>
+                                </td>
+                                <td class="num">{{ row.MemberCount }}</td>
+                                <td><span [class]="'badge ' + quorum.Tone">{{ quorum.Label }}</span></td>
+                                <td><span [class]="'badge ' + term.Tone">{{ term.Label }}</span></td>
+                                <td><span [class]="'badge ' + minutes.Tone">{{ minutes.Label }}</span></td>
+                                <td><span [class]="'badge ' + actions.Tone">{{ actions.Label }}</span></td>
+                                <td class="small muted next-cell">
+                                    @if (row.NextMeetingAt) {
+                                        {{ row.NextMeetingAt | date:'MMM d' }} &middot; {{ row.NextMeetingAt | date:'h a' }}
+                                    } @else {
+                                        &mdash;
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="card-f">Showing {{ Rows.length }} of {{ TotalCount }} committees</div>
+    }
+</section>

@@ -99,10 +99,10 @@
                                 @if (member['StartDate']) {
                                     <div class="member-dates">
                                         <i class="fa-solid fa-clock"></i>
-                                        {{ $any(member['StartDate']) | date:'MMM d, yyyy' }}
+                                        {{ $any(member['StartDate']) | date:'MMM d, yyyy':'UTC' }}
                                         &ndash;
                                         @if (member['EndDate']) {
-                                            {{ $any(member['EndDate']) | date:'MMM d, yyyy' }}
+                                            {{ $any(member['EndDate']) | date:'MMM d, yyyy':'UTC' }}
                                         } @else {
                                             Ongoing
                                         }

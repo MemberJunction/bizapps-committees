@@ -10,21 +10,31 @@ import { fileURLToPath } from 'node:url';
 import '@mj-biz-apps/committees-entities';
 import '@mj-biz-apps/committees-actions';
 
-// Import core services to trigger any class registrations
+// Import browser-safe core services to trigger any class registrations
 import '@mj-biz-apps/committees-core';
 
-// Video provider drivers — named exports so the class-registration manifest
-// generator can import them; importing also fires their @RegisterClass decorators
-export { ZoomVideoProvider } from './drivers/ZoomVideoProvider.js';
-export { TeamsVideoProvider } from './drivers/TeamsVideoProvider.js';
-export { GoogleMeetVideoProvider } from './drivers/GoogleMeetVideoProvider.js';
+// Import server-only business logic (AI services, video providers, upload-proxy
+// middleware, notification handlers). Side-effect import fires the video-provider
+// @RegisterClass decorators and the middleware registration at startup.
+import '@mj-biz-apps/committees-core-entities-server';
+import { InitCommitteeNotificationHandler } from '@mj-biz-apps/committees-core-entities-server';
 
-// Express middleware — self-registers via @RegisterClass and contributes
-// the /api/upload-proxy routes through ConfigureExpressApp
-export { UploadProxyMiddleware } from './middleware/UploadProxyMiddleware.js';
-
-// Event handlers
-import { InitCommitteeNotificationHandler } from './event-handlers/CommitteeNotificationHandler.js';
+// Re-export the video contract, drivers, and middleware so the class-registration
+// manifest generator can import them by name from the server package.
+export {
+    VideoProviderBase,
+    VideoProviderService,
+    ZoomVideoProvider,
+    TeamsVideoProvider,
+    GoogleMeetVideoProvider,
+    UploadProxyMiddleware,
+} from '@mj-biz-apps/committees-core-entities-server';
+export type {
+    VideoProviderCredentials,
+    VideoMeetingInput,
+    VideoMeetingResult,
+    MeetingAttendee,
+} from '@mj-biz-apps/committees-core-entities-server';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 

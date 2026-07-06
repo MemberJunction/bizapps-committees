@@ -41,7 +41,7 @@ to manage.
 
 One-time setup on npmjs.com (per package, by an `@mj-biz-apps` org owner): under
 each package's **Settings → Trusted Publisher**, add this repo
-(`MemberJunction/committees`) and the `publish.yml` workflow. Trusted
+(`MemberJunction/bizapps-committees`) and the `publish.yml` workflow. Trusted
 publishing can only be configured *after* the package exists, so it happens
 together with the placeholder publish below.
 
@@ -65,7 +65,7 @@ After publishing each placeholder, configure its **Trusted Publisher** on npm
 
 - [ ] Create `next` branch on the remote (`git push origin main:next`) and set it as the default branch
 - [ ] Publish `0.0.0` placeholders for all five packages (manually, with a token)
-- [ ] Configure npm Trusted Publisher for each package → `MemberJunction/committees` / `publish.yml`
+- [ ] Configure npm Trusted Publisher for each package → `MemberJunction/bizapps-committees` / `publish.yml`
 - [ ] Land a changeset on `next`, merge `next` → `main`, confirm `publish.yml` publishes + tags
 
 ## Notes / divergences from bizapps-tasks

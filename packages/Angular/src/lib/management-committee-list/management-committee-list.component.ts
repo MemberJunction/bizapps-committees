@@ -1,4 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
@@ -30,13 +31,26 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
     /** Expanded committee for inline membership panel */
     ExpandedCommitteeID: string | null = null;
 
+    /** When set (via ?committeeId= from the Command Center), the workspace replaces the list. */
+    WorkspaceCommitteeID: string | null = null;
+
     private cdr = inject(ChangeDetectorRef);
+    private route = inject(ActivatedRoute);
 
     async ngOnInit(): Promise<void> {
         this.NotifyLoadStarted();
+        this.route.queryParamMap.subscribe(params => {
+            this.WorkspaceCommitteeID = params.get('committeeId');
+            this.cdr.markForCheck();
+        });
         await this.LoadCommittees();
         this.IsLoading = false;
         this.NotifyLoadComplete();
+        this.cdr.markForCheck();
+    }
+
+    CloseWorkspace(): void {
+        this.WorkspaceCommitteeID = null;
         this.cdr.markForCheck();
     }
 

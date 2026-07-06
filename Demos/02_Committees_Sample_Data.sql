@@ -392,61 +392,61 @@ DECLARE @MemConf_Emily    UNIQUEIDENTIFIER = NEWID(),
         @MemConf_Hannah   UNIQUEIDENTIFIER = NEWID();
 
 INSERT INTO __mj_BizAppsCommittees.Membership
-    (ID, CommitteeID, PersonID, RoleID, TermID, StartDate, EndDate, Status, EndReason, Notes)
+    (ID, PersonID, RoleID, TermID, StartDate, EndDate, Status, EndReason, Notes)
 VALUES
     -- ---- Board 2025-2026 (Active) ----
-    (@MemBrd2526_Thomas,    @CommBoard, @Thomas,      @RoleChair,     @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, 'Continuing as Chair for second consecutive term'),
-    (@MemBrd2526_Patricia,  @CommBoard, @Patricia,    @RoleViceChair, @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, NULL),
-    (@MemBrd2526_Lisa,      @CommBoard, @Lisa,        @RoleSecretary, @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, NULL),
-    (@MemBrd2526_Sarah,     @CommBoard, @Sarah,       @RoleMember,    @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, 'Also serves on Finance & Audit Committee'),
-    (@MemBrd2526_James,     @CommBoard, @James,       @RoleMember,    @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, NULL),
-    (@MemBrd2526_Catherine, @CommBoard, @Catherine,   @RoleMember,    @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, 'Also chairs Membership & Outreach Committee'),
-    (@MemBrd2526_Chris,     @CommBoard, @Christopher, @RoleMember,    @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, NULL),
-    (@MemBrd2526_Elena,     @CommBoard, @Elena,       @RoleMember,    @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, 'Research institution representative'),
-    (@MemBrd2526_Amanda,    @CommBoard, @Amanda,      @RoleAdvisor,   @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, 'Non-voting advisory role; former board chair'),
+    (@MemBrd2526_Thomas,    @Thomas,      @RoleChair,     @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, 'Continuing as Chair for second consecutive term'),
+    (@MemBrd2526_Patricia,  @Patricia,    @RoleViceChair, @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, NULL),
+    (@MemBrd2526_Lisa,      @Lisa,        @RoleSecretary, @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, NULL),
+    (@MemBrd2526_Sarah,     @Sarah,       @RoleMember,    @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, 'Also serves on Finance & Audit Committee'),
+    (@MemBrd2526_James,     @James,       @RoleMember,    @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, NULL),
+    (@MemBrd2526_Catherine, @Catherine,   @RoleMember,    @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, 'Also chairs Membership & Outreach Committee'),
+    (@MemBrd2526_Chris,     @Christopher, @RoleMember,    @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, NULL),
+    (@MemBrd2526_Elena,     @Elena,       @RoleMember,    @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, 'Research institution representative'),
+    (@MemBrd2526_Amanda,    @Amanda,      @RoleAdvisor,   @TermBoard2526, '2025-07-01', NULL, 'Active', NULL, 'Non-voting advisory role; former board chair'),
 
     -- ---- Board 2024-2025 (Ended) ----
-    (@MemBrd2425_Thomas,    @CommBoard, @Thomas,   @RoleChair,     @TermBoard2425, '2024-07-01', '2025-06-30', 'Ended', 'Term ended', NULL),
-    (@MemBrd2425_Patricia,  @CommBoard, @Patricia, @RoleViceChair, @TermBoard2425, '2024-07-01', '2025-06-30', 'Ended', 'Term ended', NULL),
-    (@MemBrd2425_Lisa,      @CommBoard, @Lisa,     @RoleSecretary, @TermBoard2425, '2024-07-01', '2025-06-30', 'Ended', 'Term ended', NULL),
-    (@MemBrd2425_Sarah,     @CommBoard, @Sarah,    @RoleMember,    @TermBoard2425, '2024-07-01', '2025-06-30', 'Ended', 'Term ended', NULL),
+    (@MemBrd2425_Thomas,    @Thomas,   @RoleChair,     @TermBoard2425, '2024-07-01', '2025-06-30', 'Ended', 'Term ended', NULL),
+    (@MemBrd2425_Patricia,  @Patricia, @RoleViceChair, @TermBoard2425, '2024-07-01', '2025-06-30', 'Ended', 'Term ended', NULL),
+    (@MemBrd2425_Lisa,      @Lisa,     @RoleSecretary, @TermBoard2425, '2024-07-01', '2025-06-30', 'Ended', 'Term ended', NULL),
+    (@MemBrd2425_Sarah,     @Sarah,    @RoleMember,    @TermBoard2425, '2024-07-01', '2025-06-30', 'Ended', 'Term ended', NULL),
 
     -- ---- Finance & Audit 2025-2026 (Active) ----
-    (@MemFin_Jennifer, @CommFinance, @Jennifer, @RoleChair,     @TermFin2526, '2025-07-01', NULL, 'Active', NULL, NULL),
-    (@MemFin_Marcus,   @CommFinance, @Marcus,   @RoleViceChair, @TermFin2526, '2025-07-01', NULL, 'Active', NULL, NULL),
-    (@MemFin_Sarah,    @CommFinance, @Sarah,    @RoleMember,    @TermFin2526, '2025-07-01', NULL, 'Active', NULL, 'Cross-committee member; also on Board'),
-    (@MemFin_Patricia, @CommFinance, @Patricia, @RoleMember,    @TermFin2526, '2025-07-01', NULL, 'Active', NULL, NULL),
-    (@MemFin_Amanda,   @CommFinance, @Amanda,   @RoleMember,    @TermFin2526, '2025-07-01', NULL, 'Active', NULL, NULL),
-    (@MemFin_Andrew,   @CommFinance, @Andrew,   @RoleMember,    @TermFin2526, '2025-07-01', NULL, 'Active', NULL, NULL),
+    (@MemFin_Jennifer, @Jennifer, @RoleChair,     @TermFin2526, '2025-07-01', NULL, 'Active', NULL, NULL),
+    (@MemFin_Marcus,   @Marcus,   @RoleViceChair, @TermFin2526, '2025-07-01', NULL, 'Active', NULL, NULL),
+    (@MemFin_Sarah,    @Sarah,    @RoleMember,    @TermFin2526, '2025-07-01', NULL, 'Active', NULL, 'Cross-committee member; also on Board'),
+    (@MemFin_Patricia, @Patricia, @RoleMember,    @TermFin2526, '2025-07-01', NULL, 'Active', NULL, NULL),
+    (@MemFin_Amanda,   @Amanda,   @RoleMember,    @TermFin2526, '2025-07-01', NULL, 'Active', NULL, NULL),
+    (@MemFin_Andrew,   @Andrew,   @RoleMember,    @TermFin2526, '2025-07-01', NULL, 'Active', NULL, NULL),
 
     -- ---- Membership & Outreach 2025-2026 (Active) ----
-    (@MemOut_Catherine, @CommMembership, @Catherine, @RoleChair,     @TermMem2526, '2025-07-01', NULL, 'Active', NULL, NULL),
-    (@MemOut_Emily,     @CommMembership, @Emily,     @RoleViceChair, @TermMem2526, '2025-07-01', NULL, 'Active', NULL, NULL),
-    (@MemOut_Olivia,    @CommMembership, @Olivia,    @RoleMember,    @TermMem2526, '2025-07-01', NULL, 'Active', NULL, NULL),
-    (@MemOut_Benjamin,  @CommMembership, @Benjamin,  @RoleMember,    @TermMem2526, '2025-07-01', NULL, 'Active', NULL, NULL),
-    (@MemOut_Rachel,    @CommMembership, @Rachel,    @RoleMember,    @TermMem2526, '2025-07-01', NULL, 'Active', NULL, NULL),
+    (@MemOut_Catherine, @Catherine, @RoleChair,     @TermMem2526, '2025-07-01', NULL, 'Active', NULL, NULL),
+    (@MemOut_Emily,     @Emily,     @RoleViceChair, @TermMem2526, '2025-07-01', NULL, 'Active', NULL, NULL),
+    (@MemOut_Olivia,    @Olivia,    @RoleMember,    @TermMem2526, '2025-07-01', NULL, 'Active', NULL, NULL),
+    (@MemOut_Benjamin,  @Benjamin,  @RoleMember,    @TermMem2526, '2025-07-01', NULL, 'Active', NULL, NULL),
+    (@MemOut_Rachel,    @Rachel,    @RoleMember,    @TermMem2526, '2025-07-01', NULL, 'Active', NULL, NULL),
 
     -- ---- Technology Standards 2025 H1 (Active) ----
-    (@MemTech_David,   @CommTechStd, @David,       @RoleChair,     @TermTech25H1, '2025-01-01', NULL, 'Active', NULL, NULL),
-    (@MemTech_Robert,  @CommTechStd, @Robert,      @RoleViceChair, @TermTech25H1, '2025-01-01', NULL, 'Active', NULL, NULL),
-    (@MemTech_Sophia,  @CommTechStd, @Sophia,      @RoleSecretary, @TermTech25H1, '2025-01-01', NULL, 'Active', NULL, NULL),
-    (@MemTech_William, @CommTechStd, @William,     @RoleMember,    @TermTech25H1, '2025-01-01', NULL, 'Active', NULL, NULL),
-    (@MemTech_Nathan,  @CommTechStd, @Nathan,      @RoleMember,    @TermTech25H1, '2025-01-01', NULL, 'Active', NULL, NULL),
-    (@MemTech_Chris,   @CommTechStd, @Christopher, @RoleAdvisor,   @TermTech25H1, '2025-01-01', NULL, 'Active', NULL, 'Board liaison to Technology Standards'),
-    (@MemTech_Hannah,  @CommTechStd, @Hannah,      @RoleMember,    @TermTech25H1, '2025-01-01', NULL, 'Active', NULL, NULL),
+    (@MemTech_David,   @David,       @RoleChair,     @TermTech25H1, '2025-01-01', NULL, 'Active', NULL, NULL),
+    (@MemTech_Robert,  @Robert,      @RoleViceChair, @TermTech25H1, '2025-01-01', NULL, 'Active', NULL, NULL),
+    (@MemTech_Sophia,  @Sophia,      @RoleSecretary, @TermTech25H1, '2025-01-01', NULL, 'Active', NULL, NULL),
+    (@MemTech_William, @William,     @RoleMember,    @TermTech25H1, '2025-01-01', NULL, 'Active', NULL, NULL),
+    (@MemTech_Nathan,  @Nathan,      @RoleMember,    @TermTech25H1, '2025-01-01', NULL, 'Active', NULL, NULL),
+    (@MemTech_Chris,   @Christopher, @RoleAdvisor,   @TermTech25H1, '2025-01-01', NULL, 'Active', NULL, 'Board liaison to Technology Standards'),
+    (@MemTech_Hannah,  @Hannah,      @RoleMember,    @TermTech25H1, '2025-01-01', NULL, 'Active', NULL, NULL),
 
     -- ---- Data Interoperability WG 2025 Q1-Q2 (Active) ----
-    (@MemData_Robert,  @CommDataInterop, @Robert,  @RoleChair,   @TermData25Q12, '2025-01-01', NULL, 'Active', NULL, NULL),
-    (@MemData_Sophia,  @CommDataInterop, @Sophia,  @RoleMember,  @TermData25Q12, '2025-01-01', NULL, 'Active', NULL, NULL),
-    (@MemData_William, @CommDataInterop, @William, @RoleMember,  @TermData25Q12, '2025-01-01', NULL, 'Active', NULL, NULL),
-    (@MemData_Nathan,  @CommDataInterop, @Nathan,  @RoleMember,  @TermData25Q12, '2025-01-01', NULL, 'Active', NULL, NULL),
-    (@MemData_Daniel,  @CommDataInterop, @Daniel,  @RoleLiaison, @TermData25Q12, '2025-01-01', NULL, 'Active', NULL, 'Industry liaison from partner organization'),
+    (@MemData_Robert,  @Robert,  @RoleChair,   @TermData25Q12, '2025-01-01', NULL, 'Active', NULL, NULL),
+    (@MemData_Sophia,  @Sophia,  @RoleMember,  @TermData25Q12, '2025-01-01', NULL, 'Active', NULL, NULL),
+    (@MemData_William, @William, @RoleMember,  @TermData25Q12, '2025-01-01', NULL, 'Active', NULL, NULL),
+    (@MemData_Nathan,  @Nathan,  @RoleMember,  @TermData25Q12, '2025-01-01', NULL, 'Active', NULL, NULL),
+    (@MemData_Daniel,  @Daniel,  @RoleLiaison, @TermData25Q12, '2025-01-01', NULL, 'Active', NULL, 'Industry liaison from partner organization'),
 
     -- ---- Conference 2025 Planning (Ended) ----
-    (@MemConf_Emily,    @CommConference, @Emily,    @RoleChair,  @TermConf2025, '2024-06-01', '2025-12-31', 'Ended', 'Committee dissolved', NULL),
-    (@MemConf_Olivia,   @CommConference, @Olivia,   @RoleMember, @TermConf2025, '2024-06-01', '2025-12-31', 'Ended', 'Committee dissolved', NULL),
-    (@MemConf_Benjamin, @CommConference, @Benjamin, @RoleMember, @TermConf2025, '2024-06-01', '2025-12-31', 'Ended', 'Committee dissolved', NULL),
-    (@MemConf_Hannah,   @CommConference, @Hannah,   @RoleMember, @TermConf2025, '2024-06-01', '2025-12-31', 'Ended', 'Committee dissolved', NULL);
+    (@MemConf_Emily,    @Emily,    @RoleChair,  @TermConf2025, '2024-06-01', '2025-12-31', 'Ended', 'Committee dissolved', NULL),
+    (@MemConf_Olivia,   @Olivia,   @RoleMember, @TermConf2025, '2024-06-01', '2025-12-31', 'Ended', 'Committee dissolved', NULL),
+    (@MemConf_Benjamin, @Benjamin, @RoleMember, @TermConf2025, '2024-06-01', '2025-12-31', 'Ended', 'Committee dissolved', NULL),
+    (@MemConf_Hannah,   @Hannah,   @RoleMember, @TermConf2025, '2024-06-01', '2025-12-31', 'Ended', 'Committee dissolved', NULL);
 
 PRINT 'Inserted Memberships.';
 
@@ -908,7 +908,7 @@ DECLARE @ArtBrdQ4Minutes   UNIQUEIDENTIFIER = NEWID(),
         @ArtMemGrowth      UNIQUEIDENTIFIER = NEWID();
 
 INSERT INTO __mj_BizAppsCommittees.Artifact
-    (ID, CommitteeID, MeetingID, AgendaItemID, ActionItemID, Title, Description,
+    (ID, CommitteeID, MeetingID, AgendaItemID, TaskID, Title, Description,
      ArtifactTypeID, Provider, ExternalID, URL, MimeType, FileSize, UploadedByPersonID)
 VALUES
     -- 1. Board Q4 2025 Meeting Minutes

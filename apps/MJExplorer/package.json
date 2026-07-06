@@ -52,6 +52,7 @@
     "@memberjunction/ng-tabstrip": "^5.44.0",
     "@memberjunction/ng-timeline": "^5.44.0",
     "@okta/okta-auth-js": "^7.14.1",
+    "@workos-inc/authkit-js": "^0.20.1",
     "@dagrejs/dagre": "^1.1.8",
     "aws-amplify": "^6.0.0",
     "ag-grid-angular": "^35.0.1",
@@ -90,6 +91,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/MemberJunction/committees"
+    "url": "https://github.com/MemberJunction/bizapps-committees"
   }
 }

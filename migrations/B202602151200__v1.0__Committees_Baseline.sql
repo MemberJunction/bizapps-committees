@@ -25314,8 +25314,12 @@ SET Name = 'Committees',
     Path = 'mjcommittees',
     Description = 'Member and officer participation app for committees, meetings, voting, and task tracking',
     DefaultNavItems = '[{"Label":"Dashboard","Icon":"fa-solid fa-gauge-high","ResourceType":"Custom","DriverClass":"CommitteeDashboardComponent","isDefault":true},{"Label":"Committees","Icon":"fa-solid fa-users-rectangle","ResourceType":"Custom","DriverClass":"CommitteeListComponent","isDefault":false},{"Label":"Members","Icon":"fa-solid fa-user-group","ResourceType":"Custom","DriverClass":"MembershipListComponent","isDefault":false},{"Label":"Meetings","Icon":"fa-solid fa-calendar-days","ResourceType":"Custom","DriverClass":"MeetingListComponent","isDefault":false},{"Label":"Action Items","Icon":"fa-solid fa-list-check","ResourceType":"Custom","DriverClass":"ActionItemTrackerComponent","isDefault":false},{"Label":"Documents","Icon":"fa-solid fa-file-lines","ResourceType":"Custom","DriverClass":"DocumentBrowserComponent","isDefault":false}]'
-WHERE Name IN ('${flyway:defaultSchema}', 'Committees')
-  AND Path IN ('mjbizappscommittees', 'mjcommittees');
+-- Match the CodeGen-created app by its deterministic auto-derived path
+-- (mjbizappscommittees) OR the already-normalized path (mjcommittees, on re-run).
+-- The earlier version also ANDed on Name IN ('${flyway:defaultSchema}', ...); that
+-- made the UPDATE match zero rows, leaving the raw schema-named app in place. The
+-- path is stable and unambiguous, so match on it alone.
+WHERE Path IN ('mjbizappscommittees', 'mjcommittees');
 GO
 
 ---------------------------------------------------------------------------
@@ -25332,7 +25336,7 @@ IF NOT EXISTS (SELECT 1 FROM ${mjSchema}.Application WHERE Name = 'Committee Man
         'fa-solid fa-clipboard-list',
         '#e64a19',
         'mjcommitteemgmt',
-        '[{"Label":"Dashboard","Icon":"fa-solid fa-gauge-high","ResourceType":"Custom","DriverClass":"ManagementDashboardComponent","isDefault":true},{"Label":"Committees","Icon":"fa-solid fa-users-rectangle","ResourceType":"Custom","DriverClass":"ManagementCommitteeListComponent","isDefault":false},{"Label":"Members","Icon":"fa-solid fa-user-group","ResourceType":"Custom","DriverClass":"ManagementMembershipListComponent","isDefault":false},{"Label":"Meetings","Icon":"fa-solid fa-calendar-days","ResourceType":"Custom","DriverClass":"MeetingListComponent","isDefault":false},{"Label":"Action Items","Icon":"fa-solid fa-list-check","ResourceType":"Custom","DriverClass":"ActionItemTrackerComponent","isDefault":false},{"Label":"Documents","Icon":"fa-solid fa-file-lines","ResourceType":"Custom","DriverClass":"DocumentBrowserComponent","isDefault":false}]'
+        '[{"Label":"Command Center","Icon":"fa-solid fa-chart-simple","ResourceType":"Custom","DriverClass":"CommandCenterComponent","isDefault":true},{"Label":"Committees","Icon":"fa-solid fa-users-rectangle","ResourceType":"Custom","DriverClass":"ManagementCommitteeListComponent","isDefault":false},{"Label":"Members","Icon":"fa-solid fa-user-group","ResourceType":"Custom","DriverClass":"ManagementMembershipListComponent","isDefault":false},{"Label":"Meetings","Icon":"fa-solid fa-calendar-days","ResourceType":"Custom","DriverClass":"MeetingListComponent","isDefault":false},{"Label":"Action Items","Icon":"fa-solid fa-list-check","ResourceType":"Custom","DriverClass":"ActionItemTrackerComponent","isDefault":false},{"Label":"Documents","Icon":"fa-solid fa-file-lines","ResourceType":"Custom","DriverClass":"DocumentBrowserComponent","isDefault":false}]'
     );
 GO
 

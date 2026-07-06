@@ -34,3 +34,5 @@ export * from './lib/management-dashboard/management-dashboard.component';
 export * from './lib/management-committee-list/management-committee-list.component';
 export * from './lib/management-membership-list/management-membership-list.component';
 export * from './lib/bulk-import/bulk-import-panel.component';
+export * from './lib/command-center/command-center.component';
+export * from './lib/committee-workspace/committee-workspace.component';

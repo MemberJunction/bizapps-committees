@@ -1,0 +1,122 @@
+<div class="cc-page">
+    <!-- Page header -->
+    <header class="page-header">
+        <div class="ph-row">
+            <div class="ph-icon"><i class="fa-solid fa-chart-simple"></i></div>
+            <div class="ph-titles">
+                <h1>Command Center</h1>
+                <div class="sub">Governance portfolio &middot; {{ Today | date:'EEEE, MMMM d, y' }}</div>
+                @if (!IsLoading && Portfolio) {
+                    <div class="ph-meta">
+                        <span class="badge warning">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            {{ Portfolio.Summary.NeedsAttentionCount }} committees need attention
+                        </span>
+                        <span class="badge neutral">
+                            {{ Portfolio.Summary.ActiveCommittees }} of {{ Portfolio.Summary.TotalCommittees }} active
+                        </span>
+                        <span class="badge info">
+                            <i class="fa-regular fa-calendar"></i>
+                            {{ Portfolio.Summary.MeetingsThisWeek }} meetings this week
+                        </span>
+                    </div>
+                }
+            </div>
+            <div class="ph-actions">
+                <button type="button" class="btn ghost" (click)="Refresh()">
+                    <i class="fa-solid fa-rotate"></i> Refresh
+                </button>
+                <button type="button" class="btn primary" (click)="NavigateToTab('Committees')">
+                    <i class="fa-solid fa-plus"></i> New Committee
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Toolbar: search → view toggle -->
+    <div class="page-toolbar">
+        <div class="search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input
+                type="search"
+                placeholder="Search committees, people, meetings…"
+                aria-label="Search committees"
+                [value]="SearchText"
+                (input)="OnSearchInput($event)">
+        </div>
+        <div class="view-toggle" role="group" aria-label="View">
+            <button type="button" class="on" aria-pressed="true" title="List view">
+                <i class="fa-solid fa-list"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="page-body">
+        @if (IsLoading) {
+            <!-- Skeleton: shimmer placeholders while the portfolio loads -->
+            <div class="cc-skeleton" aria-busy="true" aria-label="Loading governance portfolio">
+                <div class="sk-stats">
+                    @for (tile of SkeletonTiles; track tile) {
+                        <div class="sk-tile">
+                            <span class="skel sk-line sk-w40"></span>
+                            <span class="skel sk-num"></span>
+                            <span class="skel sk-line sk-w60"></span>
+                        </div>
+                    }
+                </div>
+                <div class="cc-grid">
+                    <div class="sk-card">
+                        <div class="skel sk-line sk-w30"></div>
+                        @for (row of SkeletonRows; track row) {
+                            <div class="skel sk-row"></div>
+                        }
+                    </div>
+                    <div class="right-col">
+                        <div class="sk-card">
+                            <div class="skel sk-line sk-w40"></div>
+                            @for (item of SkeletonRailItems; track item) {
+                                <div class="skel sk-row"></div>
+                            }
+                        </div>
+                        <div class="sk-card">
+                            <div class="skel sk-line sk-w40"></div>
+                            @for (item of SkeletonRailItems; track item) {
+                                <div class="skel sk-row"></div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        } @else if (!HasCommittees) {
+            <!-- Empty state: no committees exist yet -->
+            <div class="card cc-empty-card">
+                <div class="empty">
+                    <span class="eicon"><i class="fa-solid fa-users"></i></span>
+                    <b>No committees yet</b>
+                    <p>Create your first committee to start tracking governance health, meetings, and action items.</p>
+                    <button type="button" class="btn primary" (click)="NavigateToTab('Committees')">
+                        <i class="fa-solid fa-plus"></i> New Committee
+                    </button>
+                </div>
+            </div>
+        } @else if (Portfolio) {
+            <command-center-stats [Summary]="Portfolio.Summary"></command-center-stats>
+
+            <div class="cc-grid">
+                <health-grid
+                    [Rows]="FilteredRows"
+                    [TotalCount]="Portfolio.Rows.length"
+                    (RowSelected)="OnRowSelected($event)">
+                </health-grid>
+
+                <div class="right-col">
+                    <week-rail [Meetings]="Portfolio.ThisWeek"></week-rail>
+                    <attention-rail
+                        [Items]="Portfolio.Attention"
+                        (ItemSelected)="OnAttentionSelected($event)">
+                    </attention-rail>
+                </div>
+            </div>
+        }
+    </div>
+</div>

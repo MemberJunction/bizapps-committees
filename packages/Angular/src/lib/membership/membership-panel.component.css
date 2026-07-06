@@ -56,10 +56,10 @@
     align-items: center;
     gap: var(--mj-space-3);
     padding: var(--mj-space-3) var(--mj-space-4);
-    background: var(--mj-color-success-50);
-    border: 1px solid var(--mj-color-success-200);
+    background: var(--mj-status-success-bg);
+    border: 1px solid var(--mj-status-success-border);
     border-radius: 10px;
-    color: #065f46;
+    color: var(--mj-status-success-text);
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-semibold);
     margin-bottom: var(--mj-space-5);
@@ -85,10 +85,10 @@
     padding: 9px 36px 9px 14px;
     border: none;
     border-radius: 10px;
-    background: var(--mj-color-neutral-0);
+    background: var(--mj-bg-surface);
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
     cursor: pointer;
     outline: none;
     appearance: none;
@@ -108,10 +108,10 @@
     padding: 7px var(--mj-space-3);
     border: none;
     border-radius: var(--mj-radius-md);
-    background: var(--mj-color-neutral-100);
+    background: var(--mj-bg-surface-sunken);
     font-size: var(--mj-text-xs);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-500);
+    color: var(--mj-text-muted);
     cursor: pointer;
     transition: all 0.15s ease;
     display: inline-flex;
@@ -121,8 +121,8 @@
 }
 
 .btn-term-action:hover {
-    background: var(--mj-color-neutral-200);
-    color: var(--mj-color-neutral-900);
+    background: var(--mj-bg-surface-active);
+    color: var(--mj-text-primary);
 }
 
 .empty-action { margin-top: var(--mj-space-5); }
@@ -130,7 +130,7 @@
 .member-count {
     font-size: 13px;
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     margin-left: auto;
 }
 
@@ -142,7 +142,7 @@
 }
 
 .member-card {
-    background: var(--mj-color-neutral-0);
+    background: var(--mj-bg-surface);
     border-radius: 14px;
     padding: var(--mj-space-4) var(--mj-space-5);
     display: flex;
@@ -167,9 +167,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--mj-color-indigo-50);
+    background: color-mix(in srgb, var(--mj-color-indigo-500) 12%, transparent);
     border-radius: 10px;
-    color: var(--mj-color-indigo-500);
+    color: var(--mj-color-indigo-400);
     font-size: 15px;
 }
 
@@ -179,7 +179,7 @@
 .member-name {
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
     margin: 0 0 3px 0;
     white-space: nowrap;
     overflow: hidden;
@@ -198,8 +198,8 @@
     font-weight: var(--mj-font-bold);
     padding: 2px 7px;
     border-radius: var(--mj-radius-sm);
-    background: var(--mj-color-indigo-50);
-    color: var(--mj-color-indigo-500);
+    background: color-mix(in srgb, var(--mj-color-indigo-500) 12%, transparent);
+    color: var(--mj-color-indigo-400);
     text-transform: uppercase;
     letter-spacing: 0.4px;
 }
@@ -207,7 +207,7 @@
 .term-name {
     font-size: var(--mj-text-xs);
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     display: flex;
     align-items: center;
     gap: var(--mj-space-1);
@@ -218,7 +218,7 @@
 .member-dates {
     font-size: 11px;
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-neutral-300);
+    color: var(--mj-text-muted);
     margin-top: 2px;
     display: flex;
     align-items: center;
@@ -242,12 +242,12 @@
     gap: 5px;
     font-size: var(--mj-text-xs);
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-neutral-600);
+    color: var(--mj-text-secondary);
 }
 
 .contact-chip i {
     font-size: 10px;
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
 }
 
 /* ─── Member Actions ─── */
@@ -265,8 +265,8 @@
     gap: 5px;
     border: none;
     border-radius: 7px;
-    background: var(--mj-color-neutral-100);
-    color: var(--mj-color-neutral-500);
+    background: var(--mj-bg-surface-sunken);
+    color: var(--mj-text-muted);
     font-size: var(--mj-text-xs);
     font-weight: var(--mj-font-semibold);
     font-family: inherit;
@@ -278,8 +278,8 @@
 }
 
 .btn-icon-sm:hover {
-    background: var(--mj-color-neutral-200);
-    color: var(--mj-color-neutral-900);
+    background: var(--mj-bg-surface-active);
+    color: var(--mj-text-primary);
 }
 
 /* ─── Status Badges ─── */
@@ -291,10 +291,10 @@
     flex-shrink: 0;
 }
 
-.status-active { background: var(--mj-color-success-100); color: #065f46; }
-.status-pending { background: var(--mj-color-indigo-100); color: #3730a3; }
-.status-suspended { background: var(--mj-color-warning-100); color: var(--mj-color-warning-800); }
-.status-ended { background: var(--mj-color-neutral-100); color: var(--mj-color-neutral-500); }
+.status-active { background: var(--mj-status-success-bg); color: var(--mj-status-success-text); }
+.status-pending { background: var(--mj-status-info-bg); color: var(--mj-status-info-text); }
+.status-suspended { background: var(--mj-status-warning-bg); color: var(--mj-status-warning-text); }
+.status-ended { background: var(--mj-bg-surface-sunken); color: var(--mj-text-muted); }
 
 /* ─── Empty State ─── */
 .empty-state {
@@ -304,7 +304,7 @@
 
 .empty-state i {
     font-size: 36px;
-    color: var(--mj-color-neutral-200);
+    color: var(--mj-text-disabled);
     display: block;
     margin-bottom: var(--mj-space-3);
 }
@@ -312,7 +312,7 @@
 .empty-state p {
     font-size: 15px;
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     margin: 0;
 }
 

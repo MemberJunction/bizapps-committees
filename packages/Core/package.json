@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "build": "tsc && tsc-alias -f",
-    "test": "echo \"No tests configured yet\""
+    "test": "vitest run"
   },
   "author": "MemberJunction.com",
   "license": "ISC",
@@ -32,8 +32,6 @@
     "typescript": "^5.9.3"
   },
   "peerDependencies": {
-    "@memberjunction/ai": "^5.44.0",
-    "@memberjunction/aiengine": "^5.44.0",
     "@memberjunction/core": "^5.44.0",
     "@memberjunction/global": "^5.44.0"
   },
@@ -43,6 +41,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/MemberJunction/committees"
+    "url": "https://github.com/MemberJunction/bizapps-committees"
   }
 }

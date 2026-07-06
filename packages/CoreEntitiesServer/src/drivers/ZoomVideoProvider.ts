@@ -1,5 +1,5 @@
 import { RegisterClass } from '@memberjunction/global';
-import { VideoProviderBase, VideoMeetingInput, VideoMeetingResult, VideoProviderCredentials, MeetingAttendee } from '@mj-biz-apps/committees-core';
+import { VideoProviderBase, VideoMeetingInput, VideoMeetingResult, VideoProviderCredentials, MeetingAttendee } from './VideoProviderBase.js';
 
 interface ZoomTokenResponse {
     access_token: string;

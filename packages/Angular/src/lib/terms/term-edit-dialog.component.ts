@@ -1,10 +1,10 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
-import { mjCommitteesTermEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsCommitteesTermEntity } from '@mj-biz-apps/committees-entities';
 
 export interface TermDialogResult {
     Saved: boolean;
-    Term: mjCommitteesTermEntity | null;
+    Term: mjBizAppsCommitteesTermEntity | null;
 }
 
 @Component({
@@ -19,7 +19,7 @@ export class TermEditDialogComponent implements OnInit {
     @Input() CommitteeID: string | null = null;
     @Output() DialogClosed = new EventEmitter<TermDialogResult>();
 
-    Term: mjCommitteesTermEntity | null = null;
+    Term: mjBizAppsCommitteesTermEntity | null = null;
     IsLoading = true;
     IsSaving = false;
     ErrorMessage = '';
@@ -147,7 +147,7 @@ export class TermEditDialogComponent implements OnInit {
     private async LoadOrCreateTerm(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.Term = await md.GetEntityObject<mjCommitteesTermEntity>('Committees: Terms');
+            this.Term = await md.GetEntityObject<mjBizAppsCommitteesTermEntity>('Committees: Terms');
             this.Term.Status = 'Upcoming';
             if (this.CommitteeID) {
                 this.Term.CommitteeID = this.CommitteeID;
@@ -158,7 +158,7 @@ export class TermEditDialogComponent implements OnInit {
             this.StartDateLocal = `${year}-07-01`;
             this.EndDateLocal = `${year + 1}-06-30`;
         } else {
-            this.Term = await md.GetEntityObject<mjCommitteesTermEntity>('Committees: Terms');
+            this.Term = await md.GetEntityObject<mjBizAppsCommitteesTermEntity>('Committees: Terms');
             await this.Term.Load(this.TermID!);
             this.StartDateLocal = this.ToLocalDateString(this.Term.StartDate);
             if (this.Term.EndDate) {

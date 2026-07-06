@@ -1,7 +1,7 @@
 import { Metadata, RunView, UserInfo } from '@memberjunction/core';
 import { MJGlobal } from '@memberjunction/global';
 import { CredentialEngine } from '@memberjunction/credentials';
-import { mjCommitteesMeetingEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsCommitteesMeetingEntity } from '@mj-biz-apps/committees-entities';
 import { VideoProviderBase, VideoProviderCredentials, MeetingAttendee } from '../drivers/VideoProviderBase.js';
 
 /**
@@ -151,9 +151,9 @@ export class VideoProviderService {
         }
     }
 
-    private async loadMeeting(meetingID: string, contextUser: UserInfo): Promise<mjCommitteesMeetingEntity | null> {
+    private async loadMeeting(meetingID: string, contextUser: UserInfo): Promise<mjBizAppsCommitteesMeetingEntity | null> {
         const md = new Metadata();
-        const meeting = await md.GetEntityObject<mjCommitteesMeetingEntity>('Committees: Meetings', contextUser);
+        const meeting = await md.GetEntityObject<mjBizAppsCommitteesMeetingEntity>('Committees: Meetings', contextUser);
         const loaded = await meeting.Load(meetingID);
         return loaded ? meeting : null;
     }

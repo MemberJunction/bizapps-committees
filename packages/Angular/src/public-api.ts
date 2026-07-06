@@ -1,3 +1,11 @@
+// Import entity package to trigger @RegisterClass decorators for entity
+// subclasses (incl. the custom MeetingEntity / MembershipEntity).
+import '@mj-biz-apps/committees-entities';
+
+// Generated form components (triggers @RegisterClass for form components).
+// Re-exported so consumers can import GeneratedFormsModule from this package.
+export * from './lib/generated/generated-forms.module';
+
 export * from './lib/module';
 export * from './lib/dashboard/committee-dashboard.component';
 export * from './lib/committee-list/committee-list.component';

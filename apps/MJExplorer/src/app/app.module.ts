@@ -25,10 +25,11 @@ import { LoadBizAppsCommonClient } from '@mj-biz-apps/common-ng';
 LoadBizAppsCommonClient();
 
 //***********************************************************
-// Committees Module
+// Committees Client Bootstrap (chains the BizAppsTasks client bootstrap;
+// tasks entity subclasses now register via the npm packages + manifest)
 //***********************************************************
-import { CommitteesModule, LoadCommitteesModule } from '@mj-biz-apps/committees-ng';
-LoadCommitteesModule();
+import { CommitteesModule, GeneratedFormsModule, LoadCommitteesClient } from '@mj-biz-apps/committees-ng';
+LoadCommitteesClient();
 
 // Import pre-built MJ class registrations manifest (covers all @memberjunction/* packages)
 import {CLASS_REGISTRATIONS} from '@memberjunction/ng-bootstrap';
@@ -40,6 +41,45 @@ import {CLASS_REGISTRATIONS as LOCAL_CLASSES} from './generated/class-registrati
 const combinedClasses = [...CLASS_REGISTRATIONS, ...LOCAL_CLASSES];
 
 //***********************************************************
+// Force the ai-core-plus "*EntityExtended" subclasses to win the ClassFactory
+// lookup. @memberjunction/core-entities is evaluated multiple times in the
+// bundled module graph, which re-registers the BASE entity classes and
+// auto-increments their priority above the Extended subclasses — so the engine
+// would otherwise resolve the base class (no Prompts/etc.). Explicitly
+// re-register each Extended class at a high, fixed priority so it always wins.
+//***********************************************************
+import { MJGlobal } from '@memberjunction/global';
+import { BaseEntity } from '@memberjunction/core';
+import {
+  MJAIAgentEntityExtended,
+  MJAIAgentRunEntityExtended,
+  MJAIAgentRunStepEntityExtended,
+  MJAIModelEntityExtended,
+  MJAIPromptCategoryEntityExtended,
+  MJAIPromptEntityExtended,
+  MJAIPromptRunEntityExtended,
+} from '@memberjunction/ai-core-plus';
+(() => {
+  const cf = MJGlobal.Instance.ClassFactory;
+  // All 7 ai-core-plus Extended entities. Each adds collection properties
+  // (e.g. Prompts, Actions, Notes, ModelVendors) that BaseAIEngine .push()es
+  // into — if the base class wins the ClassFactory lookup, those arrays are
+  // undefined and the engine throws "Cannot read properties of undefined (reading 'push')".
+  const EXTENDED: Array<[Function, string]> = [
+    [MJAIAgentEntityExtended, 'MJ: AI Agents'],
+    [MJAIAgentRunEntityExtended, 'MJ: AI Agent Runs'],
+    [MJAIAgentRunStepEntityExtended, 'MJ: AI Agent Run Steps'],
+    [MJAIModelEntityExtended, 'MJ: AI Models'],
+    [MJAIPromptCategoryEntityExtended, 'MJ: AI Prompt Categories'],
+    [MJAIPromptEntityExtended, 'MJ: AI Prompts'],
+    [MJAIPromptRunEntityExtended, 'MJ: AI Prompt Runs'],
+  ];
+  for (const [cls, key] of EXTENDED) {
+    cf.Register(BaseEntity, cls, key, 10000);
+  }
+})();
+
+//***********************************************************
 //MSAL
 //***********************************************************
 import { MsalGuardConfiguration } from '@azure/msal-angular';
@@ -49,7 +89,6 @@ import { InteractionType } from '@azure/msal-browser';
 // Project stuff
 //***********************************************************
 import { AppComponent } from './app.component';
-import { GeneratedFormsModule } from './generated/generated-forms.module';
 import { environment } from '../environments/environment';
 /**
  * Set your default interaction type for MSALGuard here. If you have any
@@ -99,6 +138,15 @@ export function initializeAuth(authService: MJAuthBase): () => Promise<void> {
   providers: [
     SharedService,
     provideHttpClient(withInterceptorsFromDi()),
+    {
+      // Force the class-registration imports to be retained at runtime so the
+      // bundler cannot tree-shake the @RegisterClass side-effect modules
+      // (e.g. MJAIPromptCategoryEntityExtended). Referencing combinedClasses
+      // in a real runtime code path keeps the imports alive.
+      provide: APP_INITIALIZER,
+      useFactory: () => () => { if (combinedClasses.length < 0) console.log(combinedClasses); },
+      multi: true
+    },
     {
       provide: APP_INITIALIZER,
       useFactory: initializeAuth,

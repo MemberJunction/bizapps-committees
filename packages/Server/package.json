@@ -8,22 +8,27 @@
   "publishConfig": {
     "access": "public"
   },
-  "files": ["/dist"],
+  "files": [
+    "/dist"
+  ],
   "scripts": {
     "build": "tsc && tsc-alias -f",
     "test": "echo \"No tests configured yet\""
   },
   "author": "MemberJunction.com",
   "license": "ISC",
+  "peerDependencies": {
+    "@memberjunction/core": "^5.44.0",
+    "@memberjunction/core-entities": "^5.44.0",
+    "@memberjunction/global": "^5.44.0",
+    "@memberjunction/server": "^5.44.0"
+  },
   "dependencies": {
-    "@memberjunction/core": "5.38.0",
-    "@memberjunction/core-entities": "5.38.0",
-    "@memberjunction/global": "5.38.0",
-    "@memberjunction/server": "5.38.0",
     "rxjs": "^7.8.1",
     "@mj-biz-apps/committees-core": "1.0.0",
     "@mj-biz-apps/committees-entities": "1.0.0",
-    "@mj-biz-apps/committees-actions": "1.0.0"
+    "@mj-biz-apps/committees-actions": "1.0.0",
+    "class-validator": "^0.14.3"
   },
   "devDependencies": {
     "typescript": "^5.9.3"

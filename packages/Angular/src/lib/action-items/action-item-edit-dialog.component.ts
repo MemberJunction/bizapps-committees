@@ -1,11 +1,11 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
-import { mjCommitteesActionItemEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsCommitteesActionItemEntity } from '@mj-biz-apps/committees-entities';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 export interface ActionItemDialogResult {
     Saved: boolean;
-    ActionItem: mjCommitteesActionItemEntity | null;
+    ActionItem: mjBizAppsCommitteesActionItemEntity | null;
 }
 
 @Component({
@@ -19,7 +19,7 @@ export class ActionItemEditDialogComponent implements OnInit {
     @Input() ActionItemID: string | null = null;
     @Output() DialogClosed = new EventEmitter<ActionItemDialogResult>();
 
-    ActionItem: mjCommitteesActionItemEntity | null = null;
+    ActionItem: mjBizAppsCommitteesActionItemEntity | null = null;
     IsLoading = true;
     IsSaving = false;
     ErrorMessage = '';
@@ -129,11 +129,11 @@ export class ActionItemEditDialogComponent implements OnInit {
     private async LoadOrCreateActionItem(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.ActionItem = await md.GetEntityObject<mjCommitteesActionItemEntity>('Committees: Action Items');
+            this.ActionItem = await md.GetEntityObject<mjBizAppsCommitteesActionItemEntity>('Committees: Action Items');
             this.ActionItem.Priority = 'Medium';
             this.ActionItem.Status = 'Open';
         } else {
-            this.ActionItem = await md.GetEntityObject<mjCommitteesActionItemEntity>('Committees: Action Items');
+            this.ActionItem = await md.GetEntityObject<mjBizAppsCommitteesActionItemEntity>('Committees: Action Items');
             await this.ActionItem.Load(this.ActionItemID!);
             if (this.ActionItem.DueDate) {
                 this.DueDateLocal = this.ToLocalDateString(this.ActionItem.DueDate);

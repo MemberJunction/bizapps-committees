@@ -1,5 +1,5 @@
 import { Metadata, RunView, UserInfo } from '@memberjunction/core';
-import { mjCommitteesActionItemEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsCommitteesActionItemEntity } from '@mj-biz-apps/committees-entities';
 
 /**
  * Lightweight read-only view of an action item for cross-committee lists.
@@ -81,7 +81,7 @@ export class ActionItemService {
         actionItemID: string,
         completionNotes: string,
         contextUser: UserInfo
-    ): Promise<mjCommitteesActionItemEntity> {
+    ): Promise<mjBizAppsCommitteesActionItemEntity> {
         const actionItem = await this.loadActionItem(actionItemID, contextUser);
 
         actionItem.Status = 'Completed';
@@ -100,9 +100,9 @@ export class ActionItemService {
     private async loadActionItem(
         actionItemID: string,
         contextUser: UserInfo
-    ): Promise<mjCommitteesActionItemEntity> {
+    ): Promise<mjBizAppsCommitteesActionItemEntity> {
         const md = new Metadata();
-        const actionItem = await md.GetEntityObject<mjCommitteesActionItemEntity>('Committees: Action Items', contextUser);
+        const actionItem = await md.GetEntityObject<mjBizAppsCommitteesActionItemEntity>('Committees: Action Items', contextUser);
         const loaded = await actionItem.Load(actionItemID);
         if (!loaded) {
             throw new Error(`Action item not found: ${actionItemID}`);

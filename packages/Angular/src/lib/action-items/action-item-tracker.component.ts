@@ -80,7 +80,7 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
     /** Limits the assignee picker to members of the selected committee */
     get AssigneeScope(): string | null {
         if (!this.SelectedCommitteeID) return null;
-        return `ID IN (SELECT m.PersonID FROM __mj_Committees.Membership m JOIN __mj_Committees.Term t ON m.TermID = t.ID WHERE t.CommitteeID = '${this.SelectedCommitteeID}' AND m.Status = 'Active')`;
+        return `ID IN (SELECT m.PersonID FROM __mj_BizAppsCommittees.Membership m JOIN __mj_BizAppsCommittees.Term t ON m.TermID = t.ID WHERE t.CommitteeID = '${this.SelectedCommitteeID}' AND m.Status = 'Active')`;
     }
 
     private cdr = inject(ChangeDetectorRef);
@@ -199,7 +199,7 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
                 ResultType: 'simple',
             },
             {
-                EntityName: 'MJ.BizApps.Tasks: Task Categories',
+                EntityName: 'MJ_BizApps_Tasks: Task Categories',
                 ExtraFilter: 'IsActive = 1',
                 Fields: ['ID', 'Name'],
                 ResultType: 'simple',

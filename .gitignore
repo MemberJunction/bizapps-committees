@@ -55,3 +55,7 @@ SQL Scripts/generated/.gitkeep
 SQL Scripts/utilities/MJ Metadata Wipe Out - CAREFUL.sql
 report.html
 report.json
+
+# Local vendoring / scratch (restructure hygiene)
+.tasks-tarballs/
+temp_sql_scripts/

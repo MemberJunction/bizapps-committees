@@ -4,11 +4,11 @@ import { AgentRunner } from '@memberjunction/ai-agents';
 import { AIEngine } from '@memberjunction/aiengine';
 import { MJAIAgentEntityExtended } from '@memberjunction/ai-core-plus';
 import {
-    mjCommitteesCommitteeEntity,
-    mjCommitteesTermEntity,
-    mjCommitteesMembershipEntity,
-    mjCommitteesTypeEntity,
-    mjCommitteesRoleEntity,
+    mjBizAppsCommitteesCommitteeEntity,
+    mjBizAppsCommitteesTermEntity,
+    mjBizAppsCommitteesMembershipEntity,
+    mjBizAppsCommitteesTypeEntity,
+    mjBizAppsCommitteesRoleEntity,
 } from '@mj-biz-apps/committees-entities';
 import { mjBizAppsCommonPersonEntity } from '@mj-biz-apps/common-entities';
 
@@ -276,7 +276,7 @@ export class BulkImportService {
 
     private async loadCommitteeTypeMap(contextUser: UserInfo): Promise<Map<string, string>> {
         const rv = new RunView();
-        const result = await rv.RunView<mjCommitteesTypeEntity>({
+        const result = await rv.RunView<mjBizAppsCommitteesTypeEntity>({
             EntityName: 'Committees: Types',
             ResultType: 'simple',
         }, contextUser);
@@ -292,7 +292,7 @@ export class BulkImportService {
 
     private async loadRoleMap(contextUser: UserInfo): Promise<Map<string, string>> {
         const rv = new RunView();
-        const result = await rv.RunView<mjCommitteesRoleEntity>({
+        const result = await rv.RunView<mjBizAppsCommitteesRoleEntity>({
             EntityName: 'Committees: Roles',
             ResultType: 'simple',
         }, contextUser);
@@ -331,7 +331,7 @@ export class BulkImportService {
                     continue;
                 }
 
-                const entity = await md.GetEntityObject<mjCommitteesCommitteeEntity>('Committees: Committees', contextUser);
+                const entity = await md.GetEntityObject<mjBizAppsCommitteesCommitteeEntity>('Committees: Committees', contextUser);
                 entity.Name = row.Name;
                 entity.Description = row.Description ?? null;
                 entity.TypeID = typeID;
@@ -374,7 +374,7 @@ export class BulkImportService {
                 }
                 const endDate = row.EndDate ? this.parseDate(row.EndDate) : null;
 
-                const entity = await md.GetEntityObject<mjCommitteesTermEntity>('Committees: Terms', contextUser);
+                const entity = await md.GetEntityObject<mjBizAppsCommitteesTermEntity>('Committees: Terms', contextUser);
                 entity.CommitteeID = committeeID;
                 entity.Name = row.Year ? String(row.Year) : `${startDate.getFullYear()}`;
                 entity.StartDate = startDate;
@@ -463,7 +463,7 @@ export class BulkImportService {
                     continue;
                 }
 
-                const entity = await md.GetEntityObject<mjCommitteesMembershipEntity>('Committees: Memberships', contextUser);
+                const entity = await md.GetEntityObject<mjBizAppsCommitteesMembershipEntity>('Committees: Memberships', contextUser);
                 entity.PersonID = personID;
                 entity.RoleID = roleID;
                 entity.TermID = termID;

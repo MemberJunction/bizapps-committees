@@ -1,10 +1,10 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
-import { mjCommitteesCommitteeEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsCommitteesCommitteeEntity } from '@mj-biz-apps/committees-entities';
 
 export interface CommitteeDialogResult {
     Saved: boolean;
-    Committee: mjCommitteesCommitteeEntity | null;
+    Committee: mjBizAppsCommitteesCommitteeEntity | null;
 }
 
 @Component({
@@ -19,7 +19,7 @@ export class CommitteeEditDialogComponent implements OnInit {
     @Input() ReadOnly = false;
     @Output() DialogClosed = new EventEmitter<CommitteeDialogResult>();
 
-    Committee: mjCommitteesCommitteeEntity | null = null;
+    Committee: mjBizAppsCommitteesCommitteeEntity | null = null;
     IsLoading = true;
     IsSaving = false;
     ErrorMessage = '';
@@ -120,11 +120,11 @@ export class CommitteeEditDialogComponent implements OnInit {
     private async LoadOrCreateCommittee(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.Committee = await md.GetEntityObject<mjCommitteesCommitteeEntity>('Committees: Committees');
+            this.Committee = await md.GetEntityObject<mjBizAppsCommitteesCommitteeEntity>('Committees: Committees');
             this.Committee.Status = 'Active';
             this.Committee.IsPublic = true;
         } else {
-            this.Committee = await md.GetEntityObject<mjCommitteesCommitteeEntity>('Committees: Committees');
+            this.Committee = await md.GetEntityObject<mjBizAppsCommitteesCommitteeEntity>('Committees: Committees');
             await this.Committee.Load(this.CommitteeID!);
         }
     }

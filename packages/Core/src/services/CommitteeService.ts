@@ -1,9 +1,9 @@
 import { Metadata, RunView, UserInfo } from '@memberjunction/core';
 import {
-    mjCommitteesCommitteeEntity,
-    mjCommitteesMembershipEntity,
-    mjCommitteesMeetingEntity,
-    mjCommitteesActionItemEntity,
+    mjBizAppsCommitteesCommitteeEntity,
+    mjBizAppsCommitteesMembershipEntity,
+    mjBizAppsCommitteesMeetingEntity,
+    mjBizAppsCommitteesActionItemEntity,
 } from '@mj-biz-apps/committees-entities';
 
 /**
@@ -24,10 +24,10 @@ export interface CommitteeMembershipSummary {
  * Full committee details including members, upcoming meetings, and recent action items.
  */
 export interface CommitteeDetails {
-    Committee: mjCommitteesCommitteeEntity;
-    Members: mjCommitteesMembershipEntity[];
-    UpcomingMeetings: mjCommitteesMeetingEntity[];
-    RecentActionItems: mjCommitteesActionItemEntity[];
+    Committee: mjBizAppsCommitteesCommitteeEntity;
+    Members: mjBizAppsCommitteesMembershipEntity[];
+    UpcomingMeetings: mjBizAppsCommitteesMeetingEntity[];
+    RecentActionItems: mjBizAppsCommitteesActionItemEntity[];
 }
 
 /**
@@ -88,9 +88,9 @@ export class CommitteeService {
     }
 
     /** Loads the committee entity object by ID. */
-    private async loadCommittee(committeeID: string, contextUser: UserInfo): Promise<mjCommitteesCommitteeEntity> {
+    private async loadCommittee(committeeID: string, contextUser: UserInfo): Promise<mjBizAppsCommitteesCommitteeEntity> {
         const md = new Metadata();
-        const committee = await md.GetEntityObject<mjCommitteesCommitteeEntity>('Committees: Committees', contextUser);
+        const committee = await md.GetEntityObject<mjBizAppsCommitteesCommitteeEntity>('Committees: Committees', contextUser);
         const loaded = await committee.Load(committeeID);
         if (!loaded) {
             throw new Error(`Committee not found: ${committeeID}`);
@@ -105,7 +105,7 @@ export class CommitteeService {
     private async loadRelatedData(
         committeeID: string,
         contextUser: UserInfo
-    ): Promise<[mjCommitteesMembershipEntity[], mjCommitteesMeetingEntity[], mjCommitteesActionItemEntity[]]> {
+    ): Promise<[mjBizAppsCommitteesMembershipEntity[], mjBizAppsCommitteesMeetingEntity[], mjBizAppsCommitteesActionItemEntity[]]> {
         const rv = new RunView();
         const now = new Date().toISOString();
 
@@ -133,9 +133,9 @@ export class CommitteeService {
         ], contextUser);
 
         return [
-            membersResult.Success ? (membersResult.Results ?? []) as mjCommitteesMembershipEntity[] : [],
-            meetingsResult.Success ? (meetingsResult.Results ?? []) as mjCommitteesMeetingEntity[] : [],
-            actionItemsResult.Success ? (actionItemsResult.Results ?? []) as mjCommitteesActionItemEntity[] : [],
+            membersResult.Success ? (membersResult.Results ?? []) as mjBizAppsCommitteesMembershipEntity[] : [],
+            meetingsResult.Success ? (meetingsResult.Results ?? []) as mjBizAppsCommitteesMeetingEntity[] : [],
+            actionItemsResult.Success ? (actionItemsResult.Results ?? []) as mjBizAppsCommitteesActionItemEntity[] : [],
         ];
     }
 

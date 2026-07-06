@@ -1,10 +1,10 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
-import { mjCommitteesMotionEntity, mjCommitteesVoteEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsCommitteesMotionEntity, mjBizAppsCommitteesVoteEntity } from '@mj-biz-apps/committees-entities';
 
 export interface MotionDialogResult {
     Saved: boolean;
-    Motion: mjCommitteesMotionEntity | null;
+    Motion: mjBizAppsCommitteesMotionEntity | null;
 }
 
 interface VoterRow {
@@ -30,7 +30,7 @@ export class MotionEditDialogComponent implements OnInit {
     @Input() CommitteeID: string | null = null;
     @Output() DialogClosed = new EventEmitter<MotionDialogResult>();
 
-    Motion: mjCommitteesMotionEntity | null = null;
+    Motion: mjBizAppsCommitteesMotionEntity | null = null;
     IsLoading = true;
     IsSaving = false;
     ErrorMessage = '';
@@ -138,12 +138,12 @@ export class MotionEditDialogComponent implements OnInit {
     private async LoadOrCreateMotion(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.Motion = await md.GetEntityObject<mjCommitteesMotionEntity>('Committees: Motions');
+            this.Motion = await md.GetEntityObject<mjBizAppsCommitteesMotionEntity>('Committees: Motions');
             this.Motion.MeetingID = this.MeetingID!;
             this.Motion.Sequence = 1;
             this.Motion.Result = 'Pending';
         } else {
-            this.Motion = await md.GetEntityObject<mjCommitteesMotionEntity>('Committees: Motions');
+            this.Motion = await md.GetEntityObject<mjBizAppsCommitteesMotionEntity>('Committees: Motions');
             await this.Motion.Load(this.MotionID!);
         }
     }
@@ -254,19 +254,19 @@ export class MotionEditDialogComponent implements OnInit {
             if (voter.VoteID) {
                 // Update existing vote
                 if (voter.VoteValue) {
-                    const vote = await md.GetEntityObject<mjCommitteesVoteEntity>('Committees: Votes');
+                    const vote = await md.GetEntityObject<mjBizAppsCommitteesVoteEntity>('Committees: Votes');
                     await vote.Load(voter.VoteID);
                     vote.VoteValue = voter.VoteValue;
                     await vote.Save();
                 } else {
                     // Clear vote — delete it
-                    const vote = await md.GetEntityObject<mjCommitteesVoteEntity>('Committees: Votes');
+                    const vote = await md.GetEntityObject<mjBizAppsCommitteesVoteEntity>('Committees: Votes');
                     await vote.Load(voter.VoteID);
                     try { await vote.Delete(); } catch { /* ignore */ }
                 }
             } else if (voter.VoteValue) {
                 // Create new vote
-                const vote = await md.GetEntityObject<mjCommitteesVoteEntity>('Committees: Votes');
+                const vote = await md.GetEntityObject<mjBizAppsCommitteesVoteEntity>('Committees: Votes');
                 vote.NewRecord();
                 vote.MotionID = this.Motion!.ID;
                 vote.MembershipID = voter.MembershipID;

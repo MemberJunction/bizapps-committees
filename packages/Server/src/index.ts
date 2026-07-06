@@ -6,12 +6,6 @@
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// Re-export the core services for consumers
-export { CommitteeService } from '@mj-biz-apps/committees-core';
-export { MeetingService } from '@mj-biz-apps/committees-core';
-export { MembershipService } from '@mj-biz-apps/committees-core';
-export { ActionItemService } from '@mj-biz-apps/committees-core';
-
 // Import generated packages to trigger @RegisterClass decorators
 import '@mj-biz-apps/committees-entities';
 import '@mj-biz-apps/committees-actions';
@@ -19,10 +13,15 @@ import '@mj-biz-apps/committees-actions';
 // Import core services to trigger any class registrations
 import '@mj-biz-apps/committees-core';
 
-// Video provider drivers — import to trigger @RegisterClass decorators
-import './drivers/ZoomVideoProvider.js';
-import './drivers/TeamsVideoProvider.js';
-import './drivers/GoogleMeetVideoProvider.js';
+// Video provider drivers — named exports so the class-registration manifest
+// generator can import them; importing also fires their @RegisterClass decorators
+export { ZoomVideoProvider } from './drivers/ZoomVideoProvider.js';
+export { TeamsVideoProvider } from './drivers/TeamsVideoProvider.js';
+export { GoogleMeetVideoProvider } from './drivers/GoogleMeetVideoProvider.js';
+
+// Express middleware — self-registers via @RegisterClass and contributes
+// the /api/upload-proxy routes through ConfigureExpressApp
+export { UploadProxyMiddleware } from './middleware/UploadProxyMiddleware.js';
 
 // Event handlers
 import { InitCommitteeNotificationHandler } from './event-handlers/CommitteeNotificationHandler.js';
@@ -31,9 +30,12 @@ const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 /**
  * Resolver paths for TypeGraphQL schema building.
- * Pass these to createMJServer({ resolverPaths }) along with other resolver paths.
+ * Includes both the CodeGen-generated entity resolvers and the hand-written
+ * custom resolvers. Pass these to createMJServer({ resolverPaths }) along
+ * with other resolver paths.
  */
 export const RESOLVER_PATHS: string[] = [
+    resolve(__dirname, 'generated/*.js'),
     resolve(__dirname, 'resolvers/*.js'),
 ];
 

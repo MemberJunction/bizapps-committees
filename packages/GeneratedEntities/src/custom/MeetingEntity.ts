@@ -1,6 +1,6 @@
 import { BaseEntity, ValidationResult, ValidationErrorInfo, ValidationErrorType } from '@memberjunction/core';
 import { RegisterClass } from '@memberjunction/global';
-import { mjCommitteesMeetingEntity } from '../generated/entity_subclasses';
+import { mjBizAppsCommitteesMeetingEntity } from '../generated/entity_subclasses';
 
 /**
  * Custom Meeting entity.
@@ -14,7 +14,7 @@ import { mjCommitteesMeetingEntity } from '../generated/entity_subclasses';
  * not in this client-safe entity class.
  */
 @RegisterClass(BaseEntity, 'Meetings', 1)
-export class MeetingEntityCustom extends mjCommitteesMeetingEntity {
+export class MeetingEntityCustom extends mjBizAppsCommitteesMeetingEntity {
 
     public override Validate(): ValidationResult {
         const result = super.Validate();

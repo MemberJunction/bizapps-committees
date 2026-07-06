@@ -1,10 +1,10 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
-import { mjCommitteesAgendaItemEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsCommitteesAgendaItemEntity } from '@mj-biz-apps/committees-entities';
 
 export interface AgendaItemDialogResult {
     Saved: boolean;
-    AgendaItem: mjCommitteesAgendaItemEntity | null;
+    AgendaItem: mjBizAppsCommitteesAgendaItemEntity | null;
 }
 
 @Component({
@@ -20,7 +20,7 @@ export class AgendaItemEditDialogComponent implements OnInit {
     @Input() NextSequence = 1;
     @Output() DialogClosed = new EventEmitter<AgendaItemDialogResult>();
 
-    AgendaItem: mjCommitteesAgendaItemEntity | null = null;
+    AgendaItem: mjBizAppsCommitteesAgendaItemEntity | null = null;
     IsLoading = true;
     IsSaving = false;
     ErrorMessage = '';
@@ -125,13 +125,13 @@ export class AgendaItemEditDialogComponent implements OnInit {
     private async LoadOrCreateItem(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.AgendaItem = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Committees: Agenda Items');
+            this.AgendaItem = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items');
             this.AgendaItem.MeetingID = this.MeetingID!;
             this.AgendaItem.Sequence = this.NextSequence;
             this.AgendaItem.ItemType = 'Discussion';
             this.AgendaItem.Status = 'Pending';
         } else {
-            this.AgendaItem = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Committees: Agenda Items');
+            this.AgendaItem = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items');
             await this.AgendaItem.Load(this.AgendaItemID!);
         }
     }

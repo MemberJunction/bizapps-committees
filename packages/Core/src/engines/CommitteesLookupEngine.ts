@@ -1,8 +1,8 @@
 import { BaseEngine, IMetadataProvider, UserInfo } from '@memberjunction/core';
 import {
-    mjCommitteesRoleEntity,
-    mjCommitteesTypeEntity,
-    mjCommitteesArtifactTypeEntity,
+    mjBizAppsCommitteesRoleEntity,
+    mjBizAppsCommitteesTypeEntity,
+    mjBizAppsCommitteesArtifactTypeEntity,
 } from '@mj-biz-apps/committees-entities';
 
 /**
@@ -34,9 +34,9 @@ export class CommitteesLookupEngine extends BaseEngine<CommitteesLookupEngine> {
         return super.getInstance<CommitteesLookupEngine>();
     }
 
-    private _Roles: mjCommitteesRoleEntity[] = [];
-    private _CommitteeTypes: mjCommitteesTypeEntity[] = [];
-    private _ArtifactTypes: mjCommitteesArtifactTypeEntity[] = [];
+    private _Roles: mjBizAppsCommitteesRoleEntity[] = [];
+    private _CommitteeTypes: mjBizAppsCommitteesTypeEntity[] = [];
+    private _ArtifactTypes: mjBizAppsCommitteesArtifactTypeEntity[] = [];
 
     public async Config(
         forceRefresh = false,
@@ -52,33 +52,33 @@ export class CommitteesLookupEngine extends BaseEngine<CommitteesLookupEngine> {
     }
 
     /** All committee roles (Chair, Vice Chair, Secretary, Member, Liaison, etc.). */
-    public get Roles(): mjCommitteesRoleEntity[] {
+    public get Roles(): mjBizAppsCommitteesRoleEntity[] {
         return this._Roles;
     }
 
     /** Officer roles (IsOfficer = true). */
-    public get OfficerRoles(): mjCommitteesRoleEntity[] {
+    public get OfficerRoles(): mjBizAppsCommitteesRoleEntity[] {
         return this._Roles.filter(r => r.IsOfficer);
     }
 
     /** All committee types (Standing, Ad Hoc, Workgroup, etc.). */
-    public get CommitteeTypes(): mjCommitteesTypeEntity[] {
+    public get CommitteeTypes(): mjBizAppsCommitteesTypeEntity[] {
         return this._CommitteeTypes;
     }
 
     /** All artifact types used for documents/files attached to committees. */
-    public get ArtifactTypes(): mjCommitteesArtifactTypeEntity[] {
+    public get ArtifactTypes(): mjBizAppsCommitteesArtifactTypeEntity[] {
         return this._ArtifactTypes;
     }
 
     /** Case-insensitive role lookup by name. */
-    public RoleByName(name: string): mjCommitteesRoleEntity | undefined {
+    public RoleByName(name: string): mjBizAppsCommitteesRoleEntity | undefined {
         const k = name?.toLowerCase();
         return this._Roles.find(r => r.Name.toLowerCase() === k);
     }
 
     /** Case-insensitive committee-type lookup by name. */
-    public CommitteeTypeByName(name: string): mjCommitteesTypeEntity | undefined {
+    public CommitteeTypeByName(name: string): mjBizAppsCommitteesTypeEntity | undefined {
         const k = name?.toLowerCase();
         return this._CommitteeTypes.find(t => t.Name.toLowerCase() === k);
     }

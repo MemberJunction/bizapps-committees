@@ -1,7 +1,7 @@
 import { Metadata, RunView, UserInfo } from '@memberjunction/core';
 import {
-    mjCommitteesMembershipEntity,
-    mjCommitteesAttendanceEntity,
+    mjBizAppsCommitteesMembershipEntity,
+    mjBizAppsCommitteesAttendanceEntity,
 } from '@mj-biz-apps/committees-entities';
 
 /**
@@ -42,9 +42,9 @@ export class MembershipService {
         roleID: string,
         termID: string,
         contextUser: UserInfo
-    ): Promise<mjCommitteesMembershipEntity> {
+    ): Promise<mjBizAppsCommitteesMembershipEntity> {
         const md = new Metadata();
-        const membership = await md.GetEntityObject<mjCommitteesMembershipEntity>('Committees: Memberships', contextUser);
+        const membership = await md.GetEntityObject<mjBizAppsCommitteesMembershipEntity>('Committees: Memberships', contextUser);
         membership.NewRecord();
 
         membership.PersonID = personID;

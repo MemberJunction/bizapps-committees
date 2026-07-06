@@ -7,10 +7,10 @@ import {
     inject,
 } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
-import { mjCommitteesCommentEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsCommitteesCommentEntity } from '@mj-biz-apps/committees-entities';
 
 interface CommentNode {
-    Comment: mjCommitteesCommentEntity;
+    Comment: mjBizAppsCommitteesCommentEntity;
     Replies: CommentNode[];
     ShowReplyBox: boolean;
     ReplyText: string;
@@ -58,7 +58,7 @@ export class CommentThreadComponent implements OnInit {
         if (!filter) return;
 
         const rv = new RunView();
-        const result = await rv.RunView<mjCommitteesCommentEntity>({
+        const result = await rv.RunView<mjBizAppsCommitteesCommentEntity>({
             EntityName: 'Committees: Comments',
             ExtraFilter: filter,
             OrderBy: '__mj_CreatedAt ASC',
@@ -140,7 +140,7 @@ export class CommentThreadComponent implements OnInit {
         this.cdr.markForCheck();
 
         const md = new Metadata();
-        const comment = await md.GetEntityObject<mjCommitteesCommentEntity>('Committees: Comments');
+        const comment = await md.GetEntityObject<mjBizAppsCommitteesCommentEntity>('Committees: Comments');
         comment.CommitteeID = this.CommitteeID!;
         comment.PersonID = this.CurrentPersonID!;
         comment.CommentText = text;
@@ -172,7 +172,7 @@ export class CommentThreadComponent implements OnInit {
         return parts.join(' AND ');
     }
 
-    private buildTree(comments: mjCommitteesCommentEntity[]): CommentNode[] {
+    private buildTree(comments: mjBizAppsCommitteesCommentEntity[]): CommentNode[] {
         const nodeMap = new Map<string, CommentNode>();
         const roots: CommentNode[] = [];
 

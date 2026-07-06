@@ -4,7 +4,7 @@ import {
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RunView, Metadata, UserInfo } from '@memberjunction/core';
-import { mjCommitteesMeetingEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsCommitteesMeetingEntity } from '@mj-biz-apps/committees-entities';
 import { marked } from 'marked';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
@@ -156,7 +156,7 @@ export class MeetingDetailViewComponent implements OnInit {
         this.cdr.markForCheck();
         try {
             const md = new Metadata();
-            const entity = await md.GetEntityObject<mjCommitteesMeetingEntity>('Committees: Meetings');
+            const entity = await md.GetEntityObject<mjBizAppsCommitteesMeetingEntity>('Committees: Meetings');
             await entity.Load(this.Meeting.ID);
             entity.Status = 'Completed';
             const saved = await entity.Save();

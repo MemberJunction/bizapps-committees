@@ -1,8 +1,8 @@
 import { Metadata, RunView, UserInfo, LogError } from '@memberjunction/core';
 import { AIEngine } from '@memberjunction/aiengine';
 import {
-    mjCommitteesMeetingEntity,
-    mjCommitteesMinuteEntity,
+    mjBizAppsCommitteesMeetingEntity,
+    mjBizAppsCommitteesMinuteEntity,
 } from '@mj-biz-apps/committees-entities';
 
 /**
@@ -58,7 +58,7 @@ interface AttendanceRow {
 
 /** Aggregated meeting data used to build the AI prompt. */
 interface MeetingBundle {
-    meeting: mjCommitteesMeetingEntity;
+    meeting: mjBizAppsCommitteesMeetingEntity;
     agendaItems: AgendaItemRow[];
     motions: MotionRow[];
     attendance: AttendanceRow[];
@@ -135,9 +135,9 @@ export class MinutesService {
     }
 
     /** Finds an existing Draft Minute for the meeting, or creates a new entity object. */
-    private async findOrCreateMinute(meetingID: string, contextUser: UserInfo): Promise<mjCommitteesMinuteEntity> {
+    private async findOrCreateMinute(meetingID: string, contextUser: UserInfo): Promise<mjBizAppsCommitteesMinuteEntity> {
         const rv = new RunView();
-        const result = await rv.RunView<mjCommitteesMinuteEntity>({
+        const result = await rv.RunView<mjBizAppsCommitteesMinuteEntity>({
             EntityName: 'Committees: Minutes',
             ExtraFilter: `MeetingID='${meetingID}'`,
             ResultType: 'entity_object',
@@ -148,7 +148,7 @@ export class MinutesService {
         }
 
         const md = new Metadata();
-        return await md.GetEntityObject<mjCommitteesMinuteEntity>('Committees: Minutes', contextUser);
+        return await md.GetEntityObject<mjBizAppsCommitteesMinuteEntity>('Committees: Minutes', contextUser);
     }
 
     // -------------------------------------------------------------------------
@@ -193,9 +193,9 @@ export class MinutesService {
     }
 
     /** Loads a single Meeting entity by ID, returning null if not found. */
-    private async loadMeeting(meetingID: string, contextUser: UserInfo): Promise<mjCommitteesMeetingEntity | null> {
+    private async loadMeeting(meetingID: string, contextUser: UserInfo): Promise<mjBizAppsCommitteesMeetingEntity | null> {
         const md = new Metadata();
-        const meeting = await md.GetEntityObject<mjCommitteesMeetingEntity>('Committees: Meetings', contextUser);
+        const meeting = await md.GetEntityObject<mjBizAppsCommitteesMeetingEntity>('Committees: Meetings', contextUser);
         const loaded = await meeting.Load(meetingID);
         return loaded ? meeting : null;
     }

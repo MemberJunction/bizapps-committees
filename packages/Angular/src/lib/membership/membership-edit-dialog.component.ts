@@ -1,10 +1,10 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
-import { mjCommitteesMembershipEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsCommitteesMembershipEntity } from '@mj-biz-apps/committees-entities';
 
 export interface MembershipDialogResult {
     Saved: boolean;
-    Membership: mjCommitteesMembershipEntity | null;
+    Membership: mjBizAppsCommitteesMembershipEntity | null;
 }
 
 interface TermLookup {
@@ -27,7 +27,7 @@ export class MembershipEditDialogComponent implements OnInit {
     @Input() CommitteeID: string | null = null;
     @Output() DialogClosed = new EventEmitter<MembershipDialogResult>();
 
-    Membership: mjCommitteesMembershipEntity | null = null;
+    Membership: mjBizAppsCommitteesMembershipEntity | null = null;
     IsLoading = true;
     IsSaving = false;
     ErrorMessage = '';
@@ -164,7 +164,7 @@ export class MembershipEditDialogComponent implements OnInit {
     private async LoadOrCreateMembership(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.Membership = await md.GetEntityObject<mjCommitteesMembershipEntity>('Committees: Memberships');
+            this.Membership = await md.GetEntityObject<mjBizAppsCommitteesMembershipEntity>('Committees: Memberships');
             this.Membership.Status = 'Active';
             // Pre-select active term and apply its dates
             const activeTerm = this.Terms.find(t => t.Status === 'Active');
@@ -173,7 +173,7 @@ export class MembershipEditDialogComponent implements OnInit {
                 this.ApplyTermDates();
             }
         } else {
-            this.Membership = await md.GetEntityObject<mjCommitteesMembershipEntity>('Committees: Memberships');
+            this.Membership = await md.GetEntityObject<mjBizAppsCommitteesMembershipEntity>('Committees: Memberships');
             await this.Membership.Load(this.MembershipID!);
             await this.loadPersonName(this.Membership.PersonID);
         }

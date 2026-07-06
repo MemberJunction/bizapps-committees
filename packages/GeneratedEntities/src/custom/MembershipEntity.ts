@@ -1,6 +1,6 @@
 import { BaseEntity, ValidationResult, ValidationErrorInfo, ValidationErrorType, RunView } from '@memberjunction/core';
 import { RegisterClass } from '@memberjunction/global';
-import { mjCommitteesMembershipEntity } from '../generated/entity_subclasses';
+import { mjBizAppsCommitteesMembershipEntity } from '../generated/entity_subclasses';
 
 /**
  * Custom Membership entity with business rule validation:
@@ -12,7 +12,7 @@ import { mjCommitteesMembershipEntity } from '../generated/entity_subclasses';
  * Registered with priority 1 to override the generated class.
  */
 @RegisterClass(BaseEntity, 'Memberships', 1)
-export class MembershipEntityCustom extends mjCommitteesMembershipEntity {
+export class MembershipEntityCustom extends mjBizAppsCommitteesMembershipEntity {
 
     // Override Status setter to auto-set EndDate when membership is ended.
     override get Status(): 'Active' | 'Ended' | 'Pending' | 'Suspended' {
@@ -82,7 +82,7 @@ export class MembershipEntityCustom extends mjCommitteesMembershipEntity {
         }
 
         const rv = new RunView();
-        const dupeCheck = await rv.RunView<mjCommitteesMembershipEntity>({
+        const dupeCheck = await rv.RunView<mjBizAppsCommitteesMembershipEntity>({
             EntityName: 'Committees: Memberships',
             ExtraFilter: `PersonID='${this.PersonID}' AND TermID='${this.TermID}' AND Status='Active' AND ID<>'${this.ID}'`,
             ResultType: 'simple',

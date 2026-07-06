@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output, OnInit, OnDestroy, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Metadata, RunView } from '@memberjunction/core';
-import { mjCommitteesAgendaItemEntity, mjCommitteesMotionEntity, mjCommitteesVoteEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsCommitteesAgendaItemEntity, mjBizAppsCommitteesMotionEntity, mjBizAppsCommitteesVoteEntity } from '@mj-biz-apps/committees-entities';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 import { MotionDialogResult } from '../motions/motion-edit-dialog.component';
 import { MeetingDialogResult } from '../meeting-list/meeting-edit-dialog.component';
@@ -122,13 +122,13 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
 
         if (existingVote) {
             if (existingVote.VoteValue === value) return; // Already voted this way
-            const vote = await md.GetEntityObject<mjCommitteesVoteEntity>('Committees: Votes');
+            const vote = await md.GetEntityObject<mjBizAppsCommitteesVoteEntity>('Committees: Votes');
             await vote.Load(existingVote.VoteID);
             vote.VoteValue = value;
             await vote.Save();
             existingVote.VoteValue = value;
         } else {
-            const vote = await md.GetEntityObject<mjCommitteesVoteEntity>('Committees: Votes');
+            const vote = await md.GetEntityObject<mjBizAppsCommitteesVoteEntity>('Committees: Votes');
             vote.NewRecord();
             vote.MotionID = motion.ID;
             vote.MembershipID = this.CurrentMembershipID;
@@ -149,7 +149,7 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
     // ─── Officer: Agenda Status ───
     async OnAgendaStatusChange(itemID: string, newStatus: string): Promise<void> {
         const md = new Metadata();
-        const item = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Committees: Agenda Items');
+        const item = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items');
         await item.Load(itemID);
         item.Status = newStatus as 'Pending' | 'Discussed' | 'Completed' | 'Tabled' | 'Skipped';
         await item.Save();
@@ -162,7 +162,7 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
     // ─── Officer: Close Vote ───
     async OnCloseVote(motion: MotionWithVotes): Promise<void> {
         const md = new Metadata();
-        const entity = await md.GetEntityObject<mjCommitteesMotionEntity>('Committees: Motions');
+        const entity = await md.GetEntityObject<mjBizAppsCommitteesMotionEntity>('Committees: Motions');
         await entity.Load(motion.ID);
 
         const yes = motion.Votes.filter(v => v.VoteValue === 'Yes').length;

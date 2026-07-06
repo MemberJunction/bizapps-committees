@@ -1,14 +1,14 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
 import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
-import { mjCommitteesMeetingEntity, mjCommitteesAttendanceEntity, mjCommitteesAgendaItemEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsCommitteesMeetingEntity, mjBizAppsCommitteesAttendanceEntity, mjBizAppsCommitteesAgendaItemEntity } from '@mj-biz-apps/committees-entities';
 import { AgendaItemDialogResult } from '../agenda/agenda-item-edit-dialog.component';
 import { MotionDialogResult } from '../motions/motion-edit-dialog.component';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 export interface MeetingDialogResult {
     Saved: boolean;
-    Meeting: mjCommitteesMeetingEntity | null;
+    Meeting: mjBizAppsCommitteesMeetingEntity | null;
 }
 
 interface AttendeeRow {
@@ -31,7 +31,7 @@ export class MeetingEditDialogComponent implements OnInit {
     @Input() MeetingID: string | null = null;
     @Output() DialogClosed = new EventEmitter<MeetingDialogResult>();
 
-    Meeting: mjCommitteesMeetingEntity | null = null;
+    Meeting: mjBizAppsCommitteesMeetingEntity | null = null;
     IsLoading = true;
     IsSaving = false;
     ErrorMessage = '';
@@ -282,8 +282,8 @@ export class MeetingEditDialogComponent implements OnInit {
 
         // Persist the two swapped items
         const md = new Metadata();
-        const entityA = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Committees: Agenda Items');
-        const entityB = await md.GetEntityObject<mjCommitteesAgendaItemEntity>('Committees: Agenda Items');
+        const entityA = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items');
+        const entityB = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items');
         await entityA.Load(this.AgendaItems[idx]['ID'] as string);
         await entityB.Load(this.AgendaItems[swapIdx]['ID'] as string);
         entityA.Sequence = this.AgendaItems[idx]['Sequence'] as number;
@@ -341,14 +341,14 @@ export class MeetingEditDialogComponent implements OnInit {
     private async LoadOrCreateMeeting(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.Meeting = await md.GetEntityObject<mjCommitteesMeetingEntity>('Committees: Meetings');
+            this.Meeting = await md.GetEntityObject<mjBizAppsCommitteesMeetingEntity>('Committees: Meetings');
             this.Meeting.Status = 'Scheduled';
             this.Meeting.LocationType = 'Virtual';
             const now = new Date();
             now.setHours(now.getHours() + 1, 0, 0, 0);
             this.StartDateTimeLocal = this.ToLocalDateTimeString(now);
         } else {
-            this.Meeting = await md.GetEntityObject<mjCommitteesMeetingEntity>('Committees: Meetings');
+            this.Meeting = await md.GetEntityObject<mjBizAppsCommitteesMeetingEntity>('Committees: Meetings');
             await this.Meeting.Load(this.MeetingID!);
             this.StartDateTimeLocal = this.ToLocalDateTimeString(this.Meeting.StartDateTime);
             if (this.Meeting.EndDateTime) {
@@ -434,14 +434,14 @@ export class MeetingEditDialogComponent implements OnInit {
 
         // Delete removed attendees
         for (const attendee of this.Attendees.filter(a => a.IsRemoved && !a.IsNew)) {
-            const entity = await md.GetEntityObject<mjCommitteesAttendanceEntity>('Committees: Attendances');
+            const entity = await md.GetEntityObject<mjBizAppsCommitteesAttendanceEntity>('Committees: Attendances');
             await entity.Load(attendee.ID!);
             await entity.Delete();
         }
 
         // Create new attendees
         for (const attendee of this.Attendees.filter(a => a.IsNew && !a.IsRemoved)) {
-            const entity = await md.GetEntityObject<mjCommitteesAttendanceEntity>('Committees: Attendances');
+            const entity = await md.GetEntityObject<mjBizAppsCommitteesAttendanceEntity>('Committees: Attendances');
             entity.MeetingID = this.Meeting!.ID;
             entity.PersonID = attendee.PersonID;
             entity.AttendanceStatus = attendee.Status;

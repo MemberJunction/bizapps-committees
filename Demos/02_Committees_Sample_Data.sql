@@ -97,11 +97,11 @@ DECLARE @TypeBoard        UNIQUEIDENTIFIER,
         @TypeWorkgroup    UNIQUEIDENTIFIER,
         @TypeStandardsWG  UNIQUEIDENTIFIER;
 
-SELECT @TypeBoard       = ID FROM __mj_Committees.[Type] WHERE Name = 'Board of Directors';
-SELECT @TypeStanding    = ID FROM __mj_Committees.[Type] WHERE Name = 'Standing Committee';
-SELECT @TypeAdHoc       = ID FROM __mj_Committees.[Type] WHERE Name = 'Ad Hoc Committee';
-SELECT @TypeWorkgroup   = ID FROM __mj_Committees.[Type] WHERE Name = 'Workgroup';
-SELECT @TypeStandardsWG = ID FROM __mj_Committees.[Type] WHERE Name = 'Standards Working Group';
+SELECT @TypeBoard       = ID FROM __mj_BizAppsCommittees.[Type] WHERE Name = 'Board of Directors';
+SELECT @TypeStanding    = ID FROM __mj_BizAppsCommittees.[Type] WHERE Name = 'Standing Committee';
+SELECT @TypeAdHoc       = ID FROM __mj_BizAppsCommittees.[Type] WHERE Name = 'Ad Hoc Committee';
+SELECT @TypeWorkgroup   = ID FROM __mj_BizAppsCommittees.[Type] WHERE Name = 'Workgroup';
+SELECT @TypeStandardsWG = ID FROM __mj_BizAppsCommittees.[Type] WHERE Name = 'Standards Working Group';
 
 IF @TypeBoard IS NULL OR @TypeStanding IS NULL OR @TypeAdHoc IS NULL
 BEGIN
@@ -120,13 +120,13 @@ DECLARE @RoleChair     UNIQUEIDENTIFIER,
         @RoleLiaison   UNIQUEIDENTIFIER,
         @RoleAdvisor   UNIQUEIDENTIFIER;
 
-SELECT @RoleChair     = ID FROM __mj_Committees.[Role] WHERE Name = 'Chair';
-SELECT @RoleViceChair = ID FROM __mj_Committees.[Role] WHERE Name = 'Vice Chair';
-SELECT @RoleSecretary = ID FROM __mj_Committees.[Role] WHERE Name = 'Secretary';
-SELECT @RoleMember    = ID FROM __mj_Committees.[Role] WHERE Name = 'Member';
-SELECT @RoleNonVoting = ID FROM __mj_Committees.[Role] WHERE Name = 'Non-Voting Member';
-SELECT @RoleLiaison   = ID FROM __mj_Committees.[Role] WHERE Name = 'Liaison';
-SELECT @RoleAdvisor   = ID FROM __mj_Committees.[Role] WHERE Name = 'Advisor';
+SELECT @RoleChair     = ID FROM __mj_BizAppsCommittees.[Role] WHERE Name = 'Chair';
+SELECT @RoleViceChair = ID FROM __mj_BizAppsCommittees.[Role] WHERE Name = 'Vice Chair';
+SELECT @RoleSecretary = ID FROM __mj_BizAppsCommittees.[Role] WHERE Name = 'Secretary';
+SELECT @RoleMember    = ID FROM __mj_BizAppsCommittees.[Role] WHERE Name = 'Member';
+SELECT @RoleNonVoting = ID FROM __mj_BizAppsCommittees.[Role] WHERE Name = 'Non-Voting Member';
+SELECT @RoleLiaison   = ID FROM __mj_BizAppsCommittees.[Role] WHERE Name = 'Liaison';
+SELECT @RoleAdvisor   = ID FROM __mj_BizAppsCommittees.[Role] WHERE Name = 'Advisor';
 
 IF @RoleChair IS NULL OR @RoleMember IS NULL
 BEGIN
@@ -144,12 +144,12 @@ DECLARE @ArtDoc          UNIQUEIDENTIFIER,
         @ArtPresentation UNIQUEIDENTIFIER,
         @ArtSpreadsheet  UNIQUEIDENTIFIER;
 
-SELECT @ArtDoc          = ID FROM __mj_Committees.ArtifactType WHERE Name = 'Document';
-SELECT @ArtMinutes      = ID FROM __mj_Committees.ArtifactType WHERE Name = 'Minutes';
-SELECT @ArtAgenda       = ID FROM __mj_Committees.ArtifactType WHERE Name = 'Agenda';
-SELECT @ArtRecording    = ID FROM __mj_Committees.ArtifactType WHERE Name = 'Recording';
-SELECT @ArtPresentation = ID FROM __mj_Committees.ArtifactType WHERE Name = 'Presentation';
-SELECT @ArtSpreadsheet  = ID FROM __mj_Committees.ArtifactType WHERE Name = 'Spreadsheet';
+SELECT @ArtDoc          = ID FROM __mj_BizAppsCommittees.ArtifactType WHERE Name = 'Document';
+SELECT @ArtMinutes      = ID FROM __mj_BizAppsCommittees.ArtifactType WHERE Name = 'Minutes';
+SELECT @ArtAgenda       = ID FROM __mj_BizAppsCommittees.ArtifactType WHERE Name = 'Agenda';
+SELECT @ArtRecording    = ID FROM __mj_BizAppsCommittees.ArtifactType WHERE Name = 'Recording';
+SELECT @ArtPresentation = ID FROM __mj_BizAppsCommittees.ArtifactType WHERE Name = 'Presentation';
+SELECT @ArtSpreadsheet  = ID FROM __mj_BizAppsCommittees.ArtifactType WHERE Name = 'Spreadsheet';
 
 IF @ArtDoc IS NULL OR @ArtMinutes IS NULL
 BEGIN
@@ -176,7 +176,7 @@ DECLARE @CommBoard       UNIQUEIDENTIFIER = NEWID(),
         @CommConference  UNIQUEIDENTIFIER = NEWID();
 
 -- Board of Directors
-INSERT INTO __mj_Committees.Committee
+INSERT INTO __mj_BizAppsCommittees.Committee
     (ID, Name, Description, TypeID, ParentCommitteeID, OrganizationID,
      CharterDocumentURL, MissionStatement, Status, IsPublic, FormationDate, DissolutionDate)
 VALUES
@@ -191,7 +191,7 @@ VALUES
      'Active', 1, '1998-03-15', NULL);
 
 -- Finance & Audit Committee
-INSERT INTO __mj_Committees.Committee
+INSERT INTO __mj_BizAppsCommittees.Committee
     (ID, Name, Description, TypeID, ParentCommitteeID, OrganizationID,
      CharterDocumentURL, MissionStatement, Status, IsPublic, FormationDate, DissolutionDate)
 VALUES
@@ -206,7 +206,7 @@ VALUES
      'Active', 1, '2000-01-01', NULL);
 
 -- Membership & Outreach Committee
-INSERT INTO __mj_Committees.Committee
+INSERT INTO __mj_BizAppsCommittees.Committee
     (ID, Name, Description, TypeID, ParentCommitteeID, OrganizationID,
      CharterDocumentURL, MissionStatement, Status, IsPublic, FormationDate, DissolutionDate)
 VALUES
@@ -221,7 +221,7 @@ VALUES
      'Active', 1, '2005-06-01', NULL);
 
 -- Technology Standards Committee
-INSERT INTO __mj_Committees.Committee
+INSERT INTO __mj_BizAppsCommittees.Committee
     (ID, Name, Description, TypeID, ParentCommitteeID, OrganizationID,
      CharterDocumentURL, MissionStatement, Status, IsPublic, FormationDate, DissolutionDate)
 VALUES
@@ -236,7 +236,7 @@ VALUES
      'Active', 1, '2015-01-15', NULL);
 
 -- Data Interoperability Workgroup
-INSERT INTO __mj_Committees.Committee
+INSERT INTO __mj_BizAppsCommittees.Committee
     (ID, Name, Description, TypeID, ParentCommitteeID, OrganizationID,
      CharterDocumentURL, MissionStatement, Status, IsPublic, FormationDate, DissolutionDate)
 VALUES
@@ -251,7 +251,7 @@ VALUES
      'Active', 1, '2024-01-01', NULL);
 
 -- 2025 Annual Conference Committee (Dissolved)
-INSERT INTO __mj_Committees.Committee
+INSERT INTO __mj_BizAppsCommittees.Committee
     (ID, Name, Description, TypeID, ParentCommitteeID, OrganizationID,
      CharterDocumentURL, MissionStatement, Status, IsPublic, FormationDate, DissolutionDate)
 VALUES
@@ -265,7 +265,7 @@ VALUES
      'To plan and deliver an outstanding annual conference that brings together standards practitioners, industry leaders, and community members.',
      'Dissolved', 1, '2024-06-01', '2025-12-31');
 
-PRINT 'Inserted 6 __mj_Committees.';
+PRINT 'Inserted 6 __mj_BizAppsCommittees.';
 
 
 -- ============================================================================
@@ -300,7 +300,7 @@ DECLARE @TermData24Q34  UNIQUEIDENTIFIER = NEWID(),
 -- Conference Committee term
 DECLARE @TermConf2025   UNIQUEIDENTIFIER = NEWID();
 
-INSERT INTO __mj_Committees.Term (ID, CommitteeID, Name, StartDate, EndDate, Status)
+INSERT INTO __mj_BizAppsCommittees.Term (ID, CommitteeID, Name, StartDate, EndDate, Status)
 VALUES
     -- Board of Directors
     (@TermBoard2324, @CommBoard, '2023-2024', '2023-07-01', '2024-06-30', 'Completed'),
@@ -391,7 +391,7 @@ DECLARE @MemConf_Emily    UNIQUEIDENTIFIER = NEWID(),
         @MemConf_Benjamin UNIQUEIDENTIFIER = NEWID(),
         @MemConf_Hannah   UNIQUEIDENTIFIER = NEWID();
 
-INSERT INTO __mj_Committees.Membership
+INSERT INTO __mj_BizAppsCommittees.Membership
     (ID, CommitteeID, PersonID, RoleID, TermID, StartDate, EndDate, Status, EndReason, Notes)
 VALUES
     -- ---- Board 2025-2026 (Active) ----
@@ -461,7 +461,7 @@ DECLARE @MtgBoardQ4    UNIQUEIDENTIFIER = NEWID(),
         @MtgFinJan     UNIQUEIDENTIFIER = NEWID(),
         @MtgTechKick   UNIQUEIDENTIFIER = NEWID();
 
-INSERT INTO __mj_Committees.Meeting
+INSERT INTO __mj_BizAppsCommittees.Meeting
     (ID, CommitteeID, Title, Description, StartDateTime, EndDateTime, TimeZone,
      LocationType, LocationText, VideoProvider, VideoMeetingID, VideoJoinURL,
      VideoRecordingURL, TranscriptURL, Status, CalendarEventID)
@@ -576,7 +576,7 @@ DECLARE @AgTech_Welcome       UNIQUEIDENTIFIER = NEWID(),
         @AgTech_NextSteps     UNIQUEIDENTIFIER = NEWID();
 
 -- Board Q4 2025 Meeting agenda
-INSERT INTO __mj_Committees.AgendaItem
+INSERT INTO __mj_BizAppsCommittees.AgendaItem
     (ID, MeetingID, ParentAgendaItemID, Sequence, Title, Description,
      PresenterPersonID, DurationMinutes, ItemType, RelatedDocumentURL, Status, Notes)
 VALUES
@@ -641,7 +641,7 @@ VALUES
      'Meeting adjourned at 3:52 PM ET.');
 
 -- Board Q1 2026 Meeting agenda
-INSERT INTO __mj_Committees.AgendaItem
+INSERT INTO __mj_BizAppsCommittees.AgendaItem
     (ID, MeetingID, ParentAgendaItemID, Sequence, Title, Description,
      PresenterPersonID, DurationMinutes, ItemType, RelatedDocumentURL, Status, Notes)
 VALUES
@@ -676,7 +676,7 @@ VALUES
      'Meeting adjourned at 3:45 PM ET.');
 
 -- Board Q2 2026 Meeting agenda (draft/upcoming)
-INSERT INTO __mj_Committees.AgendaItem
+INSERT INTO __mj_BizAppsCommittees.AgendaItem
     (ID, MeetingID, ParentAgendaItemID, Sequence, Title, Description,
      PresenterPersonID, DurationMinutes, ItemType, RelatedDocumentURL, Status, Notes)
 VALUES
@@ -696,7 +696,7 @@ VALUES
      @Sarah, 30, 'Report', NULL, 'Pending', NULL);
 
 -- Finance January 2026 Meeting agenda
-INSERT INTO __mj_Committees.AgendaItem
+INSERT INTO __mj_BizAppsCommittees.AgendaItem
     (ID, MeetingID, ParentAgendaItemID, Sequence, Title, Description,
      PresenterPersonID, DurationMinutes, ItemType, RelatedDocumentURL, Status, Notes)
 VALUES
@@ -725,7 +725,7 @@ VALUES
      'Next meeting set for February 5, 2026.');
 
 -- Tech Standards Kickoff 2025 agenda
-INSERT INTO __mj_Committees.AgendaItem
+INSERT INTO __mj_BizAppsCommittees.AgendaItem
     (ID, MeetingID, ParentAgendaItemID, Sequence, Title, Description,
      PresenterPersonID, DurationMinutes, ItemType, RelatedDocumentURL, Status, Notes)
 VALUES
@@ -760,7 +760,7 @@ PRINT 'Inserted Agenda Items.';
 -- STEP 7: Attendance (~30)
 -- ============================================================================
 
-INSERT INTO __mj_Committees.Attendance
+INSERT INTO __mj_BizAppsCommittees.Attendance
     (ID, MeetingID, PersonID, AttendanceStatus, JoinedAt, LeftAt, Notes)
 VALUES
     -- ---- Board Q4 2025 Meeting ----
@@ -809,7 +809,7 @@ PRINT 'Inserted Attendance records.';
 -- STEP 8: Action Items (10)
 -- ============================================================================
 
-INSERT INTO __mj_Committees.ActionItem
+INSERT INTO __mj_BizAppsCommittees.ActionItem
     (ID, CommitteeID, MeetingID, AgendaItemID, Title, Description,
      AssignedToPersonID, AssignedByPersonID, DueDate, Priority, Status,
      CompletedAt, CompletionNotes)
@@ -907,7 +907,7 @@ DECLARE @ArtBrdQ4Minutes   UNIQUEIDENTIFIER = NEWID(),
         @ArtDataInteropSpec UNIQUEIDENTIFIER = NEWID(),
         @ArtMemGrowth      UNIQUEIDENTIFIER = NEWID();
 
-INSERT INTO __mj_Committees.Artifact
+INSERT INTO __mj_BizAppsCommittees.Artifact
     (ID, CommitteeID, MeetingID, AgendaItemID, ActionItemID, Title, Description,
      ArtifactTypeID, Provider, ExternalID, URL, MimeType, FileSize, UploadedByPersonID)
 VALUES
@@ -982,7 +982,7 @@ PRINT 'Inserted 8 Artifacts.';
 -- STEP 10: Minutes (2)
 -- ============================================================================
 
-INSERT INTO __mj_Committees.Minute
+INSERT INTO __mj_BizAppsCommittees.Minute
     (ID, ArtifactID, ApprovalStatus, ApprovedAt, ApprovedByMeetingID, Notes)
 VALUES
     -- Board Q4 2025 Minutes - Approved at the Q1 2026 meeting
@@ -1008,7 +1008,7 @@ DECLARE @Motion1_ApproveQ3Min  UNIQUEIDENTIFIER = NEWID(),
         @Motion2_ApproveBudget UNIQUEIDENTIFIER = NEWID(),
         @Motion3_ApproveQ4Min  UNIQUEIDENTIFIER = NEWID();
 
-INSERT INTO __mj_Committees.Motion
+INSERT INTO __mj_BizAppsCommittees.Motion
     (ID, MeetingID, AgendaItemID, Sequence, Title, Description,
      MovedByMembershipID, SecondedByMembershipID,
      Result, ResultSummary, YesCount, NoCount, AbstainCount, Notes)
@@ -1044,7 +1044,7 @@ PRINT 'Inserted 3 Motions.';
 -- STEP 12: Votes (~18)
 -- ============================================================================
 
-INSERT INTO __mj_Committees.Vote
+INSERT INTO __mj_BizAppsCommittees.Vote
     (ID, MotionID, MembershipID, VoteValue, Notes)
 VALUES
     -- ---- Motion 1: Approve Q3 Minutes (Board Q4 2025 - 6 present voting members) ----

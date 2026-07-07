@@ -32,7 +32,7 @@
       <!-- ── 90-day lens ────────────────────────────────────── -->
       <div class="lens" role="list" aria-label="Terms expiring in the next 90 days">
         @for (chip of Clock.Lens; track chip.CommitteeID) {
-          <button type="button" class="lens-chip" role="listitem" (click)="OpenCommittee(chip.CommitteeID)">
+          <button type="button" class="lens-chip" role="listitem" (click)="OnChipClick(chip)">
             <span class="when" [class.err]="LensTone(chip) === 'err'" [class.warn]="LensTone(chip) === 'warn'" [class.ok]="LensTone(chip) === 'ok'">{{ LensWhen(chip) }}</span>
             <b>{{ chip.CommitteeName }}</b>
             <small>
@@ -64,6 +64,9 @@
                 <option [value]="c.ID">{{ c.Name }}</option>
               }
             </select>
+            <button type="button" class="btn sm renew-btn" (click)="OpenRenewal(SelectedCommitteeID)">
+              <i class="fa-solid fa-rotate"></i> Start term renewal
+            </button>
           </div>
           <div class="card-b gantt">
             <div class="g-head" [style.grid-template-columns]="'220px repeat(' + Clock.Axis.Buckets.length + ', 1fr) 118px'">
@@ -145,3 +148,8 @@
     }
   </div>
 </div>
+
+@if (RenewalCommitteeID) {
+  <committees-term-renewal-wizard [CommitteeID]="RenewalCommitteeID" (Exited)="OnRenewalExited($event)">
+  </committees-term-renewal-wizard>
+}

@@ -28,6 +28,9 @@
         <p class="fit">Fit: <b>{{ s.Fit }}</b></p>
         <p class="why">{{ s.Rationale }}</p>
         <div class="acts">
+          @if (EnablePick) {
+            <button type="button" class="btn ai sm" (click)="Pick(s)"><i class="fa-solid fa-user-plus"></i> Add to roster</button>
+          }
           <button type="button" class="btn sm ghost" (click)="Dismiss(s)">Not now</button>
         </div>
       </div>

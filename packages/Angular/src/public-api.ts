@@ -41,4 +41,5 @@ export * from './lib/live-meeting/live-meeting.component';
 export * from './lib/minutes-review/minutes-review.component';
 export * from './lib/people-terms/people-terms.component';
 export * from './lib/people-terms/succession-suggestions.component';
+export * from './lib/people-terms/term-renewal-wizard.component';
 export * from './lib/member-home/member-home.component';

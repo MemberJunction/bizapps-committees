@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, Input, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, EventEmitter, Input, Output, inject } from '@angular/core';
 import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
 
 /** One AI-proposed successor with the evidence behind the claim. */
@@ -40,6 +40,11 @@ export class SuccessionSuggestionsComponent {
     get CommitteeID(): string | null { return this._committeeID; }
 
     @Input() CommitteeName = '';
+
+    /** When true, each card offers "Add to roster" and emits Picked — used by
+     *  the term-renewal wizard. People & Terms leaves this off (view-only rail). */
+    @Input() EnablePick = false;
+    @Output() Picked = new EventEmitter<SuccessionSuggestion>();
 
     Suggestions: SuccessionSuggestion[] = [];
     IsGenerating = false;
@@ -83,6 +88,12 @@ export class SuccessionSuggestionsComponent {
 
     Dismiss(suggestion: SuccessionSuggestion): void {
         this.dismissed.add(suggestion.PersonID);
+        this.cdr.markForCheck();
+    }
+
+    Pick(suggestion: SuccessionSuggestion): void {
+        this.Picked.emit(suggestion);
+        this.dismissed.add(suggestion.PersonID);   // picked cards leave the rail
         this.cdr.markForCheck();
     }
 

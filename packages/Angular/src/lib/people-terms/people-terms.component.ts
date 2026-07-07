@@ -135,4 +135,30 @@ export class PeopleTermsComponent extends BaseResourceComponent implements OnIni
     OpenCommittee(committeeID: string): void {
         this.router.navigate(['/app/mjcommitteemgmt', 'Committees'], { queryParams: { committeeId: committeeID } });
     }
+
+    // ── Term-renewal wizard ─────────────────────────────────────
+
+    RenewalCommitteeID: string | null = null;
+
+    /** Lapsed chips say "renew now" — they open the wizard; the rest open the committee. */
+    OnChipClick(chip: LensChip): void {
+        if (chip.State === 'Lapsed') this.OpenRenewal(chip.CommitteeID);
+        else this.OpenCommittee(chip.CommitteeID);
+    }
+
+    OpenRenewal(committeeID: string | null): void {
+        if (!committeeID) return;
+        this.RenewalCommitteeID = committeeID;
+        this.cdr.detectChanges();
+    }
+
+    async OnRenewalExited(created: boolean): Promise<void> {
+        const committeeID = this.RenewalCommitteeID;
+        this.RenewalCommitteeID = null;
+        this.cdr.detectChanges();
+        if (created && committeeID) {
+            this.SelectedCommitteeID = committeeID;
+            await this.Load();
+        }
+    }
 }

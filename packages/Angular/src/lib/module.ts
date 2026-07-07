@@ -49,6 +49,7 @@ import { LiveMeetingComponent, LoadLiveMeeting } from './live-meeting/live-meeti
 import { MinutesReviewComponent, LoadMinutesReview } from './minutes-review/minutes-review.component';
 import { PeopleTermsComponent, LoadPeopleTerms } from './people-terms/people-terms.component';
 import { SuccessionSuggestionsComponent } from './people-terms/succession-suggestions.component';
+import { TermRenewalWizardComponent } from './people-terms/term-renewal-wizard.component';
 import { MemberHomeComponent, LoadMemberHome } from './member-home/member-home.component';
 
 @NgModule({
@@ -90,6 +91,7 @@ import { MemberHomeComponent, LoadMemberHome } from './member-home/member-home.c
         MinutesReviewComponent,
         PeopleTermsComponent,
         SuccessionSuggestionsComponent,
+        TermRenewalWizardComponent,
         MemberHomeComponent,
     ],
     imports: [

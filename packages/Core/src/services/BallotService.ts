@@ -157,9 +157,10 @@ export class BallotService {
         return { Outcome: 'Undecided', RequiredYes: requiredIfAllVote, IsDecided: false, DecidedReason: null };
     }
 
-    /** Seal check: choices are hidden while a sealed ballot is not Closed. */
+    /** Seal check: a sealed ballot is a secret ballot — individual choices stay
+     *  hidden permanently, in every status. Closing reveals only the tally. */
     public static AreChoicesSealed(ballot: { IsSealed: boolean; Status: string }): boolean {
-        return ballot.IsSealed && ballot.Status !== 'Closed';
+        return ballot.IsSealed;
     }
 
     /** Countdown to the scheduled close, from an injected now. */

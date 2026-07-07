@@ -28,6 +28,8 @@ export type {
 
 export { MinutesService } from './services/MinutesService.js';
 export { SuccessionSuggestionService } from './services/SuccessionSuggestionService.js';
+export { BallotReminderService } from './services/BallotReminderService.js';
+export type { RemindResult } from './services/BallotReminderService.js';
 export type { SuccessorSuggestion, SuggestSuccessorsResult } from './services/SuccessionSuggestionService.js';
 export type { MinutesDraftResult, MinutesSaveResult } from './services/MinutesService.js';
 

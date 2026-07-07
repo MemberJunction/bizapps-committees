@@ -93,3 +93,69 @@ Current/Renewed, gantt shows the new bars, pipeline resets to AwaitingAnswer row
    overlay) + entry-point wiring in People & Terms.
 3. Write path + partial-retry guard; Playwright pass (renew a lapsed committee
    end-to-end, verify lens flips and pipeline resets); demo-data reset note.
+
+> **Status: shipped** (`0f81e16`) — 7/7 end-to-end, 82 unit tests.
+> Decisions taken: Undecided/never-asked carry flagged; Lapsed chips open the
+> wizard; AI suggestions opt-in per opening.
+
+---
+
+## Feature 2 — Ballot-Close Ceremony + Remind
+
+### Why now
+Phase 2's close is one silent click: correct math, instant Motion stamp, no
+moment of record. Closing a ballot is the governance act — the chair should
+see participation, the threshold math, and the outcome that is about to be
+stamped *before* committing, and non-voters should be nudgeable while the
+ballot is still open. "Remind" was explicitly deferred to this phase.
+
+### What exists (Phase 2)
+- `BallotService`: RequiredYes / ForecastOutcome (decided-early detection),
+  countdowns, seal semantics. `OnCloseBallot` in Motions & Ballots stamps
+  Motion (Result/Summary/counts) and flips Ballot → Closed.
+- Sealed ballots hide individual choices while Open.
+- Server-side notification pattern: `CommitteeNotificationHandler` creates
+  `MJ: User Notifications` (in-app bell) via Person.LinkedUserID.
+
+### Ceremony (replaces the silent close)
+Clicking **Close ballot** opens a confirm dialog:
+- **Participation**: X of N voting members cast; outstanding members listed
+  by name (they are known — sealed hides *choices*, not *who has voted*).
+- **Threshold math**: required Yes for the threshold/basis vs. Yes so far,
+  rendered as the same forecast members see, plus the outcome to be stamped.
+- **Early-close warning** when ClosesAt is in the future and the outcome is
+  not yet mathematically decided: "outstanding votes could change the result".
+- **Result notes**: pre-filled with the stamp summary, editable — the chair's
+  annotation lands in `Ballot.ResultNotes`.
+- Confirm (left) → close+stamp (existing write path), then a **reveal state**
+  in the dialog: outcome banner, final tally bar, participation line — the
+  ceremonial beat before returning to the list.
+- Secondary action: **Cancel ballot** (Status → Cancelled, no Motion stamp,
+  notes required) for withdrawn motions.
+
+### Remind (non-voters, while Open)
+- **Remind** button on open ballots: server mutation `RemindBallotNonVoters`
+  (committees-server resolver + CoreEntitiesServer service, mirroring
+  SuggestSuccessors) — finds voting members without a Vote on the motion,
+  creates an in-app `MJ: User Notifications` row per member with a linked
+  user account ("Your vote is needed: <motion> — closes <date>").
+- Result reported honestly: "Reminded 4 of 6 — 2 have no linked account"
+  (email delivery arrives with workstream 4; the service is written so the
+  digest can reuse the same non-voter computation).
+- No spam guard column exists and none is invented — the button reports the
+  last reminder in-session only.
+
+### Not in this feature
+- Email delivery (workstream 4 owns the channel).
+- Per-voter breakdown of sealed ballots after close — sealed means the
+  individual choices stay sealed; the ceremony reveals the tally.
+
+### Build order
+1. `BallotCloseService` math additions if needed (participation summary is
+   already computable from BallotService) + non-voter computation shared
+   client/server (committees-core, pure + tested).
+2. Server: `BallotReminderService` (CoreEntitiesServer) + `RemindBallotNonVoters`
+   mutation (Server resolver).
+3. Ceremony dialog component in motions-ballots + Remind wiring; Playwright
+   pass (remind → bell notification exists; close early with warning; reveal;
+   cancel path).

@@ -25243,6 +25243,7 @@ type Mutation {
   RelayRealtimeTranscript(agentSessionId: String!, replacesPrevious: Boolean, role: String!, text: String!, utteranceEndMs: Int, utteranceStartMs: Int): Boolean!
   RelayRealtimeUsage(agentSessionId: String!, inputTokens: Int!, outputTokens: Int!): Boolean!
   RelayRemoteBrowserHumanInput(agentSessionID: String!, button: String, deltaX: Float, deltaY: Float, key: String, kind: String!, modifiers: String, text: String, x: Float, y: Float): Boolean!
+  RemindBallotNonVoters(input: RemindBallotNonVotersInput!): RemindBallotNonVotersResponse!
   RespondToAgentRequest(requestId: String!, response: String, responseData: String, resumeAgent: Boolean, status: String!): AIAgentRunResult!
   RespondToClientToolRequest(errorMessage: String, requestID: String!, result: String, success: Boolean!): Boolean!
   ResumeClassificationPipeline(processRunID: String!): AutotagPipelineResult!
@@ -27898,6 +27899,18 @@ type RegistryComponentSearchResultType {
 type RejectSuggestionResult {
   ErrorMessage: String
   Success: Boolean!
+}
+
+input RemindBallotNonVotersInput {
+  BallotID: String!
+}
+
+type RemindBallotNonVotersResponse {
+  ErrorMessage: String
+  RemindedCount: Int!
+  Success: Boolean!
+  TotalNonVoters: Int!
+  UnreachableNames: [String!]!
 }
 
 type RemoteBrowserActionResult {

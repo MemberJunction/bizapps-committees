@@ -9,6 +9,7 @@ import {
     BallotThresholdType, RollCallEntry,
 } from '@mj-biz-apps/committees-core';
 import { mjBizAppsCommitteesBallotEntity, mjBizAppsCommitteesMotionEntity, mjBizAppsCommitteesVoteEntity } from '@mj-biz-apps/committees-entities';
+import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 interface BallotRow {
@@ -246,7 +247,7 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
         if (b.Status === 'Open') {
             events.push({
                 Kind: 'system', IsScheduled: true, When: new Date(b.ClosesAt),
-                Text: 'Ballot closes — result computed, votes unsealed, Motion stamped',
+                Text: 'Ballot closes — result computed, tally revealed, Motion stamped',
             });
         } else if (b.ClosedAt) {
             events.push({
@@ -371,37 +372,51 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
      * Close the ballot: compute the outcome from the recorded votes, stamp the
      * Motion (result + counts), unseal, and mark the ballot Closed.
      */
-    async OnCloseBallot(view: BallotView): Promise<void> {
-        if (this.IsActing) return;
-        this.IsActing = true;
+    // ── Close ceremony + Remind (Phase 4 feature 2) ─────────────
+
+    CloseTarget: BallotView | null = null;
+    /** Per-ballot remind outcome text, session-only. */
+    RemindResults = new Map<string, string>();
+    RemindingBallotID: string | null = null;
+
+    OnCloseBallot(view: BallotView): void {
+        this.CloseTarget = view;
+        this.cdr.detectChanges();
+    }
+
+    async OnCloseDialogExited(changed: boolean): Promise<void> {
+        this.CloseTarget = null;
+        this.cdr.detectChanges();
+        if (changed) await this.Load();
+    }
+
+    async OnRemind(view: BallotView): Promise<void> {
+        if (this.RemindingBallotID) return;
+        this.RemindingBallotID = view.Ballot.ID;
+        this.cdr.detectChanges();
         try {
-            const outcome = BallotService.ForecastOutcome(
-                { ...view.Tally, Outstanding: 0 }, view.Ballot.ThresholdType, 'VotingMembers', view.VotingMemberCount);
-            const result = outcome.Outcome === 'Passed' ? 'Passed' : 'Failed';
-            const summary = `E-ballot ${result.toLowerCase()} ${view.Tally.Yes}-${view.Tally.No}-${view.Tally.Abstain}`
-                + ` (${this.ThresholdLabel(view.Ballot.ThresholdType)}, ${view.Tally.Cast} of ${view.VotingMemberCount} voting members cast)`;
-
-            const md = new Metadata();
-            const motion = await md.GetEntityObject<mjBizAppsCommitteesMotionEntity>('Committees: Motions');
-            if (!await motion.Load(view.Ballot.MotionID)) throw new Error('Motion not found');
-            motion.Result = result;
-            motion.ResultSummary = summary;
-            motion.YesCount = view.Tally.Yes;
-            motion.NoCount = view.Tally.No;
-            motion.AbstainCount = view.Tally.Abstain;
-            if (!await motion.Save()) throw new Error(motion.LatestResult?.Message ?? 'Motion stamp failed');
-
-            const ballot = await this.loadBallotEntity(view.Ballot.ID);
-            ballot.Status = 'Closed';
-            ballot.ClosedAt = new Date();
-            ballot.ResultNotes = summary;
-            if (!await ballot.Save()) throw new Error(ballot.LatestResult?.Message ?? 'Ballot close failed');
-            await this.Load();
+            const query = `mutation RemindBallotNonVoters($input: RemindBallotNonVotersInput!) {
+                RemindBallotNonVoters(input: $input) {
+                    Success ErrorMessage TotalNonVoters RemindedCount UnreachableNames
+                }
+            }`;
+            const result = await GraphQLDataProvider.Instance.ExecuteGQL(query, { input: { BallotID: view.Ballot.ID } });
+            const payload = result?.RemindBallotNonVoters;
+            if (!payload?.Success) throw new Error(payload?.ErrorMessage ?? 'Reminder failed');
+            this.RemindResults.set(view.Ballot.ID, this.remindSummary(payload));
         } catch (err) {
-            this.ErrorMessage = err instanceof Error ? err.message : 'Failed to close ballot';
-            this.cdr.detectChanges();
+            this.RemindResults.set(view.Ballot.ID, err instanceof Error ? err.message : 'Reminder failed');
         }
-        this.IsActing = false;
+        this.RemindingBallotID = null;
+        this.cdr.detectChanges();
+    }
+
+    private remindSummary(payload: { TotalNonVoters: number; RemindedCount: number; UnreachableNames: string[] }): string {
+        if (payload.TotalNonVoters === 0) return 'Everyone has voted — nothing to remind.';
+        const base = `Reminded ${payload.RemindedCount} of ${payload.TotalNonVoters}`;
+        return payload.UnreachableNames.length > 0
+            ? `${base} — no linked account: ${payload.UnreachableNames.join(', ')}`
+            : `${base} via in-app notification.`;
     }
 
     private async loadBallotEntity(id: string): Promise<mjBizAppsCommitteesBallotEntity> {

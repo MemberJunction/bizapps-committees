@@ -130,7 +130,7 @@ describe('ForecastOutcome — Unanimous', () => {
 describe('AreChoicesSealed', () => {
     it('sealed while open, unsealed at close, never sealed when IsSealed=false', () => {
         expect(BallotService.AreChoicesSealed({ IsSealed: true, Status: 'Open' })).toBe(true);
-        expect(BallotService.AreChoicesSealed({ IsSealed: true, Status: 'Closed' })).toBe(false);
+        expect(BallotService.AreChoicesSealed({ IsSealed: true, Status: 'Closed' })).toBe(true);   // secret ballots stay secret
         expect(BallotService.AreChoicesSealed({ IsSealed: false, Status: 'Open' })).toBe(false);
         expect(BallotService.AreChoicesSealed({ IsSealed: true, Status: 'Cancelled' })).toBe(true);
     });

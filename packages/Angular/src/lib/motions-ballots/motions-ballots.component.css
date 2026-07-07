@@ -2,7 +2,9 @@
 
 :host {
     display: block;
-    min-height: 100%;
+    /* The shell's resource wrapper clips overflow — this component owns its scroll. */
+    height: 100%;
+    overflow-y: auto;
     background: var(--mj-bg-page);
     color: var(--mj-text-primary);
 }
@@ -224,3 +226,7 @@
     border-color: color-mix(in srgb, var(--mj-status-error-border) 30%, transparent);
     color: var(--mj-status-error-text);
 }
+
+/* Remind outcome line (session-only, under the ballot card footer) */
+.remind-note { color: var(--mj-status-info-text); background: var(--mj-status-info-bg); }
+.remind-note i { color: inherit; }

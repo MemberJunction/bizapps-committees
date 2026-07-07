@@ -7,7 +7,7 @@
  *   B2  Ballot open: 1:1 with the motion (UQ enforced — a second ballot on
  *       the same motion must FAIL), window CHECK (ClosesAt > OpensAt) enforced
  *   B3  Sealed voting: votes accumulate as ordinary Vote rows; seal-state
- *       logic (BallotService.AreChoicesSealed) hides choices while Open
+ *       logic (BallotService.AreChoicesSealed) hides choices permanently (secret ballot)
  *   B4  Close: outcome computed (TwoThirds of voting members), Motion stamped,
  *       Ballot → Closed + ClosedAt + ResultNotes, choices unsealed
  *   B5  Threshold math cross-check: DB tally reproduces BallotService numbers
@@ -146,9 +146,9 @@ async function main(): Promise<void> {
             assert(n === 4, `raw SQL sees ${n} votes, expected 4`);
         });
 
-        await test('B3.2 seal-state logic hides choices while Open', async () => {
+        await test('B3.2 seal-state logic hides choices permanently (secret ballot)', async () => {
             assert(BallotService.AreChoicesSealed({ IsSealed: true, Status: 'Open' }) === true, 'open sealed ballot must hide choices');
-            assert(BallotService.AreChoicesSealed({ IsSealed: true, Status: 'Closed' }) === false, 'closed ballot must reveal choices');
+            assert(BallotService.AreChoicesSealed({ IsSealed: true, Status: 'Closed' }) === true, 'sealed ballots stay sealed after close (tally only)');
         });
 
         // ── B4/B5: close + stamp + math cross-check ─────────────

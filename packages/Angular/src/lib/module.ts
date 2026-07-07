@@ -50,6 +50,7 @@ import { MinutesReviewComponent, LoadMinutesReview } from './minutes-review/minu
 import { PeopleTermsComponent, LoadPeopleTerms } from './people-terms/people-terms.component';
 import { SuccessionSuggestionsComponent } from './people-terms/succession-suggestions.component';
 import { TermRenewalWizardComponent } from './people-terms/term-renewal-wizard.component';
+import { BallotCloseDialogComponent } from './motions-ballots/ballot-close-dialog.component';
 import { MemberHomeComponent, LoadMemberHome } from './member-home/member-home.component';
 
 @NgModule({
@@ -92,6 +93,7 @@ import { MemberHomeComponent, LoadMemberHome } from './member-home/member-home.c
         PeopleTermsComponent,
         SuccessionSuggestionsComponent,
         TermRenewalWizardComponent,
+        BallotCloseDialogComponent,
         MemberHomeComponent,
     ],
     imports: [

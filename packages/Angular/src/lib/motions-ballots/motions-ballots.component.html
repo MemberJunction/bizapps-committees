@@ -105,13 +105,19 @@
             </div>
             <div class="card-f">
               <i class="fa-solid fa-shield-halved"></i>
-              <span>Votes are Vote records against this motion@if (view.Sealed) { — sealed from everyone until the ballot closes, then permanently attributable}.</span>
+              <span>Votes are Vote records against this motion@if (view.Sealed) { — a secret ballot: individual choices stay sealed permanently, only the tally is revealed at close}.</span>
               <span class="spacer"></span>
+              <button type="button" class="btn sm ghost" [disabled]="RemindingBallotID === view.Ballot.ID" (click)="OnRemind(view)">
+                <i class="fa-solid fa-bell"></i> {{ RemindingBallotID === view.Ballot.ID ? 'Reminding…' : 'Remind' }}
+              </button>
               <button type="button" class="btn sm ghost" [disabled]="IsActing" (click)="ExtendTarget = view">Extend deadline</button>
               <button type="button" class="btn sm danger" [disabled]="IsActing" (click)="OnCloseBallot(view)">
                 {{ view.Countdown.IsOverdue ? 'Close ballot' : 'Close early' }}
               </button>
             </div>
+            @if (RemindResults.get(view.Ballot.ID); as remindText) {
+              <div class="card-f remind-note"><i class="fa-solid fa-bell"></i> <span>{{ remindText }}</span></div>
+            }
           </section>
 
           <section class="card" aria-label="Ballot audit trail">
@@ -238,4 +244,9 @@
 
 @if (ShowNewBallotDialog) {
   <committees-e-ballot-dialog (DialogClosed)="OnNewBallotClosed($event)"></committees-e-ballot-dialog>
+}
+
+@if (CloseTarget) {
+  <committees-ballot-close-dialog [View]="CloseTarget" (Exited)="OnCloseDialogExited($event)">
+  </committees-ballot-close-dialog>
 }

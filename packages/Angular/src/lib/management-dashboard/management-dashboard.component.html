@@ -70,7 +70,7 @@
                                     <span class="date-day">{{ $any(meeting['StartDateTime']) | date:'d' }}</span>
                                 </div>
                                 <div class="row-content">
-                                    <div class="row-title">{{ meeting['Title'] }}</div>
+                                    <div class="row-title">{{ meeting['Name'] }}</div>
                                     <div class="row-meta">
                                         {{ meeting['Committee'] }}
                                         <span class="meta-sep">&middot;</span>
@@ -105,7 +105,7 @@
                             <div class="row-item row-overdue">
                                 <div [class]="'priority-dot dot-' + ($any(item['Priority']) || 'medium').toLowerCase()"></div>
                                 <div class="row-content">
-                                    <div class="row-title">{{ item['Title'] }}</div>
+                                    <div class="row-title">{{ item['Name'] }}</div>
                                     <div class="row-meta">
                                         {{ item['Committee'] }}
                                         @if (item['AssignedToPerson']) {
@@ -142,7 +142,7 @@
                                 <span class="date-day">{{ $any(meeting['StartDateTime']) | date:'d' }}</span>
                             </div>
                             <div class="row-content">
-                                <div class="row-title">{{ meeting['Title'] }}</div>
+                                <div class="row-title">{{ meeting['Name'] }}</div>
                                 <div class="row-meta">{{ meeting['Committee'] }}</div>
                             </div>
                             <span class="tag tag-completed">Completed</span>

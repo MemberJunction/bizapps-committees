@@ -1,0 +1,82 @@
+<!-- Backdrop -->
+<div class="dialog-backdrop" (click)="OnCancel()"></div>
+
+<!-- Dialog -->
+<div class="dialog-panel">
+    <div class="dialog-header">
+        <h2 class="dialog-title">New E-Ballot</h2>
+        <button class="dialog-close" (click)="OnCancel()" [disabled]="IsSaving">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    @if (IsLoading) {
+        <div class="dialog-loading">
+            <mj-loading text="Loading..."></mj-loading>
+        </div>
+    } @else {
+        <div class="dialog-body">
+            @if (ErrorMessage) {
+                <div class="error-banner">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ ErrorMessage }}
+                </div>
+            }
+
+            <div class="form-group">
+                <label class="form-label required">Committee</label>
+                <select class="form-input" [(ngModel)]="CommitteeID">
+                    <option value="" disabled>Select a committee…</option>
+                    @for (c of Committees; track c.ID) {
+                        <option [value]="c.ID">{{ c.Name }}</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">Motion title</label>
+                <input class="form-input" type="text" [(ngModel)]="Name"
+                       placeholder="e.g. Approve Data Interoperability Specification v1 for public comment" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Motion text</label>
+                <textarea class="form-input form-textarea" rows="3" [(ngModel)]="MotionText"
+                          placeholder="“That the Workgroup approve …”"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">Pass threshold</label>
+                <select class="form-input" [(ngModel)]="Threshold">
+                    @for (opt of ThresholdOptions; track opt.Value) {
+                        <option [value]="opt.Value">{{ opt.Label }}</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">Voting closes</label>
+                <input class="form-input" type="datetime-local" [(ngModel)]="ClosesAtLocal" />
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" [(ngModel)]="IsSealed" />
+                    Seal choices until close
+                </label>
+                <p class="field-hint">
+                    Sealed ballots show who has voted but hide every choice — from everyone —
+                    until the ballot closes. Choices become permanently attributable at close.
+                </p>
+            </div>
+        </div>
+
+        <div class="dialog-actions">
+            <button class="btn btn-primary" [disabled]="!CanSave" (click)="OnSave()">
+                @if (IsSaving) { Creating… } @else { <i class="fa-solid fa-gavel"></i> Open ballot }
+            </button>
+            <span class="actions-spacer"></span>
+            <button class="btn btn-secondary" (click)="OnCancel()" [disabled]="IsSaving">Cancel</button>
+        </div>
+    }
+</div>

@@ -4,7 +4,7 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { RunView } from '@memberjunction/core';
-import { CommitteeHealthService, TermHygiene } from '@mj-biz-apps/committees-core';
+import { CommitteeHealthService, TermHygiene, MotionService, MotionRegisterRow } from '@mj-biz-apps/committees-core';
 
 export type WorkspaceTab = 'overview' | 'roster' | 'meetings' | 'motions' | 'actions' | 'documents';
 
@@ -12,10 +12,10 @@ interface CommitteeRow { ID: string; Name: string; Status: string; IsPublic: boo
 interface TermRow { ID: string; CommitteeID: string; Name: string; Status: string; StartDate: string; EndDate: string | null; }
 interface MembershipRow { ID: string; TermID: string; PersonID: string; RoleID: string; Status: string; Role: string; Person: string; StartDate: string; }
 interface RoleRow { ID: string; Name: string; IsVotingRole: boolean; IsOfficer: boolean; }
-interface MeetingRow { ID: string; Title: string; StartDateTime: string; EndDateTime: string | null; LocationType: string | null; LocationText: string | null; Status: string; }
-interface ActionRow { ID: string; Title: string; DueDate: string | null; Priority: string | null; Status: string; AssignedToPerson: string | null; }
-interface ArtifactRow { ID: string; Title: string; Provider: string | null; URL: string | null; ArtifactType: string | null; }
-interface MotionRow { ID: string; Title: string; Result: string | null; }
+interface MeetingRow { ID: string; Name: string; StartDateTime: string; EndDateTime: string | null; LocationType: string | null; LocationText: string | null; Status: string; }
+interface ActionRow { ID: string; Name: string; DueDate: string | null; Priority: string | null; Status: string; AssignedToPerson: string | null; }
+interface ArtifactRow { ID: string; Name: string; Provider: string | null; URL: string | null; ArtifactType: string | null; }
+interface MotionRow { ID: string; Name: string; Result: string | null; }
 
 /**
  * Committee Workspace — one coherent surface per committee (UX v2 screen 02).
@@ -44,6 +44,12 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
     OpenActions: ActionRow[] = [];
     Artifacts: ArtifactRow[] = [];
     MotionCount = 0;
+    /** Committee-scoped motion register (meetings + this committee's e-ballots). */
+    MotionRows: MotionRegisterRow[] = [];
+    OpenBallotCount = 0;
+    ShowEBallotDialog = false;
+    /** Meeting shown in the Live Meeting Mode overlay; null = overlay closed. */
+    LiveMeetingID: string | null = null;
 
     private _committeeID: string | null = null;
     @Input()
@@ -76,6 +82,17 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
 
     SelectTab(tab: WorkspaceTab): void {
         this.ActiveTab = tab;
+    }
+
+    /** Enters Live Meeting Mode (full-screen overlay, UX v2 screen 03). */
+    OpenLiveMeeting(meetingID: string): void {
+        this.LiveMeetingID = meetingID;
+    }
+
+    /** Exit from Live Meeting Mode — reload so meeting/agenda statuses reflect the session. */
+    OnLiveMeetingExited(): void {
+        this.LiveMeetingID = null;
+        void this.reload();
     }
 
     get TermLapsed(): boolean {
@@ -116,10 +133,10 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
             { EntityName: 'Committees: Committees', ExtraFilter: `ID='${id}'`, Fields: ['ID', 'Name', 'Status', 'IsPublic', 'Type', 'MissionStatement', 'FormationDate', 'ParentCommittee'], ResultType: 'simple' },
             { EntityName: 'Committees: Terms', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'CommitteeID', 'Name', 'Status', 'StartDate', 'EndDate'], OrderBy: 'StartDate DESC', ResultType: 'simple' },
             { EntityName: 'Committees: Roles', Fields: ['ID', 'Name', 'IsVotingRole', 'IsOfficer'], ResultType: 'simple' },
-            { EntityName: 'Committees: Meetings', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Title', 'StartDateTime', 'EndDateTime', 'LocationType', 'LocationText', 'Status'], OrderBy: 'StartDateTime ASC', ResultType: 'simple' },
-            { EntityName: 'Committees: Action Items', ExtraFilter: `CommitteeID='${id}' AND Status IN ('Open', 'InProgress')`, Fields: ['ID', 'Title', 'DueDate', 'Priority', 'Status', 'AssignedToPerson'], OrderBy: 'DueDate ASC', ResultType: 'simple' },
-            { EntityName: 'Committees: Artifacts', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Title', 'Provider', 'URL', 'ArtifactType'], ResultType: 'simple' },
-            { EntityName: 'Committees: Motions', ExtraFilter: `MeetingID IN (SELECT ID FROM __mj_BizAppsCommittees.Meeting WHERE CommitteeID='${id}')`, Fields: ['ID', 'Title', 'Result'], ResultType: 'simple' },
+            { EntityName: 'Committees: Meetings', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Name', 'StartDateTime', 'EndDateTime', 'LocationType', 'LocationText', 'Status'], OrderBy: 'StartDateTime ASC', ResultType: 'simple' },
+            { EntityName: 'Committees: Action Items', ExtraFilter: `CommitteeID='${id}' AND Status IN ('Open', 'InProgress')`, Fields: ['ID', 'Name', 'DueDate', 'Priority', 'Status', 'AssignedToPerson'], OrderBy: 'DueDate ASC', ResultType: 'simple' },
+            { EntityName: 'Committees: Artifacts', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Name', 'Provider', 'URL', 'ArtifactType'], ResultType: 'simple' },
+            { EntityName: 'Committees: Motions', ExtraFilter: `MeetingID IN (SELECT ID FROM __mj_BizAppsCommittees.Meeting WHERE CommitteeID='${id}')`, Fields: ['ID', 'Name', 'Result'], ResultType: 'simple' },
         ]);
 
         this.Committee = committee.Success && committee.Results.length > 0 ? committee.Results[0] as unknown as CommitteeRow : null;
@@ -128,11 +145,36 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
         this.OpenActions = actions.Success ? actions.Results as unknown as ActionRow[] : [];
         this.Artifacts = artifacts.Success ? artifacts.Results as unknown as ArtifactRow[] : [];
         this.MotionCount = motions.Success ? (motions.Results as unknown as MotionRow[]).length : 0;
+        await this.loadMotionRegister(id);
         this.Term = CommitteeHealthService.ComputeTermHygiene(
             this.Terms.map(t => ({ ID: t.ID, CommitteeID: t.CommitteeID, Status: t.Status, StartDate: t.StartDate, EndDate: t.EndDate })),
             new Date()
         );
         await this.loadMembers(roles.Success ? roles.Results as unknown as RoleRow[] : []);
+    }
+
+    /** Committee-scoped register: meeting motions plus this committee's ballot motions. */
+    private async loadMotionRegister(committeeID: string): Promise<void> {
+        const register = await new MotionService().GetRegister();
+        const rv = new RunView();
+        const ballots = await rv.RunView<{ MotionID: string; Status: string }>({
+            EntityName: 'Committees: Ballots',
+            ExtraFilter: `CommitteeID = '${committeeID}'`,
+            Fields: ['ID', 'MotionID', 'Status'],
+            ResultType: 'simple',
+        });
+        const ballotRows = ballots.Success ? ballots.Results : [];
+        const ballotMotionIDs = new Set(ballotRows.map(b => b.MotionID.toLowerCase()));
+        this.OpenBallotCount = ballotRows.filter(b => b.Status === 'Open').length;
+        this.MotionRows = register.Rows.filter(r =>
+            (r.CommitteeID != null && r.CommitteeID.toLowerCase() === committeeID.toLowerCase())
+            || ballotMotionIDs.has(r.MotionID.toLowerCase()));
+    }
+
+    OnEBallotDialogClosed(created: boolean): void {
+        this.ShowEBallotDialog = false;
+        if (created) void this.reload();
+        else this.cdr.markForCheck();
     }
 
     private async loadMembers(roles: RoleRow[]): Promise<void> {

@@ -10,11 +10,11 @@
     <!-- ========================================
          FIELD PANELS
          ======================================== -->
-    <!-- Relationships Section -->
+    <!-- Details Section -->
     <mj-collapsible-panel
-        SectionKey="relationships"
-        SectionName="Relationships"
-        Icon="fa fa-link"
+        SectionKey="details"
+        SectionName="Details"
+        Icon="fa fa-align-left"
         [Form]="this"
         [FormContext]="formContext">
         <mj-form-field 
@@ -53,20 +53,10 @@
             [FormContext]="formContext"
             LinkType="Record"
         ></mj-form-field>
-
-    </mj-collapsible-panel>
-
-    <!-- Artifact Details Section -->
-    <mj-collapsible-panel
-        SectionKey="artifactDetails"
-        SectionName="Artifact Details"
-        Icon="fa fa-file-alt"
-        [Form]="this"
-        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
-            FieldName="Title"
+            FieldName="Name"
             Type="textbox"
             [EditMode]="EditMode"
             [FormContext]="formContext"
@@ -79,35 +69,15 @@
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
-
-    </mj-collapsible-panel>
-
-    <!-- Artifact Classification Section -->
-    <mj-collapsible-panel
-        SectionKey="artifactClassification"
-        SectionName="Artifact Classification"
-        Icon="fa fa-tag"
-        [Form]="this"
-        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
-            [ShowLabel]="false"
+            [ShowLabel]="true"
             FieldName="ArtifactTypeID"
             Type="textbox"
             [EditMode]="EditMode"
             [FormContext]="formContext"
             LinkType="Record"
         ></mj-form-field>
-
-    </mj-collapsible-panel>
-
-    <!-- Source Information Section -->
-    <mj-collapsible-panel
-        SectionKey="sourceInformation"
-        SectionName="Source Information"
-        Icon="fa fa-cloud-download-alt"
-        [Form]="this"
-        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
@@ -131,18 +101,7 @@
             Type="textarea"
             [EditMode]="EditMode"
             [FormContext]="formContext"
-            LinkType="URL"
         ></mj-form-field>
-
-    </mj-collapsible-panel>
-
-    <!-- Technical Metadata Section -->
-    <mj-collapsible-panel
-        SectionKey="technicalMetadata"
-        SectionName="Technical Metadata"
-        Icon="fa fa-cog"
-        [Form]="this"
-        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
@@ -168,16 +127,6 @@
             [FormContext]="formContext"
             LinkType="Record"
         ></mj-form-field>
-
-    </mj-collapsible-panel>
-
-    <!-- System Metadata Section -->
-    <mj-collapsible-panel
-        SectionKey="systemMetadata"
-        SectionName="System Metadata"
-        Icon="fa fa-clock"
-        [Form]="this"
-        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
@@ -232,7 +181,7 @@
     <mj-collapsible-panel
         SectionKey="committeesMinutes"
         SectionName="Minutes"
-        Icon="fa fa-file-alt"
+        Icon="fa fa-table"
         Variant="related-entity"
         [Form]="this"
         [FormContext]="formContext"

@@ -34,7 +34,7 @@ function minute(overrides: Partial<MinuteFixture> = {}): MinuteFixture {
 }
 
 function actionItem(overrides: Partial<ActionItemFixture> = {}): ActionItemFixture {
-    return { ID: 'act-1', CommitteeID: 'c-1', Title: 'Do the thing', DueDate: null, Status: 'Open', AssignedToPerson: null, ...overrides };
+    return { ID: 'act-1', CommitteeID: 'c-1', Name: 'Do the thing', DueDate: null, Status: 'Open', AssignedToPerson: null, ...overrides };
 }
 
 function quorum(overrides: Partial<QuorumForecast> = {}): QuorumForecast {
@@ -242,7 +242,7 @@ describe('ComputePortfolio', () => {
     ];
 
     const meetings: MeetingFixture[] = [
-        { ID: 'mtg-beta-1', CommitteeID: 'c-beta', Committee: 'Beta Committee', Title: 'Beta Q1 Review', StartDateTime: daysFromNow(-45), EndDateTime: daysFromNow(-45), Status: 'Completed', LocationType: 'Virtual', LocationText: null, VideoProvider_Virtual: 'Zoom' },
+        { ID: 'mtg-beta-1', CommitteeID: 'c-beta', Committee: 'Beta Committee', Name: 'Beta Q1 Review', StartDateTime: daysFromNow(-45), EndDateTime: daysFromNow(-45), Status: 'Completed', LocationType: 'Virtual', LocationText: null, VideoProvider_Virtual: 'Zoom' },
     ];
 
     const minutes: MinuteFixture[] = [
@@ -298,7 +298,7 @@ describe('ComputePortfolio', () => {
         const lapse = portfolio.Attention.find(a => a.Kind === 'TermLapse');
         expect(lapse).toBeDefined();
         expect(lapse?.CommitteeID).toBe('c-zeta');
-        expect(lapse?.Title).toBe('Zeta Committee has no active term');
+        expect(lapse?.Name).toBe('Zeta Committee has no active term');
         // TermLapse sorts ahead of MinutesPending in the attention feed.
         expect(portfolio.Attention[0]?.Kind).toBe('TermLapse');
         expect(portfolio.Attention.some(a => a.Kind === 'MinutesPending' && a.CommitteeID === 'c-beta')).toBe(true);

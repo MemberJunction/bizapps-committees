@@ -33,6 +33,10 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
     EditingMotionID: string | null = null;
     ShowMeetingEditDialog = false;
     ShowMinutesPanel = false;
+    /** Live Meeting Mode overlay (UX v2 screen 03) — bridge from this legacy view. */
+    ShowLiveMeeting = false;
+    /** Minutes Review overlay (UX v2 screen 07). */
+    ShowMinutesReview = false;
 
     private refreshInterval: ReturnType<typeof setInterval> | null = null;
     private cdr = inject(ChangeDetectorRef);
@@ -236,6 +240,13 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
         return (count / total) * 100;
     }
 
+    /** Exit from Live Meeting Mode — reload so meeting/agenda/motion state reflects the session. */
+    async OnLiveMeetingExited(): Promise<void> {
+        this.ShowLiveMeeting = false;
+        await this.LoadAllData();
+        this.cdr.markForCheck();
+    }
+
     // ─── Data Loading ───
     private async LoadAllData(): Promise<void> {
         if (!this.MeetingID) return;
@@ -244,7 +255,7 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
         const meetingResult = await rv.RunView<Record<string, unknown>>({
             EntityName: 'Committees: Meetings',
             ExtraFilter: `ID = '${this.MeetingID}'`,
-            Fields: ['ID', 'Title', 'Committee', 'CommitteeID', 'Status', 'StartDateTime', 'EndDateTime', 'LocationType', 'VideoJoinURL'],
+            Fields: ['ID', 'Name', 'Committee', 'CommitteeID', 'Status', 'StartDateTime', 'EndDateTime', 'LocationType', 'VideoJoinURL'],
             MaxRows: 1,
             ResultType: 'simple'
         });
@@ -276,14 +287,14 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
         const [agendaResult, motionsResult] = await rv.RunViews([
             {
                 EntityName: 'Committees: Agenda Items',
-                Fields: ['ID', 'Sequence', 'Title', 'ItemType', 'Status', 'Presenter', 'DurationMinutes'],
+                Fields: ['ID', 'Sequence', 'Name', 'ItemType', 'Status', 'Presenter', 'DurationMinutes'],
                 ExtraFilter: `MeetingID = '${this.MeetingID}'`,
                 OrderBy: 'Sequence ASC',
                 ResultType: 'simple'
             },
             {
                 EntityName: 'Committees: Motions',
-                Fields: ['ID', 'Sequence', 'Title', 'Description', 'Result', 'ResultSummary', 'MovedByMembershipID', 'SecondedByMembershipID', 'YesCount', 'NoCount', 'AbstainCount'],
+                Fields: ['ID', 'Sequence', 'Name', 'Description', 'Result', 'ResultSummary', 'MovedByMembershipID', 'SecondedByMembershipID', 'YesCount', 'NoCount', 'AbstainCount'],
                 ExtraFilter: `MeetingID = '${this.MeetingID}'`,
                 OrderBy: 'Sequence ASC',
                 ResultType: 'simple'
@@ -313,7 +324,7 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
                 const id = rec['ID'] as string;
                 const motion: MotionWithVotes = {
                     ID: id,
-                    Title: rec['Title'] as string,
+                    Name: rec['Name'] as string,
                     Description: rec['Description'] as string | null,
                     Result: rec['Result'] as string,
                     ResultSummary: rec['ResultSummary'] as string | null,
@@ -418,7 +429,7 @@ export class MeetingLiveViewComponent implements OnInit, OnDestroy {
 
 export interface MotionWithVotes {
     ID: string;
-    Title: string;
+    Name: string;
     Description: string | null;
     Result: string;
     ResultSummary: string | null;

@@ -16,20 +16,14 @@ export class mjBizAppsCommitteesCommitteeFormComponent extends BaseFormComponent
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'committeeCore', sectionName: 'Committee Core', isExpanded: true },
-            { sectionKey: 'committeeClassification', sectionName: 'Committee Classification', isExpanded: true },
-            { sectionKey: 'hierarchy', sectionName: 'Hierarchy', isExpanded: true },
-            { sectionKey: 'organizationAssociation', sectionName: 'Organization Association', isExpanded: true },
-            { sectionKey: 'documents', sectionName: 'Documents', isExpanded: true },
-            { sectionKey: 'committeeStatus', sectionName: 'Committee Status', isExpanded: true },
-            { sectionKey: 'timeline', sectionName: 'Timeline', isExpanded: true },
-            { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'committeesActionItems', sectionName: 'Action Items', isExpanded: false },
-            { sectionKey: 'committeesMeetings', sectionName: 'Meetings', isExpanded: false },
-            { sectionKey: 'committeesComments', sectionName: 'Comments', isExpanded: false },
-            { sectionKey: 'committeesCommittees', sectionName: 'Committees', isExpanded: false },
+            { sectionKey: 'details', sectionName: 'Details', isExpanded: true },
             { sectionKey: 'committeesArtifacts', sectionName: 'Artifacts', isExpanded: false },
-            { sectionKey: 'committeesTerms', sectionName: 'Terms', isExpanded: false }
+            { sectionKey: 'committeesComments', sectionName: 'Comments', isExpanded: false },
+            { sectionKey: 'committeesBallots', sectionName: 'Ballots', isExpanded: false },
+            { sectionKey: 'committeesCommittees', sectionName: 'Committees', isExpanded: false },
+            { sectionKey: 'committeesMeetings', sectionName: 'Meetings', isExpanded: false },
+            { sectionKey: 'committeesTerms', sectionName: 'Terms', isExpanded: false },
+            { sectionKey: 'committeesActionItems', sectionName: 'Action Items', isExpanded: false }
         ]);
     }
 }

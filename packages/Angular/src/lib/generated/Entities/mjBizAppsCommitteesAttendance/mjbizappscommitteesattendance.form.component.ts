@@ -15,11 +15,7 @@ export class mjBizAppsCommitteesAttendanceFormComponent extends BaseFormComponen
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'meetingDetails', sectionName: 'Meeting Details', isExpanded: true },
-            { sectionKey: 'participantInformation', sectionName: 'Participant Information', isExpanded: true },
-            { sectionKey: 'attendanceDetails', sectionName: 'Attendance Details', isExpanded: true },
-            { sectionKey: 'attendanceTimeline', sectionName: 'Attendance Timeline', isExpanded: true },
-            { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false }
+            { sectionKey: 'details', sectionName: 'Details', isExpanded: true }
         ]);
     }
 }

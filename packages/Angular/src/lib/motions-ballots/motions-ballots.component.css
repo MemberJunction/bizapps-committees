@@ -1,0 +1,226 @@
+/* Motions & Ballots — UX v2 screen 04. Semantic MJ tokens only. */
+
+:host {
+    display: block;
+    min-height: 100%;
+    background: var(--mj-bg-page);
+    color: var(--mj-text-primary);
+}
+
+.mb-page { display: flex; flex-direction: column; min-height: 100%; }
+
+/* ── Page header (mj chrome grammar) ───────────────────────── */
+.mb-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 18px 24px 0;
+}
+.ph-icon {
+    width: 42px; height: 42px; flex: none;
+    border-radius: 12px;
+    display: grid; place-items: center;
+    background: color-mix(in srgb, var(--mj-brand-primary) 12%, transparent);
+    color: var(--mj-brand-primary);
+    font-size: 18px;
+}
+.ph-titles { min-width: 0; flex: 1; }
+.ph-titles h1 { font-size: var(--mj-text-xl, 1.25rem); font-weight: var(--mj-font-semibold, 600); margin: 0; line-height: 1.25; }
+.ph-titles .sub { color: var(--mj-text-muted); font-size: 13px; margin-top: 1px; }
+.ph-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.ph-actions { display: flex; align-items: center; gap: 8px; flex: none; padding-top: 3px; }
+
+/* ── Toolbar ───────────────────────────────────────────────── */
+.mb-toolbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 24px 12px;
+    border-bottom: 1px solid var(--mj-border-default);
+}
+.search { position: relative; flex: 1; max-width: 440px; }
+.search i {
+    position: absolute; left: 11px; top: 50%; transform: translateY(-50%);
+    font-size: 13px; color: var(--mj-text-muted);
+}
+.search input {
+    width: 100%; padding: 7px 12px 7px 32px;
+    border-radius: 8px; font: inherit; font-size: 13px;
+    border: 1px solid var(--mj-border-default);
+    background: var(--mj-bg-surface);
+    color: var(--mj-text-primary);
+}
+.search input::placeholder { color: var(--mj-text-disabled); }
+.search input:focus {
+    outline: none;
+    border-color: var(--mj-border-focus);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mj-brand-primary) 15%, transparent);
+}
+
+.mb-body { flex: 1; padding: 20px 24px 32px; }
+
+/* ── Ballot hero + audit grid ──────────────────────────────── */
+.mb-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 14px;
+    margin-bottom: 16px;
+}
+@media (max-width: 1100px) { .mb-grid { grid-template-columns: 1fr; } }
+
+.ballot-hero .bh { padding: 14px 16px; border-bottom: 1px solid var(--mj-border-subtle); }
+.bh-badges { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.bh-badges .countdown {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12px; font-weight: var(--mj-font-semibold, 600);
+    color: var(--mj-status-warning-text);
+}
+.ballot-hero h2 { font-size: 16px; font-weight: var(--mj-font-semibold, 600); margin: 10px 0 0; }
+.ballot-hero .card-b { padding: 14px 16px; }
+
+.participation { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; font-size: 13px; }
+.participation .seal { margin-left: auto; }
+
+.meter {
+    height: 9px; border-radius: 999px;
+    background: var(--mj-bg-surface-sunken);
+    overflow: hidden;
+}
+.meter > span { display: block; height: 100%; border-radius: 999px; background: var(--mj-brand-primary); transition: width .5s ease; }
+
+.myvote {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    margin-top: 12px; padding: 10px 12px;
+    border: 1px solid var(--mj-border-subtle);
+    border-radius: 10px;
+    background: var(--mj-bg-surface-card);
+    font-size: 13px;
+}
+
+/* Yes/No/Abstain segmented control (shared with live meeting) */
+.seg { display: flex; border: 1px solid var(--mj-border-default); border-radius: 8px; overflow: hidden; }
+.seg button {
+    padding: 4px 12px; font-size: 12px; font-weight: var(--mj-font-semibold, 600);
+    font-family: inherit;
+    background: var(--mj-bg-surface); color: var(--mj-text-muted);
+    border: none; border-right: 1px solid var(--mj-border-default);
+    cursor: pointer;
+}
+.seg button:last-child { border-right: none; }
+.seg button:hover:not(:disabled) { background: var(--mj-bg-surface-hover); color: var(--mj-text-primary); }
+.seg button:disabled { opacity: .55; cursor: not-allowed; }
+.seg button.y.on { background: var(--mj-status-success-bg); color: var(--mj-status-success-text); }
+.seg button.nn.on { background: var(--mj-status-error-bg); color: var(--mj-status-error-text); }
+.seg button.ab.on { background: var(--mj-bg-surface-sunken); color: var(--mj-text-secondary); }
+
+.voters { margin-top: 12px; }
+.voterchip {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--mj-border-subtle);
+    font-size: 13px;
+}
+.voterchip:last-child { border-bottom: none; }
+.voterchip .who { flex: 1; min-width: 0; }
+.voterchip .who b { display: block; font-weight: var(--mj-font-medium, 500); }
+.voterchip .who small { display: block; font-size: 11px; }
+.voterchip.observer { opacity: .55; }
+
+.card-f {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 16px;
+    border-top: 1px solid var(--mj-border-subtle);
+    font-size: 12px; color: var(--mj-text-muted);
+}
+.card-f .spacer, .card-h .spacer { flex: 1; }
+
+/* ── Audit trail ───────────────────────────────────────────── */
+.audit { padding: 6px 16px 10px; }
+.audit-i {
+    display: flex; justify-content: space-between; gap: 12px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--mj-border-subtle);
+    font-size: 12px;
+}
+.audit-i:last-child { border-bottom: none; }
+.audit-i.vote .txt { color: var(--mj-text-primary); }
+.audit-i .txt { color: var(--mj-text-secondary); }
+.audit-i .when { color: var(--mj-text-muted); white-space: nowrap; flex: none; }
+.audit-i.scheduled { opacity: .55; }
+
+/* ── Inline extend row ─────────────────────────────────────── */
+.extend-row {
+    display: flex; align-items: center; gap: 10px;
+    margin: -8px 0 16px;
+    padding: 10px 14px;
+    border: 1px solid var(--mj-border-subtle);
+    border-radius: 10px;
+    background: var(--mj-bg-surface-card);
+    font-size: 13px;
+}
+.extend-row input {
+    font: inherit; font-size: 13px;
+    padding: 5px 8px;
+    border: 1px solid var(--mj-border-default);
+    border-radius: 6px;
+    background: var(--mj-bg-surface);
+    color: var(--mj-text-primary);
+}
+
+/* ── Register table ────────────────────────────────────────── */
+.register .card-h h2 { font-size: 13px; }
+.tbl-wrap { overflow-x: auto; }
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl th {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--mj-text-muted); font-weight: var(--mj-font-semibold, 600);
+    text-align: left; padding: 8px 10px;
+    border-bottom: 1px solid var(--mj-border-default);
+    white-space: nowrap;
+}
+.tbl td { padding: 9px 10px; border-bottom: 1px solid var(--mj-border-subtle); vertical-align: middle; }
+.tbl td.wide { min-width: 240px; }
+.tbl td b { display: block; font-weight: var(--mj-font-medium, 500); }
+.tbl td small { display: block; }
+.tbl tbody tr.expander { cursor: pointer; }
+.tbl tbody tr.expander:hover { background: var(--mj-bg-surface-hover); }
+.tbl .chev { font-size: 11px; color: var(--mj-text-muted); }
+.tbl .mono { font-variant-numeric: tabular-nums; }
+
+.xrow td { background: var(--mj-bg-surface-card); }
+.xdetail { padding: 6px 4px; }
+.vgrid {
+    display: flex; flex-wrap: wrap;
+    gap: 8px; margin-top: 8px;
+}
+/* Each voter is a self-contained chip so the name ↔ vote pairing is unambiguous */
+.xvote {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 13px;
+    padding: 5px 6px 5px 12px;
+    border: 1px solid var(--mj-border-subtle);
+    border-radius: 999px;
+    background: var(--mj-bg-surface);
+}
+.vv {
+    font-size: 11px; font-weight: var(--mj-font-bold, 700);
+    padding: 1px 8px; border-radius: 999px;
+    background: var(--mj-bg-surface-sunken); color: var(--mj-text-secondary);
+}
+.vv.yes { background: var(--mj-status-success-bg); color: var(--mj-status-success-text); }
+.vv.no { background: var(--mj-status-error-bg); color: var(--mj-status-error-text); }
+.vote-note { margin: 8px 0 0; }
+
+/* ── Shared small bits ─────────────────────────────────────── */
+.small { font-size: 12px; }
+.muted { color: var(--mj-text-muted); }
+.callout {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 11px 14px; border-radius: 10px;
+    font-size: 13px; border: 1px solid;
+    margin-bottom: 14px;
+}
+.callout.error {
+    background: var(--mj-status-error-bg);
+    border-color: color-mix(in srgb, var(--mj-status-error-border) 30%, transparent);
+    color: var(--mj-status-error-text);
+}

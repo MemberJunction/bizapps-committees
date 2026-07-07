@@ -22,7 +22,7 @@
 
 .dialog-panel {
     position: relative;
-    background: var(--mj-color-neutral-0);
+    background: var(--mj-bg-surface);
     width: 520px;
     height: 100%;
     display: flex;
@@ -37,14 +37,14 @@
     align-items: center;
     justify-content: space-between;
     padding: var(--mj-space-5) var(--mj-space-6);
-    border-bottom: 1px solid var(--mj-color-neutral-100);
+    border-bottom: 1px solid var(--mj-border-subtle);
     flex-shrink: 0;
 }
 
 .dialog-title {
     font-size: 18px;
     font-weight: var(--mj-font-bold);
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
     margin: 0;
     letter-spacing: -0.3px;
 }
@@ -55,7 +55,7 @@
     border: none;
     border-radius: var(--mj-radius-md);
     background: transparent;
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     font-size: var(--mj-text-base);
     cursor: pointer;
     display: flex;
@@ -65,8 +65,8 @@
 }
 
 .dialog-close:hover {
-    background: var(--mj-color-neutral-100);
-    color: var(--mj-color-neutral-900);
+    background: var(--mj-bg-surface-sunken);
+    color: var(--mj-text-primary);
 }
 
 .dialog-body {
@@ -87,10 +87,10 @@
     align-items: center;
     gap: var(--mj-space-3);
     padding: var(--mj-space-3) var(--mj-space-4);
-    background: var(--mj-color-error-50);
-    border: 1px solid var(--mj-color-error-200);
+    background: var(--mj-status-error-bg);
+    border: 1px solid color-mix(in srgb, var(--mj-status-error-border) 35%, transparent);
     border-radius: 10px;
-    color: var(--mj-color-error-700);
+    color: var(--mj-status-error-text);
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-semibold);
     margin-bottom: var(--mj-space-5);
@@ -104,7 +104,7 @@
     display: block;
     font-size: var(--mj-text-xs);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-500);
+    color: var(--mj-text-muted);
     margin-bottom: var(--mj-space-1-5);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -115,12 +115,12 @@
 .form-input {
     width: 100%;
     padding: var(--mj-space-2-5) 14px;
-    border: 1px solid var(--mj-color-neutral-200);
+    border: 1px solid var(--mj-border-default);
     border-radius: 10px;
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-neutral-900);
-    background: var(--mj-color-neutral-0);
+    color: var(--mj-text-primary);
+    background: var(--mj-bg-surface);
     outline: none;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
     box-sizing: border-box;
@@ -128,7 +128,7 @@
     line-height: 1.5;
 }
 
-.form-input::placeholder { color: var(--mj-color-neutral-300); }
+.form-input::placeholder { color: var(--mj-text-disabled); }
 
 .form-input:focus {
     border-color: var(--mj-color-indigo-500);
@@ -153,7 +153,7 @@ select.form-input {
 .dialog-body.readonly .toggle input {
     pointer-events: none;
     opacity: 0.6;
-    background: var(--mj-color-neutral-50);
+    background: var(--mj-bg-surface-card);
 }
 
 .readonly-value {
@@ -161,22 +161,22 @@ select.form-input {
     align-items: center;
     gap: var(--mj-space-3);
     padding: var(--mj-space-2-5) 14px;
-    background: var(--mj-color-neutral-50);
-    border: 1px solid var(--mj-color-neutral-200);
+    background: var(--mj-bg-surface-card);
+    border: 1px solid var(--mj-border-default);
     border-radius: 10px;
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
 }
 
-.readonly-value i { color: var(--mj-color-neutral-400); font-size: var(--mj-text-sm); }
+.readonly-value i { color: var(--mj-text-muted); font-size: var(--mj-text-sm); }
 
 /* ─── Toggle ─── */
 .form-group-toggle { display: flex; flex-direction: column; align-items: flex-start; flex: 0 0 auto; min-width: 120px; }
 .toggle { position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; }
 .toggle input { opacity: 0; width: 0; height: 0; }
-.toggle-slider { position: absolute; inset: 0; background: var(--mj-color-neutral-300); border-radius: 24px; transition: background 0.2s ease; }
-.toggle-slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: var(--mj-color-neutral-0); border-radius: 50%; transition: transform 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+.toggle-slider { position: absolute; inset: 0; background: var(--mj-bg-surface-active); border-radius: 24px; transition: background 0.2s ease; }
+.toggle-slider::before { content: ''; position: absolute; height: 18px; width: 18px; left: 3px; bottom: 3px; background: var(--mj-bg-surface); border-radius: 50%; transition: transform 0.2s ease; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 .toggle input:checked + .toggle-slider { background: var(--mj-color-indigo-500); }
 .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
 
@@ -188,7 +188,7 @@ select.form-input {
     margin-top: var(--mj-space-1);
     font-size: 11px;
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
 }
 
 .term-dates-hint i { font-size: 10px; }
@@ -198,7 +198,7 @@ select.form-input {
     display: flex;
     gap: var(--mj-space-2);
     padding: var(--mj-space-4) var(--mj-space-6);
-    border-top: 1px solid var(--mj-color-neutral-100);
+    border-top: 1px solid var(--mj-border-subtle);
     flex-shrink: 0;
 }
 
@@ -232,14 +232,14 @@ select.form-input {
 }
 
 .btn-secondary {
-    background: var(--mj-color-neutral-100);
+    background: var(--mj-bg-surface-sunken);
     border: none;
-    color: var(--mj-color-neutral-500);
+    color: var(--mj-text-muted);
 }
 
 .btn-secondary:hover:not(:disabled) {
-    background: var(--mj-color-neutral-200);
-    color: var(--mj-color-neutral-900);
+    background: var(--mj-bg-surface-active);
+    color: var(--mj-text-primary);
 }
 
 .btn-danger {
@@ -251,13 +251,13 @@ select.form-input {
 .btn-danger:hover:not(:disabled) { background: var(--mj-color-error-600); }
 
 .btn-danger-outline {
-    background: var(--mj-color-neutral-0);
-    border: 1px solid var(--mj-color-error-200);
+    background: var(--mj-bg-surface);
+    border: 1px solid color-mix(in srgb, var(--mj-status-error-border) 35%, transparent);
     color: var(--mj-color-error-500);
 }
 
 .btn-danger-outline:hover:not(:disabled) {
-    background: var(--mj-color-error-50);
+    background: var(--mj-status-error-bg);
     border-color: var(--mj-color-error-400);
 }
 

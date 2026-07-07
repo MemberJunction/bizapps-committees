@@ -119,7 +119,7 @@ async function handleMeetingSave(event: BaseEntityEvent): Promise<void> {
     }
 
     const committeeID = meeting.Get('CommitteeID') as string;
-    const title = meeting.Get('Title') as string;
+    const title = meeting.Get('Name') as string;
     const startDateTime = meeting.Get('StartDateTime') as Date;
     const committeeName = meeting.Get('Committee') as string;
 
@@ -170,7 +170,7 @@ async function handleActionItemSave(event: BaseEntityEvent): Promise<void> {
         return; // Person doesn't have a linked MJ user
     }
 
-    const title = actionItem.Get('Title') as string;
+    const title = actionItem.Get('Name') as string;
     const committeeName = actionItem.Get('Committee') as string;
     const priority = actionItem.Get('Priority') as string;
     const dueDate = actionItem.Get('DueDate') as Date | null;

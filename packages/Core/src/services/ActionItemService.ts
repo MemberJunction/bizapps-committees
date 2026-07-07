@@ -8,7 +8,7 @@ export interface ActionItemSummary {
     ID: string;
     CommitteeID: string;
     CommitteeName: string;
-    Title: string;
+    Name: string;
     Description: string | null;
     DueDate: Date | null;
     Priority: string;
@@ -125,7 +125,7 @@ export class ActionItemService {
             ID: row.ID,
             CommitteeID: row.CommitteeID,
             CommitteeName: row.Committee,
-            Title: row.Title,
+            Name: row.Name,
             Description: row.Description,
             DueDate: row.DueDate,
             Priority: row.Priority,
@@ -141,7 +141,7 @@ const ACTION_ITEM_SUMMARY_FIELDS = [
     'ID',
     'CommitteeID',
     'Committee',
-    'Title',
+    'Name',
     'Description',
     'DueDate',
     'Priority',
@@ -155,7 +155,7 @@ interface ActionItemSummaryRow {
     ID: string;
     CommitteeID: string;
     Committee: string;
-    Title: string;
+    Name: string;
     Description: string | null;
     DueDate: Date | null;
     Priority: string;

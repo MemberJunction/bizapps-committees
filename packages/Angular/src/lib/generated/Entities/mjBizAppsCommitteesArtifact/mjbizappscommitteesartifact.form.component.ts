@@ -16,12 +16,7 @@ export class mjBizAppsCommitteesArtifactFormComponent extends BaseFormComponent 
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'relationships', sectionName: 'Relationships', isExpanded: true },
-            { sectionKey: 'artifactDetails', sectionName: 'Artifact Details', isExpanded: true },
-            { sectionKey: 'artifactClassification', sectionName: 'Artifact Classification', isExpanded: true },
-            { sectionKey: 'sourceInformation', sectionName: 'Source Information', isExpanded: true },
-            { sectionKey: 'technicalMetadata', sectionName: 'Technical Metadata', isExpanded: false },
-            { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
+            { sectionKey: 'details', sectionName: 'Details', isExpanded: true },
             { sectionKey: 'committeesComments', sectionName: 'Comments', isExpanded: false },
             { sectionKey: 'committeesMinutes', sectionName: 'Minutes', isExpanded: false }
         ]);

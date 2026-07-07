@@ -5,7 +5,7 @@
 
 :host {
     display: block;
-    background: var(--mj-color-neutral-50);
+    background: var(--mj-bg-surface-card);
     height: 100%;
     overflow-y: auto;
     font-family: var(--mj-font-family);
@@ -37,7 +37,7 @@
 .page-title {
     font-size: 34px;
     font-weight: var(--mj-font-bold);
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
     margin: 0;
     letter-spacing: -0.8px;
 }
@@ -45,7 +45,7 @@
 .page-subtitle {
     font-size: 15px;
     font-weight: var(--mj-font-normal);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     margin: var(--mj-space-1-5) 0 0 0;
 }
 
@@ -103,7 +103,7 @@
 .filter-label {
     font-size: var(--mj-text-xs);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-500);
+    color: var(--mj-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.6px;
 }
@@ -111,7 +111,7 @@
 .filter-pills {
     display: flex;
     gap: 2px;
-    background: var(--mj-color-neutral-100);
+    background: var(--mj-bg-surface-sunken);
     border-radius: 10px;
     padding: 3px;
 }
@@ -120,10 +120,10 @@
     padding: 9px 36px 9px 14px;
     border: none;
     border-radius: 10px;
-    background: var(--mj-color-neutral-0);
+    background: var(--mj-bg-surface);
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
     cursor: pointer;
     outline: none;
     appearance: none;
@@ -152,7 +152,7 @@
     top: 50%;
     transform: translateY(-50%);
     font-size: var(--mj-text-sm);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     pointer-events: none;
 }
 
@@ -163,8 +163,8 @@
     border-radius: 10px;
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-neutral-800);
-    background: var(--mj-color-neutral-0);
+    color: var(--mj-text-primary);
+    background: var(--mj-bg-surface);
     outline: none;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     transition: box-shadow 0.2s ease;
@@ -172,7 +172,7 @@
     font-family: inherit;
 }
 
-.search-box input::placeholder { color: var(--mj-color-neutral-300); }
+.search-box input::placeholder { color: var(--mj-text-disabled); }
 
 .search-box input:focus {
     box-shadow: 0 0 0 2px var(--mj-color-indigo-500), 0 4px 12px rgba(99, 102, 241, 0.12);
@@ -185,17 +185,17 @@
     background: transparent;
     font-size: 13px;
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     cursor: pointer;
     transition: all 0.15s ease;
     font-family: inherit;
 }
 
-.filter-pill:hover { color: var(--mj-color-neutral-500); }
+.filter-pill:hover { color: var(--mj-text-muted); }
 
 .filter-pill.active {
-    background: var(--mj-color-neutral-0);
-    color: var(--mj-color-neutral-900);
+    background: var(--mj-bg-surface);
+    color: var(--mj-text-primary);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
@@ -207,7 +207,7 @@
 }
 
 .document-card {
-    background: var(--mj-color-neutral-0);
+    background: var(--mj-bg-surface);
     border-radius: var(--mj-radius-xl);
     padding: var(--mj-space-5) var(--mj-space-6);
     display: flex;
@@ -228,7 +228,7 @@
     width: 44px;
     height: 44px;
     border-radius: var(--mj-radius-lg);
-    background: var(--mj-color-indigo-50);
+    background: color-mix(in srgb, var(--mj-color-indigo-500) 12%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -237,7 +237,7 @@
 
 .doc-icon i {
     font-size: 18px;
-    color: var(--mj-color-indigo-500);
+    color: var(--mj-color-indigo-400);
 }
 
 /* ─── Doc Content ─── */
@@ -249,7 +249,7 @@
 .doc-title {
     font-size: 15px;
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -259,7 +259,7 @@
 .doc-description {
     font-size: 13px;
     font-weight: var(--mj-font-normal);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     line-height: 1.4;
     margin: var(--mj-space-1) 0 var(--mj-space-2-5) 0;
     display: -webkit-box;
@@ -282,8 +282,8 @@
     letter-spacing: 0.5px;
     padding: 2px var(--mj-space-2);
     border-radius: var(--mj-radius-sm);
-    background: var(--mj-color-neutral-100);
-    color: var(--mj-color-neutral-500);
+    background: var(--mj-bg-surface-sunken);
+    color: var(--mj-text-muted);
 }
 
 .doc-provider,
@@ -291,7 +291,7 @@
 .doc-date {
     font-size: var(--mj-text-xs);
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     display: flex;
     align-items: center;
     gap: var(--mj-space-1);
@@ -301,7 +301,7 @@
 .doc-committee i,
 .doc-date i {
     font-size: 10px;
-    color: var(--mj-color-neutral-300);
+    color: var(--mj-text-disabled);
 }
 
 /* ─── Doc Actions ─── */
@@ -318,8 +318,8 @@
     height: 32px;
     border: none;
     border-radius: var(--mj-radius-md);
-    background: var(--mj-color-neutral-100);
-    color: var(--mj-color-neutral-500);
+    background: var(--mj-bg-surface-sunken);
+    color: var(--mj-text-muted);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -329,8 +329,8 @@
 }
 
 .btn-icon:hover {
-    background: var(--mj-color-indigo-50);
-    color: var(--mj-color-indigo-500);
+    background: color-mix(in srgb, var(--mj-color-indigo-500) 12%, transparent);
+    color: var(--mj-color-indigo-400);
 }
 
 .status-badge {
@@ -341,9 +341,9 @@
     white-space: nowrap;
 }
 
-.status-badge.status-uploaded { background: var(--mj-color-success-100); color: #065f46; }
-.status-badge.status-pending { background: var(--mj-color-warning-100); color: var(--mj-color-warning-800); }
-.status-badge.status-deleted { background: var(--mj-color-error-50); color: #991b1b; }
+.status-badge.status-uploaded { background: var(--mj-status-success-bg); color: var(--mj-status-success-text); }
+.status-badge.status-pending { background: var(--mj-status-warning-bg); color: var(--mj-status-warning-text); }
+.status-badge.status-deleted { background: var(--mj-status-error-bg); color: var(--mj-status-error-text); }
 
 /* ─── Empty State ─── */
 .empty-state {
@@ -353,7 +353,7 @@
 
 .empty-state i {
     font-size: 40px;
-    color: var(--mj-color-neutral-200);
+    color: var(--mj-text-disabled);
     display: block;
     margin-bottom: var(--mj-space-4);
 }
@@ -361,7 +361,7 @@
 .empty-state p {
     font-size: 15px;
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     margin: 0;
 }
 

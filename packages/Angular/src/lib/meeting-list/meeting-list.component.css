@@ -5,7 +5,7 @@
 
 :host {
     display: block;
-    background: var(--mj-color-neutral-50);
+    background: var(--mj-bg-surface-card);
     height: 100%;
     overflow-y: auto;
     font-family: var(--mj-font-family);
@@ -37,7 +37,7 @@
 .page-title {
     font-size: 34px;
     font-weight: var(--mj-font-bold);
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
     margin: 0;
     letter-spacing: -0.8px;
 }
@@ -72,7 +72,7 @@
 .tab-bar {
     display: flex;
     gap: 2px;
-    background: var(--mj-color-neutral-100);
+    background: var(--mj-bg-surface-sunken);
     border-radius: 10px;
     padding: 3px;
     margin-bottom: 28px;
@@ -86,7 +86,7 @@
     background: transparent;
     font-size: 13px;
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     cursor: pointer;
     transition: all 0.15s ease;
     outline: none;
@@ -96,11 +96,11 @@
     font-family: inherit;
 }
 
-.tab-pill:hover { color: var(--mj-color-neutral-500); }
+.tab-pill:hover { color: var(--mj-text-muted); }
 
 .tab-pill.active {
-    background: var(--mj-color-neutral-0);
-    color: var(--mj-color-neutral-900);
+    background: var(--mj-bg-surface);
+    color: var(--mj-text-primary);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
@@ -113,8 +113,8 @@
 }
 
 .tab-pill.active .count {
-    background: var(--mj-color-indigo-50);
-    color: var(--mj-color-indigo-500);
+    background: color-mix(in srgb, var(--mj-color-indigo-500) 12%, transparent);
+    color: var(--mj-color-indigo-400);
 }
 
 /* ─── Meeting Grid ─── */
@@ -125,7 +125,7 @@
 }
 
 .meeting-card {
-    background: var(--mj-color-neutral-0);
+    background: var(--mj-bg-surface);
     border-radius: var(--mj-radius-xl);
     padding: 18px var(--mj-space-6);
     display: flex;
@@ -198,7 +198,7 @@
 .meeting-title {
     font-size: 15px;
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
     margin: 0 0 var(--mj-space-1) 0;
     white-space: nowrap;
     overflow: hidden;
@@ -216,7 +216,7 @@
 .meeting-meta .location {
     font-size: var(--mj-text-xs);
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     display: flex;
     align-items: center;
     gap: 5px;
@@ -224,7 +224,7 @@
 
 .meeting-meta i {
     font-size: 11px;
-    color: var(--mj-color-neutral-300);
+    color: var(--mj-text-disabled);
 }
 
 .status-badge {
@@ -237,12 +237,12 @@
     margin-top: var(--mj-space-1-5);
 }
 
-.status-scheduled { background: var(--mj-color-indigo-100); color: #3730a3; }
-.status-draft { background: var(--mj-color-warning-100); color: var(--mj-color-warning-800); }
-.status-completed { background: var(--mj-color-success-100); color: #065f46; }
-.status-cancelled { background: var(--mj-color-error-50); color: #991b1b; }
-.status-inprogress { background: var(--mj-color-info-100); color: #1e40af; }
-.status-postponed { background: var(--mj-color-neutral-100); color: var(--mj-color-neutral-500); }
+.status-scheduled { background: color-mix(in srgb, var(--mj-color-indigo-500) 16%, transparent); color: var(--mj-status-info-text); }
+.status-draft { background: var(--mj-status-warning-bg); color: var(--mj-status-warning-text); }
+.status-completed { background: var(--mj-status-success-bg); color: var(--mj-status-success-text); }
+.status-cancelled { background: var(--mj-status-error-bg); color: #991b1b; }
+.status-inprogress { background: var(--mj-status-info-bg); color: #1e40af; }
+.status-postponed { background: var(--mj-bg-surface-sunken); color: var(--mj-text-muted); }
 
 /* ─── Meeting Actions ─── */
 .meeting-actions { flex-shrink: 0; }
@@ -278,7 +278,7 @@
 
 .empty-state i {
     font-size: 40px;
-    color: var(--mj-color-neutral-200);
+    color: var(--mj-text-disabled);
     display: block;
     margin-bottom: var(--mj-space-4);
 }
@@ -286,7 +286,7 @@
 .empty-state p {
     font-size: 15px;
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     margin: 0;
 }
 

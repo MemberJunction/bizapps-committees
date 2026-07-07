@@ -113,7 +113,7 @@ export class AgendaItemEditDialogComponent implements OnInit {
     }
 
     private Validate(): string | null {
-        if (!this.AgendaItem!.Title?.trim()) {
+        if (!this.AgendaItem!.Name?.trim()) {
             return 'Title is required.';
         }
         if (this.AgendaItem!.DurationMinutes != null && this.AgendaItem!.DurationMinutes < 0) {

@@ -5949,10 +5949,10 @@ input CreatemjBizAppsCommitteesActionItemInput {
   DueDate: Timestamp
   ID: String
   MeetingID: String
+  Name: String
   Priority: String
   RestoreContext___: RestoreContextInput
   Status: String
-  Title: String
 }
 
 input CreatemjBizAppsCommitteesAgendaItemInput {
@@ -5961,6 +5961,7 @@ input CreatemjBizAppsCommitteesAgendaItemInput {
   ID: String
   ItemType: String
   MeetingID: String
+  Name: String
   Notes: String
   ParentAgendaItemID: String
   PresenterPersonID: String
@@ -5968,7 +5969,6 @@ input CreatemjBizAppsCommitteesAgendaItemInput {
   RestoreContext___: RestoreContextInput
   Sequence: Int
   Status: String
-  Title: String
 }
 
 input CreatemjBizAppsCommitteesArtifactInput {
@@ -5981,10 +5981,10 @@ input CreatemjBizAppsCommitteesArtifactInput {
   ID: String
   MeetingID: String
   MimeType: String
+  Name: String
   Provider: String
   RestoreContext___: RestoreContextInput
   TaskID: String
-  Title: String
   URL: String
   UploadedByPersonID: String
 }
@@ -6007,6 +6007,21 @@ input CreatemjBizAppsCommitteesAttendanceInput {
   Notes: String
   PersonID: String
   RestoreContext___: RestoreContextInput
+}
+
+input CreatemjBizAppsCommitteesBallotInput {
+  ClosedAt: Timestamp
+  ClosesAt: Timestamp
+  CommitteeID: String
+  CreatedByMembershipID: String
+  ID: String
+  IsSealed: Boolean
+  MotionID: String
+  OpensAt: Timestamp
+  RestoreContext___: RestoreContextInput
+  ResultNotes: String
+  Status: String
+  ThresholdType: String
 }
 
 input CreatemjBizAppsCommitteesCommentInput {
@@ -6048,11 +6063,11 @@ input CreatemjBizAppsCommitteesMeetingInput {
   ID: String
   LocationText: String
   LocationType: String
+  Name: String
   RestoreContext___: RestoreContextInput
   StartDateTime: Timestamp
   Status: String
   TimeZone: String
-  Title: String
   TranscriptURL: String
   VideoJoinURL: String
   VideoMeetingID: String
@@ -6093,6 +6108,7 @@ input CreatemjBizAppsCommitteesMotionInput {
   ID: String
   MeetingID: String
   MovedByMembershipID: String
+  Name: String
   NoCount: Int
   Notes: String
   RestoreContext___: RestoreContextInput
@@ -6100,7 +6116,6 @@ input CreatemjBizAppsCommitteesMotionInput {
   ResultSummary: String
   SecondedByMembershipID: String
   Sequence: Int
-  Title: String
   YesCount: Int
 }
 
@@ -24630,6 +24645,7 @@ type Mutation {
   CreatemjBizAppsCommitteesArtifact(input: CreatemjBizAppsCommitteesArtifactInput!): mjBizAppsCommitteesArtifact_!
   CreatemjBizAppsCommitteesArtifactType(input: CreatemjBizAppsCommitteesArtifactTypeInput!): mjBizAppsCommitteesArtifactType_!
   CreatemjBizAppsCommitteesAttendance(input: CreatemjBizAppsCommitteesAttendanceInput!): mjBizAppsCommitteesAttendance_!
+  CreatemjBizAppsCommitteesBallot(input: CreatemjBizAppsCommitteesBallotInput!): mjBizAppsCommitteesBallot_!
   CreatemjBizAppsCommitteesComment(input: CreatemjBizAppsCommitteesCommentInput!): mjBizAppsCommitteesComment_!
   CreatemjBizAppsCommitteesCommittee(input: CreatemjBizAppsCommitteesCommitteeInput!): mjBizAppsCommitteesCommittee_!
   CreatemjBizAppsCommitteesMeeting(input: CreatemjBizAppsCommitteesMeetingInput!): mjBizAppsCommitteesMeeting_!
@@ -25051,6 +25067,7 @@ type Mutation {
   DeletemjBizAppsCommitteesArtifact(ID: String!, options___: DeleteOptionsInput!): mjBizAppsCommitteesArtifact_!
   DeletemjBizAppsCommitteesArtifactType(ID: String!, options___: DeleteOptionsInput!): mjBizAppsCommitteesArtifactType_!
   DeletemjBizAppsCommitteesAttendance(ID: String!, options___: DeleteOptionsInput!): mjBizAppsCommitteesAttendance_!
+  DeletemjBizAppsCommitteesBallot(ID: String!, options___: DeleteOptionsInput!): mjBizAppsCommitteesBallot_!
   DeletemjBizAppsCommitteesComment(ID: String!, options___: DeleteOptionsInput!): mjBizAppsCommitteesComment_!
   DeletemjBizAppsCommitteesCommittee(ID: String!, options___: DeleteOptionsInput!): mjBizAppsCommitteesCommittee_!
   DeletemjBizAppsCommitteesMeeting(ID: String!, options___: DeleteOptionsInput!): mjBizAppsCommitteesMeeting_!
@@ -25656,6 +25673,7 @@ type Mutation {
   UpdatemjBizAppsCommitteesArtifact(input: UpdatemjBizAppsCommitteesArtifactInput!): mjBizAppsCommitteesArtifact_!
   UpdatemjBizAppsCommitteesArtifactType(input: UpdatemjBizAppsCommitteesArtifactTypeInput!): mjBizAppsCommitteesArtifactType_!
   UpdatemjBizAppsCommitteesAttendance(input: UpdatemjBizAppsCommitteesAttendanceInput!): mjBizAppsCommitteesAttendance_!
+  UpdatemjBizAppsCommitteesBallot(input: UpdatemjBizAppsCommitteesBallotInput!): mjBizAppsCommitteesBallot_!
   UpdatemjBizAppsCommitteesComment(input: UpdatemjBizAppsCommitteesCommentInput!): mjBizAppsCommitteesComment_!
   UpdatemjBizAppsCommitteesCommittee(input: UpdatemjBizAppsCommitteesCommitteeInput!): mjBizAppsCommitteesCommittee_!
   UpdatemjBizAppsCommitteesMeeting(input: UpdatemjBizAppsCommitteesMeetingInput!): mjBizAppsCommitteesMeeting_!
@@ -27453,6 +27471,9 @@ type Query {
   RunmjBizAppsCommitteesAttendanceDynamicView(input: RunDynamicViewInput!): RunmjBizAppsCommitteesAttendanceViewResult!
   RunmjBizAppsCommitteesAttendanceViewByID(input: RunViewByIDInput!): RunmjBizAppsCommitteesAttendanceViewResult!
   RunmjBizAppsCommitteesAttendanceViewByName(input: RunViewByNameInput!): RunmjBizAppsCommitteesAttendanceViewResult!
+  RunmjBizAppsCommitteesBallotDynamicView(input: RunDynamicViewInput!): RunmjBizAppsCommitteesBallotViewResult!
+  RunmjBizAppsCommitteesBallotViewByID(input: RunViewByIDInput!): RunmjBizAppsCommitteesBallotViewResult!
+  RunmjBizAppsCommitteesBallotViewByName(input: RunViewByNameInput!): RunmjBizAppsCommitteesBallotViewResult!
   RunmjBizAppsCommitteesCommentDynamicView(input: RunDynamicViewInput!): RunmjBizAppsCommitteesCommentViewResult!
   RunmjBizAppsCommitteesCommentViewByID(input: RunViewByIDInput!): RunmjBizAppsCommitteesCommentViewResult!
   RunmjBizAppsCommitteesCommentViewByName(input: RunViewByNameInput!): RunmjBizAppsCommitteesCommentViewResult!
@@ -27606,6 +27627,7 @@ type Query {
   mjBizAppsCommitteesArtifact(ID: String!): mjBizAppsCommitteesArtifact_
   mjBizAppsCommitteesArtifactType(ID: String!): mjBizAppsCommitteesArtifactType_
   mjBizAppsCommitteesAttendance(ID: String!): mjBizAppsCommitteesAttendance_
+  mjBizAppsCommitteesBallot(ID: String!): mjBizAppsCommitteesBallot_
   mjBizAppsCommitteesComment(ID: String!): mjBizAppsCommitteesComment_
   mjBizAppsCommitteesCommittee(ID: String!): mjBizAppsCommitteesCommittee_
   mjBizAppsCommitteesMeeting(ID: String!): mjBizAppsCommitteesMeeting_
@@ -32337,6 +32359,16 @@ type RunmjBizAppsCommitteesAttendanceViewResult {
   ErrorMessage: String
   ExecutionTime: Int
   Results: [mjBizAppsCommitteesAttendance_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunmjBizAppsCommitteesBallotViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [mjBizAppsCommitteesBallot_!]!
   RowCount: Int
   Success: Boolean!
   TotalRowCount: Int
@@ -39085,11 +39117,11 @@ input UpdatemjBizAppsCommitteesActionItemInput {
   DueDate: Timestamp
   ID: String!
   MeetingID: String
+  Name: String
   OldValues___: [KeyValuePairInput!]
   Priority: String
   RestoreContext___: RestoreContextInput
   Status: String
-  Title: String
 }
 
 input UpdatemjBizAppsCommitteesAgendaItemInput {
@@ -39098,6 +39130,7 @@ input UpdatemjBizAppsCommitteesAgendaItemInput {
   ID: String!
   ItemType: String
   MeetingID: String
+  Name: String
   Notes: String
   OldValues___: [KeyValuePairInput!]
   ParentAgendaItemID: String
@@ -39106,7 +39139,6 @@ input UpdatemjBizAppsCommitteesAgendaItemInput {
   RestoreContext___: RestoreContextInput
   Sequence: Int
   Status: String
-  Title: String
 }
 
 input UpdatemjBizAppsCommitteesArtifactInput {
@@ -39119,11 +39151,11 @@ input UpdatemjBizAppsCommitteesArtifactInput {
   ID: String!
   MeetingID: String
   MimeType: String
+  Name: String
   OldValues___: [KeyValuePairInput!]
   Provider: String
   RestoreContext___: RestoreContextInput
   TaskID: String
-  Title: String
   URL: String
   UploadedByPersonID: String
 }
@@ -39148,6 +39180,22 @@ input UpdatemjBizAppsCommitteesAttendanceInput {
   OldValues___: [KeyValuePairInput!]
   PersonID: String
   RestoreContext___: RestoreContextInput
+}
+
+input UpdatemjBizAppsCommitteesBallotInput {
+  ClosedAt: Timestamp
+  ClosesAt: Timestamp
+  CommitteeID: String
+  CreatedByMembershipID: String
+  ID: String!
+  IsSealed: Boolean
+  MotionID: String
+  OldValues___: [KeyValuePairInput!]
+  OpensAt: Timestamp
+  RestoreContext___: RestoreContextInput
+  ResultNotes: String
+  Status: String
+  ThresholdType: String
 }
 
 input UpdatemjBizAppsCommitteesCommentInput {
@@ -39191,12 +39239,12 @@ input UpdatemjBizAppsCommitteesMeetingInput {
   ID: String!
   LocationText: String
   LocationType: String
+  Name: String
   OldValues___: [KeyValuePairInput!]
   RestoreContext___: RestoreContextInput
   StartDateTime: Timestamp
   Status: String
   TimeZone: String
-  Title: String
   TranscriptURL: String
   VideoJoinURL: String
   VideoMeetingID: String
@@ -39239,6 +39287,7 @@ input UpdatemjBizAppsCommitteesMotionInput {
   ID: String!
   MeetingID: String
   MovedByMembershipID: String
+  Name: String
   NoCount: Int
   Notes: String
   OldValues___: [KeyValuePairInput!]
@@ -39247,7 +39296,6 @@ input UpdatemjBizAppsCommitteesMotionInput {
   ResultSummary: String
   SecondedByMembershipID: String
   Sequence: Int
-  Title: String
   YesCount: Int
 }
 
@@ -39732,6 +39780,7 @@ type WriteRecordOutput {
 Legacy action items assigned from committees or meetings (superseded by BizAppsTasks)
 """
 type mjBizAppsCommitteesActionItem_ {
+  AgendaItem: String
   AgendaItemID: String
   AssignedByPerson: String
   AssignedByPersonID: String
@@ -39744,10 +39793,11 @@ type mjBizAppsCommitteesActionItem_ {
   Description: String
   DueDate: Timestamp
   ID: String!
+  Meeting: String
   MeetingID: String
+  Name: String!
   Priority: String!
   Status: String!
-  Title: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
 }
@@ -39758,8 +39808,11 @@ type mjBizAppsCommitteesAgendaItem_ {
   DurationMinutes: Int
   ID: String!
   ItemType: String!
+  Meeting: String!
   MeetingID: String!
+  Name: String!
   Notes: String
+  ParentAgendaItem: String
   ParentAgendaItemID: String
   PresenterPerson: String
   PresenterPersonID: String
@@ -39767,7 +39820,6 @@ type mjBizAppsCommitteesAgendaItem_ {
   RootParentAgendaItemID: String
   Sequence: Int!
   Status: String!
-  Title: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
   mjBizAppsCommitteesCommittees_ActionItems_AgendaItemIDArray: [mjBizAppsCommitteesActionItem_!]!
@@ -39794,6 +39846,7 @@ type mjBizAppsCommitteesArtifactType_ {
 
 """Links to external documents and files from various providers"""
 type mjBizAppsCommitteesArtifact_ {
+  AgendaItem: String
   AgendaItemID: String
   ArtifactType: String!
   ArtifactTypeID: String!
@@ -39803,12 +39856,13 @@ type mjBizAppsCommitteesArtifact_ {
   ExternalID: String
   FileSize: Int
   ID: String!
+  Meeting: String
   MeetingID: String
   MimeType: String
+  Name: String!
   Provider: String!
   Task: String
   TaskID: String
-  Title: String!
   URL: String!
   UploadedByPerson: String
   UploadedByPersonID: String
@@ -39824,6 +39878,7 @@ type mjBizAppsCommitteesAttendance_ {
   ID: String!
   JoinedAt: Timestamp
   LeftAt: Timestamp
+  Meeting: String!
   MeetingID: String!
   Notes: String
   Person: String!
@@ -39833,16 +39888,73 @@ type mjBizAppsCommitteesAttendance_ {
 }
 
 """
+Between-meeting e-ballot: the voting window for exactly one Motion, with pass threshold and sealed-choice flag. Votes attach to the Motion as ordinary Vote records; while sealed, vote choices are withheld from all consumers until the ballot closes.
+"""
+type mjBizAppsCommitteesBallot_ {
+  """
+  When the ballot actually closed (early close or scheduled); NULL while open
+  """
+  ClosedAt: Timestamp
+
+  """Scheduled close of the voting window (UI countdown target)"""
+  ClosesAt: Timestamp!
+  Committee: String!
+
+  """
+  Committee this ballot belongs to; also the committee scope for the ballot's meeting-less Motion
+  """
+  CommitteeID: String!
+
+  """Membership of the member who opened the ballot (typically the Chair)"""
+  CreatedByMembershipID: String
+  ID: String!
+
+  """
+  When 1, individual vote choices are withheld from all consumers (including admins) until the ballot closes; participation (who has voted) remains visible
+  """
+  IsSealed: Boolean!
+  Motion: String!
+
+  """
+  The Motion this ballot decides — exactly one ballot per motion (unique)
+  """
+  MotionID: String!
+
+  """When voting opens"""
+  OpensAt: Timestamp!
+
+  """
+  Certification text recorded at close (result summary, any procedural notes)
+  """
+  ResultNotes: String
+
+  """
+  Ballot lifecycle: Open (accepting votes), Closed (result computed, votes unsealed, Motion stamped), Cancelled
+  """
+  Status: String!
+
+  """
+  Pass threshold measured against the committee's voting members: SimpleMajority, TwoThirds, or Unanimous
+  """
+  ThresholdType: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+"""
 Threaded discussion comments on committee meetings, agenda items, tasks, and documents
 """
 type mjBizAppsCommitteesComment_ {
+  AgendaItem: String
   AgendaItemID: String
+  Artifact: String
   ArtifactID: String
   CommentText: String!
   Committee: String!
   CommitteeID: String!
   ID: String!
   IsResolved: Boolean!
+  Meeting: String
   MeetingID: String
   MentionedPersonIDs: String
   ParentCommentID: String
@@ -39878,6 +39990,7 @@ type mjBizAppsCommitteesCommittee_ {
   _mj__UpdatedAt: Timestamp!
   mjBizAppsCommitteesCommittees_ActionItems_CommitteeIDArray: [mjBizAppsCommitteesActionItem_!]!
   mjBizAppsCommitteesCommittees_Artifacts_CommitteeIDArray: [mjBizAppsCommitteesArtifact_!]!
+  mjBizAppsCommitteesCommittees_Ballots_CommitteeIDArray: [mjBizAppsCommitteesBallot_!]!
   mjBizAppsCommitteesCommittees_Comments_CommitteeIDArray: [mjBizAppsCommitteesComment_!]!
   mjBizAppsCommitteesCommittees_Committees_ParentCommitteeIDArray: [mjBizAppsCommitteesCommittee_!]!
   mjBizAppsCommitteesCommittees_Meetings_CommitteeIDArray: [mjBizAppsCommitteesMeeting_!]!
@@ -39894,10 +40007,10 @@ type mjBizAppsCommitteesMeeting_ {
   ID: String!
   LocationText: String
   LocationType: String!
+  Name: String!
   StartDateTime: Timestamp!
   Status: String!
   TimeZone: String!
-  Title: String!
   TranscriptURL: String
   VideoJoinURL: String
   VideoMeetingID: String
@@ -39933,6 +40046,7 @@ type mjBizAppsCommitteesMembership_ {
   TermID: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
+  mjBizAppsCommitteesCommittees_Ballots_CreatedByMembershipIDArray: [mjBizAppsCommitteesBallot_!]!
   mjBizAppsCommitteesCommittees_Motions_MovedByMembershipIDArray: [mjBizAppsCommitteesMotion_!]!
   mjBizAppsCommitteesCommittees_Motions_SecondedByMembershipIDArray: [mjBizAppsCommitteesMotion_!]!
   mjBizAppsCommitteesCommittees_Votes_MembershipIDArray: [mjBizAppsCommitteesVote_!]!
@@ -39944,10 +40058,13 @@ Meeting minutes with approval tracking; stored as markdown Content or linked Art
 type mjBizAppsCommitteesMinute_ {
   ApprovalStatus: String!
   ApprovedAt: Timestamp
+  ApprovedByMeeting: String
   ApprovedByMeetingID: String
+  Artifact: String
   ArtifactID: String
   Content: String
   ID: String!
+  Meeting: String
   MeetingID: String
   Notes: String
   _mj__CreatedAt: Timestamp!
@@ -39957,21 +40074,28 @@ type mjBizAppsCommitteesMinute_ {
 """Formal motions put to vote during committee meetings"""
 type mjBizAppsCommitteesMotion_ {
   AbstainCount: Int
+  AgendaItem: String
   AgendaItemID: String
   Description: String
   ID: String!
-  MeetingID: String!
+  Meeting: String
+
+  """
+  Meeting where the motion was made; NULL for between-meeting e-ballot motions (see Ballot)
+  """
+  MeetingID: String
   MovedByMembershipID: String
+  Name: String!
   NoCount: Int
   Notes: String
   Result: String!
   ResultSummary: String
   SecondedByMembershipID: String
   Sequence: Int!
-  Title: String!
   YesCount: Int
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
+  mjBizAppsCommitteesCommittees_Ballots_MotionIDArray: [mjBizAppsCommitteesBallot_!]!
   mjBizAppsCommitteesCommittees_Votes_MotionIDArray: [mjBizAppsCommitteesVote_!]!
 }
 
@@ -40034,6 +40158,7 @@ type mjBizAppsCommitteesVideoProvider_ {
 type mjBizAppsCommitteesVote_ {
   ID: String!
   MembershipID: String!
+  Motion: String!
   MotionID: String!
   Notes: String
   VoteValue: String!

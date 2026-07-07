@@ -5,7 +5,7 @@
 
 :host {
     display: block;
-    background: var(--mj-color-neutral-50);
+    background: var(--mj-bg-surface-card);
     height: 100%;
     overflow-y: auto;
     font-family: var(--mj-font-family);
@@ -37,7 +37,7 @@
 .page-title {
     font-size: 34px;
     font-weight: var(--mj-font-bold);
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
     margin: 0;
     letter-spacing: -0.8px;
 }
@@ -45,7 +45,7 @@
 .page-subtitle {
     font-size: 15px;
     font-weight: var(--mj-font-normal);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     margin: var(--mj-space-1-5) 0 0 0;
 }
 
@@ -86,13 +86,13 @@
 
 .committee-select {
     padding: var(--mj-space-2) 14px;
-    border: 1px solid var(--mj-color-neutral-200);
+    border: 1px solid var(--mj-border-default);
     border-radius: 10px;
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-medium);
     font-family: inherit;
-    color: var(--mj-color-neutral-800);
-    background: var(--mj-color-neutral-0);
+    color: var(--mj-text-primary);
+    background: var(--mj-bg-surface);
     cursor: pointer;
     min-width: 200px;
 }
@@ -105,7 +105,7 @@
 .tab-bar {
     display: flex;
     gap: 2px;
-    background: var(--mj-color-neutral-100);
+    background: var(--mj-bg-surface-sunken);
     border-radius: 10px;
     padding: 3px;
 }
@@ -117,7 +117,7 @@
     background: transparent;
     font-size: 13px;
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     cursor: pointer;
     transition: all 0.15s ease;
     font-family: inherit;
@@ -126,11 +126,11 @@
     gap: var(--mj-space-1-5);
 }
 
-.tab-pill:hover { color: var(--mj-color-neutral-500); }
+.tab-pill:hover { color: var(--mj-text-muted); }
 
 .tab-pill.active {
-    background: var(--mj-color-neutral-0);
-    color: var(--mj-color-neutral-900);
+    background: var(--mj-bg-surface);
+    color: var(--mj-text-primary);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
@@ -142,7 +142,7 @@
 
 .empty-state i {
     font-size: 40px;
-    color: var(--mj-color-neutral-200);
+    color: var(--mj-text-disabled);
     display: block;
     margin-bottom: var(--mj-space-4);
 }
@@ -150,7 +150,7 @@
 .empty-state p {
     font-size: 15px;
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     margin: 0;
 }
 

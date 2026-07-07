@@ -31,7 +31,7 @@ export class DocumentEditDialogComponent implements OnInit {
 
     /** Lookup data */
     Committees: { ID: string; Name: string }[] = [];
-    Meetings: { ID: string; Title: string }[] = [];
+    Meetings: { ID: string; Name: string }[] = [];
     Categories: { ID: string; Name: string }[] = [];
     ExternalProviders: { ID: string; Name: string }[] = [];
     StorageProviders: { ID: string; Name: string }[] = [];
@@ -336,7 +336,7 @@ export class DocumentEditDialogComponent implements OnInit {
             },
             {
                 EntityName: 'Committees: Meetings',
-                Fields: ['ID', 'Title'],
+                Fields: ['ID', 'Name'],
                 ExtraFilter: "Status NOT IN ('Cancelled')",
                 OrderBy: 'StartDateTime DESC',
                 MaxRows: 100,
@@ -378,7 +378,7 @@ export class DocumentEditDialogComponent implements OnInit {
         }
 
         if (meetingsResult.Success) {
-            this.Meetings = meetingsResult.Results as { ID: string; Title: string }[];
+            this.Meetings = meetingsResult.Results as { ID: string; Name: string }[];
         }
         if (categoriesResult.Success) {
             this.Categories = categoriesResult.Results as { ID: string; Name: string }[];

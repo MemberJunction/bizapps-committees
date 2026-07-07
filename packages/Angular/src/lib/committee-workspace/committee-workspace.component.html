@@ -94,7 +94,7 @@
                     <div class="doc-row">
                       <i class="fa-solid fa-calendar-check"></i>
                       <div>
-                        <b>{{ NextMeeting.Title }}</b>
+                        <b>{{ NextMeeting.Name }}</b>
                         <small>{{ NextMeeting.StartDateTime | date: 'medium' }} · {{ NextMeeting.LocationType || 'TBD' }}</small>
                       </div>
                       <span class="badge info">Upcoming</span>
@@ -146,17 +146,24 @@
             <div class="card-h"><i class="fa-solid fa-calendar-days"></i><h2>All meetings</h2></div>
             <div class="card-b table-wrap">
               <table class="tbl">
-                <thead><tr><th>Meeting</th><th>When</th><th>Where</th><th>Status</th></tr></thead>
+                <thead><tr><th>Meeting</th><th>When</th><th>Where</th><th>Status</th><th></th></tr></thead>
                 <tbody>
                   @for (m of Meetings; track m.ID) {
                     <tr>
-                      <td><b>{{ m.Title }}</b></td>
+                      <td><b>{{ m.Name }}</b></td>
                       <td class="nowrap">{{ m.StartDateTime | date: 'MMM d, y · h:mm a' }}</td>
                       <td>{{ m.LocationType || '—' }}{{ m.LocationText ? ' · ' + m.LocationText : '' }}</td>
                       <td><span class="badge" [class.success]="m.Status === 'Completed'" [class.info]="m.Status === 'Scheduled'" [class.neutral]="m.Status !== 'Completed' && m.Status !== 'Scheduled'">{{ m.Status }}</span></td>
+                      <td class="nowrap">
+                        @if (m.Status === 'Scheduled') {
+                          <button type="button" class="btn-live" (click)="OpenLiveMeeting(m.ID)"><i class="fa-solid fa-play"></i> Start meeting</button>
+                        } @else if (m.Status === 'InProgress') {
+                          <button type="button" class="btn-live live" (click)="OpenLiveMeeting(m.ID)"><i class="fa-solid fa-tower-broadcast"></i> Resume live</button>
+                        }
+                      </td>
                     </tr>
                   } @empty {
-                    <tr><td colspan="4" class="small muted">No meetings recorded.</td></tr>
+                    <tr><td colspan="5" class="small muted">No meetings recorded.</td></tr>
                   }
                 </tbody>
               </table>
@@ -164,18 +171,46 @@
           </section>
         }
         @case ('motions') {
-          @if (MotionCount === 0) {
-            <div class="empty">
-              <div class="eicon"><i class="fa-solid fa-gavel"></i></div>
-              <b>No motions recorded this cycle</b>
-              <p>Motions captured in Live Meeting Mode land here automatically with their
-                 roll-call votes. Between meetings, open an e-ballot to put a question to
-                 the committee asynchronously.</p>
-              <button type="button" class="btn sm primary" disabled title="Coming in Phase 2">New e-ballot</button>
+          <section class="card">
+            <div class="card-h">
+              <i class="fa-solid fa-gavel"></i><h2>Motions</h2>
+              <span class="spacer"></span>
+              @if (OpenBallotCount > 0) {
+                <span class="badge info"><i class="fa-solid fa-gavel"></i> {{ OpenBallotCount }} e-ballot{{ OpenBallotCount === 1 ? '' : 's' }} open</span>
+              }
+              <button type="button" class="btn-live" (click)="ShowEBallotDialog = true"><i class="fa-solid fa-plus"></i> New e-ballot</button>
             </div>
-          } @else {
-            <p class="small muted">{{ MotionCount }} motions recorded — the motion register lands in Phase 2.</p>
-          }
+            @if (MotionRows.length === 0) {
+              <div class="empty">
+                <div class="eicon"><i class="fa-solid fa-gavel"></i></div>
+                <b>No motions recorded this cycle</b>
+                <p>Motions captured in Live Meeting Mode land here automatically with their
+                   roll-call votes. Between meetings, open an e-ballot to put a question to
+                   the committee asynchronously.</p>
+              </div>
+            } @else {
+              <div class="card-b table-wrap">
+                <table class="tbl">
+                  <thead><tr><th>Motion</th><th>Where</th><th>Moved / Seconded</th><th>Result</th><th>Tally Y-N-A</th></tr></thead>
+                  <tbody>
+                    @for (row of MotionRows; track row.MotionID) {
+                      <tr>
+                        <td><b>{{ row.Name }}</b>@if (row.Description) { <small class="muted">{{ row.Description }}</small> }</td>
+                        <td class="nowrap">
+                          @if (row.IsBallotMotion) { <span class="badge info">E-ballot</span> }
+                          @else { {{ row.MeetingTitle ?? '—' }} }
+                        </td>
+                        <td class="small">{{ row.MovedByName ?? '—' }}@if (row.SecondedByName) { / {{ row.SecondedByName }}}</td>
+                        <td><span class="badge" [class.success]="row.Result === 'Passed'" [class.error]="row.Result === 'Failed'"
+                                  [class.warning]="row.Result === 'Pending'" [class.neutral]="row.Result !== 'Passed' && row.Result !== 'Failed' && row.Result !== 'Pending'">{{ row.Result }}</span></td>
+                        <td class="nowrap">{{ row.Tally ? (row.Tally.Yes + '-' + row.Tally.No + '-' + row.Tally.Abstain) : '—' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </section>
         }
         @case ('actions') {
           <section class="card">
@@ -186,7 +221,7 @@
               @for (a of OpenActions; track a.ID) {
                 <div class="act">
                   <div>
-                    <b>{{ a.Title }}</b>
+                    <b>{{ a.Name }}</b>
                     <small>{{ a.AssignedToPerson || 'Unassigned' }}</small>
                   </div>
                   @if (a.DueDate) {
@@ -207,7 +242,7 @@
               @for (d of Artifacts; track d.ID) {
                 <div class="doc-row">
                   <i class="fa-solid fa-file-lines"></i>
-                  <div><b>{{ d.Title }}</b><small>{{ d.ArtifactType || 'Document' }}</small></div>
+                  <div><b>{{ d.Name }}</b><small>{{ d.ArtifactType || 'Document' }}</small></div>
                   @if (d.Provider) { <span class="badge neutral">{{ d.Provider }}</span> }
                   @if (d.URL) { <a class="btn sm ghost" [href]="d.URL" target="_blank" rel="noopener">Open</a> }
                 </div>
@@ -220,4 +255,12 @@
       }
     </div>
   </div>
+}
+
+@if (LiveMeetingID) {
+  <committees-live-meeting [MeetingID]="LiveMeetingID" (Exited)="OnLiveMeetingExited()"></committees-live-meeting>
+}
+
+@if (ShowEBallotDialog) {
+  <committees-e-ballot-dialog [PreselectedCommitteeID]="CommitteeID" (DialogClosed)="OnEBallotDialogClosed($event)"></committees-e-ballot-dialog>
 }

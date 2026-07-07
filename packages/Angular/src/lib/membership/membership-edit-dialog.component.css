@@ -4,7 +4,7 @@
 
 .person-info-section {
     margin-top: var(--mj-space-6);
-    border-top: 1px solid var(--mj-color-neutral-200);
+    border-top: 1px solid var(--mj-border-default);
     padding-top: var(--mj-space-5);
 }
 
@@ -13,7 +13,7 @@
     font-weight: var(--mj-font-semibold);
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--mj-color-neutral-500);
+    color: var(--mj-text-muted);
     margin: 0 0 var(--mj-space-3) 0;
     display: flex;
     align-items: center;

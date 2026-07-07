@@ -15,10 +15,7 @@ export class mjBizAppsCommitteesVoteFormComponent extends BaseFormComponent {
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'motionReference', sectionName: 'Motion Reference', isExpanded: true },
-            { sectionKey: 'memberReference', sectionName: 'Member Reference', isExpanded: true },
-            { sectionKey: 'voteDetails', sectionName: 'Vote Details', isExpanded: true },
-            { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false }
+            { sectionKey: 'details', sectionName: 'Details', isExpanded: true }
         ]);
     }
 }

@@ -20,20 +20,20 @@
     border-radius: 50%;
     object-fit: cover;
     flex-shrink: 0;
-    border: 2px solid var(--mj-color-neutral-200);
+    border: 2px solid var(--mj-border-default);
 }
 
 .person-avatar-placeholder {
     width: 72px;
     height: 72px;
     border-radius: 50%;
-    background: var(--mj-color-neutral-100);
-    border: 2px solid var(--mj-color-neutral-200);
+    background: var(--mj-bg-surface-sunken);
+    border: 2px solid var(--mj-border-default);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     font-size: 28px;
 }
 
@@ -45,7 +45,7 @@
 .person-name {
     font-size: var(--mj-text-xl);
     font-weight: var(--mj-font-bold);
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
     margin: 0 0 var(--mj-space-1) 0;
     letter-spacing: -0.3px;
 }
@@ -53,14 +53,14 @@
 .person-title {
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-neutral-500);
+    color: var(--mj-text-muted);
     margin: 0;
 }
 
 /* ─── Bio ─── */
 .person-bio {
     font-size: var(--mj-text-sm);
-    color: var(--mj-color-neutral-600);
+    color: var(--mj-text-secondary);
     line-height: 1.6;
     margin: 0;
 }
@@ -76,7 +76,7 @@
     gap: var(--mj-space-2);
     font-size: var(--mj-text-xs);
     font-weight: var(--mj-font-bold);
-    color: var(--mj-color-neutral-500);
+    color: var(--mj-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.6px;
     margin: 0 0 var(--mj-space-3) 0;

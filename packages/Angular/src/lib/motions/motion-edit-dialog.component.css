@@ -9,7 +9,7 @@
 .voting-section {
     margin-top: var(--mj-space-1);
     padding-top: var(--mj-space-5);
-    border-top: 1px solid var(--mj-color-neutral-100);
+    border-top: 1px solid var(--mj-border-subtle);
     margin-bottom: var(--mj-space-5);
 }
 
@@ -27,8 +27,8 @@
 .vote-tally {
     font-size: var(--mj-text-xs);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-500);
-    background: var(--mj-color-neutral-100);
+    color: var(--mj-text-muted);
+    background: var(--mj-bg-surface-sunken);
     padding: var(--mj-space-1) var(--mj-space-3);
     border-radius: var(--mj-radius-lg);
 }
@@ -46,14 +46,14 @@
     justify-content: space-between;
     gap: var(--mj-space-3);
     padding: var(--mj-space-2-5) 14px;
-    background: var(--mj-color-neutral-0);
+    background: var(--mj-bg-surface);
     border-radius: 10px;
-    border: 1px solid var(--mj-color-neutral-100);
+    border: 1px solid var(--mj-border-subtle);
     transition: border-color 0.15s ease;
 }
 
 .voter-row:hover {
-    border-color: var(--mj-color-neutral-200);
+    border-color: var(--mj-border-default);
 }
 
 .voter-row.non-voting {
@@ -71,7 +71,7 @@
 .voter-name {
     font-size: 13px;
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -80,15 +80,15 @@
 .voter-role {
     font-size: 11px;
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     white-space: nowrap;
 }
 
 .non-voting-tag {
     font-size: 10px;
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-400);
-    background: var(--mj-color-neutral-100);
+    color: var(--mj-text-muted);
+    background: var(--mj-bg-surface-sunken);
     padding: 1px var(--mj-space-1-5);
     border-radius: var(--mj-radius-sm);
     white-space: nowrap;
@@ -103,20 +103,20 @@
 
 .vote-btn {
     padding: var(--mj-space-1) var(--mj-space-2-5);
-    border: 1px solid var(--mj-color-neutral-200);
+    border: 1px solid var(--mj-border-default);
     border-radius: var(--mj-radius-sm);
-    background: var(--mj-color-neutral-0);
+    background: var(--mj-bg-surface);
     font-size: 11px;
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     cursor: pointer;
     transition: all 0.15s ease;
     font-family: inherit;
 }
 
 .vote-btn:hover {
-    border-color: var(--mj-color-neutral-300);
-    color: var(--mj-color-neutral-500);
+    border-color: var(--mj-border-strong);
+    color: var(--mj-text-muted);
 }
 
 .vote-btn.active {
@@ -143,16 +143,16 @@
 }
 
 .vote-btn.vote-absent {
-    background: var(--mj-color-neutral-200);
-    border-color: var(--mj-color-neutral-200);
-    color: var(--mj-color-neutral-500);
+    background: var(--mj-bg-surface-active);
+    border-color: var(--mj-border-default);
+    color: var(--mj-text-muted);
 }
 
 /* ─── Delete Confirmation ─── */
 .delete-confirm-banner {
     padding: 14px var(--mj-space-4);
-    background: var(--mj-color-error-50);
-    border: 1px solid var(--mj-color-error-200);
+    background: var(--mj-status-error-bg);
+    border: 1px solid color-mix(in srgb, var(--mj-status-error-border) 35%, transparent);
     border-radius: 10px;
     margin-bottom: var(--mj-space-5);
     animation: fadeIn 0.15s ease;
@@ -161,7 +161,7 @@
 .delete-confirm-text {
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-error-700);
+    color: var(--mj-status-error-text);
     margin-bottom: var(--mj-space-3);
     display: flex;
     align-items: center;

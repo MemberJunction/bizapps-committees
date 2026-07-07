@@ -24,6 +24,15 @@
                 <span [class]="'status-badge status-' + (Meeting.Status || '').toLowerCase()">
                     {{ Meeting.Status }}
                 </span>
+                @if (Meeting.Status === 'Scheduled' || Meeting.Status === 'Draft') {
+                    <button class="btn btn-primary btn-sm" (click)="ShowLiveMeeting = true">
+                        <i class="fa-solid fa-play"></i> Start meeting
+                    </button>
+                } @else if (Meeting.Status === 'InProgress') {
+                    <button class="btn btn-primary btn-sm" (click)="ShowLiveMeeting = true">
+                        <i class="fa-solid fa-tower-broadcast"></i> Resume live
+                    </button>
+                }
                 @if (IsOfficer && Meeting.Status !== 'Completed' && Meeting.Status !== 'Cancelled') {
                     <button class="btn btn-secondary btn-sm" (click)="OnMarkAsCompleted()" [disabled]="IsMarkingCompleted">
                         @if (IsMarkingCompleted) {
@@ -35,7 +44,7 @@
                     </button>
                 }
             </div>
-            <h1 class="meeting-title">{{ Meeting.Title }}</h1>
+            <h1 class="meeting-title">{{ Meeting.Name }}</h1>
             <div class="meeting-datetime">
                 <i class="fa-regular fa-calendar"></i>
                 {{ FormattedDate }}
@@ -133,7 +142,7 @@
                                 <span class="stat-value">
                                     @if (Minute) {
                                         <span class="minutes-status" [class]="'minutes-' + Minute.ApprovalStatus.toLowerCase()">
-                                            {{ Minute.ApprovalStatus }}
+                                            {{ Minute.ApprovalStatus === 'PendingApproval' ? 'Pending Approval' : Minute.ApprovalStatus }}
                                         </span>
                                     } @else {
                                         <span class="minutes-none">None</span>
@@ -162,7 +171,7 @@
                                 <div class="agenda-seq">{{ item.Sequence }}</div>
                                 <div class="agenda-content">
                                     <div class="agenda-title-row">
-                                        <span class="agenda-title">{{ item.Title }}</span>
+                                        <span class="agenda-title">{{ item.Name }}</span>
                                         <span [class]="'agenda-status ' + GetAgendaStatusClass(item.Status)">
                                             {{ item.Status }}
                                         </span>
@@ -200,7 +209,7 @@
                         @for (motion of Motions; track motion.ID) {
                             <div class="motion-card">
                                 <div class="motion-header">
-                                    <span class="motion-title">{{ motion.Title }}</span>
+                                    <span class="motion-title">{{ motion.Name }}</span>
                                     <span [class]="'motion-result ' + GetMotionResultClass(motion.Result)">
                                         {{ motion.Result }}
                                     </span>
@@ -243,15 +252,21 @@
                             <button class="btn btn-primary" (click)="ShowMinutesPanel = true">
                                 <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Minutes
                             </button>
+                            <button class="btn btn-secondary btn-sm" (click)="ShowMinutesReview = true">
+                                <i class="fa-solid fa-file-signature"></i> Review &amp; Approve
+                            </button>
                         }
                     </div>
                 } @else {
                     <div class="minutes-viewer">
                         <div class="minutes-toolbar">
                             <span [class]="'minutes-status minutes-' + Minute.ApprovalStatus.toLowerCase()">
-                                {{ Minute.ApprovalStatus }}
+                                {{ Minute.ApprovalStatus === 'PendingApproval' ? 'Pending Approval' : Minute.ApprovalStatus }}
                             </span>
                             <div class="toolbar-spacer"></div>
+                            <button class="btn btn-primary btn-sm" (click)="ShowMinutesReview = true">
+                                <i class="fa-solid fa-file-signature"></i> Review &amp; Approve
+                            </button>
                             @if (IsOfficer) {
                                 <button class="btn btn-secondary btn-sm" (click)="ShowMinutesPanel = true">
                                     <i class="fa-solid fa-rotate"></i> Regenerate
@@ -274,4 +289,14 @@
         [TranscriptURL]="Meeting?.TranscriptURL ?? null"
         (Close)="OnMinutesPanelClose()">
     </generate-minutes-panel>
+}
+
+<!-- Live Meeting Mode overlay -->
+@if (ShowLiveMeeting) {
+    <committees-live-meeting [MeetingID]="MeetingID" (Exited)="OnLiveMeetingExited()"></committees-live-meeting>
+}
+
+<!-- Minutes Review overlay (UX v2 screen 07) -->
+@if (ShowMinutesReview) {
+    <committees-minutes-review [MeetingID]="MeetingID" (Exited)="OnMinutesReviewExited()"></committees-minutes-review>
 }

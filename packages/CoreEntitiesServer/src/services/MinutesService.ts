@@ -27,7 +27,7 @@ export interface MinutesSaveResult {
 interface AgendaItemRow {
     ID: string;
     Sequence: number;
-    Title: string;
+    Name: string;
     Description: string | null;
     ItemType: string;
     Status: string;
@@ -39,7 +39,7 @@ interface AgendaItemRow {
 interface MotionRow {
     ID: string;
     Sequence: number;
-    Title: string;
+    Name: string;
     Description: string | null;
     Result: string;
     ResultSummary: string | null;
@@ -166,14 +166,14 @@ export class MinutesService {
                 EntityName: 'Committees: Agenda Items',
                 ExtraFilter: `MeetingID='${meetingID}'`,
                 OrderBy: 'Sequence ASC',
-                Fields: ['ID', 'Sequence', 'Title', 'Description', 'ItemType', 'Status', 'Notes', 'DurationMinutes'],
+                Fields: ['ID', 'Sequence', 'Name', 'Description', 'ItemType', 'Status', 'Notes', 'DurationMinutes'],
                 ResultType: 'simple',
             },
             {
                 EntityName: 'Committees: Motions',
                 ExtraFilter: `MeetingID='${meetingID}'`,
                 OrderBy: 'Sequence ASC',
-                Fields: ['ID', 'Sequence', 'Title', 'Description', 'Result', 'ResultSummary', 'YesCount', 'NoCount', 'AbstainCount', 'Notes'],
+                Fields: ['ID', 'Sequence', 'Name', 'Description', 'Result', 'ResultSummary', 'YesCount', 'NoCount', 'AbstainCount', 'Notes'],
                 ResultType: 'simple',
             },
             {
@@ -245,7 +245,7 @@ export class MinutesService {
 
 ## MEETING DATA
 
-**Meeting:** ${meeting.Title}
+**Meeting:** ${meeting.Name}
 **Date:** ${meetingDate}
 **Committee:** ${meeting.Committee ?? ''}
 **Format:** ${locationLine}
@@ -262,7 +262,7 @@ ${transcriptSection}
 ---
 
 Generate formal, professional meeting minutes in Markdown with this exact structure:
-1. # [Meeting Title] — Minutes
+1. # [Meeting Name] — Minutes
 2. ## Meeting Details
 3. ## Attendance
 4. ## Agenda Items (one ### subsection per agenda item with a brief discussion summary)
@@ -288,7 +288,7 @@ Be concise and factual. Use passive voice appropriate for formal minutes. If a t
     private formatAgendaForPrompt(items: AgendaItemRow[]): string {
         if (!items.length) return '(No agenda items recorded)';
         return items.map(item => {
-            const lines = [`${item.Sequence}. **${item.Title}** (${item.ItemType} — ${item.Status})`];
+            const lines = [`${item.Sequence}. **${item.Name}** (${item.ItemType} — ${item.Status})`];
             if (item.Description) lines.push(`   ${item.Description}`);
             if (item.Notes) lines.push(`   Discussion notes: ${item.Notes}`);
             return lines.join('\n');
@@ -301,7 +301,7 @@ Be concise and factual. Use passive voice appropriate for formal minutes. If a t
             const tally = m.ResultSummary
                 ? m.ResultSummary
                 : m.YesCount != null ? `${m.YesCount} Yes / ${m.NoCount} No / ${m.AbstainCount} Abstain` : '';
-            const lines = [`- **${m.Title}** — ${m.Result}${tally ? ` (${tally})` : ''}`];
+            const lines = [`- **${m.Name}** — ${m.Result}${tally ? ` (${tally})` : ''}`];
             if (m.Description) lines.push(`  ${m.Description}`);
             if (m.Notes) lines.push(`  Notes: ${m.Notes}`);
             return lines.join('\n');

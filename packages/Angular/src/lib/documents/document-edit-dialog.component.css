@@ -7,7 +7,7 @@
     display: flex;
     gap: 0;
     margin-bottom: var(--mj-space-5);
-    border: 2px solid var(--mj-color-neutral-200);
+    border: 2px solid var(--mj-border-default);
     border-radius: var(--mj-radius-lg);
     overflow: hidden;
 }
@@ -16,10 +16,10 @@
     flex: 1;
     padding: var(--mj-space-3) var(--mj-space-4);
     border: none;
-    background: var(--mj-color-neutral-0);
+    background: var(--mj-bg-surface);
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-500);
+    color: var(--mj-text-muted);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -30,22 +30,22 @@
 }
 
 .mode-btn:first-child {
-    border-right: 2px solid var(--mj-color-neutral-200);
+    border-right: 2px solid var(--mj-border-default);
 }
 
 .mode-btn.active {
-    background: var(--mj-color-info-50);
+    background: var(--mj-status-info-bg);
     color: var(--mj-color-info-600);
 }
 
 .mode-btn:hover:not(.active) {
-    background: var(--mj-color-neutral-50);
-    color: var(--mj-color-neutral-600);
+    background: var(--mj-bg-surface-card);
+    color: var(--mj-text-secondary);
 }
 
 /* ─── File Upload Drop Zone ─── */
 .drop-zone {
-    border: 2px dashed var(--mj-color-neutral-300);
+    border: 2px dashed var(--mj-border-strong);
     border-radius: 14px;
     padding: var(--mj-space-8) var(--mj-space-5);
     text-align: center;
@@ -56,12 +56,12 @@
 
 .drop-zone:hover {
     border-color: #93c5fd;
-    background: var(--mj-color-info-50);
+    background: var(--mj-status-info-bg);
 }
 
 .drop-zone.dragging {
     border-color: var(--mj-color-info-500);
-    background: var(--mj-color-info-50);
+    background: var(--mj-status-info-bg);
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
 }
 
@@ -75,13 +75,13 @@
 .drop-text {
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-600);
+    color: var(--mj-text-secondary);
     margin: 0 0 var(--mj-space-1) 0;
 }
 
 .drop-hint {
     font-size: var(--mj-text-xs);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     margin: 0;
 }
 
@@ -95,12 +95,12 @@
     align-items: flex-start;
     gap: var(--mj-space-2-5);
     padding: 14px var(--mj-space-4);
-    background: var(--mj-color-warning-50);
-    border: 2px solid var(--mj-color-warning-200);
+    background: var(--mj-status-warning-bg);
+    border: 2px solid color-mix(in srgb, var(--mj-status-warning-border) 35%, transparent);
     border-radius: var(--mj-radius-lg);
     font-size: 13px;
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-warning-800);
+    color: var(--mj-status-warning-text);
     line-height: 1.4;
 }
 
@@ -117,9 +117,9 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px var(--mj-space-4);
-    border: 2px solid var(--mj-color-neutral-200);
+    border: 2px solid var(--mj-border-default);
     border-radius: var(--mj-radius-lg);
-    background: var(--mj-color-neutral-0);
+    background: var(--mj-bg-surface);
 }
 
 .file-info {
@@ -138,7 +138,7 @@
 .file-name {
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-800);
+    color: var(--mj-text-primary);
     display: block;
     white-space: nowrap;
     overflow: hidden;
@@ -147,7 +147,7 @@
 
 .file-size {
     font-size: var(--mj-text-xs);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     font-weight: var(--mj-font-medium);
 }
 
@@ -155,10 +155,10 @@
     width: 32px;
     height: 32px;
     border: none;
-    background: var(--mj-color-neutral-100);
+    background: var(--mj-bg-surface-sunken);
     border-radius: var(--mj-radius-md);
     font-size: var(--mj-text-sm);
-    color: var(--mj-color-neutral-500);
+    color: var(--mj-text-muted);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -168,7 +168,7 @@
 }
 
 .file-remove:hover {
-    background: var(--mj-color-error-100);
+    background: var(--mj-status-error-bg);
     color: var(--mj-color-error-500);
 }
 
@@ -186,16 +186,16 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: var(--mj-color-neutral-200);
+    background: var(--mj-bg-surface-active);
 }
 
 .divider-text {
     position: relative;
-    background: var(--mj-color-neutral-0);
+    background: var(--mj-bg-surface);
     padding: 0 14px;
     font-size: var(--mj-text-xs);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
@@ -206,7 +206,7 @@
     align-items: center;
     gap: var(--mj-space-2-5);
     padding: var(--mj-space-3) var(--mj-space-4);
-    background: var(--mj-color-info-50);
+    background: var(--mj-status-info-bg);
     border: 2px solid #bfdbfe;
     border-radius: var(--mj-radius-lg);
     font-size: var(--mj-text-sm);

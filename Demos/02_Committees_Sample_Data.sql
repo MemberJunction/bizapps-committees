@@ -462,7 +462,7 @@ DECLARE @MtgBoardQ4    UNIQUEIDENTIFIER = NEWID(),
         @MtgTechKick   UNIQUEIDENTIFIER = NEWID();
 
 INSERT INTO __mj_BizAppsCommittees.Meeting
-    (ID, CommitteeID, Title, Description, StartDateTime, EndDateTime, TimeZone,
+    (ID, CommitteeID, Name, Description, StartDateTime, EndDateTime, TimeZone,
      LocationType, LocationText, VideoProvider, VideoMeetingID, VideoJoinURL,
      VideoRecordingURL, TranscriptURL, Status, CalendarEventID)
 VALUES
@@ -577,7 +577,7 @@ DECLARE @AgTech_Welcome       UNIQUEIDENTIFIER = NEWID(),
 
 -- Board Q4 2025 Meeting agenda
 INSERT INTO __mj_BizAppsCommittees.AgendaItem
-    (ID, MeetingID, ParentAgendaItemID, Sequence, Title, Description,
+    (ID, MeetingID, ParentAgendaItemID, Sequence, Name, Description,
      PresenterPersonID, DurationMinutes, ItemType, RelatedDocumentURL, Status, Notes)
 VALUES
     (@AgBrdQ4_CallToOrder, @MtgBoardQ4, NULL, 1,
@@ -642,7 +642,7 @@ VALUES
 
 -- Board Q1 2026 Meeting agenda
 INSERT INTO __mj_BizAppsCommittees.AgendaItem
-    (ID, MeetingID, ParentAgendaItemID, Sequence, Title, Description,
+    (ID, MeetingID, ParentAgendaItemID, Sequence, Name, Description,
      PresenterPersonID, DurationMinutes, ItemType, RelatedDocumentURL, Status, Notes)
 VALUES
     (@AgBrdQ1_CallToOrder, @MtgBoardQ1, NULL, 1,
@@ -677,7 +677,7 @@ VALUES
 
 -- Board Q2 2026 Meeting agenda (draft/upcoming)
 INSERT INTO __mj_BizAppsCommittees.AgendaItem
-    (ID, MeetingID, ParentAgendaItemID, Sequence, Title, Description,
+    (ID, MeetingID, ParentAgendaItemID, Sequence, Name, Description,
      PresenterPersonID, DurationMinutes, ItemType, RelatedDocumentURL, Status, Notes)
 VALUES
     (@AgBrdQ2_CallToOrder, @MtgBoardQ2, NULL, 1,
@@ -697,7 +697,7 @@ VALUES
 
 -- Finance January 2026 Meeting agenda
 INSERT INTO __mj_BizAppsCommittees.AgendaItem
-    (ID, MeetingID, ParentAgendaItemID, Sequence, Title, Description,
+    (ID, MeetingID, ParentAgendaItemID, Sequence, Name, Description,
      PresenterPersonID, DurationMinutes, ItemType, RelatedDocumentURL, Status, Notes)
 VALUES
     (@AgFin_DecFinancials, @MtgFinJan, NULL, 1,
@@ -726,7 +726,7 @@ VALUES
 
 -- Tech Standards Kickoff 2025 agenda
 INSERT INTO __mj_BizAppsCommittees.AgendaItem
-    (ID, MeetingID, ParentAgendaItemID, Sequence, Title, Description,
+    (ID, MeetingID, ParentAgendaItemID, Sequence, Name, Description,
      PresenterPersonID, DurationMinutes, ItemType, RelatedDocumentURL, Status, Notes)
 VALUES
     (@AgTech_Welcome, @MtgTechKick, NULL, 1,
@@ -810,7 +810,7 @@ PRINT 'Inserted Attendance records.';
 -- ============================================================================
 
 INSERT INTO __mj_BizAppsCommittees.ActionItem
-    (ID, CommitteeID, MeetingID, AgendaItemID, Title, Description,
+    (ID, CommitteeID, MeetingID, AgendaItemID, Name, Description,
      AssignedToPersonID, AssignedByPersonID, DueDate, Priority, Status,
      CompletedAt, CompletionNotes)
 VALUES
@@ -908,7 +908,7 @@ DECLARE @ArtBrdQ4Minutes   UNIQUEIDENTIFIER = NEWID(),
         @ArtMemGrowth      UNIQUEIDENTIFIER = NEWID();
 
 INSERT INTO __mj_BizAppsCommittees.Artifact
-    (ID, CommitteeID, MeetingID, AgendaItemID, TaskID, Title, Description,
+    (ID, CommitteeID, MeetingID, AgendaItemID, TaskID, Name, Description,
      ArtifactTypeID, Provider, ExternalID, URL, MimeType, FileSize, UploadedByPersonID)
 VALUES
     -- 1. Board Q4 2025 Meeting Minutes
@@ -1009,7 +1009,7 @@ DECLARE @Motion1_ApproveQ3Min  UNIQUEIDENTIFIER = NEWID(),
         @Motion3_ApproveQ4Min  UNIQUEIDENTIFIER = NEWID();
 
 INSERT INTO __mj_BizAppsCommittees.Motion
-    (ID, MeetingID, AgendaItemID, Sequence, Title, Description,
+    (ID, MeetingID, AgendaItemID, Sequence, Name, Description,
      MovedByMembershipID, SecondedByMembershipID,
      Result, ResultSummary, YesCount, NoCount, AbstainCount, Notes)
 VALUES

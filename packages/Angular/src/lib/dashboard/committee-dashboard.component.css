@@ -5,12 +5,12 @@
 
 :host {
     display: block;
-    background: var(--mj-color-neutral-50);
+    background: var(--mj-bg-surface-card);
     height: 100%;
     overflow-y: auto;
     font-family: var(--mj-font-family);
     -webkit-font-smoothing: antialiased;
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
 }
 
 .dashboard-loading {
@@ -41,7 +41,7 @@
 .hero-title {
     font-size: 34px;
     font-weight: var(--mj-font-bold);
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
     margin: 0;
     letter-spacing: -0.8px;
 }
@@ -49,7 +49,7 @@
 .hero-subtitle {
     font-size: 15px;
     font-weight: var(--mj-font-normal);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     margin: var(--mj-space-2) 0 0 0;
     line-height: 1.5;
 }
@@ -96,7 +96,7 @@
 }
 
 .stat-card {
-    background: var(--mj-color-neutral-0);
+    background: var(--mj-bg-surface);
     border-radius: var(--mj-radius-xl);
     padding: var(--mj-space-6) 28px;
     position: relative;
@@ -119,7 +119,7 @@
     height: 3px;
 }
 
-.stat-indigo::before { background: linear-gradient(90deg, var(--mj-color-indigo-500), #818cf8); }
+.stat-indigo::before { background: linear-gradient(90deg, var(--mj-color-indigo-500), var(--mj-color-indigo-400)); }
 .stat-emerald::before { background: linear-gradient(90deg, var(--mj-color-success-500), var(--mj-color-success-400)); }
 .stat-amber::before { background: linear-gradient(90deg, var(--mj-color-warning-500), var(--mj-color-warning-400)); }
 .stat-rose::before { background: linear-gradient(90deg, var(--mj-color-error-500), var(--mj-color-error-400)); }
@@ -127,7 +127,7 @@
 .stat-number {
     font-size: 36px;
     font-weight: var(--mj-font-bold);
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
     letter-spacing: -1.5px;
     line-height: 1;
 }
@@ -135,7 +135,7 @@
 .stat-label {
     font-size: var(--mj-text-xs);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     margin-top: var(--mj-space-2);
     text-transform: uppercase;
     letter-spacing: 0.8px;
@@ -151,7 +151,7 @@
 
 /* ─── Panel ─── */
 .panel {
-    background: var(--mj-color-neutral-0);
+    background: var(--mj-bg-surface);
     border-radius: var(--mj-radius-xl);
     overflow: hidden;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
@@ -166,13 +166,13 @@
     align-items: center;
     justify-content: space-between;
     padding: 18px var(--mj-space-6);
-    border-bottom: 1px solid var(--mj-color-neutral-100);
+    border-bottom: 1px solid var(--mj-border-subtle);
 }
 
 .panel-head h3 {
     font-size: 13px;
     font-weight: var(--mj-font-bold);
-    color: var(--mj-color-neutral-500);
+    color: var(--mj-text-muted);
     margin: 0;
     text-transform: uppercase;
     letter-spacing: 0.8px;
@@ -181,8 +181,8 @@
 .panel-count {
     font-size: 11px;
     font-weight: var(--mj-font-bold);
-    color: var(--mj-color-indigo-500);
-    background: var(--mj-color-indigo-50);
+    color: var(--mj-color-indigo-400);
+    background: color-mix(in srgb, var(--mj-color-indigo-500) 12%, transparent);
     padding: 2px var(--mj-space-2-5);
     border-radius: 20px;
 }
@@ -198,7 +198,7 @@
     justify-content: center;
     gap: var(--mj-space-3);
     padding: var(--mj-space-12) var(--mj-space-5);
-    color: var(--mj-color-neutral-300);
+    color: var(--mj-text-disabled);
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-medium);
 }
@@ -213,18 +213,18 @@
     align-items: center;
     gap: var(--mj-space-4);
     padding: 14px var(--mj-space-6);
-    border-bottom: 1px solid var(--mj-color-neutral-50);
+    border-bottom: 1px solid var(--mj-border-subtle);
     transition: background 0.15s ease;
 }
 
 .row-item:last-child { border-bottom: none; }
-.row-item:hover { background: var(--mj-color-neutral-50); }
+.row-item:hover { background: var(--mj-bg-surface-card); }
 
 .row-muted { opacity: 0.55; }
 .row-muted:hover { opacity: 0.75; }
 
 .row-overdue {
-    background: var(--mj-color-error-50);
+    background: var(--mj-status-error-bg);
     border-left: 3px solid var(--mj-color-error-500);
 }
 
@@ -236,7 +236,7 @@
 .row-title {
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-800);
+    color: var(--mj-text-primary);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -244,7 +244,7 @@
 
 .row-meta {
     font-size: var(--mj-text-xs);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     margin-top: 3px;
     display: flex;
     align-items: center;
@@ -257,7 +257,7 @@
 }
 
 .meta-sep {
-    color: var(--mj-color-neutral-200);
+    color: var(--mj-text-disabled);
 }
 
 /* ─── Date Chip ─── */
@@ -267,7 +267,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: linear-gradient(135deg, var(--mj-color-indigo-500), #818cf8);
+    background: linear-gradient(135deg, var(--mj-color-indigo-500), var(--mj-color-indigo-400));
     border-radius: 10px;
     padding: var(--mj-space-1-5) var(--mj-space-1);
     box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
@@ -346,17 +346,17 @@
     flex-shrink: 0;
 }
 
-.tag-open { background: var(--mj-color-warning-100); color: var(--mj-color-warning-800); }
-.tag-inprogress { background: var(--mj-color-indigo-100); color: #3730a3; }
-.tag-completed { background: var(--mj-color-success-100); color: #065f46; }
-.tag-neutral { background: var(--mj-color-neutral-100); color: var(--mj-color-neutral-500); }
+.tag-open { background: var(--mj-status-warning-bg); color: var(--mj-status-warning-text); }
+.tag-inprogress { background: color-mix(in srgb, var(--mj-color-indigo-500) 16%, transparent); color: var(--mj-status-info-text); }
+.tag-completed { background: var(--mj-status-success-bg); color: var(--mj-status-success-text); }
+.tag-neutral { background: var(--mj-bg-surface-sunken); color: var(--mj-text-muted); }
 
 /* ─── Doc Icon ─── */
 .doc-icon {
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    background: var(--mj-color-indigo-50);
+    background: color-mix(in srgb, var(--mj-color-indigo-500) 12%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -365,7 +365,7 @@
 
 .doc-icon i {
     font-size: var(--mj-text-base);
-    color: var(--mj-color-indigo-500);
+    color: var(--mj-color-indigo-400);
 }
 
 /* ─── Responsive ─── */

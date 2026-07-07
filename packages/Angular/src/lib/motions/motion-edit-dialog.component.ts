@@ -35,7 +35,7 @@ export class MotionEditDialogComponent implements OnInit {
     IsSaving = false;
     ErrorMessage = '';
 
-    AgendaItems: { ID: string; Title: string }[] = [];
+    AgendaItems: { ID: string; Name: string }[] = [];
     Members: { ID: string; Person: string; Role: string; IsVotingRole: boolean }[] = [];
     Voters: VoterRow[] = [];
 
@@ -131,7 +131,7 @@ export class MotionEditDialogComponent implements OnInit {
     }
 
     private Validate(): string | null {
-        if (!this.Motion!.Title?.trim()) return 'Title is required.';
+        if (!this.Motion!.Name?.trim()) return 'Title is required.';
         return null;
     }
 
@@ -161,7 +161,7 @@ export class MotionEditDialogComponent implements OnInit {
         if (this.MeetingID) {
             queries.push({
                 EntityName: 'Committees: Agenda Items',
-                Fields: ['ID', 'Title'],
+                Fields: ['ID', 'Name'],
                 ExtraFilter: `MeetingID = '${this.MeetingID}'`,
                 OrderBy: 'Sequence ASC',
                 ResultType: 'simple'
@@ -178,7 +178,7 @@ export class MotionEditDialogComponent implements OnInit {
         }
 
         if (results[1]?.Success) {
-            this.AgendaItems = results[1].Results as { ID: string; Title: string }[];
+            this.AgendaItems = results[1].Results as { ID: string; Name: string }[];
         }
 
         // Load committee members through terms

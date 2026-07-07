@@ -10,7 +10,7 @@ import { CommitteePermissionHelper } from '../shared/committee-permission-helper
 
 interface MeetingRow {
     ID: string;
-    Title: string;
+    Name: string;
     StartDateTime: Date;
     EndDateTime: Date | null;
     Committee: string | null;
@@ -30,7 +30,7 @@ interface AttendanceRow {
 interface AgendaRow {
     ID: string;
     Sequence: number;
-    Title: string;
+    Name: string;
     ItemType: string;
     Status: string;
     Notes: string | null;
@@ -40,7 +40,7 @@ interface AgendaRow {
 interface MotionRow {
     ID: string;
     Sequence: number;
-    Title: string;
+    Name: string;
     Description: string | null;
     Result: string;
     ResultSummary: string | null;
@@ -76,6 +76,10 @@ export class MeetingDetailViewComponent implements OnInit {
     IsOfficer = false;
     ShowMinutesPanel = false;
     IsMarkingCompleted = false;
+    /** Live Meeting Mode overlay (UX v2 screen 03). */
+    ShowLiveMeeting = false;
+    /** Minutes Review overlay (UX v2 screen 07). */
+    ShowMinutesReview = false;
     ActiveSection: 'overview' | 'agenda' | 'motions' | 'minutes' = 'overview';
 
     private cdr = inject(ChangeDetectorRef);
@@ -150,6 +154,20 @@ export class MeetingDetailViewComponent implements OnInit {
         this.cdr.markForCheck();
     }
 
+    /** Exit from Minutes Review — reload so approval status reflects edits. */
+    async OnMinutesReviewExited(): Promise<void> {
+        this.ShowMinutesReview = false;
+        await this.loadData();
+        this.cdr.markForCheck();
+    }
+
+    /** Exit from Live Meeting Mode — reload so statuses reflect the session. */
+    async OnLiveMeetingExited(): Promise<void> {
+        this.ShowLiveMeeting = false;
+        await this.loadData();
+        this.cdr.markForCheck();
+    }
+
     async OnMarkAsCompleted(): Promise<void> {
         if (!this.Meeting || this.IsMarkingCompleted) return;
         this.IsMarkingCompleted = true;
@@ -191,7 +209,7 @@ export class MeetingDetailViewComponent implements OnInit {
             {
                 EntityName: 'Committees: Meetings',
                 ExtraFilter: `ID='${this.MeetingID}'`,
-                Fields: ['ID', 'Title', 'StartDateTime', 'EndDateTime', 'Committee', 'Status',
+                Fields: ['ID', 'Name', 'StartDateTime', 'EndDateTime', 'Committee', 'Status',
                          'LocationType', 'Location', 'VideoProvider', 'TranscriptURL'],
                 ResultType: 'simple',
             },
@@ -205,14 +223,14 @@ export class MeetingDetailViewComponent implements OnInit {
                 EntityName: 'Committees: Agenda Items',
                 ExtraFilter: `MeetingID='${this.MeetingID}'`,
                 OrderBy: 'Sequence ASC',
-                Fields: ['ID', 'Sequence', 'Title', 'ItemType', 'Status', 'Notes', 'DurationMinutes'],
+                Fields: ['ID', 'Sequence', 'Name', 'ItemType', 'Status', 'Notes', 'DurationMinutes'],
                 ResultType: 'simple',
             },
             {
                 EntityName: 'Committees: Motions',
                 ExtraFilter: `MeetingID='${this.MeetingID}'`,
                 OrderBy: 'Sequence ASC',
-                Fields: ['ID', 'Sequence', 'Title', 'Description', 'Result', 'ResultSummary',
+                Fields: ['ID', 'Sequence', 'Name', 'Description', 'Result', 'ResultSummary',
                          'YesCount', 'NoCount', 'AbstainCount'],
                 ResultType: 'simple',
             },

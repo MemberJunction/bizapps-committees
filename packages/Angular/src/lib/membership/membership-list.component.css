@@ -5,7 +5,7 @@
 
 :host {
     display: block;
-    background: var(--mj-color-neutral-50);
+    background: var(--mj-bg-surface-card);
     height: 100%;
     overflow-y: auto;
     font-family: var(--mj-font-family);
@@ -43,7 +43,7 @@
 .page-title {
     font-size: 34px;
     font-weight: var(--mj-font-bold);
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
     margin: 0;
     letter-spacing: -0.8px;
     white-space: nowrap;
@@ -53,10 +53,10 @@
     padding: var(--mj-space-2) 36px var(--mj-space-2) 14px;
     border: none;
     border-radius: 10px;
-    background: var(--mj-color-neutral-0);
+    background: var(--mj-bg-surface);
     font-size: 15px;
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-900);
+    color: var(--mj-text-primary);
     cursor: pointer;
     outline: none;
     appearance: none;
@@ -75,7 +75,7 @@
 .single-committee-name {
     font-size: 15px;
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-500);
+    color: var(--mj-text-muted);
 }
 
 /* ─── Empty State ─── */
@@ -86,7 +86,7 @@
 
 .empty-state i {
     font-size: 40px;
-    color: var(--mj-color-neutral-200);
+    color: var(--mj-text-disabled);
     display: block;
     margin-bottom: var(--mj-space-4);
 }
@@ -94,7 +94,7 @@
 .empty-state p {
     font-size: 15px;
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
     margin: 0;
 }
 

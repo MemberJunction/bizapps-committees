@@ -28,8 +28,8 @@
                 <label class="form-label required">Motion Title</label>
                 <input class="form-input"
                     type="text"
-                    [ngModel]="Motion.Title"
-                    (ngModelChange)="Motion.Title = $event"
+                    [ngModel]="Motion.Name"
+                    (ngModelChange)="Motion.Name = $event"
                     placeholder="e.g. Approve Q4 budget allocation" />
             </div>
 
@@ -43,7 +43,7 @@
                             (ngModelChange)="Motion.AgendaItemID = $event">
                             <option [ngValue]="null">None</option>
                             @for (item of AgendaItems; track item.ID) {
-                                <option [ngValue]="item.ID">{{ item.Title }}</option>
+                                <option [ngValue]="item.ID">{{ item.Name }}</option>
                             }
                         </select>
                     </div>

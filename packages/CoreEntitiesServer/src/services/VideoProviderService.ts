@@ -120,7 +120,7 @@ export class VideoProviderService {
 
         try {
             const result = await driver.CreateMeeting({
-                Title: meeting.Title,
+                Title: meeting.Name,
                 StartDateTime: meeting.StartDateTime,
                 EndDateTime: meeting.EndDateTime,
                 TimeZone: meeting.TimeZone,

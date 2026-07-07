@@ -5,3 +5,5 @@ export * from './services/ActionItemService.js';
 export * from './services/CommitteePermissionService.js';
 export * from './engines/CommitteesLookupEngine.js';
 export * from './services/CommitteeHealthService.js';
+export * from './services/BallotService.js';
+export * from './services/MotionService.js';

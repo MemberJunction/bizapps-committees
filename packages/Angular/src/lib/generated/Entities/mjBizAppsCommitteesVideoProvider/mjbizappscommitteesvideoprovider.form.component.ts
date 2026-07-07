@@ -16,10 +16,7 @@ export class mjBizAppsCommitteesVideoProviderFormComponent extends BaseFormCompo
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'providerSettings', sectionName: 'Provider Settings', isExpanded: true },
-            { sectionKey: 'providerStatus', sectionName: 'Provider Status', isExpanded: true },
-            { sectionKey: 'credentials', sectionName: 'Credentials', isExpanded: true },
-            { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
+            { sectionKey: 'details', sectionName: 'Details', isExpanded: true },
             { sectionKey: 'committeesMeetings', sectionName: 'Meetings', isExpanded: false }
         ]);
     }

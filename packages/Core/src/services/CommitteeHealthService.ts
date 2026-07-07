@@ -94,7 +94,7 @@ export interface UpcomingMeetingForecast {
     MeetingID: string;
     CommitteeID: string;
     CommitteeName: string;
-    Title: string;
+    Name: string;
     StartDateTime: Date;
     EndDateTime: Date | null;
     LocationType: string | null;
@@ -110,7 +110,7 @@ export interface AttentionItem {
     Kind: AttentionKind;
     CommitteeID: string;
     CommitteeName: string;
-    Title: string;
+    Name: string;
     Detail: string;
 }
 
@@ -126,10 +126,10 @@ interface CommitteeRow { ID: string; Name: string; Status: string; IsPublic: boo
 interface TermRow { ID: string; CommitteeID: string; Status: string; StartDate: string; EndDate: string | null; }
 interface MembershipRow { ID: string; TermID: string; PersonID: string; Status: string; Role: string; Person: string; }
 interface RoleRow { ID: string; Name: string; IsVotingRole: boolean; IsOfficer: boolean; }
-interface MeetingRow { ID: string; CommitteeID: string; Committee: string; Title: string; StartDateTime: string; EndDateTime: string | null; Status: string; LocationType: string | null; LocationText: string | null; VideoProvider_Virtual: string | null; }
+interface MeetingRow { ID: string; CommitteeID: string; Committee: string; Name: string; StartDateTime: string; EndDateTime: string | null; Status: string; LocationType: string | null; LocationText: string | null; VideoProvider_Virtual: string | null; }
 interface AttendanceRow { MeetingID: string; PersonID: string; AttendanceStatus: string; }
 interface MinuteRow { ID: string; MeetingID: string; ApprovalStatus: string; __mj_CreatedAt: string; }
-interface ActionItemRow { ID: string; CommitteeID: string; Title: string; DueDate: string | null; Status: string; AssignedToPerson: string | null; }
+interface ActionItemRow { ID: string; CommitteeID: string; Name: string; DueDate: string | null; Status: string; AssignedToPerson: string | null; }
 interface AgendaItemRow { ID: string; MeetingID: string; }
 interface MembershipRoleRow extends MembershipRow { RoleID: string; }
 
@@ -152,9 +152,9 @@ export class CommitteeHealthService {
             { EntityName: 'Committees: Terms', Fields: ['ID', 'CommitteeID', 'Status', 'StartDate', 'EndDate'], ResultType: 'simple' },
             { EntityName: 'Committees: Memberships', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'TermID', 'PersonID', 'RoleID', 'Status', 'Role', 'Person'], ResultType: 'simple' },
             { EntityName: 'Committees: Roles', Fields: ['ID', 'Name', 'IsVotingRole', 'IsOfficer'], ResultType: 'simple' },
-            { EntityName: 'Committees: Meetings', ExtraFilter: `StartDateTime >= '${lookbackISO}'`, Fields: ['ID', 'CommitteeID', 'Committee', 'Title', 'StartDateTime', 'EndDateTime', 'Status', 'LocationType', 'LocationText', 'VideoProvider_Virtual'], OrderBy: 'StartDateTime ASC', ResultType: 'simple' },
+            { EntityName: 'Committees: Meetings', ExtraFilter: `StartDateTime >= '${lookbackISO}'`, Fields: ['ID', 'CommitteeID', 'Committee', 'Name', 'StartDateTime', 'EndDateTime', 'Status', 'LocationType', 'LocationText', 'VideoProvider_Virtual'], OrderBy: 'StartDateTime ASC', ResultType: 'simple' },
             { EntityName: 'Committees: Minutes', ExtraFilter: "ApprovalStatus IN ('Draft', 'PendingApproval')", Fields: ['ID', 'MeetingID', 'ApprovalStatus', '__mj_CreatedAt'], ResultType: 'simple' },
-            { EntityName: 'Committees: Action Items', ExtraFilter: "Status IN ('Open', 'InProgress')", Fields: ['ID', 'CommitteeID', 'Title', 'DueDate', 'Status', 'AssignedToPerson'], ResultType: 'simple' },
+            { EntityName: 'Committees: Action Items', ExtraFilter: "Status IN ('Open', 'InProgress')", Fields: ['ID', 'CommitteeID', 'Name', 'DueDate', 'Status', 'AssignedToPerson'], ResultType: 'simple' },
             { EntityName: 'Committees: Agenda Items', Fields: ['ID', 'MeetingID'], ResultType: 'simple' },
         ], contextUser);
 
@@ -322,7 +322,7 @@ export class CommitteeHealthService {
             Minutes: minutesDebt,
             Actions: actionAging,
             NextMeetingAt: next ? new Date(next.StartDateTime) : null,
-            NextMeetingTitle: next?.Title ?? null,
+            NextMeetingTitle: next?.Name ?? null,
         };
     }
 
@@ -364,7 +364,7 @@ export class CommitteeHealthService {
                 MeetingID: m.ID,
                 CommitteeID: m.CommitteeID,
                 CommitteeName: m.Committee,
-                Title: m.Title,
+                Name: m.Name,
                 StartDateTime: new Date(m.StartDateTime),
                 EndDateTime: m.EndDateTime ? new Date(m.EndDateTime) : null,
                 LocationType: m.LocationType,
@@ -383,28 +383,28 @@ export class CommitteeHealthService {
             if (r.Term.Kind === 'NoActiveTerm') {
                 items.push({
                     Kind: 'TermLapse', CommitteeID: r.CommitteeID, CommitteeName: r.Name,
-                    Title: `${r.Name} has no active term`,
+                    Name: `${r.Name} has no active term`,
                     Detail: `${r.MemberCount} memberships unanchored`,
                 });
             }
             if (r.Minutes.PendingCount > 0) {
                 items.push({
                     Kind: 'MinutesPending', CommitteeID: r.CommitteeID, CommitteeName: r.Name,
-                    Title: `${r.Name} minutes await approval`,
+                    Name: `${r.Name} minutes await approval`,
                     Detail: `Pending ${r.Minutes.OldestPendingDays} days`,
                 });
             }
             if (r.Actions.OverdueCount > 0) {
                 items.push({
                     Kind: 'OverdueAction', CommitteeID: r.CommitteeID, CommitteeName: r.Name,
-                    Title: `${r.Actions.OverdueCount} overdue action${r.Actions.OverdueCount === 1 ? '' : 's'} in ${r.Name}`,
+                    Name: `${r.Actions.OverdueCount} overdue action${r.Actions.OverdueCount === 1 ? '' : 's'} in ${r.Name}`,
                     Detail: `Oldest ${r.Actions.OldestOverdueDays} days overdue`,
                 });
             }
             if (r.Quorum.Level === 'High' && r.NextMeetingAt !== null) {
                 items.push({
                     Kind: 'QuorumRisk', CommitteeID: r.CommitteeID, CommitteeName: r.Name,
-                    Title: `Quorum at risk for ${r.Name}`,
+                    Name: `Quorum at risk for ${r.Name}`,
                     Detail: `Forecast ${r.Quorum.ExpectedAttendees} of ${r.Quorum.Required} required`,
                 });
             }

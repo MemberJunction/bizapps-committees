@@ -16,14 +16,11 @@ export class mjBizAppsCommitteesMembershipFormComponent extends BaseFormComponen
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'personAssignment', sectionName: 'Person Assignment', isExpanded: true },
-            { sectionKey: 'membershipTimeline', sectionName: 'Membership Timeline', isExpanded: true },
-            { sectionKey: 'membershipStatus', sectionName: 'Membership Status', isExpanded: true },
-            { sectionKey: 'membershipDetails', sectionName: 'Membership Details', isExpanded: true },
-            { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'committeesMotionsSecondedByMembershipID', sectionName: 'Motions (Seconded By)', isExpanded: false },
-            { sectionKey: 'committeesMotionsMovedByMembershipID', sectionName: 'Motions (Moved By)', isExpanded: false },
-            { sectionKey: 'committeesVotes', sectionName: 'Votes', isExpanded: false }
+            { sectionKey: 'details', sectionName: 'Details', isExpanded: true },
+            { sectionKey: 'committeesMotionsSecondedByMembershipID', sectionName: 'Motions (Seconded By Membership ID)', isExpanded: false },
+            { sectionKey: 'committeesMotionsMovedByMembershipID', sectionName: 'Motions (Moved By Membership ID)', isExpanded: false },
+            { sectionKey: 'committeesVotes', sectionName: 'Votes', isExpanded: false },
+            { sectionKey: 'committeesBallots', sectionName: 'Ballots', isExpanded: false }
         ]);
     }
 }

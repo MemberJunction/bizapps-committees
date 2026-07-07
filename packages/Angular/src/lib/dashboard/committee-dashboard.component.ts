@@ -92,7 +92,7 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
             {
                 EntityName: 'Committees: Meetings',
                 ExtraFilter: `StartDateTime >= '${today}' AND Status IN ('Scheduled', 'Draft') AND CommitteeID IN (${committeeFilter})`,
-                Fields: ['ID', 'Title', 'StartDateTime', 'Committee', 'Status', 'LocationType', 'VideoJoinURL'],
+                Fields: ['ID', 'Name', 'StartDateTime', 'Committee', 'Status', 'LocationType', 'VideoJoinURL'],
                 OrderBy: 'StartDateTime ASC',
                 MaxRows: 10,
                 ResultType: 'simple'
@@ -100,7 +100,7 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
             {
                 EntityName: 'Committees: Meetings',
                 ExtraFilter: `Status = 'Completed' AND CommitteeID IN (${committeeFilter})`,
-                Fields: ['ID', 'Title', 'StartDateTime', 'Committee', 'Status'],
+                Fields: ['ID', 'Name', 'StartDateTime', 'Committee', 'Status'],
                 OrderBy: 'StartDateTime DESC',
                 MaxRows: 5,
                 ResultType: 'simple'
@@ -108,7 +108,7 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
             {
                 EntityName: 'Committees: Action Items',
                 ExtraFilter: `Status IN ('Open', 'InProgress') AND CommitteeID IN (${committeeFilter})`,
-                Fields: ['ID', 'Title', 'DueDate', 'Priority', 'Status', 'Committee', 'AssignedToPerson'],
+                Fields: ['ID', 'Name', 'DueDate', 'Priority', 'Status', 'Committee', 'AssignedToPerson'],
                 OrderBy: 'DueDate ASC',
                 MaxRows: 20,
                 ResultType: 'simple'

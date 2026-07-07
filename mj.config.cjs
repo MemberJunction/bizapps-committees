@@ -146,19 +146,31 @@ module.exports = {
   // ---------------------------------------------------------------------------
   // AI-Powered Advanced Generation Features
   // ---------------------------------------------------------------------------
-  // Default v3.x: Several features enabled by default
-  // advancedGeneration: {
-  //   enableAdvancedGeneration: true,
-  //   features: [
-  //     { name: 'EntityNames', enabled: false },
-  //     { name: 'DefaultInViewFields', enabled: true },
-  //     { name: 'EntityDescriptions', enabled: false },
-  //     { name: 'SmartFieldIdentification', enabled: true },
-  //     { name: 'TransitiveJoinIntelligence', enabled: true },
-  //     { name: 'FormLayoutGeneration', enabled: true },
-  //     { name: 'ParseCheckConstraints', enabled: true },
-  //   ],
-  // },
+  // Pinned explicitly (SaaS-style) rather than riding codegen-lib defaults.
+  //
+  // SmartFieldIdentification is DISABLED deliberately (2026-07-06): the AI
+  // name-field pass raced codegen's own FK name-map resolution within a single
+  // run — it flagged Meeting.Title/AgendaItem.Title/etc. as name fields AFTER
+  // the map pass had already gone by, so the next run regenerated every
+  // dependent view with new denormalized columns while field-sync skipped the
+  // unchanged entities, leaving 14 unregistered view columns and breaking all
+  // entity loads ("Field X does not exist"). Took three codegen runs to
+  // converge. The current IsNameField metadata (set during those runs) is kept
+  // as-is — disabling the feature freezes it without clearing anything.
+  // If a NEW entity needs a non-'Name' name field, set IsNameField via a
+  // migration instead. Upstream issue: MJ codegen sequencing.
+  advancedGeneration: {
+    enableAdvancedGeneration: true,
+    features: [
+      { name: 'EntityNames', enabled: false },
+      { name: 'DefaultInViewFields', enabled: false },
+      { name: 'EntityDescriptions', enabled: false },
+      { name: 'EntityFieldDescriptions', enabled: false },
+      { name: 'SmartFieldIdentification', enabled: false },
+      { name: 'FormLayout', enabled: false },
+      { name: 'ParseCheckConstraints', enabled: true },
+    ],
+  },
 
   // ---------------------------------------------------------------------------
   // SQL Output (for migrations)

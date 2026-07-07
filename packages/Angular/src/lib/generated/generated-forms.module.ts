@@ -20,6 +20,7 @@ import { mjBizAppsCommitteesAgendaItemFormComponent } from "./Entities/mjBizApps
 import { mjBizAppsCommitteesArtifactTypeFormComponent } from "./Entities/mjBizAppsCommitteesArtifactType/mjbizappscommitteesartifacttype.form.component";
 import { mjBizAppsCommitteesArtifactFormComponent } from "./Entities/mjBizAppsCommitteesArtifact/mjbizappscommitteesartifact.form.component";
 import { mjBizAppsCommitteesAttendanceFormComponent } from "./Entities/mjBizAppsCommitteesAttendance/mjbizappscommitteesattendance.form.component";
+import { mjBizAppsCommitteesBallotFormComponent } from "./Entities/mjBizAppsCommitteesBallot/mjbizappscommitteesballot.form.component";
 import { mjBizAppsCommitteesCommentFormComponent } from "./Entities/mjBizAppsCommitteesComment/mjbizappscommitteescomment.form.component";
 import { mjBizAppsCommitteesCommitteeFormComponent } from "./Entities/mjBizAppsCommitteesCommittee/mjbizappscommitteescommittee.form.component";
 import { mjBizAppsCommitteesMeetingFormComponent } from "./Entities/mjBizAppsCommitteesMeeting/mjbizappscommitteesmeeting.form.component";
@@ -40,6 +41,7 @@ declarations: [
     mjBizAppsCommitteesArtifactTypeFormComponent,
     mjBizAppsCommitteesArtifactFormComponent,
     mjBizAppsCommitteesAttendanceFormComponent,
+    mjBizAppsCommitteesBallotFormComponent,
     mjBizAppsCommitteesCommentFormComponent,
     mjBizAppsCommitteesCommitteeFormComponent,
     mjBizAppsCommitteesMeetingFormComponent,

@@ -234,7 +234,7 @@ export class MeetingEditDialogComponent implements OnInit {
         const rv = new RunView();
         const result = await rv.RunView({
             EntityName: 'Committees: Motions',
-            Fields: ['ID', 'Sequence', 'Title', 'Result', 'ResultSummary', 'MovedByMembership', 'SecondedByMembership', 'YesCount', 'NoCount', 'AbstainCount'],
+            Fields: ['ID', 'Sequence', 'Name', 'Result', 'ResultSummary', 'MovedByMembership', 'SecondedByMembership', 'YesCount', 'NoCount', 'AbstainCount'],
             ExtraFilter: `MeetingID = '${this.MeetingID}'`,
             OrderBy: 'Sequence ASC',
             ResultType: 'simple'
@@ -312,7 +312,7 @@ export class MeetingEditDialogComponent implements OnInit {
         const rv = new RunView();
         const result = await rv.RunView({
             EntityName: 'Committees: Agenda Items',
-            Fields: ['ID', 'Sequence', 'Title', 'ItemType', 'DurationMinutes', 'Status', 'Presenter', 'PresenterPersonID'],
+            Fields: ['ID', 'Sequence', 'Name', 'ItemType', 'DurationMinutes', 'Status', 'Presenter', 'PresenterPersonID'],
             ExtraFilter: `MeetingID = '${this.MeetingID}'`,
             OrderBy: 'Sequence ASC',
             ResultType: 'simple'
@@ -323,7 +323,7 @@ export class MeetingEditDialogComponent implements OnInit {
     }
 
     private Validate(): string | null {
-        if (!this.Meeting!.Title?.trim()) {
+        if (!this.Meeting!.Name?.trim()) {
             return 'Meeting title is required.';
         }
         if (!this.Meeting!.CommitteeID) {

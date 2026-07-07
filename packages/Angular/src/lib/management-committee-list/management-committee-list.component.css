@@ -94,7 +94,7 @@
     border: 1px solid var(--mj-border-subtle);
     border-radius: 8px;
     background: var(--mj-bg-surface-card);
-    color: var(--mj-text-secondary, var(--mj-color-neutral-600));
+    color: var(--mj-text-secondary);
     font: inherit;
     font-size: 13px;
     cursor: pointer;

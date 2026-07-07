@@ -12,7 +12,7 @@
                     <i class="fa-solid fa-arrow-left"></i> Meetings
                 </button>
                 <div class="header-info">
-                    <h1 class="meeting-title">{{ Meeting['Title'] }}</h1>
+                    <h1 class="meeting-title">{{ Meeting['Name'] }}</h1>
                     <div class="meeting-meta">
                         <span class="committee-name">{{ Meeting['Committee'] }}</span>
                         <span class="meta-dot">&middot;</span>
@@ -37,8 +37,20 @@
             <!-- Admin Toolbar (officers only) -->
             @if (IsOfficer) {
                 <div class="admin-toolbar">
+                    @if (Meeting && (Meeting['Status'] === 'Scheduled' || Meeting['Status'] === 'Draft')) {
+                        <button class="toolbar-btn toolbar-btn-live" (click)="ShowLiveMeeting = true">
+                            <i class="fa-solid fa-play"></i> Start meeting
+                        </button>
+                    } @else if (Meeting && Meeting['Status'] === 'InProgress') {
+                        <button class="toolbar-btn toolbar-btn-live" (click)="ShowLiveMeeting = true">
+                            <i class="fa-solid fa-tower-broadcast"></i> Resume live
+                        </button>
+                    }
                     <button class="toolbar-btn" (click)="OnCreateMotion()">
                         <i class="fa-solid fa-gavel"></i> New Motion
+                    </button>
+                    <button class="toolbar-btn" (click)="ShowMinutesReview = true">
+                        <i class="fa-solid fa-file-signature"></i> Review Minutes
                     </button>
                     <button class="toolbar-btn" (click)="ShowMinutesPanel = true">
                         <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Minutes
@@ -64,7 +76,7 @@
                                 <div class="agenda-row" [class]="GetAgendaStatusClass($any(item['Status']))">
                                     <span class="agenda-num">{{ item['Sequence'] }}</span>
                                     <div class="agenda-info">
-                                        <span class="agenda-title">{{ item['Title'] }}</span>
+                                        <span class="agenda-title">{{ item['Name'] }}</span>
                                         @if (item['Presenter']) {
                                             <span class="agenda-presenter">
                                                 <i class="fa-solid fa-user"></i> {{ item['Presenter'] }}
@@ -109,7 +121,7 @@
                             @for (motion of Motions; track motion.ID) {
                                 <div class="motion-card" [class.motion-pending]="motion.Result === 'Pending'">
                                     <div class="motion-header">
-                                        <h3 class="motion-title">{{ motion.Title }}</h3>
+                                        <h3 class="motion-title">{{ motion.Name }}</h3>
                                         <span [class]="'result-badge ' + GetResultClass(motion.Result)">
                                             {{ motion.Result }}
                                         </span>
@@ -205,4 +217,14 @@
         [TranscriptURL]="$any(Meeting?.['TranscriptURL']) ?? null"
         (Close)="ShowMinutesPanel = false">
     </generate-minutes-panel>
+}
+
+<!-- Live Meeting Mode overlay (UX v2 screen 03) -->
+@if (ShowLiveMeeting) {
+    <committees-live-meeting [MeetingID]="MeetingID" (Exited)="OnLiveMeetingExited()"></committees-live-meeting>
+}
+
+<!-- Minutes Review overlay (UX v2 screen 07) -->
+@if (ShowMinutesReview) {
+    <committees-minutes-review [MeetingID]="MeetingID" (Exited)="ShowMinutesReview = false; RefreshData()"></committees-minutes-review>
 }

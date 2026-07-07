@@ -16,18 +16,15 @@ export class mjBizAppsCommitteesMeetingFormComponent extends BaseFormComponent {
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'meetingInfo', sectionName: 'Meeting Info', isExpanded: true },
-            { sectionKey: 'timing', sectionName: 'Timing', isExpanded: true },
-            { sectionKey: 'locationVideo', sectionName: 'Location & Video', isExpanded: true },
-            { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'committeesAttendances', sectionName: 'Attendances', isExpanded: false },
-            { sectionKey: 'committeesMinutesMeetingID', sectionName: 'Minutes (Meeting)', isExpanded: false },
-            { sectionKey: 'committeesMinutesApprovedByMeetingID', sectionName: 'Minutes (Approved By Meeting)', isExpanded: false },
+            { sectionKey: 'details', sectionName: 'Details', isExpanded: true },
             { sectionKey: 'committeesArtifacts', sectionName: 'Artifacts', isExpanded: false },
+            { sectionKey: 'committeesAgendaItems', sectionName: 'Agenda Items', isExpanded: false },
             { sectionKey: 'committeesMotions', sectionName: 'Motions', isExpanded: false },
+            { sectionKey: 'committeesAttendances', sectionName: 'Attendances', isExpanded: false },
             { sectionKey: 'committeesActionItems', sectionName: 'Action Items', isExpanded: false },
-            { sectionKey: 'committeesComments', sectionName: 'Comments', isExpanded: false },
-            { sectionKey: 'committeesAgendaItems', sectionName: 'Agenda Items', isExpanded: false }
+            { sectionKey: 'committeesMinutesApprovedByMeetingID', sectionName: 'Minutes (Approved By Meeting ID)', isExpanded: false },
+            { sectionKey: 'committeesMinutesMeetingID', sectionName: 'Minutes (Meeting ID)', isExpanded: false },
+            { sectionKey: 'committeesComments', sectionName: 'Comments', isExpanded: false }
         ]);
     }
 }

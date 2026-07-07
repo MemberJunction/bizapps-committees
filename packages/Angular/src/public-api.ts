@@ -36,3 +36,7 @@ export * from './lib/management-membership-list/management-membership-list.compo
 export * from './lib/bulk-import/bulk-import-panel.component';
 export * from './lib/command-center/command-center.component';
 export * from './lib/committee-workspace/committee-workspace.component';
+export * from './lib/motions-ballots/motions-ballots.component';
+export * from './lib/motions-ballots/e-ballot-dialog.component';
+export * from './lib/live-meeting/live-meeting.component';
+export * from './lib/minutes-review/minutes-review.component';

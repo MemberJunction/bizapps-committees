@@ -10,7 +10,7 @@ import {
  * Input data required to create a new meeting for a committee.
  */
 export interface CreateMeetingInput {
-    Title: string;
+    Name: string;
     Description?: string;
     StartDateTime: Date;
     EndDateTime?: Date;
@@ -143,7 +143,7 @@ export class MeetingService {
         meeting.NewRecord();
 
         meeting.CommitteeID = committeeID;
-        meeting.Title = meetingData.Title;
+        meeting.Name = meetingData.Name;
         meeting.StartDateTime = meetingData.StartDateTime;
         meeting.Status = 'Scheduled';
 

@@ -10,50 +10,30 @@
     <!-- ========================================
          FIELD PANELS
          ======================================== -->
-    <!-- Committee Reference Section -->
+    <!-- Details Section -->
     <mj-collapsible-panel
-        SectionKey="committeeReference"
-        SectionName="Committee Reference"
-        Icon="fa fa-users"
+        SectionKey="details"
+        SectionName="Details"
+        Icon="fa fa-align-left"
         [Form]="this"
         [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
-            [ShowLabel]="false"
+            [ShowLabel]="true"
             FieldName="CommitteeID"
             Type="textbox"
             [EditMode]="EditMode"
             [FormContext]="formContext"
             LinkType="Record"
         ></mj-form-field>
-
-    </mj-collapsible-panel>
-
-    <!-- Term Details Section -->
-    <mj-collapsible-panel
-        SectionKey="termDetails"
-        SectionName="Term Details"
-        Icon="fa fa-info-circle"
-        [Form]="this"
-        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
-            [ShowLabel]="false"
+            [ShowLabel]="true"
             FieldName="Name"
             Type="textbox"
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
-
-    </mj-collapsible-panel>
-
-    <!-- Term Timeline Section -->
-    <mj-collapsible-panel
-        SectionKey="termTimeline"
-        SectionName="Term Timeline"
-        Icon="fa fa-calendar"
-        [Form]="this"
-        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
@@ -70,34 +50,14 @@
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
-
-    </mj-collapsible-panel>
-
-    <!-- Term Status Section -->
-    <mj-collapsible-panel
-        SectionKey="termStatus"
-        SectionName="Term Status"
-        Icon="fa fa-flag-checkered"
-        [Form]="this"
-        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
-            [ShowLabel]="false"
+            [ShowLabel]="true"
             FieldName="Status"
             Type="select"
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
-
-    </mj-collapsible-panel>
-
-    <!-- System Metadata Section -->
-    <mj-collapsible-panel
-        SectionKey="systemMetadata"
-        SectionName="System Metadata"
-        Icon="fa fa-cog"
-        [Form]="this"
-        [FormContext]="formContext">
         <mj-form-field 
             [Record]="record"
             [ShowLabel]="true"
@@ -127,7 +87,7 @@
     <mj-collapsible-panel
         SectionKey="committeesMemberships"
         SectionName="Memberships"
-        Icon="fa fa-users"
+        Icon="fa fa-table"
         Variant="related-entity"
         [Form]="this"
         [FormContext]="formContext"

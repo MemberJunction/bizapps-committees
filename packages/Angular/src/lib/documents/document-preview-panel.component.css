@@ -24,15 +24,15 @@
     gap: var(--mj-space-1-5);
     font-size: var(--mj-text-xs);
     font-weight: var(--mj-font-medium);
-    color: var(--mj-color-neutral-500);
-    background: var(--mj-color-neutral-100);
+    color: var(--mj-text-muted);
+    background: var(--mj-bg-surface-sunken);
     padding: 3px var(--mj-space-2-5);
     border-radius: var(--mj-radius-full);
 }
 
 .meta-chip i {
     font-size: 10px;
-    color: var(--mj-color-neutral-400);
+    color: var(--mj-text-muted);
 }
 
 .preview-body {
@@ -47,7 +47,7 @@
     flex: 1;
     width: 100%;
     border: none;
-    background: var(--mj-color-neutral-0);
+    background: var(--mj-bg-surface);
 }
 
 .preview-fallback {
@@ -63,12 +63,12 @@
 
 .preview-fallback i {
     font-size: 48px;
-    color: var(--mj-color-neutral-300);
+    color: var(--mj-text-disabled);
 }
 
 .preview-fallback p {
     font-size: var(--mj-text-sm);
-    color: var(--mj-color-neutral-500);
+    color: var(--mj-text-muted);
     margin: 0;
     max-width: 400px;
     line-height: 1.5;

@@ -25,11 +25,11 @@
 
             <!-- Title (required) -->
             <div class="form-group">
-                <label class="form-label required">Title</label>
+                <label class="form-label required">Name</label>
                 <input class="form-input"
                     type="text"
-                    [ngModel]="Meeting.Title"
-                    (ngModelChange)="Meeting.Title = $event"
+                    [ngModel]="Meeting.Name"
+                    (ngModelChange)="Meeting.Name = $event"
                     placeholder="Meeting title" />
             </div>
 
@@ -173,7 +173,7 @@
                                     <span class="agenda-seq">{{ item['Sequence'] }}</span>
                                     <i [class]="GetItemTypeIcon($any(item['ItemType']))" class="agenda-type-icon"></i>
                                     <div class="agenda-info">
-                                        <span class="agenda-title">{{ item['Title'] }}</span>
+                                        <span class="agenda-title">{{ item['Name'] }}</span>
                                         <span class="agenda-meta">
                                             @if (item['Presenter']) {
                                                 <i class="fa-solid fa-user"></i> {{ item['Presenter'] }}
@@ -217,7 +217,7 @@
                             @for (motion of Motions; track motion['ID']) {
                                 <div class="motion-row" (click)="OnEditMotion($any(motion['ID']))">
                                     <div class="motion-info">
-                                        <span class="motion-title">{{ motion['Title'] }}</span>
+                                        <span class="motion-title">{{ motion['Name'] }}</span>
                                         <span class="motion-meta">
                                             @if (motion['MovedByMembership']) {
                                                 Moved: {{ motion['MovedByMembership'] }}

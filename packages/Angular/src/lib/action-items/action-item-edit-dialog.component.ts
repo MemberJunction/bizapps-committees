@@ -27,7 +27,7 @@ export class ActionItemEditDialogComponent implements OnInit {
 
     /** Lookup data */
     Committees: { ID: string; Name: string }[] = [];
-    Meetings: { ID: string; Title: string }[] = [];
+    Meetings: { ID: string; Name: string }[] = [];
     AllPeople: { ID: string; DisplayName: string }[] = [];
 
     /** Bound as string for <input type="date"> */
@@ -114,7 +114,7 @@ export class ActionItemEditDialogComponent implements OnInit {
     }
 
     private Validate(): string | null {
-        if (!this.ActionItem!.Title?.trim()) {
+        if (!this.ActionItem!.Name?.trim()) {
             return 'Title is required.';
         }
         if (!this.ActionItem!.CommitteeID) {
@@ -153,7 +153,7 @@ export class ActionItemEditDialogComponent implements OnInit {
             },
             {
                 EntityName: 'Committees: Meetings',
-                Fields: ['ID', 'Title'],
+                Fields: ['ID', 'Name'],
                 ExtraFilter: "Status NOT IN ('Cancelled')",
                 OrderBy: 'StartDateTime DESC',
                 MaxRows: 100,
@@ -178,7 +178,7 @@ export class ActionItemEditDialogComponent implements OnInit {
             : allCommittees;
 
         if (meetingsResult.Success) {
-            this.Meetings = meetingsResult.Results as { ID: string; Title: string }[];
+            this.Meetings = meetingsResult.Results as { ID: string; Name: string }[];
         }
         if (peopleResult.Success) {
             this.AllPeople = peopleResult.Results as { ID: string; DisplayName: string }[];

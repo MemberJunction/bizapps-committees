@@ -15,10 +15,7 @@ export class mjBizAppsCommitteesMinuteFormComponent extends BaseFormComponent {
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'relatedContent', sectionName: 'Related Content', isExpanded: true },
-            { sectionKey: 'minutesContent', sectionName: 'Minutes Content', isExpanded: true },
-            { sectionKey: 'approvalTracking', sectionName: 'Approval Tracking', isExpanded: true },
-            { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false }
+            { sectionKey: 'details', sectionName: 'Details', isExpanded: true }
         ]);
     }
 }

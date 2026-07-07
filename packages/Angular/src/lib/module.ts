@@ -44,6 +44,10 @@ import { HealthGridComponent } from './command-center/health-grid.component';
 import { WeekRailComponent } from './command-center/week-rail.component';
 import { AttentionRailComponent } from './command-center/attention-rail.component';
 import { CommitteeWorkspaceComponent, LoadCommitteeWorkspace } from './committee-workspace/committee-workspace.component';
+import { MotionsBallotsComponent, LoadMotionsBallots } from './motions-ballots/motions-ballots.component';
+import { EBallotDialogComponent } from './motions-ballots/e-ballot-dialog.component';
+import { LiveMeetingComponent, LoadLiveMeeting } from './live-meeting/live-meeting.component';
+import { MinutesReviewComponent, LoadMinutesReview } from './minutes-review/minutes-review.component';
 
 @NgModule({
     declarations: [
@@ -79,6 +83,10 @@ import { CommitteeWorkspaceComponent, LoadCommitteeWorkspace } from './committee
         WeekRailComponent,
         AttentionRailComponent,
         CommitteeWorkspaceComponent,
+        MotionsBallotsComponent,
+        EBallotDialogComponent,
+        LiveMeetingComponent,
+        MinutesReviewComponent,
     ],
     imports: [
         CommonModule,
@@ -118,6 +126,9 @@ import { CommitteeWorkspaceComponent, LoadCommitteeWorkspace } from './committee
         BulkImportPanelComponent,
         CommandCenterComponent,
         CommitteeWorkspaceComponent,
+        MotionsBallotsComponent,
+        LiveMeetingComponent,
+        MinutesReviewComponent,
     ]
 })
 export class CommitteesModule { }
@@ -152,6 +163,9 @@ export function LoadCommitteesModule() {
     LoadBulkImportPanelComponent();
     LoadCommandCenter();
     LoadCommitteeWorkspace();
+    LoadMotionsBallots();
+    LoadLiveMeeting();
+    LoadMinutesReview();
 }
 
 /** Alias matching the mj-app.json manifest startupExport convention */

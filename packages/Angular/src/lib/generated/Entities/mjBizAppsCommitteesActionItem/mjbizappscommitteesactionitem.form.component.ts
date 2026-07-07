@@ -15,13 +15,7 @@ export class mjBizAppsCommitteesActionItemFormComponent extends BaseFormComponen
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'committeeContext', sectionName: 'Committee Context', isExpanded: true },
-            { sectionKey: 'actionDetails', sectionName: 'Action Details', isExpanded: true },
-            { sectionKey: 'assignment', sectionName: 'Assignment', isExpanded: true },
-            { sectionKey: 'timeline', sectionName: 'Timeline', isExpanded: true },
-            { sectionKey: 'statusPriority', sectionName: 'Status & Priority', isExpanded: true },
-            { sectionKey: 'displayValues', sectionName: 'Display Values', isExpanded: true },
-            { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false }
+            { sectionKey: 'details', sectionName: 'Details', isExpanded: true }
         ]);
     }
 }

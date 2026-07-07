@@ -16,11 +16,7 @@ export class mjBizAppsCommitteesTermFormComponent extends BaseFormComponent {
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'committeeReference', sectionName: 'Committee Reference', isExpanded: true },
-            { sectionKey: 'termDetails', sectionName: 'Term Details', isExpanded: true },
-            { sectionKey: 'termTimeline', sectionName: 'Term Timeline', isExpanded: true },
-            { sectionKey: 'termStatus', sectionName: 'Term Status', isExpanded: true },
-            { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
+            { sectionKey: 'details', sectionName: 'Details', isExpanded: true },
             { sectionKey: 'committeesMemberships', sectionName: 'Memberships', isExpanded: false }
         ]);
     }

@@ -16,19 +16,12 @@ export class mjBizAppsCommitteesAgendaItemFormComponent extends BaseFormComponen
     override async ngOnInit() {
         await super.ngOnInit();
         this.initSections([
-            { sectionKey: 'meetingContext', sectionName: 'Meeting Context', isExpanded: true },
-            { sectionKey: 'hierarchy', sectionName: 'Hierarchy', isExpanded: true },
-            { sectionKey: 'agendaStructure', sectionName: 'Agenda Structure', isExpanded: true },
-            { sectionKey: 'agendaContent', sectionName: 'Agenda Content', isExpanded: true },
-            { sectionKey: 'presenterDetails', sectionName: 'Presenter Details', isExpanded: true },
-            { sectionKey: 'timing', sectionName: 'Timing', isExpanded: true },
-            { sectionKey: 'resources', sectionName: 'Resources', isExpanded: true },
-            { sectionKey: 'systemMetadata', sectionName: 'System Metadata', isExpanded: false },
-            { sectionKey: 'committeesAgendaItems', sectionName: 'Agenda Items', isExpanded: false },
+            { sectionKey: 'details', sectionName: 'Details', isExpanded: true },
             { sectionKey: 'committeesActionItems', sectionName: 'Action Items', isExpanded: false },
+            { sectionKey: 'committeesAgendaItems', sectionName: 'Agenda Items', isExpanded: false },
+            { sectionKey: 'committeesMotions', sectionName: 'Motions', isExpanded: false },
             { sectionKey: 'committeesComments', sectionName: 'Comments', isExpanded: false },
-            { sectionKey: 'committeesArtifacts', sectionName: 'Artifacts', isExpanded: false },
-            { sectionKey: 'committeesMotions', sectionName: 'Motions', isExpanded: false }
+            { sectionKey: 'committeesArtifacts', sectionName: 'Artifacts', isExpanded: false }
         ]);
     }
 }

@@ -43,4 +43,5 @@ export * from './lib/people-terms/people-terms.component';
 export * from './lib/people-terms/succession-suggestions.component';
 export * from './lib/people-terms/term-renewal-wizard.component';
 export * from './lib/motions-ballots/ballot-close-dialog.component';
+export * from './lib/meeting-detail/agenda-builder.component';
 export * from './lib/member-home/member-home.component';

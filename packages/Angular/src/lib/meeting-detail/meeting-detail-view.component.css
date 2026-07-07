@@ -523,3 +523,35 @@
 }
 
 ::ng-deep .markdown-preview tbody tr:nth-child(even) { background: var(--mj-bg-surface-card); }
+
+/* Header action buttons — btn-primary/secondary were never defined in this
+   component and rendered browser-grey. Matches the app-wide button grammar. */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 15px;
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: var(--mj-font-medium, 500);
+    font-family: inherit;
+    border: 1px solid var(--mj-border-default);
+    background: var(--mj-bg-surface);
+    color: var(--mj-text-primary);
+    cursor: pointer;
+    white-space: nowrap;
+}
+.btn:hover:not(:disabled) { background: var(--mj-bg-surface-hover); }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn-primary {
+    background: var(--mj-brand-primary);
+    border-color: var(--mj-brand-primary);
+    color: var(--mj-brand-on-primary, #fff);
+}
+.btn-primary:hover:not(:disabled) { background: var(--mj-brand-primary-hover); }
+.btn-secondary {
+    background: var(--mj-bg-surface);
+    border-color: var(--mj-border-strong);
+    color: var(--mj-text-secondary);
+}
+.btn-secondary:hover:not(:disabled) { color: var(--mj-text-primary); background: var(--mj-bg-surface-hover); }

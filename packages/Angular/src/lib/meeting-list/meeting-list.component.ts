@@ -77,14 +77,11 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
         this.cdr.markForCheck();
     }
 
-    OnOpenMeeting(meetingID: string, isPast: boolean): void {
-        if (isPast) {
-            this.DetailMeetingID = meetingID;
-            this.ActiveView = 'detail';
-        } else {
-            this.LiveMeetingID = meetingID;
-            this.ActiveView = 'live';
-        }
+    OnOpenMeeting(meetingID: string, _isPast: boolean): void {
+        // Every meeting opens its detail view — prep (agenda builder) lives there,
+        // and Start meeting launches the Live Meeting overlay from the same page.
+        this.DetailMeetingID = meetingID;
+        this.ActiveView = 'detail';
         this.cdr.markForCheck();
     }
 

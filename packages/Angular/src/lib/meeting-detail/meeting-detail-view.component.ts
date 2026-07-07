@@ -10,6 +10,7 @@ import { CommitteePermissionHelper } from '../shared/committee-permission-helper
 
 interface MeetingRow {
     ID: string;
+    CommitteeID: string | null;
     Name: string;
     StartDateTime: Date;
     EndDateTime: Date | null;
@@ -203,13 +204,23 @@ export class MeetingDetailViewComponent implements OnInit {
         }
     }
 
+    /** Prep tense: staff/officers build the agenda while the meeting is Scheduled. */
+    get ShowAgendaBuilder(): boolean {
+        return this.Meeting?.Status === 'Scheduled' && this.IsOfficer;
+    }
+
+    async OnAgendaChanged(): Promise<void> {
+        await this.loadData();
+        this.cdr.detectChanges();
+    }
+
     private async loadData(): Promise<void> {
         const rv = new RunView();
         const [meetingResult, attendanceResult, agendaResult, motionResult, minuteResult] = await rv.RunViews([
             {
                 EntityName: 'Committees: Meetings',
                 ExtraFilter: `ID='${this.MeetingID}'`,
-                Fields: ['ID', 'Name', 'StartDateTime', 'EndDateTime', 'Committee', 'Status',
+                Fields: ['ID', 'CommitteeID', 'Name', 'StartDateTime', 'EndDateTime', 'Committee', 'Status',
                          'LocationType', 'Location', 'VideoProvider', 'TranscriptURL'],
                 ResultType: 'simple',
             },

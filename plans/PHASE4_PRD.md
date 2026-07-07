@@ -159,3 +159,64 @@ Clicking **Close ballot** opens a confirm dialog:
 3. Ceremony dialog component in motions-ballots + Remind wiring; Playwright
    pass (remind → bell notification exists; close early with warning; reveal;
    cancel path).
+
+> **Status: shipped** (`38eb724`) — remind/warning/reveal/cancel verified against
+> the live DB. Decisions taken: early close allowed with warning; sealed ballots
+> stay sealed permanently (tally only); Remind via in-app notifications.
+
+---
+
+## Feature 3 — Agenda Builder
+
+### Why now
+Meeting prep is the last tense with no first-class surface. Agendas today are
+raw rows: the meeting-detail Agenda tab is read-only and the only editor is a
+legacy per-item dialog buried in meeting-edit. Yet the agenda already drives
+real product moments — Member Home's "6 agenda items · 2 votes expected" and
+Live Meeting's item progression both read it. Building the agenda should feel
+like planning the meeting, not doing data entry.
+
+### Where it lives
+The meeting-detail **Agenda tab becomes the builder** when the meeting is
+`Scheduled` (staff view). Once the meeting is InProgress/Completed the tab
+reverts to today's read-only record — Live Meeting owns the agenda during,
+minutes own it after. No new nav item; prep happens where the meeting lives.
+
+### The builder
+- **Inline add**: type a title, pick a type (Discussion · Vote · Report ·
+  Action · Information · Other), enter — item lands at the end, Sequence
+  assigned. No dialog for the common case.
+- **In-place edit** per row: title, type, duration (minutes), presenter
+  (committee-member picker), notes. The legacy dialog stays untouched for
+  meeting-edit; the builder writes the same entity.
+- **Reorder**: up/down controls per row (keyboard-friendly, no new
+  dependency); Sequence renumbers contiguously on every move.
+- **Time budget rail**: running total of DurationMinutes vs. the meeting
+  window (Start→End), with an over/under indicator and a per-item share bar —
+  the "will this meeting fit" answer at a glance.
+- **Vote-item awareness**: Vote rows get the gavel treatment and the header
+  counts them ("2 votes expected" — the same number Member Home shows).
+- Delete with inline confirm; items stay `Pending` status (Live Meeting owns
+  status progression).
+
+### Publishing
+No publish step: the agenda is live the moment it's edited (Member Home's
+hero already reads it). Announcing agenda changes to attendees is the
+notification digest's job (workstream 4) — the builder stays a working
+surface, not a broadcast tool.
+
+### Not in this feature
+- Nested items (`ParentAgendaItemID` exists but stays flat — nesting waits
+  for a real need).
+- Drag-and-drop (needs @angular/cdk — a new dependency for sugar the up/down
+  controls already deliver; revisit if prep users ask).
+- Agenda templates / copy-from-last-meeting (good v-next candidate).
+
+### Build order
+1. Builder component (`meeting-detail/agenda-builder.component`) + swap into
+   the Agenda tab for Scheduled meetings; entity writes with contiguous
+   resequencing.
+2. Time-budget math (pure helpers, unit-tested in committees-core if it grows
+   beyond trivial).
+3. Playwright pass: add/edit/reorder/delete items on the Jul 13 meeting,
+   verify Member Home's hero counts update.

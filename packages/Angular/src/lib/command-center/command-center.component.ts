@@ -71,7 +71,7 @@ export class CommandCenterComponent extends BaseResourceComponent implements OnI
         this.applySearchFilter();
     }
 
-    /** Mirrors ManagementDashboardComponent's tab navigation pattern. */
+    /** Navigates to a top-level tab of the Committee Management app. */
     NavigateToTab(tabName: string): void {
         this.router.navigate(['/app/mjcommitteemgmt', tabName]);
     }

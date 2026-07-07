@@ -6082,6 +6082,7 @@ input CreatemjBizAppsCommitteesMembershipInput {
   ID: String
   Notes: String
   PersonID: String
+  RenewalIntent: String
   RestoreContext___: RestoreContextInput
   RoleID: String
   StartDate: Timestamp
@@ -25287,6 +25288,7 @@ type Mutation {
   StopRemoteBrowserScreencast(agentSessionID: String!): Boolean!
   StreamScopedSearch(agentID: ID, maxResults: Float, minScore: Float, query: String!, scopeIDs: [ID!], searchContext: JSON): SearchStreamStartResult!
   SubmitFeedback(input: SubmitFeedbackInput!): FeedbackResponseType!
+  SuggestSuccessors(input: SuggestSuccessorsInput!): SuggestSuccessorsResponse!
   SyncData(items: [ActionItemInputType!]!): SyncDataResultType!
   SyncMCPTools(input: SyncMCPToolsInput!): SyncMCPToolsResult!
   SyncRoles(roles: [RoleInputType!]!): SyncRolesAndUsersResultType!
@@ -33226,6 +33228,26 @@ type Subscription {
   statusUpdates(sessionId: String!): PushStatusNotification!
 }
 
+type SuccessorSuggestionType {
+  AttendanceRate: Float
+  CommitteeCount: Int!
+  CurrentRoles: String!
+  Fit: String!
+  PersonID: String!
+  PersonName: String!
+  Rationale: String!
+}
+
+input SuggestSuccessorsInput {
+  CommitteeID: String!
+}
+
+type SuggestSuccessorsResponse {
+  ErrorMessage: String
+  Success: Boolean!
+  Suggestions: [SuccessorSuggestionType!]!
+}
+
 """
 Specifies the type of action to be taken in syncing, Create, Update, CreateOrUpdate, Delete
 """
@@ -39260,6 +39282,7 @@ input UpdatemjBizAppsCommitteesMembershipInput {
   Notes: String
   OldValues___: [KeyValuePairInput!]
   PersonID: String
+  RenewalIntent: String
   RestoreContext___: RestoreContextInput
   RoleID: String
   StartDate: Timestamp
@@ -40038,6 +40061,11 @@ type mjBizAppsCommitteesMembership_ {
   Notes: String
   Person: String!
   PersonID: String!
+
+  """
+  The member's stated intent to serve another term (Yes, No, Undecided), captured via Member Home self-service; NULL = not yet answered. Feeds the People & Terms succession pipeline.
+  """
+  RenewalIntent: String
   Role: String!
   RoleID: String!
   StartDate: Timestamp!

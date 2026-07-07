@@ -34,7 +34,6 @@ import { MembershipEditDialogComponent, LoadMembershipEditDialog } from './membe
 import { PersonDetailPanelComponent, LoadPersonDetailPanel } from './membership/person-detail-panel.component';
 import { GenerateMinutesPanelComponent, LoadGenerateMinutesPanel } from './minutes/generate-minutes-panel.component';
 import { MeetingDetailViewComponent, LoadMeetingDetailView } from './meeting-detail/meeting-detail-view.component';
-import { ManagementDashboardComponent, LoadManagementDashboard } from './management-dashboard/management-dashboard.component';
 import { ManagementCommitteeListComponent, LoadManagementCommitteeList } from './management-committee-list/management-committee-list.component';
 import { ManagementMembershipListComponent, LoadManagementMembershipList } from './management-membership-list/management-membership-list.component';
 import { BulkImportPanelComponent, LoadBulkImportPanelComponent } from './bulk-import/bulk-import-panel.component';
@@ -48,6 +47,9 @@ import { MotionsBallotsComponent, LoadMotionsBallots } from './motions-ballots/m
 import { EBallotDialogComponent } from './motions-ballots/e-ballot-dialog.component';
 import { LiveMeetingComponent, LoadLiveMeeting } from './live-meeting/live-meeting.component';
 import { MinutesReviewComponent, LoadMinutesReview } from './minutes-review/minutes-review.component';
+import { PeopleTermsComponent, LoadPeopleTerms } from './people-terms/people-terms.component';
+import { SuccessionSuggestionsComponent } from './people-terms/succession-suggestions.component';
+import { MemberHomeComponent, LoadMemberHome } from './member-home/member-home.component';
 
 @NgModule({
     declarations: [
@@ -73,7 +75,6 @@ import { MinutesReviewComponent, LoadMinutesReview } from './minutes-review/minu
         PersonDetailPanelComponent,
         GenerateMinutesPanelComponent,
         MeetingDetailViewComponent,
-        ManagementDashboardComponent,
         ManagementCommitteeListComponent,
         ManagementMembershipListComponent,
         BulkImportPanelComponent,
@@ -87,6 +88,9 @@ import { MinutesReviewComponent, LoadMinutesReview } from './minutes-review/minu
         EBallotDialogComponent,
         LiveMeetingComponent,
         MinutesReviewComponent,
+        PeopleTermsComponent,
+        SuccessionSuggestionsComponent,
+        MemberHomeComponent,
     ],
     imports: [
         CommonModule,
@@ -120,7 +124,6 @@ import { MinutesReviewComponent, LoadMinutesReview } from './minutes-review/minu
         PersonDetailPanelComponent,
         GenerateMinutesPanelComponent,
         MeetingDetailViewComponent,
-        ManagementDashboardComponent,
         ManagementCommitteeListComponent,
         ManagementMembershipListComponent,
         BulkImportPanelComponent,
@@ -129,6 +132,8 @@ import { MinutesReviewComponent, LoadMinutesReview } from './minutes-review/minu
         MotionsBallotsComponent,
         LiveMeetingComponent,
         MinutesReviewComponent,
+        PeopleTermsComponent,
+        MemberHomeComponent,
     ]
 })
 export class CommitteesModule { }
@@ -157,7 +162,6 @@ export function LoadCommitteesModule() {
     LoadPersonDetailPanel();
     LoadGenerateMinutesPanel();
     LoadMeetingDetailView();
-    LoadManagementDashboard();
     LoadManagementCommitteeList();
     LoadManagementMembershipList();
     LoadBulkImportPanelComponent();
@@ -166,6 +170,8 @@ export function LoadCommitteesModule() {
     LoadMotionsBallots();
     LoadLiveMeeting();
     LoadMinutesReview();
+    LoadPeopleTerms();
+    LoadMemberHome();
 }
 
 /** Alias matching the mj-app.json manifest startupExport convention */

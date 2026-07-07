@@ -908,6 +908,16 @@ export const mjBizAppsCommitteesMembershipSchema = z.object({
         * * Display Name: Updated At
         * * SQL Data Type: datetimeoffset
         * * Default Value: getutcdate()`),
+    RenewalIntent: z.union([z.literal('No'), z.literal('Undecided'), z.literal('Yes')]).nullable().describe(`
+        * * Field Name: RenewalIntent
+        * * Display Name: Renewal Intent
+        * * SQL Data Type: nvarchar(20)
+    * * Value List Type: List
+    * * Possible Values 
+    *   * No
+    *   * Undecided
+    *   * Yes
+        * * Description: The member's stated intent to serve another term (Yes, No, Undecided), captured via Member Home self-service; NULL = not yet answered. Feeds the People & Terms succession pipeline.`),
     Person: z.string().describe(`
         * * Field Name: Person
         * * Display Name: Person
@@ -3671,6 +3681,24 @@ export class mjBizAppsCommitteesMembershipEntity extends BaseEntity<mjBizAppsCom
     */
     get __mj_UpdatedAt(): Date {
         return this.Get('__mj_UpdatedAt');
+    }
+
+    /**
+    * * Field Name: RenewalIntent
+    * * Display Name: Renewal Intent
+    * * SQL Data Type: nvarchar(20)
+    * * Value List Type: List
+    * * Possible Values 
+    *   * No
+    *   * Undecided
+    *   * Yes
+    * * Description: The member's stated intent to serve another term (Yes, No, Undecided), captured via Member Home self-service; NULL = not yet answered. Feeds the People & Terms succession pipeline.
+    */
+    get RenewalIntent(): 'No' | 'Undecided' | 'Yes' | null {
+        return this.Get('RenewalIntent');
+    }
+    set RenewalIntent(value: 'No' | 'Undecided' | 'Yes' | null) {
+        this.Set('RenewalIntent', value);
     }
 
     /**

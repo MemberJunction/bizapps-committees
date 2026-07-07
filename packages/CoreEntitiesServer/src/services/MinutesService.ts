@@ -1,5 +1,6 @@
 import { Metadata, RunView, UserInfo, LogError } from '@memberjunction/core';
 import { AIEngine } from '@memberjunction/aiengine';
+import { CompletionWithFallback } from './aiModel.js';
 import {
     mjBizAppsCommitteesMeetingEntity,
     mjBizAppsCommitteesMinuteEntity,
@@ -312,33 +313,9 @@ Be concise and factual. Use passive voice appropriate for formal minutes. If a t
     // AI call
     // -------------------------------------------------------------------------
 
-    /** Initialises the AI engine and runs a completion using an Anthropic model. */
+    /** Initialises the AI engine and runs a completion on the best credentialed model. */
     private async callAI(prompt: string, contextUser: UserInfo): Promise<string> {
         await AIEngine.Instance.Config(false, contextUser);
-        const model = this.findAnthropicModel();
-        const result = await AIEngine.Instance.SimpleLLMCompletion(prompt, contextUser, undefined, model ?? undefined);
-        if (!result) throw new Error('AI engine returned an empty response');
-        return result;
-    }
-
-    /**
-     * Finds the highest-power Anthropic language model from the AI engine's
-     * loaded model list. Matches on the Vendor name or DriverClass/APIName
-     * containing "anthropic" or "claude". Returns null if none found, in which
-     * case the AI engine picks the default model.
-     */
-    private findAnthropicModel() {
-        const isAnthropic = (value: string | null | undefined): boolean => {
-            const lower = (value ?? '').toLowerCase();
-            return lower.includes('anthropic') || lower.includes('claude');
-        };
-
-        return AIEngine.Instance.LanguageModels
-            .filter(m =>
-                isAnthropic(m.Get('Vendor') as string) ||
-                isAnthropic(m.Get('DriverClass') as string) ||
-                isAnthropic(m.Get('APIName') as string)
-            )
-            .sort((a, b) => ((b.Get('PowerRank') as number) ?? 0) - ((a.Get('PowerRank') as number) ?? 0))[0] ?? null;
+        return CompletionWithFallback(prompt, contextUser);
     }
 }

@@ -33,7 +33,7 @@ import {
     mjBizAppsCommitteesVoteEntity,
 } from '@mj-biz-apps/committees-entities';
 
-// @mj-biz-apps/committees-ng (12 classes)
+// @mj-biz-apps/committees-ng (13 classes)
 import {
     ActionItemTrackerComponent,
     CommandCenterComponent,
@@ -42,11 +42,12 @@ import {
     CommitteeWorkspaceComponent,
     DocumentBrowserComponent,
     ManagementCommitteeListComponent,
-    ManagementDashboardComponent,
     ManagementMembershipListComponent,
     MeetingListComponent,
+    MemberHomeComponent,
     MembershipListComponent,
     MotionsBallotsComponent,
+    PeopleTermsComponent,
 } from '@mj-biz-apps/committees-ng';
 
 /**
@@ -80,18 +81,19 @@ export const CLASS_REGISTRATIONS: any[] = [
     CommitteeWorkspaceComponent,
     DocumentBrowserComponent,
     ManagementCommitteeListComponent,
-    ManagementDashboardComponent,
     ManagementMembershipListComponent,
     MeetingListComponent,
+    MemberHomeComponent,
     MembershipListComponent,
     MotionsBallotsComponent,
+    PeopleTermsComponent,
 ];
 
 /** Marker constant indicating the manifest has been loaded. */
 export const CLASS_REGISTRATIONS_MANIFEST_LOADED = true;
 
 /** Total @RegisterClass decorated classes discovered in dependency tree */
-export const CLASS_REGISTRATIONS_COUNT = 30;
+export const CLASS_REGISTRATIONS_COUNT = 31;
 
 /** Packages imported by this manifest */
 export const CLASS_REGISTRATIONS_PACKAGES = [

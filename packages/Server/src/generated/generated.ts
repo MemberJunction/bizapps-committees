@@ -2588,6 +2588,10 @@ export class mjBizAppsCommitteesMembership_ {
     @Field() 
     _mj__UpdatedAt: Date;
         
+    @Field({nullable: true, description: `The member's stated intent to serve another term (Yes, No, Undecided), captured via Member Home self-service; NULL = not yet answered. Feeds the People & Terms succession pipeline.`}) 
+    @MaxLength(20)
+    RenewalIntent?: string;
+        
     @Field() 
     @MaxLength(201)
     Person: string;
@@ -2646,6 +2650,9 @@ export class CreatemjBizAppsCommitteesMembershipInput {
     @Field({ nullable: true })
     Notes: string | null;
 
+    @Field({ nullable: true })
+    RenewalIntent: string | null;
+
     @Field(() => RestoreContextInput, { nullable: true })
     RestoreContext___?: RestoreContextInput;
 }
@@ -2682,6 +2689,9 @@ export class UpdatemjBizAppsCommitteesMembershipInput {
 
     @Field({ nullable: true })
     Notes?: string | null;
+
+    @Field({ nullable: true })
+    RenewalIntent?: string | null;
 
     @Field(() => [KeyValuePairInput], { nullable: true })
     OldValues___?: KeyValuePairInput[];

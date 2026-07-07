@@ -27,6 +27,8 @@ export type {
 } from './services/BulkImportService.js';
 
 export { MinutesService } from './services/MinutesService.js';
+export { SuccessionSuggestionService } from './services/SuccessionSuggestionService.js';
+export type { SuccessorSuggestion, SuggestSuccessorsResult } from './services/SuccessionSuggestionService.js';
 export type { MinutesDraftResult, MinutesSaveResult } from './services/MinutesService.js';
 
 // Video-conferencing contract + orchestration service

@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
+import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
 import { mjBizAppsCommitteesMembershipEntity } from '@mj-biz-apps/committees-entities';
 
 export interface MembershipDialogResult {
@@ -69,8 +70,8 @@ export class MembershipEditDialogComponent implements OnInit {
     }
 
     async ngOnInit(): Promise<void> {
-        await this.LoadLookups();
-        await this.LoadOrCreateMembership();
+        await this.loadLookups();
+        await this.loadOrCreateMembership();
         this.IsLoading = false;
         this.cdr.markForCheck();
     }
@@ -86,14 +87,14 @@ export class MembershipEditDialogComponent implements OnInit {
     OnTermChanged(termID: string): void {
         if (!this.Membership) return;
         this.Membership.TermID = termID;
-        this.ApplyTermDates();
+        this.applyTermDates();
         this.cdr.markForCheck();
     }
 
     async OnSave(): Promise<void> {
         if (!this.Membership) return;
 
-        const validationError = this.Validate();
+        const validationError = this.validate();
         if (validationError) {
             this.ErrorMessage = validationError;
             this.cdr.markForCheck();
@@ -139,7 +140,7 @@ export class MembershipEditDialogComponent implements OnInit {
         this.DialogClosed.emit({ Saved: false, Membership: null });
     }
 
-    private Validate(): string | null {
+    private validate(): string | null {
         if (!this.Membership!.PersonID) {
             return 'Please select a person.';
         }
@@ -153,7 +154,7 @@ export class MembershipEditDialogComponent implements OnInit {
     }
 
     /** Sets membership start/end dates to match the selected term. */
-    private ApplyTermDates(): void {
+    private applyTermDates(): void {
         const term = this.SelectedTerm;
         if (!term || !this.Membership) return;
 
@@ -161,7 +162,7 @@ export class MembershipEditDialogComponent implements OnInit {
         this.Membership.EndDate = term.EndDate ? new Date(term.EndDate) : null;
     }
 
-    private async LoadOrCreateMembership(): Promise<void> {
+    private async loadOrCreateMembership(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
             this.Membership = await md.GetEntityObject<mjBizAppsCommitteesMembershipEntity>('Committees: Memberships');
@@ -170,7 +171,7 @@ export class MembershipEditDialogComponent implements OnInit {
             const activeTerm = this.Terms.find(t => t.Status === 'Active');
             if (activeTerm) {
                 this.Membership.TermID = activeTerm.ID;
-                this.ApplyTermDates();
+                this.applyTermDates();
             }
         } else {
             this.Membership = await md.GetEntityObject<mjBizAppsCommitteesMembershipEntity>('Committees: Memberships');
@@ -193,15 +194,11 @@ export class MembershipEditDialogComponent implements OnInit {
         }
     }
 
-    private async LoadLookups(): Promise<void> {
+    private async loadLookups(): Promise<void> {
+        // Roles come from the process-wide lookup engine — no per-open query.
+        await CommitteesLookupEngine.Instance.Config();
         const rv = new RunView();
-        const [rolesResult, termsResult] = await rv.RunViews([
-            {
-                EntityName: 'Committees: Roles',
-                Fields: ['ID', 'Name'],
-                OrderBy: 'Sequence ASC',
-                ResultType: 'simple'
-            },
+        const [termsResult] = await rv.RunViews([
             {
                 EntityName: 'Committees: Terms',
                 Fields: ['ID', 'Name', 'Status', 'StartDate', 'EndDate'],
@@ -210,9 +207,9 @@ export class MembershipEditDialogComponent implements OnInit {
                 ResultType: 'simple'
             }
         ]);
-        if (rolesResult.Success) {
-            this.Roles = rolesResult.Results as { ID: string; Name: string }[];
-        }
+        this.Roles = [...CommitteesLookupEngine.Instance.Roles]
+            .sort((a, b) => (a.Sequence ?? 0) - (b.Sequence ?? 0))
+            .map(r => ({ ID: r.ID, Name: r.Name }));
         if (termsResult.Success) {
             this.Terms = termsResult.Results as TermLookup[];
         }

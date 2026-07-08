@@ -39,7 +39,7 @@
 }
 
 .agenda-row:hover {
-    border-color: #bfdbfe;
+    border-color: color-mix(in srgb, var(--mj-status-info) 35%, transparent);
     background: var(--mj-bg-surface);
 }
 
@@ -49,8 +49,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--mj-color-info-500);
-    color: var(--mj-color-neutral-0);
+    background: var(--mj-status-info);
+    color: var(--mj-brand-on-primary, #fff);
     border-radius: var(--mj-radius-md);
     font-size: var(--mj-text-xs);
     font-weight: 800;
@@ -103,10 +103,10 @@
     flex-shrink: 0;
 }
 
-.agenda-status.status-pending { background: var(--mj-status-info-bg); color: var(--mj-color-info-600); }
+.agenda-status.status-pending { background: var(--mj-status-info-bg); color: var(--mj-status-info-text); }
 .agenda-status.status-discussed { background: var(--mj-status-success-bg); color: var(--mj-status-success-text); }
 .agenda-status.status-completed { background: var(--mj-status-success-bg); color: var(--mj-status-success-text); }
-.agenda-status.status-tabled { background: var(--mj-status-warning-bg); color: var(--mj-color-warning-600); }
+.agenda-status.status-tabled { background: var(--mj-status-warning-bg); color: var(--mj-status-warning-text); }
 .agenda-status.status-skipped { background: var(--mj-bg-surface-sunken); color: var(--mj-text-muted); }
 
 .agenda-reorder {
@@ -203,10 +203,10 @@
     letter-spacing: 0.3px;
 }
 
-.attendee-status.status-expected { background: var(--mj-status-info-bg); color: var(--mj-color-info-600); }
+.attendee-status.status-expected { background: var(--mj-status-info-bg); color: var(--mj-status-info-text); }
 .attendee-status.status-present { background: var(--mj-status-success-bg); color: var(--mj-status-success-text); }
-.attendee-status.status-absent { background: #ffe4e6; color: var(--mj-color-error-500); }
-.attendee-status.status-excused { background: var(--mj-status-warning-bg); color: var(--mj-color-warning-600); }
+.attendee-status.status-absent { background: var(--mj-status-error-bg); color: var(--mj-status-error); }
+.attendee-status.status-excused { background: var(--mj-status-warning-bg); color: var(--mj-status-warning-text); }
 .attendee-status.status-partial { background: var(--mj-bg-surface-sunken); color: var(--mj-text-muted); }
 
 .attendee-remove {
@@ -226,7 +226,7 @@
 
 .attendee-remove:hover {
     background: var(--mj-status-error-bg);
-    color: var(--mj-color-error-500);
+    color: var(--mj-status-error);
 }
 
 .attendee-empty {
@@ -263,7 +263,7 @@
 
 .motion-row:hover {
     border-color: var(--mj-border-default);
-    background: #fafbfc;
+    background: var(--mj-bg-surface-card);
 }
 
 .motion-info {
@@ -303,8 +303,8 @@
 }
 
 .result-passed { background: var(--mj-status-success-bg); color: var(--mj-status-success-text); }
-.result-failed { background: var(--mj-status-error-bg); color: #991b1b; }
-.result-pending { background: color-mix(in srgb, var(--mj-color-indigo-500) 16%, transparent); color: var(--mj-status-info-text); }
+.result-failed { background: var(--mj-status-error-bg); color: var(--mj-status-error-text); }
+.result-pending { background: color-mix(in srgb, var(--mj-brand-primary) 16%, transparent); color: var(--mj-status-info-text); }
 .result-tabled { background: var(--mj-status-warning-bg); color: var(--mj-status-warning-text); }
 .result-withdrawn { background: var(--mj-bg-surface-sunken); color: var(--mj-text-muted); }
 

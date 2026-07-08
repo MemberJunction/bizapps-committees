@@ -21,7 +21,7 @@ export class ManagementMembershipListComponent extends BaseResourceComponent imp
 
     async ngOnInit(): Promise<void> {
         this.NotifyLoadStarted();
-        await this.LoadAllCommittees();
+        await this.loadAllCommittees();
         this.IsLoading = false;
         this.NotifyLoadComplete();
         this.cdr.markForCheck();
@@ -40,7 +40,7 @@ export class ManagementMembershipListComponent extends BaseResourceComponent imp
         this.cdr.markForCheck();
     }
 
-    private async LoadAllCommittees(): Promise<void> {
+    private async loadAllCommittees(): Promise<void> {
         const rv = new RunView();
         const result = await rv.RunView<{ ID: string; Name: string }>({
             EntityName: 'Committees: Committees',

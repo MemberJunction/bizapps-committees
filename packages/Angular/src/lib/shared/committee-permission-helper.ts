@@ -1,4 +1,5 @@
 import { Metadata, RunView } from '@memberjunction/core';
+import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
 
 /**
  * Resolved permissions for a user within a specific committee.
@@ -97,47 +98,38 @@ export class CommitteePermissionHelper {
             return [];
         }
 
-        // Batch-load roles and terms
-        const roleIDs = [...new Set(memberResult.Results.map(m => m.RoleID))];
-        const termIDs = [...new Set(memberResult.Results.map(m => m.TermID))];
+        this.membershipCache = await this.resolveMembershipRoles(rv, memberResult.Results);
+        return this.membershipCache;
+    }
 
-        const [roleResult, termResult] = await rv.RunViews([
-            {
-                EntityName: 'Committees: Roles',
-                ExtraFilter: `ID IN (${roleIDs.map(id => `'${id}'`).join(',')})`,
-                Fields: ['ID', 'IsOfficer'],
-                ResultType: 'simple'
-            },
-            {
-                EntityName: 'Committees: Terms',
-                ExtraFilter: `ID IN (${termIDs.map(id => `'${id}'`).join(',')})`,
-                Fields: ['ID', 'CommitteeID'],
-                ResultType: 'simple'
-            }
-        ]);
+    /** Joins membership rows to officer flags (lookup engine) and committee IDs (terms). */
+    private static async resolveMembershipRoles(
+        rv: RunView, rows: { RoleID: string; TermID: string }[]
+    ): Promise<MembershipRoleRow[]> {
+        // Roles come from the process-wide lookup engine — no per-call query.
+        await CommitteesLookupEngine.Instance.Config();
+        const officerMap = new Map(CommitteesLookupEngine.Instance.Roles.map(r => [r.ID, r.IsOfficer]));
 
-        const officerMap = new Map<string, boolean>();
-        if (roleResult.Success && roleResult.Results) {
-            for (const r of roleResult.Results as { ID: string; IsOfficer: boolean | number }[]) {
-                officerMap.set(r.ID, r.IsOfficer === true || r.IsOfficer === 1);
-            }
-        }
-
+        const termIDs = [...new Set(rows.map(m => m.TermID))];
+        const termResult = await rv.RunView<{ ID: string; CommitteeID: string }>({
+            EntityName: 'Committees: Terms',
+            ExtraFilter: `ID IN (${termIDs.map(id => `'${id}'`).join(',')})`,
+            Fields: ['ID', 'CommitteeID'],
+            ResultType: 'simple'
+        });
         const termToCommittee = new Map<string, string>();
         if (termResult.Success && termResult.Results) {
-            for (const t of termResult.Results as { ID: string; CommitteeID: string }[]) {
+            for (const t of termResult.Results) {
                 termToCommittee.set(t.ID, t.CommitteeID);
             }
         }
 
-        this.membershipCache = memberResult.Results.map(m => ({
+        return rows.map(m => ({
             RoleID: m.RoleID,
             TermID: m.TermID,
             CommitteeID: termToCommittee.get(m.TermID) ?? '',
             IsOfficer: officerMap.get(m.RoleID) ?? false,
         }));
-
-        return this.membershipCache;
     }
 
     /**

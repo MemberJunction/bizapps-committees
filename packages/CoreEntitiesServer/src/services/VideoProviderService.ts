@@ -33,7 +33,7 @@ export interface ProvisionVideoMeetingResult {
  * - Provisioning (auto-creating) a video meeting URL for a given meeting
  */
 export class VideoProviderService {
-    private static readonly ENTITY_NAME = 'Committees: Video Providers';
+    private static readonly entityName = 'Committees: Video Providers';
 
     /**
      * Loads the default active VideoProvider record, or null if none is configured.
@@ -41,7 +41,7 @@ export class VideoProviderService {
     public async GetDefaultProvider(contextUser: UserInfo): Promise<VideoProviderRecord | null> {
         const rv = new RunView();
         const result = await rv.RunView<VideoProviderRecord>({
-            EntityName: VideoProviderService.ENTITY_NAME,
+            EntityName: VideoProviderService.entityName,
             ExtraFilter: `IsDefault = 1 AND IsActive = 1`,
             MaxRows: 1,
             ResultType: 'simple',
@@ -59,7 +59,7 @@ export class VideoProviderService {
     public async GetActiveProviders(contextUser: UserInfo): Promise<VideoProviderRecord[]> {
         const rv = new RunView();
         const result = await rv.RunView<VideoProviderRecord>({
-            EntityName: VideoProviderService.ENTITY_NAME,
+            EntityName: VideoProviderService.entityName,
             ExtraFilter: `IsActive = 1`,
             OrderBy: 'Name ASC',
             ResultType: 'simple',
@@ -90,34 +90,62 @@ export class VideoProviderService {
             return { Success: true, JoinURL: meeting.VideoJoinURL, ProviderMeetingID: meeting.VideoMeetingID ?? undefined };
         }
 
-        const videoProviderID = meeting.Get('VideoProviderID') as string | null;
+        const videoProviderID = meeting.VideoProviderID;
         if (!videoProviderID) {
             return { Success: false, ErrorMessage: 'Meeting has no VideoProviderID set' };
         }
 
+        const resolved = await this.resolveConfiguredDriver(videoProviderID, contextUser);
+        if ('error' in resolved) {
+            return { Success: false, ErrorMessage: resolved.error };
+        }
+
+        const attendees = await this.loadAttendees(meeting.ID, contextUser);
+        return this.createMeetingAndPersist(resolved.driver, resolved.provider, meeting, attendees);
+    }
+
+    /**
+     * Loads the provider record, instantiates its driver, resolves credentials,
+     * and initializes the driver. Returns an error string if any step fails.
+     */
+    private async resolveConfiguredDriver(
+        videoProviderID: string,
+        contextUser: UserInfo
+    ): Promise<{ driver: VideoProviderBase; provider: VideoProviderRecord } | { error: string }> {
         const provider = await this.loadProvider(videoProviderID, contextUser);
         if (!provider) {
-            return { Success: false, ErrorMessage: `VideoProvider not found: ${videoProviderID}` };
+            return { error: `VideoProvider not found: ${videoProviderID}` };
         }
 
         const driver = this.instantiateDriver(provider.ServerDriverKey);
         if (!driver) {
-            return { Success: false, ErrorMessage: `No driver registered for key: ${provider.ServerDriverKey}` };
+            return { error: `No driver registered for key: ${provider.ServerDriverKey}` };
         }
 
         const credentials = await this.resolveCredentials(provider, contextUser);
         if (!credentials) {
-            return { Success: false, ErrorMessage: `No credentials configured for provider: ${provider.Name}` };
+            return { error: `No credentials configured for provider: ${provider.Name}` };
         }
 
-        await driver.initialize(credentials);
+        await driver.Initialize(credentials);
 
         if (!driver.IsConfigured) {
-            return { Success: false, ErrorMessage: `Driver for ${provider.Name} is not properly configured` };
+            return { error: `Driver for ${provider.Name} is not properly configured` };
         }
 
-        const attendees = await this.loadAttendees(meeting.ID, contextUser);
+        return { driver, provider };
+    }
 
+    /**
+     * Calls the provider API to create the meeting, writes the resulting URL/ID
+     * back to the meeting record, and kicks off best-effort invite sending.
+     */
+    private async createMeetingAndPersist(
+        driver: VideoProviderBase,
+        provider: VideoProviderRecord,
+        meeting: mjBizAppsCommitteesMeetingEntity,
+        attendees: MeetingAttendee[]
+    ): Promise<ProvisionVideoMeetingResult> {
         try {
             const result = await driver.CreateMeeting({
                 Title: meeting.Name,
@@ -137,18 +165,25 @@ export class VideoProviderService {
                 return { Success: false, ErrorMessage: 'Meeting URL created but failed to save back to database' };
             }
 
-            // Best-effort invite sending — don't fail the whole provision if invites fail
-            if (attendees.length > 0) {
-                driver.SendInvites(result.ProviderMeetingID, attendees).catch(err => {
-                    console.error(`[VideoProviderService] SendInvites failed: ${err instanceof Error ? err.message : String(err)}`);
-                });
-            }
+            this.sendInvitesBestEffort(driver, result.ProviderMeetingID, attendees);
 
             return { Success: true, JoinURL: result.JoinURL, ProviderMeetingID: result.ProviderMeetingID };
         } catch (err) {
             const message = err instanceof Error ? err.message : String(err);
             return { Success: false, ErrorMessage: `Provider API error: ${message}` };
         }
+    }
+
+    /**
+     * Best-effort invite sending — don't fail the whole provision if invites fail.
+     */
+    private sendInvitesBestEffort(driver: VideoProviderBase, providerMeetingID: string, attendees: MeetingAttendee[]): void {
+        if (attendees.length === 0) {
+            return;
+        }
+        driver.SendInvites(providerMeetingID, attendees).catch(err => {
+            console.error(`[VideoProviderService] SendInvites failed: ${err instanceof Error ? err.message : String(err)}`);
+        });
     }
 
     private async loadMeeting(meetingID: string, contextUser: UserInfo): Promise<mjBizAppsCommitteesMeetingEntity | null> {
@@ -161,7 +196,7 @@ export class VideoProviderService {
     private async loadProvider(providerID: string, contextUser: UserInfo): Promise<VideoProviderRecord | null> {
         const rv = new RunView();
         const result = await rv.RunView<VideoProviderRecord>({
-            EntityName: VideoProviderService.ENTITY_NAME,
+            EntityName: VideoProviderService.entityName,
             ExtraFilter: `ID = '${providerID}'`,
             MaxRows: 1,
             ResultType: 'simple',

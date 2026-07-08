@@ -1,4 +1,5 @@
 import { Metadata, RunView, UserInfo, LogError, LogStatus } from '@memberjunction/core';
+import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core';
 import { UUIDsEqual } from '@memberjunction/global';
 import { AgentRunner } from '@memberjunction/ai-agents';
 import { AIEngine } from '@memberjunction/aiengine';
@@ -165,8 +166,10 @@ export class BulkImportService {
         const counts = { committees: 0, terms: 0, people: 0, memberships: 0 };
 
         try {
-            const typeMap = await this.loadCommitteeTypeMap(contextUser);
-            const roleMap = await this.loadRoleMap(contextUser);
+            const [typeMap, roleMap] = await Promise.all([
+                this.loadCommitteeTypeMap(contextUser),
+                this.loadRoleMap(contextUser),
+            ]);
 
             await this.createCommittees(plan.committees, typeMap, committeeIDs, errors, counts, contextUser);
             await this.createTerms(plan.terms, committeeIDs, termIDs, errors, counts, contextUser);
@@ -275,35 +278,15 @@ export class BulkImportService {
     // -------------------------------------------------------------------------
 
     private async loadCommitteeTypeMap(contextUser: UserInfo): Promise<Map<string, string>> {
-        const rv = new RunView();
-        const result = await rv.RunView<mjBizAppsCommitteesTypeEntity>({
-            EntityName: 'Committees: Types',
-            ResultType: 'simple',
-        }, contextUser);
-
-        const map = new Map<string, string>();
-        if (result.Success && result.Results) {
-            for (const t of result.Results as unknown as { ID: string; Name: string }[]) {
-                map.set(t.Name.toLowerCase(), t.ID);
-            }
-        }
-        return map;
+        // Types come from the process-wide lookup engine — no per-import query.
+        await CommitteesLookupEngine.Instance.Config(false, contextUser);
+        return new Map(CommitteesLookupEngine.Instance.CommitteeTypes.map(t => [t.Name.toLowerCase(), t.ID]));
     }
 
     private async loadRoleMap(contextUser: UserInfo): Promise<Map<string, string>> {
-        const rv = new RunView();
-        const result = await rv.RunView<mjBizAppsCommitteesRoleEntity>({
-            EntityName: 'Committees: Roles',
-            ResultType: 'simple',
-        }, contextUser);
-
-        const map = new Map<string, string>();
-        if (result.Success && result.Results) {
-            for (const r of result.Results as unknown as { ID: string; Name: string }[]) {
-                map.set(r.Name.toLowerCase(), r.ID);
-            }
-        }
-        return map;
+        // Roles come from the process-wide lookup engine — no per-import query.
+        await CommitteesLookupEngine.Instance.Config(false, contextUser);
+        return new Map(CommitteesLookupEngine.Instance.Roles.map(r => [r.Name.toLowerCase(), r.ID]));
     }
 
     // -------------------------------------------------------------------------
@@ -403,6 +386,8 @@ export class BulkImportService {
         contextUser: UserInfo
     ): Promise<void> {
         const md = new Metadata();
+        const existingByEmail = await this.loadExistingPersonIDs(
+            rows.map(r => r.Email).filter((e): e is string => !!e), contextUser);
         for (const row of rows) {
             try {
                 if (!row.Email) {
@@ -410,7 +395,7 @@ export class BulkImportService {
                     continue;
                 }
                 const emailKey = row.Email.toLowerCase();
-                const existingID = await this.findExistingPersonID(row.Email, contextUser);
+                const existingID = existingByEmail.get(emailKey) ?? null;
                 if (existingID) {
                     personIDs.set(emailKey, existingID);
                     continue;
@@ -508,20 +493,20 @@ export class BulkImportService {
         return 'Active';
     }
 
-    private async findExistingPersonID(email: string, contextUser: UserInfo): Promise<string | null> {
+    /** One query for every import email — RunView per row is too expensive. */
+    private async loadExistingPersonIDs(emails: string[], contextUser: UserInfo): Promise<Map<string, string>> {
+        if (emails.length === 0) return new Map();
+        const list = [...new Set(emails.map(e => e.toLowerCase()))]
+            .map(e => `'${e.replace(/'/g, "''")}'`).join(',');
         const rv = new RunView();
         const result = await rv.RunView({
             EntityName: 'MJ_BizApps_Common: People',
-            ExtraFilter: `Email='${email.replace(/'/g, "''")}'`,
-            Fields: ['ID'],
-            MaxRows: 1,
+            ExtraFilter: `Email IN (${list})`,
+            Fields: ['ID', 'Email'],
             ResultType: 'simple',
         }, contextUser);
-
-        if (result.Success && result.Results && result.Results.length > 0) {
-            return (result.Results[0] as { ID: string }).ID;
-        }
-        return null;
+        const people = (result.Success ? result.Results ?? [] : []) as { ID: string; Email: string | null }[];
+        return new Map(people.filter(p => p.Email).map(p => [p.Email!.toLowerCase(), p.ID]));
     }
 }
 

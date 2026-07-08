@@ -1,5 +1,6 @@
 import { Component, Input, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { RunView } from '@memberjunction/core';
+import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
 import { MembershipDialogResult } from './membership-edit-dialog.component';
 import { TermDialogResult } from '../terms/term-edit-dialog.component';
 import { CommitteePermissionHelper, CommitteePermissions } from '../shared/committee-permission-helper';
@@ -46,7 +47,7 @@ export class MembershipPanelComponent {
     }
 
     private cdr = inject(ChangeDetectorRef);
-    private RoleSequenceMap = new Map<string, number>();
+    private roleSequenceMap = new Map<string, number>();
 
     private _CommitteeID: string | null = null;
 
@@ -54,7 +55,7 @@ export class MembershipPanelComponent {
     set CommitteeID(value: string | null) {
         const prev = this._CommitteeID;
         this._CommitteeID = value;
-        if (value && value !== prev) this.OnCommitteeChanged();
+        if (value && value !== prev) this.onCommitteeChanged();
     }
     get CommitteeID(): string | null { return this._CommitteeID; }
 
@@ -70,6 +71,15 @@ export class MembershipPanelComponent {
     OnTermFilterChanged(termID: string | null): void {
         this.SelectedTermID = termID;
         this.cdr.markForCheck();
+    }
+
+    // ── New person (the person record itself) ──────────────────
+    ShowPersonCreate = false;
+
+    OnPersonCreated(): void {
+        // Person exists now — the Add Member picker loads people fresh on open.
+        this.ShowPersonCreate = false;
+        this.OnCreateMembership();
     }
 
     OnCreateMembership(): void {
@@ -103,9 +113,9 @@ export class MembershipPanelComponent {
         this.ShowEditDialog = false;
         if (result.Saved) {
             CommitteePermissionHelper.ClearCache();
-            await this.LoadMemberships();
+            await this.loadMemberships();
             this.SuccessMessage = this.EditingMembershipID ? 'Membership updated.' : 'Member added.';
-            this.ClearSuccessAfterDelay();
+            this.clearSuccessAfterDelay();
         }
         this.cdr.markForCheck();
     }
@@ -130,8 +140,8 @@ export class MembershipPanelComponent {
         this.ShowTermDialog = false;
         if (result.Saved) {
             const isDelete = result.Term == null;
-            await this.LoadTerms();
-            await this.LoadMemberships();
+            await this.loadTerms();
+            await this.loadMemberships();
 
             if (isDelete) {
                 this.SelectedTermID = null;
@@ -140,12 +150,12 @@ export class MembershipPanelComponent {
                 this.SelectedTermID = result.Term!.ID;
                 this.SuccessMessage = this.EditingTermID ? 'Term updated.' : 'Term created.';
             }
-            this.ClearSuccessAfterDelay();
+            this.clearSuccessAfterDelay();
         }
         this.cdr.markForCheck();
     }
 
-    private ClearSuccessAfterDelay(): void {
+    private clearSuccessAfterDelay(): void {
         setTimeout(() => {
             this.SuccessMessage = '';
             this.cdr.markForCheck();
@@ -165,27 +175,27 @@ export class MembershipPanelComponent {
         }
     }
 
-    private async OnCommitteeChanged(): Promise<void> {
+    private async onCommitteeChanged(): Promise<void> {
         this.IsLoading = true;
         this.SelectedTermID = null;
         this.cdr.markForCheck();
 
-        await this.LoadTerms();
+        await this.loadTerms();
         await Promise.all([
-            this.LoadMemberships(),
-            this.LoadUserPermissions(),
-            this.LoadCurrentUserPersonID()
+            this.loadMemberships(),
+            this.loadUserPermissions(),
+            this.loadCurrentUserPersonID()
         ]);
 
         this.IsLoading = false;
         this.cdr.markForCheck();
     }
 
-    private async LoadCurrentUserPersonID(): Promise<void> {
+    private async loadCurrentUserPersonID(): Promise<void> {
         this.CurrentUserPersonID = await CommitteePermissionHelper.GetCurrentPersonID();
     }
 
-    private async LoadUserPermissions(): Promise<void> {
+    private async loadUserPermissions(): Promise<void> {
         if (!this.CommitteeID) {
             this.Permissions = { IsMember: false, IsOfficer: false, IsStaff: false, CanManageMembers: false, CanManageMeetings: false, CanEditCommittee: false, CanView: false };
             return;
@@ -193,7 +203,7 @@ export class MembershipPanelComponent {
         this.Permissions = await CommitteePermissionHelper.GetPermissionsForCommittee(this.CommitteeID);
     }
 
-    private async LoadTerms(): Promise<void> {
+    private async loadTerms(): Promise<void> {
         const rv = new RunView();
         const result = await rv.RunView({
             EntityName: 'Committees: Terms',
@@ -207,7 +217,7 @@ export class MembershipPanelComponent {
         }
     }
 
-    private async LoadMemberships(): Promise<void> {
+    private async loadMemberships(): Promise<void> {
         if (this.Terms.length === 0) {
             this.Memberships = [];
             return;
@@ -215,42 +225,36 @@ export class MembershipPanelComponent {
 
         const termIDs = this.Terms.map(t => `'${t.ID}'`).join(',');
         const rv = new RunView();
-        const [membershipsResult, rolesResult] = await rv.RunViews([
+        await CommitteesLookupEngine.Instance.Config();
+        const [membershipsResult] = await rv.RunViews([
             {
                 EntityName: 'Committees: Memberships',
                 Fields: ['ID', 'PersonID', 'Person', 'RoleID', 'Role', 'TermID', 'Term', 'StartDate', 'EndDate', 'Status'],
                 ExtraFilter: `TermID IN (${termIDs}) AND Status != 'Ended'`,
                 OrderBy: 'Person ASC',
                 ResultType: 'simple'
-            },
-            {
-                EntityName: 'Committees: Roles',
-                Fields: ['ID', 'Sequence'],
-                OrderBy: 'Sequence ASC',
-                ResultType: 'simple'
             }
         ]);
 
-        if (rolesResult.Success) {
-            this.RoleSequenceMap.clear();
-            for (const r of rolesResult.Results as { ID: string; Sequence: number }[]) {
-                this.RoleSequenceMap.set(r.ID, r.Sequence);
-            }
+        // Roles come from the process-wide lookup engine — no per-load query.
+        this.roleSequenceMap.clear();
+        for (const r of CommitteesLookupEngine.Instance.Roles) {
+            this.roleSequenceMap.set(r.ID, r.Sequence ?? 0);
         }
 
         if (membershipsResult.Success) {
             this.Memberships = membershipsResult.Results.sort((a: Record<string, unknown>, b: Record<string, unknown>) => {
-                const seqA = this.RoleSequenceMap.get(a['RoleID'] as string) ?? 999;
-                const seqB = this.RoleSequenceMap.get(b['RoleID'] as string) ?? 999;
+                const seqA = this.roleSequenceMap.get(a['RoleID'] as string) ?? 999;
+                const seqB = this.roleSequenceMap.get(b['RoleID'] as string) ?? 999;
                 if (seqA !== seqB) return seqA - seqB;
                 return ((a['Person'] as string) || '').localeCompare((b['Person'] as string) || '');
             });
-            await this.LoadPersonContactData();
+            await this.loadPersonContactData();
         }
     }
 
     /** Batch-loads primary Email and Phone from Contact Methods and merges onto membership records. */
-    private async LoadPersonContactData(): Promise<void> {
+    private async loadPersonContactData(): Promise<void> {
         const personIDs = [...new Set(
             this.Memberships.map(m => m['PersonID'] as string).filter(Boolean)
         )];

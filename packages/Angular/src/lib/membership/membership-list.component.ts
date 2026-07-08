@@ -21,7 +21,7 @@ export class MembershipListComponent extends BaseResourceComponent implements On
 
     async ngOnInit(): Promise<void> {
         this.NotifyLoadStarted();
-        await this.LoadMyCommittees();
+        await this.loadMyCommittees();
         this.IsLoading = false;
         this.NotifyLoadComplete();
         this.cdr.markForCheck();
@@ -40,7 +40,7 @@ export class MembershipListComponent extends BaseResourceComponent implements On
         this.cdr.markForCheck();
     }
 
-    private async LoadMyCommittees(): Promise<void> {
+    private async loadMyCommittees(): Promise<void> {
         const md = new Metadata();
         const userID = md.CurrentUser?.ID;
         if (!userID) return;

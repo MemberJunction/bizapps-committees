@@ -8,7 +8,7 @@ interface BuilderRow {
     Sequence: number;
     Name: string;
     Description: string | null;
-    ItemType: string;
+    ItemType: mjBizAppsCommitteesAgendaItemEntity['ItemType'];
     DurationMinutes: number | null;
     PresenterPersonID: string | null;
     PresenterName: string | null;
@@ -24,7 +24,9 @@ interface BuilderRow {
 
 interface MemberOption { PersonID: string; PersonName: string; }
 
-const ITEM_TYPES = ['Discussion', 'Vote', 'Report', 'Action', 'Information', 'Other'] as const;
+// Typed against the entity union — a renamed/removed CHECK value fails compile here.
+const ITEM_TYPES: ReadonlyArray<mjBizAppsCommitteesAgendaItemEntity['ItemType']> =
+    ['Discussion', 'Vote', 'Report', 'Action', 'Information', 'Other'];
 
 /**
  * Agenda Builder (Phase 4 feature 3) — the prep tense. Replaces the read-only
@@ -56,7 +58,7 @@ export class AgendaBuilderComponent implements OnInit {
 
     // inline add
     NewName = '';
-    NewType = 'Discussion';
+    NewType: mjBizAppsCommitteesAgendaItemEntity['ItemType'] = 'Discussion';
 
     readonly ItemTypes = ITEM_TYPES;
 
@@ -100,7 +102,7 @@ export class AgendaBuilderComponent implements OnInit {
                 },
             ]);
             const items = (itemsR.Success ? itemsR.Results : []) as unknown as Array<{
-                ID: string; Sequence: number; Name: string; Description: string | null; ItemType: string;
+                ID: string; Sequence: number; Name: string; Description: string | null; ItemType: mjBizAppsCommitteesAgendaItemEntity['ItemType'];
                 DurationMinutes: number | null; PresenterPersonID: string | null; PresenterPerson: string | null; Notes: string | null;
             }>;
             this.Rows = items.map(i => ({
@@ -158,7 +160,7 @@ export class AgendaBuilderComponent implements OnInit {
             const item = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items');
             item.MeetingID = this.MeetingID;
             item.Name = name;
-            item.ItemType = this.NewType as mjBizAppsCommitteesAgendaItemEntity['ItemType'];
+            item.ItemType = this.NewType;
             item.Sequence = (this.Rows[this.Rows.length - 1]?.Sequence ?? 0) + 1;
             item.Status = 'Pending';
             if (!await item.Save()) throw new Error(item.LatestResult?.Message ?? 'Add failed');
@@ -181,7 +183,7 @@ export class AgendaBuilderComponent implements OnInit {
             const item = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items');
             if (!await item.Load(row.ID)) throw new Error('Agenda item not found');
             item.Name = row.Name.trim();
-            item.ItemType = row.ItemType as mjBizAppsCommitteesAgendaItemEntity['ItemType'];
+            item.ItemType = row.ItemType;
             item.DurationMinutes = row.DurationMinutes || null;
             item.PresenterPersonID = row.PresenterPersonID || null;
             item.Notes = row.Notes?.trim() || null;

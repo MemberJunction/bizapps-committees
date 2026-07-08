@@ -158,8 +158,8 @@
     width: 28px; height: 28px; flex: none;
     display: inline-grid; place-items: center;
     border-radius: 50%;
-    background: color-mix(in srgb, var(--mj-color-indigo-500) 15%, transparent);
-    color: var(--mj-color-indigo-400);
+    background: color-mix(in srgb, var(--mj-brand-primary) 15%, transparent);
+    color: var(--mj-brand-primary);
     font-size: 11px; font-weight: var(--mj-font-bold, 700);
 }
 

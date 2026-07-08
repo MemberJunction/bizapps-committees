@@ -79,7 +79,7 @@
           <div class="empty">
             <span class="eicon"><i class="fa-solid fa-check"></i></span>
             <b>You're all caught up</b>
-            <p>Nothing needs you@if (NextMeeting) { before the {{ NextMeeting.StartDateTime | date:'MMM d' }} meeting}. We'll email you if that changes — no need to check back.</p>
+            <p>Nothing needs you@if (NextMeeting) { before the {{ NextMeeting.StartDateTime | date:'MMM d' }} meeting}. You'll get a notification if that changes — no need to check back.</p>
           </div>
         }
         @for (item of Needs; track item.Key) {

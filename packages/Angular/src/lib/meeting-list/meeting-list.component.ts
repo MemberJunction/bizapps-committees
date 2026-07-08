@@ -25,8 +25,7 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
     EditingMeetingID: string | null = null;
 
     /** View state */
-    ActiveView: 'list' | 'live' | 'detail' = 'list';
-    LiveMeetingID: string | null = null;
+    ActiveView: 'list' | 'detail' = 'list';
     DetailMeetingID: string | null = null;
 
     /** Permission state — staff users see "Schedule Meeting" button */
@@ -37,8 +36,8 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
     async ngOnInit(): Promise<void> {
         this.NotifyLoadStarted();
         await Promise.all([
-            this.LoadMeetings(),
-            this.LoadPermissions()
+            this.loadMeetings(),
+            this.loadPermissions()
         ]);
         this.IsLoading = false;
         this.NotifyLoadComplete();
@@ -87,25 +86,24 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
 
     OnBackToList(): void {
         this.ActiveView = 'list';
-        this.LiveMeetingID = null;
         this.DetailMeetingID = null;
-        this.LoadMeetings();
+        this.loadMeetings();
         this.cdr.markForCheck();
     }
 
     async OnDialogClosed(result: MeetingDialogResult): Promise<void> {
         this.ShowEditDialog = false;
         if (result.Saved) {
-            await this.LoadMeetings();
+            await this.loadMeetings();
         }
         this.cdr.markForCheck();
     }
 
-    private async LoadPermissions(): Promise<void> {
+    private async loadPermissions(): Promise<void> {
         this.IsStaff = await CommitteePermissionHelper.IsStaffUser();
     }
 
-    private async LoadMeetings(): Promise<void> {
+    private async loadMeetings(): Promise<void> {
         const rv = new RunView();
         const now = new Date().toISOString();
 

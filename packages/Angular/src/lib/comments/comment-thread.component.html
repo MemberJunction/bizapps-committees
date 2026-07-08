@@ -2,27 +2,36 @@
     <div class="comment-header">
         <i class="fa-regular fa-comments"></i>
         <span class="comment-title">Discussion</span>
-        <span class="comment-count" *ngIf="TotalCount > 0">({{ TotalCount }})</span>
+        @if (TotalCount > 0) {
+            <span class="comment-count">({{ TotalCount }})</span>
+        }
     </div>
 
     <!-- Loading state -->
-    <mj-loading *ngIf="IsLoading" text="Loading comments..." size="small"></mj-loading>
+    @if (IsLoading) {
+        <mj-loading text="Loading comments..." size="small"></mj-loading>
+    }
 
     <!-- Empty state -->
-    <div class="empty-state" *ngIf="!IsLoading && CommentTree.length === 0">
-        <i class="fa-regular fa-comment-dots"></i>
-        <span>No comments yet. Start the discussion!</span>
-    </div>
+    @if (!IsLoading && CommentTree.length === 0) {
+        <div class="empty-state">
+            <i class="fa-regular fa-comment-dots"></i>
+            <span>No comments yet. Start the discussion!</span>
+        </div>
+    }
 
     <!-- Comment tree -->
-    <div class="comments-list" *ngIf="!IsLoading && CommentTree.length > 0">
-        <ng-container *ngFor="let node of CommentTree">
-            <ng-container *ngTemplateOutlet="commentNode; context: { $implicit: node, depth: 0 }"></ng-container>
-        </ng-container>
-    </div>
+    @if (!IsLoading && CommentTree.length > 0) {
+        <div class="comments-list">
+            @for (node of CommentTree; track node.Comment.ID) {
+                <ng-container *ngTemplateOutlet="commentNode; context: { $implicit: node, depth: 0 }"></ng-container>
+            }
+        </div>
+    }
 
     <!-- New top-level comment -->
-    <div class="new-comment" *ngIf="!IsLoading && CurrentPersonID">
+    @if (!IsLoading && CurrentPersonID) {
+    <div class="new-comment">
         <textarea
             class="comment-input"
             [(ngModel)]="NewCommentText"
@@ -40,6 +49,7 @@
             </button>
         </div>
     </div>
+    }
 </div>
 
 <!-- Recursive comment template -->
@@ -48,23 +58,30 @@
         <div class="comment-meta">
             <span class="comment-author">{{ node.Comment.Person || 'Unknown' }}</span>
             <span class="comment-time">{{ FormatDate(node.Comment.__mj_CreatedAt) }}</span>
-            <span class="resolved-badge" *ngIf="node.Comment.IsResolved">
-                <i class="fa-solid fa-check-circle"></i> Resolved
-            </span>
+            @if (node.Comment.IsResolved) {
+                <span class="resolved-badge">
+                    <i class="fa-solid fa-check-circle"></i> Resolved
+                </span>
+            }
         </div>
         <div class="comment-body">{{ node.Comment.CommentText }}</div>
         <div class="comment-toolbar">
-            <button class="btn-link" (click)="ToggleReply(node)" *ngIf="CurrentPersonID">
-                <i class="fa-regular fa-reply"></i> Reply
-            </button>
-            <button class="btn-link" (click)="OnResolve(node)" *ngIf="CurrentPersonID && !node.Comment.ParentCommentID">
-                <i class="fa-regular" [class.fa-circle-check]="!node.Comment.IsResolved" [class.fa-circle-xmark]="node.Comment.IsResolved"></i>
-                {{ node.Comment.IsResolved ? 'Unresolve' : 'Resolve' }}
-            </button>
+            @if (CurrentPersonID) {
+                <button class="btn-link" (click)="ToggleReply(node)">
+                    <i class="fa-regular fa-reply"></i> Reply
+                </button>
+            }
+            @if (CurrentPersonID && !node.Comment.ParentCommentID) {
+                <button class="btn-link" (click)="OnResolve(node)">
+                    <i class="fa-regular" [class.fa-circle-check]="!node.Comment.IsResolved" [class.fa-circle-xmark]="node.Comment.IsResolved"></i>
+                    {{ node.Comment.IsResolved ? 'Unresolve' : 'Resolve' }}
+                </button>
+            }
         </div>
 
         <!-- Inline reply box -->
-        <div class="reply-box" *ngIf="node.ShowReplyBox">
+        @if (node.ShowReplyBox) {
+        <div class="reply-box">
             <textarea
                 class="comment-input reply-input"
                 [(ngModel)]="node.ReplyText"
@@ -83,10 +100,11 @@
                 <button class="btn btn-sm" (click)="ToggleReply(node)">Cancel</button>
             </div>
         </div>
+        }
 
         <!-- Nested replies -->
-        <ng-container *ngFor="let child of node.Replies">
+        @for (child of node.Replies; track child.Comment.ID) {
             <ng-container *ngTemplateOutlet="commentNode; context: { $implicit: child, depth: depth + 1 }"></ng-container>
-        </ng-container>
+        }
     </div>
 </ng-template>

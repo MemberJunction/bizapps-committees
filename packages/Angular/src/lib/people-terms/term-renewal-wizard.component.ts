@@ -158,12 +158,27 @@ export class TermRenewalWizardComponent {
             });
             const people = (result.Success ? result.Results : []) as unknown as PersonSearchRow[];
             this.SearchResults = people.filter(p => !taken.has(p.ID.toLowerCase()));
+            this.HasSearched = true;
         } catch {
             this.SearchResults = [];
         }
         this.IsSearching = false;
         this.cdr.detectChanges();
     }
+
+    // "No matches → create them" path
+    ShowPersonCreate = false;
+
+    OnPersonCreated(created: { PersonID: string; DisplayName: string }): void {
+        this.ShowPersonCreate = false;
+        this.Added.push({ PersonID: created.PersonID, PersonName: created.DisplayName, RoleID: this.DefaultRoleID, Source: 'search' });
+        this.SearchTerm = '';
+        this.SearchResults = [];
+        this.HasSearched = false;
+        this.cdr.markForCheck();
+    }
+
+    HasSearched = false;
 
     AddPerson(person: PersonSearchRow): void {
         this.Added.push({ PersonID: person.ID, PersonName: person.DisplayName, RoleID: this.DefaultRoleID, Source: 'search' });

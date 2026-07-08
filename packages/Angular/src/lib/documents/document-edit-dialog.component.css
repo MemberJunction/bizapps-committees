@@ -35,7 +35,7 @@
 
 .mode-btn.active {
     background: var(--mj-status-info-bg);
-    color: var(--mj-color-info-600);
+    color: var(--mj-status-info-text);
 }
 
 .mode-btn:hover:not(.active) {
@@ -51,23 +51,23 @@
     text-align: center;
     cursor: pointer;
     transition: all 0.15s ease;
-    background: #fafbfc;
+    background: var(--mj-bg-surface-card);
 }
 
 .drop-zone:hover {
-    border-color: #93c5fd;
+    border-color: color-mix(in srgb, var(--mj-status-info) 45%, transparent);
     background: var(--mj-status-info-bg);
 }
 
 .drop-zone.dragging {
-    border-color: var(--mj-color-info-500);
+    border-color: var(--mj-status-info);
     background: var(--mj-status-info-bg);
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mj-status-info) 12%, transparent);
 }
 
 .drop-zone i {
     font-size: 32px;
-    color: #93c5fd;
+    color: color-mix(in srgb, var(--mj-status-info) 45%, transparent);
     display: block;
     margin-bottom: var(--mj-space-2-5);
 }
@@ -106,7 +106,7 @@
 
 .no-storage-notice i {
     font-size: var(--mj-text-base);
-    color: var(--mj-color-warning-600);
+    color: var(--mj-status-warning-text);
     flex-shrink: 0;
     margin-top: 1px;
 }
@@ -131,7 +131,7 @@
 
 .file-info i {
     font-size: 22px;
-    color: var(--mj-color-info-500);
+    color: var(--mj-status-info);
     flex-shrink: 0;
 }
 
@@ -169,7 +169,7 @@
 
 .file-remove:hover {
     background: var(--mj-status-error-bg);
-    color: var(--mj-color-error-500);
+    color: var(--mj-status-error);
 }
 
 /* ─── Divider ─── */
@@ -207,10 +207,10 @@
     gap: var(--mj-space-2-5);
     padding: var(--mj-space-3) var(--mj-space-4);
     background: var(--mj-status-info-bg);
-    border: 2px solid #bfdbfe;
+    border: 2px solid color-mix(in srgb, var(--mj-status-info) 35%, transparent);
     border-radius: var(--mj-radius-lg);
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-info-600);
+    color: var(--mj-status-info-text);
     margin-bottom: 18px;
 }

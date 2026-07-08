@@ -1,9 +1,4 @@
-@if (ActiveView === 'live' && LiveMeetingID) {
-    <meeting-live-view
-        [MeetingID]="LiveMeetingID"
-        (BackToList)="OnBackToList()">
-    </meeting-live-view>
-} @else if (ActiveView === 'detail' && DetailMeetingID) {
+@if (ActiveView === 'detail' && DetailMeetingID) {
     <meeting-detail-view
         [MeetingID]="DetailMeetingID"
         (BackToList)="OnBackToList()">

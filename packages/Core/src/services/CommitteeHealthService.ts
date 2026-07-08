@@ -1,4 +1,5 @@
 import { RunView, UserInfo } from '@memberjunction/core';
+import { CommitteesLookupEngine } from '../engines/CommitteesLookupEngine.js';
 
 /**
  * Committee health signal computation for the Governance Command Center.
@@ -147,11 +148,11 @@ export class CommitteeHealthService {
         const rv = new RunView();
         const now = new Date();
         const lookbackISO = new Date(now.getTime() - 365 * 86400000).toISOString();
-        const [committees, terms, memberships, roles, meetings, minutes, actionItems, agendaItems] = await rv.RunViews([
+        await CommitteesLookupEngine.Instance.Config(false, contextUser);
+        const [committees, terms, memberships, meetings, minutes, actionItems, agendaItems] = await rv.RunViews([
             { EntityName: 'Committees: Committees', Fields: ['ID', 'Name', 'Status', 'IsPublic', 'Type', 'FormationDate', '__mj_CreatedAt'], ResultType: 'simple' },
             { EntityName: 'Committees: Terms', Fields: ['ID', 'CommitteeID', 'Status', 'StartDate', 'EndDate'], ResultType: 'simple' },
             { EntityName: 'Committees: Memberships', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'TermID', 'PersonID', 'RoleID', 'Status', 'Role', 'Person'], ResultType: 'simple' },
-            { EntityName: 'Committees: Roles', Fields: ['ID', 'Name', 'IsVotingRole', 'IsOfficer'], ResultType: 'simple' },
             { EntityName: 'Committees: Meetings', ExtraFilter: `StartDateTime >= '${lookbackISO}'`, Fields: ['ID', 'CommitteeID', 'Committee', 'Name', 'StartDateTime', 'EndDateTime', 'Status', 'LocationType', 'LocationText', 'VideoProvider_Virtual'], OrderBy: 'StartDateTime ASC', ResultType: 'simple' },
             { EntityName: 'Committees: Minutes', ExtraFilter: "ApprovalStatus IN ('Draft', 'PendingApproval')", Fields: ['ID', 'MeetingID', 'ApprovalStatus', '__mj_CreatedAt'], ResultType: 'simple' },
             { EntityName: 'Committees: Action Items', ExtraFilter: "Status IN ('Open', 'InProgress')", Fields: ['ID', 'CommitteeID', 'Name', 'DueDate', 'Status', 'AssignedToPerson'], ResultType: 'simple' },
@@ -176,7 +177,8 @@ export class CommitteeHealthService {
             Committees: (committees.Success ? committees.Results : []) as unknown as CommitteeRow[],
             Terms: (terms.Success ? terms.Results : []) as unknown as TermRow[],
             Memberships: (memberships.Success ? memberships.Results : []) as unknown as MembershipRoleRow[],
-            Roles: (roles.Success ? roles.Results : []) as unknown as RoleRow[],
+            // Roles come from the process-wide lookup engine — no per-call query.
+            Roles: CommitteesLookupEngine.Instance.Roles.map(r => ({ ID: r.ID, Name: r.Name, IsVotingRole: r.IsVotingRole, IsOfficer: r.IsOfficer })) as RoleRow[],
             Meetings: meetingRows,
             Attendance: attendanceRows,
             Minutes: (minutes.Success ? minutes.Results : []) as unknown as MinuteRow[],

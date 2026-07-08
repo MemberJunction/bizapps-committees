@@ -117,6 +117,15 @@
                   <div class="r-txt"><b>{{ p.DisplayName }}</b><small>{{ p.Email || '' }}</small></div>
                   <button type="button" class="btn sm" (click)="AddPerson(p)"><i class="fa-solid fa-plus"></i> Add</button>
                 </div>
+              } @empty {
+                @if (HasSearched && SearchTerm.trim().length >= 2) {
+                  <div class="hit">
+                    <div class="r-txt"><small>No one matches "{{ SearchTerm }}".</small></div>
+                    <button type="button" class="btn sm" (click)="ShowPersonCreate = true">
+                      <i class="fa-solid fa-id-card"></i> Create new person
+                    </button>
+                  </div>
+                }
               }
             </div>
 
@@ -184,3 +193,8 @@
     </footer>
   </div>
 </div>
+
+@if (ShowPersonCreate) {
+  <committees-person-create-dialog [PrefillName]="SearchTerm" (Created)="OnPersonCreated($event)" (Cancelled)="ShowPersonCreate = false">
+  </committees-person-create-dialog>
+}

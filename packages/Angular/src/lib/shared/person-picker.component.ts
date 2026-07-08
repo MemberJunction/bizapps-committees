@@ -56,7 +56,7 @@ export class PersonPickerComponent implements OnInit {
     private cdr = inject(ChangeDetectorRef);
 
     async ngOnInit(): Promise<void> {
-        await this.LoadPeople();
+        await this.loadPeople();
         this.cdr.markForCheck();
     }
 
@@ -72,7 +72,7 @@ export class PersonPickerComponent implements OnInit {
         }
     }
 
-    private async LoadPeople(): Promise<void> {
+    private async loadPeople(): Promise<void> {
         const rv = new RunView();
         const result = await rv.RunView({
             EntityName: 'MJ_BizApps_Common: People',

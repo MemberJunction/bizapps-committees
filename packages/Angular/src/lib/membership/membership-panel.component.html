@@ -51,6 +51,9 @@
                     {{ ActiveCount }} active of {{ FilteredMemberships.length }} total
                 </span>
                 @if (EffectivePermissions.CanManageMembers) {
+                    <button class="btn btn-secondary" (click)="ShowPersonCreate = true">
+                        <i class="fa-solid fa-id-card"></i> New Person
+                    </button>
                     <button class="btn btn-primary" (click)="OnCreateMembership()" [disabled]="Terms.length === 0">
                         <i class="fa-solid fa-user-plus"></i> Add Member
                     </button>
@@ -153,4 +156,9 @@
         [CanEdit]="EffectivePermissions.IsStaff || ViewingPersonID === CurrentUserPersonID"
         (PanelClosed)="OnPersonPanelClosed()">
     </person-detail-panel>
+}
+
+@if (ShowPersonCreate) {
+    <committees-person-create-dialog (Created)="OnPersonCreated()" (Cancelled)="ShowPersonCreate = false">
+    </committees-person-create-dialog>
 }

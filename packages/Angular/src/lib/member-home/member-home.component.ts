@@ -4,6 +4,7 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { BallotService, INTENT_ASK_WINDOW_DAYS, RenewalIntentValue } from '@mj-biz-apps/committees-core';
+import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
 import {
     mjBizAppsCommitteesAttendanceEntity, mjBizAppsCommitteesActionItemEntity,
     mjBizAppsCommitteesVoteEntity, mjBizAppsCommitteesMembershipEntity,
@@ -127,40 +128,20 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
     }
 
     private async loadEverything(personID: string): Promise<void> {
+        await CommitteesLookupEngine.Instance.Config();
         const rv = new RunView();
-        const [membershipsR, termsR, rolesR] = await rv.RunViews([
+        const [membershipsR, termsR] = await rv.RunViews([
             { EntityName: 'Committees: Memberships', ExtraFilter: `PersonID = '${personID}' AND Status = 'Active'`, Fields: ['ID', 'TermID', 'PersonID', 'Role', 'RoleID', 'RenewalIntent'], ResultType: 'simple' },
             { EntityName: 'Committees: Terms', Fields: ['ID', 'CommitteeID', 'Committee', 'EndDate', 'Status'], ResultType: 'simple' },
-            { EntityName: 'Committees: Roles', Fields: ['ID', 'IsVotingRole'], ResultType: 'simple' },
         ]);
         const memberships = (membershipsR.Success ? membershipsR.Results : []) as unknown as MembershipRow[];
         const terms = (termsR.Success ? termsR.Results : []) as unknown as TermRow[];
-        const roles = (rolesR.Success ? rolesR.Results : []) as unknown as RoleRow[];
+        // Roles come from the process-wide lookup engine — no per-load query.
+        const roles: RoleRow[] = CommitteesLookupEngine.Instance.Roles.map(r => ({ ID: r.ID, IsVotingRole: r.IsVotingRole }));
 
         this.myMembershipIDs = new Set(memberships.map(m => m.ID.toLowerCase()));
-        const termsByID = new Map(terms.map(t => [t.ID.toLowerCase(), t]));
-        const votingRoles = new Set(roles.filter(r => r.IsVotingRole).map(r => r.ID.toLowerCase()));
         const now = new Date();
-
-        this.Committees = memberships
-            .map(m => {
-                const term = termsByID.get(m.TermID.toLowerCase());
-                if (!term) return null;
-                const end = term.EndDate ? new Date(term.EndDate) : null;
-                const daysLeft = end ? Math.ceil((end.getTime() - now.getTime()) / 86_400_000) : null;
-                return {
-                    MembershipID: m.ID,
-                    CommitteeID: term.CommitteeID,
-                    CommitteeName: term.Committee,
-                    RoleName: m.Role,
-                    IsVoting: votingRoles.has(m.RoleID.toLowerCase()),
-                    TermEnd: end,
-                    AttendanceRate: null,
-                    RenewalIntent: m.RenewalIntent ?? null,
-                    AskIntent: daysLeft != null && daysLeft > 0 && daysLeft <= INTENT_ASK_WINDOW_DAYS,
-                } as MyCommittee;
-            })
-            .filter((c): c is MyCommittee => c !== null);
+        this.Committees = this.buildCommitteeCards(memberships, terms, roles, now);
 
         const committeeIDs = [...new Set(this.Committees.map(c => `'${c.CommitteeID}'`))];
         if (committeeIDs.length === 0) return;
@@ -186,6 +167,31 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
         this.computeAttendanceRates(meetings, myAttendance);
         this.buildNeeds(actions, ballots, minutes, myVotes, meetings, now);
         await this.loadDecisions(myVotes);
+    }
+
+    /** One card per active membership, term-anchored, with the intent-ask window applied. */
+    private buildCommitteeCards(memberships: MembershipRow[], terms: TermRow[], roles: RoleRow[], now: Date): MyCommittee[] {
+        const termsByID = new Map(terms.map(t => [t.ID.toLowerCase(), t]));
+        const votingRoles = new Set(roles.filter(r => r.IsVotingRole).map(r => r.ID.toLowerCase()));
+        return memberships
+            .map(m => {
+                const term = termsByID.get(m.TermID.toLowerCase());
+                if (!term) return null;
+                const end = term.EndDate ? new Date(term.EndDate) : null;
+                const daysLeft = end ? Math.ceil((end.getTime() - now.getTime()) / 86_400_000) : null;
+                return {
+                    MembershipID: m.ID,
+                    CommitteeID: term.CommitteeID,
+                    CommitteeName: term.Committee,
+                    RoleName: m.Role,
+                    IsVoting: votingRoles.has(m.RoleID.toLowerCase()),
+                    TermEnd: end,
+                    AttendanceRate: null,
+                    RenewalIntent: m.RenewalIntent ?? null,
+                    AskIntent: daysLeft != null && daysLeft > 0 && daysLeft <= INTENT_ASK_WINDOW_DAYS,
+                } as MyCommittee;
+            })
+            .filter((c): c is MyCommittee => c !== null);
     }
 
     private pickNextMeeting(meetings: MeetingRow[], myAttendance: { ID: string; MeetingID: string; AttendanceStatus: string }[], now: Date): void {

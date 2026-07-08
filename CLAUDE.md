@@ -164,6 +164,23 @@ git checkout -b my-feature-branch
 
 ## MemberJunction Entity and Data Access Patterns
 
+> **Full framework reference**: [docs/MJ-CLAUDE.md](docs/MJ-CLAUDE.md) — a snapshot of the
+> MJ repo's CLAUDE.md. Read it for anything not covered here, especially the
+> **BaseEngine caching pattern** below.
+
+### RunView is EXPENSIVE — cache expected lookups in a BaseEngine
+- Every `RunView` is a network + DB round trip. Do NOT re-query small, stable
+  entity sets (Roles, Types, Committees, Terms) from every component load.
+- The canonical MJ pattern is a `BaseEngine` subclass: `Config()` declares the
+  cached entity sets, invalidation is automatic via BaseEntity events, and
+  components read sync getters / subscribe to `ObserveProperty` observables.
+- Reference implementations in MJ: `ConversationEngine`, `UserInfoEngine`,
+  `ComponentMetadataEngine`. See docs/MJ-CLAUDE.md § "Reactive UIs over entity
+  caches" and § "Check the Registry Before You Query".
+- `BypassCache: true` remains the escape hatch for read-after-write paths that
+  need true DB state.
+
+
 ### Entity Object Creation
 **Never directly instantiate BaseEntity subclasses** - always use the Metadata system:
 

@@ -15,13 +15,15 @@ import { mjBizAppsCommitteesMembershipEntity } from '../generated/entity_subclas
 export class MembershipEntityCustom extends mjBizAppsCommitteesMembershipEntity {
 
     // Override Status setter to auto-set EndDate when membership is ended.
-    override get Status(): 'Active' | 'Ended' | 'Pending' | 'Suspended' {
+    // Get/Set here mirror the generated accessor implementation — using the
+    // typed property inside its own override would recurse.
+    override get Status(): mjBizAppsCommitteesMembershipEntity['Status'] {
         return this.Get('Status');
     }
-    override set Status(value: 'Active' | 'Ended' | 'Pending' | 'Suspended') {
+    override set Status(value: mjBizAppsCommitteesMembershipEntity['Status']) {
         this.Set('Status', value);
         if (value === 'Ended' && !this.EndDate) {
-            this.Set('EndDate', new Date());
+            this.EndDate = new Date();
         }
     }
 

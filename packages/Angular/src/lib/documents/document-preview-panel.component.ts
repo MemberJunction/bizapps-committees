@@ -62,7 +62,7 @@ export class DocumentPreviewPanelComponent implements OnInit {
     }
 
     async ngOnInit(): Promise<void> {
-        await this.LoadFile();
+        await this.loadFile();
         this.IsLoading = false;
         this.cdr.markForCheck();
     }
@@ -86,7 +86,7 @@ export class DocumentPreviewPanelComponent implements OnInit {
         this.cdr.markForCheck();
     }
 
-    private async LoadFile(): Promise<void> {
+    private async loadFile(): Promise<void> {
         if (!this.FileID) return;
         const rv = new RunView();
         const result = await rv.RunView<FilePreviewData>({

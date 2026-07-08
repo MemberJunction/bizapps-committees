@@ -1,4 +1,5 @@
 import { RunView, UserInfo } from '@memberjunction/core';
+import { CommitteesLookupEngine } from '../engines/CommitteesLookupEngine.js';
 import { MembershipRow, RenewalIntentValue, RoleRow, TermRow } from './SuccessionService';
 
 /**
@@ -56,23 +57,19 @@ export interface RenewalContext {
 export class TermRenewalService {
     /** Loads terms/memberships/roles and assembles the wizard's opening state. */
     public async GetRenewalContext(committeeID: string, contextUser?: UserInfo, now: Date = new Date()): Promise<RenewalContext> {
+        await CommitteesLookupEngine.Instance.Config(false, contextUser);
         const rv = new RunView();
-        const [termsR, rolesR] = await rv.RunViews([
-            {
-                EntityName: 'Committees: Terms',
-                ExtraFilter: `CommitteeID = '${committeeID}'`,
-                Fields: ['ID', 'CommitteeID', 'Committee', 'Name', 'StartDate', 'EndDate', 'Status'],
-                ResultType: 'simple',
-            },
-            {
-                EntityName: 'Committees: Roles',
-                Fields: ['ID', 'Name', 'IsVotingRole', 'IsOfficer', 'Sequence'],
-                OrderBy: 'Sequence ASC',
-                ResultType: 'simple',
-            },
-        ], contextUser);
+        const termsR = await rv.RunView({
+            EntityName: 'Committees: Terms',
+            ExtraFilter: `CommitteeID = '${committeeID}'`,
+            Fields: ['ID', 'CommitteeID', 'Committee', 'Name', 'StartDate', 'EndDate', 'Status'],
+            ResultType: 'simple',
+        }, contextUser);
         const terms = (termsR.Success ? termsR.Results : []) as unknown as TermRow[];
-        const roles = (rolesR.Success ? rolesR.Results : []) as unknown as RoleRow[];
+        // Roles come from the process-wide lookup engine — no per-call query.
+        const roles: RoleRow[] = [...CommitteesLookupEngine.Instance.Roles]
+            .sort((a, b) => (a.Sequence ?? 0) - (b.Sequence ?? 0))
+            .map(r => ({ ID: r.ID, Name: r.Name, IsVotingRole: r.IsVotingRole, IsOfficer: r.IsOfficer }));
 
         const previous = TermRenewalService.PickPreviousTerm(terms, now);
         const rows = previous ? await this.loadCarryRows(previous.ID, contextUser) : [];

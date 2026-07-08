@@ -40,7 +40,7 @@ export class TermEditDialogComponent implements OnInit {
     }
 
     async ngOnInit(): Promise<void> {
-        await this.LoadOrCreateTerm();
+        await this.loadOrCreateTerm();
         this.IsLoading = false;
         this.cdr.markForCheck();
     }
@@ -51,7 +51,7 @@ export class TermEditDialogComponent implements OnInit {
     async OnSave(): Promise<void> {
         if (!this.Term) return;
 
-        const validationError = await this.Validate();
+        const validationError = await this.validate();
         if (validationError) {
             this.ErrorMessage = validationError;
             this.cdr.markForCheck();
@@ -112,7 +112,7 @@ export class TermEditDialogComponent implements OnInit {
         this.DialogClosed.emit({ Saved: false, Term: null });
     }
 
-    private async Validate(): Promise<string | null> {
+    private async validate(): Promise<string | null> {
         if (!this.Term!.Name?.trim()) {
             return 'Term name is required.';
         }
@@ -125,9 +125,10 @@ export class TermEditDialogComponent implements OnInit {
 
         // Check for duplicate name within same committee
         const rv = new RunView();
+        const safeName = this.Term!.Name.trim().replace(/'/g, "''");
         const existingFilter = this.IsNew
-            ? `CommitteeID = '${this.Term!.CommitteeID}' AND Name = '${this.Term!.Name.trim()}'`
-            : `CommitteeID = '${this.Term!.CommitteeID}' AND Name = '${this.Term!.Name.trim()}' AND ID != '${this.Term!.ID}'`;
+            ? `CommitteeID = '${this.Term!.CommitteeID}' AND Name = '${safeName}'`
+            : `CommitteeID = '${this.Term!.CommitteeID}' AND Name = '${safeName}' AND ID != '${this.Term!.ID}'`;
 
         const result = await rv.RunView<{ ID: string }>({
             EntityName: 'Committees: Terms',
@@ -144,7 +145,7 @@ export class TermEditDialogComponent implements OnInit {
         return null;
     }
 
-    private async LoadOrCreateTerm(): Promise<void> {
+    private async loadOrCreateTerm(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
             this.Term = await md.GetEntityObject<mjBizAppsCommitteesTermEntity>('Committees: Terms');
@@ -160,9 +161,9 @@ export class TermEditDialogComponent implements OnInit {
         } else {
             this.Term = await md.GetEntityObject<mjBizAppsCommitteesTermEntity>('Committees: Terms');
             await this.Term.Load(this.TermID!);
-            this.StartDateLocal = this.ToLocalDateString(this.Term.StartDate);
+            this.StartDateLocal = this.toLocalDateString(this.Term.StartDate);
             if (this.Term.EndDate) {
-                this.EndDateLocal = this.ToLocalDateString(this.Term.EndDate);
+                this.EndDateLocal = this.toLocalDateString(this.Term.EndDate);
             }
             // Check if term has members (can't delete if so)
             const rv = new RunView();
@@ -177,7 +178,7 @@ export class TermEditDialogComponent implements OnInit {
         }
     }
 
-    private ToLocalDateString(date: Date): string {
+    private toLocalDateString(date: Date): string {
         const d = new Date(date);
         return d.toISOString().slice(0, 10);
     }

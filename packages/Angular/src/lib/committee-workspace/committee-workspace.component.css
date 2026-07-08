@@ -23,7 +23,7 @@
 .ws-title { display: flex; align-items: center; gap: 12px; }
 .ws-icon {
     font-size: 20px;
-    color: var(--mj-color-indigo-400);
+    color: var(--mj-brand-primary);
     background: var(--mj-bg-surface-card);
     border: 1px solid var(--mj-border-subtle);
     border-radius: 10px;
@@ -131,8 +131,8 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: color-mix(in srgb, var(--mj-color-indigo-500) 15%, transparent);
-    color: var(--mj-color-indigo-400);
+    background: color-mix(in srgb, var(--mj-brand-primary) 15%, transparent);
+    color: var(--mj-brand-primary);
     font-weight: var(--mj-font-bold, 600);
     font-size: 13px;
 }

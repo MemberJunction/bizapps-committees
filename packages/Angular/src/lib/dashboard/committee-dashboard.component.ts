@@ -5,6 +5,8 @@ import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { Metadata, RunView } from '@memberjunction/core';
 
+interface RunViewBatchResult { Success: boolean; Results: Record<string, unknown>[]; }
+
 @RegisterClass(BaseResourceComponent, 'CommitteeDashboardComponent')
 @Component({
     standalone: false,
@@ -26,14 +28,14 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
     RecentDocuments: Record<string, unknown>[] = [];
 
     IsLoading = true;
-    todayString = new Date().toISOString().split('T')[0];
+    TodayString = new Date().toISOString().split('T')[0];
 
     private cdr = inject(ChangeDetectorRef);
     private router = inject(Router);
 
     async ngOnInit(): Promise<void> {
         this.NotifyLoadStarted();
-        await this.LoadDashboardData();
+        await this.loadDashboardData();
         this.IsLoading = false;
         this.NotifyLoadComplete();
         this.cdr.markForCheck();
@@ -70,9 +72,8 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
         return status.replace(/([a-z])([A-Z])/g, '$1 $2');
     }
 
-    private async LoadDashboardData(): Promise<void> {
-        const myCommitteeIDs = await this.ResolveUserCommitteeIDs();
-
+    private async loadDashboardData(): Promise<void> {
+        const myCommitteeIDs = await this.resolveUserCommitteeIDs();
         if (myCommitteeIDs.length === 0) {
             // User is not a member of any committees
             return;
@@ -81,8 +82,18 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
         const committeeFilter = myCommitteeIDs.map(id => `'${id}'`).join(',');
         const rv = new RunView();
         const today = new Date().toISOString().split('T')[0];
+        const committeeEntityID = new Metadata().EntityByName('Committees: Committees')?.ID ?? null;
 
-        const [committees, upcoming, recent, actionItems] = await rv.RunViews([
+        const [committees, upcoming, recent, actionItems, links] = await rv.RunViews(
+            this.buildDashboardQueries(committeeFilter, today, committeeEntityID));
+
+        this.applyDashboardResults(committees, upcoming, recent, actionItems, today);
+        await this.loadRecentDocuments(rv, links);
+    }
+
+    /** The dashboard's five independent reads — one batch, one round trip. */
+    private buildDashboardQueries(committeeFilter: string, today: string, committeeEntityID: string | null): Parameters<RunView['RunViews']>[0] {
+        return [
             {
                 EntityName: 'Committees: Committees',
                 ExtraFilter: `Status='Active' AND ID IN (${committeeFilter})`,
@@ -112,9 +123,22 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
                 OrderBy: 'DueDate ASC',
                 MaxRows: 20,
                 ResultType: 'simple'
+            },
+            {
+                EntityName: 'MJ: File Entity Record Links',
+                Fields: ['FileID'],
+                ExtraFilter: committeeEntityID
+                    ? `EntityID = '${committeeEntityID}' AND RecordID IN (${committeeFilter})`
+                    : '1=0',
+                ResultType: 'simple'
             }
-        ]);
+        ];
+    }
 
+    private applyDashboardResults(
+        committees: RunViewBatchResult, upcoming: RunViewBatchResult,
+        recent: RunViewBatchResult, actionItems: RunViewBatchResult, today: string
+    ): void {
         if (committees.Success) {
             this.CommitteeCount = committees.Results.length;
         }
@@ -135,16 +159,13 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
                 }
             ).length;
         }
-
-        // Load recent documents via File Entity Record Links
-        await this.LoadRecentDocuments(rv, myCommitteeIDs);
     }
 
     /**
      * Resolves the current user's committee IDs through:
      * User → Person (LinkedUserID) → Membership (active) → Term → Committee
      */
-    private async ResolveUserCommitteeIDs(): Promise<string[]> {
+    private async resolveUserCommitteeIDs(): Promise<string[]> {
         const md = new Metadata();
         const userID = md.CurrentUser?.ID;
         if (!userID) return [];
@@ -186,28 +207,14 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
         return [...new Set(termResult.Results.map(t => t.CommitteeID))];
     }
 
-    private async LoadRecentDocuments(rv: RunView, committeeIDs: string[]): Promise<void> {
-        const md = new Metadata();
-        const committeeEntity = md.Entities.find(e => e.Name === 'Committees: Committees');
-        if (!committeeEntity) return;
-
-        const committeeFilter = committeeIDs.map(id => `'${id}'`).join(',');
-
-        // Get file IDs linked to the user's committees
-        const linksResult = await rv.RunView<{ FileID: string }>({
-            EntityName: 'MJ: File Entity Record Links',
-            Fields: ['FileID'],
-            ExtraFilter: `EntityID = '${committeeEntity.ID}' AND RecordID IN (${committeeFilter})`,
-            ResultType: 'simple'
-        });
-
+    private async loadRecentDocuments(rv: RunView, linksResult: RunViewBatchResult): Promise<void> {
         if (!linksResult.Success || linksResult.Results.length === 0) {
             this.RecentDocuments = [];
             this.DocumentCount = 0;
             return;
         }
 
-        const fileIDs = [...new Set(linksResult.Results.map(l => l.FileID))];
+        const fileIDs = [...new Set((linksResult.Results as { FileID: string }[]).map(l => l.FileID))];
         const fileIDFilter = fileIDs.map(id => `'${id}'`).join(', ');
 
         const filesResult = await rv.RunView<Record<string, unknown>>({

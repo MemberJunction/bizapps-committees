@@ -30,7 +30,7 @@ export class ZoomVideoProvider extends VideoProviderBase {
     private accountId = '';
     private configured = false;
 
-    async initialize(credentials: VideoProviderCredentials): Promise<void> {
+    async Initialize(credentials: VideoProviderCredentials): Promise<void> {
         this.clientId = credentials.client_id;
         this.clientSecret = credentials.client_secret;
         this.accountId = credentials.account_id;

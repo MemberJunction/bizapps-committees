@@ -87,7 +87,7 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
 
     async ngOnInit(): Promise<void> {
         this.NotifyLoadStarted();
-        await this.LoadContext();
+        await this.loadContext();
         this.IsLoading = false;
         this.NotifyLoadComplete();
         this.cdr.markForCheck();
@@ -113,7 +113,7 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
         // Destroy and recreate the task panel so it reloads with new filters
         this.PanelVisible = false;
         this.cdr.detectChanges();
-        setTimeout(() => {
+        void Promise.resolve().then(() => {
             this.PanelVisible = true;
             this.cdr.detectChanges();
         });
@@ -124,13 +124,13 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
         // Same destroy/recreate to reload with new filter
         this.PanelVisible = false;
         this.cdr.detectChanges();
-        setTimeout(() => {
+        void Promise.resolve().then(() => {
             this.PanelVisible = true;
             this.cdr.detectChanges();
         });
     }
 
-    private async LoadContext(): Promise<void> {
+    private async loadContext(): Promise<void> {
         this.CurrentPersonID = await CommitteePermissionHelper.GetCurrentPersonID();
         this.IsStaff = await CommitteePermissionHelper.IsStaffUser();
 
@@ -143,15 +143,15 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
 
         if (this.IsStaff) {
             // Staff sees all active committees
-            committeeMap = await this.LoadAllCommitteeIDs();
+            committeeMap = await this.loadAllCommitteeIDs();
         } else {
             // Members see only their committees
-            committeeMap = await this.LoadMemberCommitteeIDs();
+            committeeMap = await this.loadMemberCommitteeIDs();
         }
 
         if (committeeMap.size === 0) return;
 
-        await this.LoadCommitteeOptions(committeeMap);
+        await this.loadCommitteeOptions(committeeMap);
 
         // If only one committee, auto-select it
         if (this.Committees.length === 1) {
@@ -159,7 +159,7 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
         }
     }
 
-    private async LoadAllCommitteeIDs(): Promise<Map<string, boolean>> {
+    private async loadAllCommitteeIDs(): Promise<Map<string, boolean>> {
         const rv = new RunView();
         const result = await rv.RunView<{ ID: string }>({
             EntityName: 'Committees: Committees',
@@ -176,7 +176,7 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
         return map;
     }
 
-    private async LoadMemberCommitteeIDs(): Promise<Map<string, boolean>> {
+    private async loadMemberCommitteeIDs(): Promise<Map<string, boolean>> {
         const memberships = await CommitteePermissionHelper.GetCurrentUserMemberships();
         const map = new Map<string, boolean>();
         for (const m of memberships) {
@@ -188,7 +188,7 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
         return map;
     }
 
-    private async LoadCommitteeOptions(committeeMap: Map<string, boolean>): Promise<void> {
+    private async loadCommitteeOptions(committeeMap: Map<string, boolean>): Promise<void> {
         const committeeIDs = [...committeeMap.keys()];
         const rv = new RunView();
         const [committeesResult, categoriesResult] = await rv.RunViews([
@@ -206,8 +206,8 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
             }
         ]);
 
-        const committees = committeesResult?.Results ?? [];
-        const categories = categoriesResult?.Results ?? [];
+        const committees = committeesResult?.Success ? committeesResult.Results ?? [] : [];
+        const categories = categoriesResult?.Success ? categoriesResult.Results ?? [] : [];
         const categoryByName = new Map<string, string>();
         for (const cat of categories as { ID: string; Name: string }[]) {
             categoryByName.set(cat.Name, cat.ID);

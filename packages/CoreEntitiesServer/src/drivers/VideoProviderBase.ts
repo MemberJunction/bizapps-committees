@@ -57,7 +57,7 @@ export abstract class VideoProviderBase {
      * Initialize the driver with decrypted credentials from CredentialEngine.
      * Must be called before CreateMeeting.
      */
-    abstract initialize(credentials: VideoProviderCredentials): Promise<void>;
+    abstract Initialize(credentials: VideoProviderCredentials): Promise<void>;
 
     /**
      * Returns true if the driver has been initialized with valid credentials.

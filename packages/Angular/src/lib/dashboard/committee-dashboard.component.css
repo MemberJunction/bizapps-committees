@@ -67,19 +67,19 @@
     padding: 9px var(--mj-space-4);
     border: none;
     border-radius: 10px;
-    background: var(--mj-color-indigo-500);
+    background: var(--mj-brand-primary);
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-0);
+    color: var(--mj-brand-on-primary, #fff);
     cursor: pointer;
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     font-family: inherit;
-    box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 1px 3px color-mix(in srgb, var(--mj-brand-primary) 30%, transparent);
 }
 
 .btn-quick:hover {
-    background: var(--mj-color-indigo-600);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    background: var(--mj-brand-primary-hover);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--mj-brand-primary) 35%, transparent);
     transform: translateY(-1px);
 }
 
@@ -119,10 +119,10 @@
     height: 3px;
 }
 
-.stat-indigo::before { background: linear-gradient(90deg, var(--mj-color-indigo-500), var(--mj-color-indigo-400)); }
-.stat-emerald::before { background: linear-gradient(90deg, var(--mj-color-success-500), var(--mj-color-success-400)); }
-.stat-amber::before { background: linear-gradient(90deg, var(--mj-color-warning-500), var(--mj-color-warning-400)); }
-.stat-rose::before { background: linear-gradient(90deg, var(--mj-color-error-500), var(--mj-color-error-400)); }
+.stat-indigo::before { background: linear-gradient(90deg, var(--mj-brand-primary), var(--mj-brand-primary)); }
+.stat-emerald::before { background: linear-gradient(90deg, var(--mj-status-success), color-mix(in srgb, var(--mj-status-success) 70%, transparent)); }
+.stat-amber::before { background: linear-gradient(90deg, var(--mj-status-warning), color-mix(in srgb, var(--mj-status-warning) 70%, transparent)); }
+.stat-rose::before { background: linear-gradient(90deg, var(--mj-status-error), var(--mj-status-error)); }
 
 .stat-number {
     font-size: 36px;
@@ -181,8 +181,8 @@
 .panel-count {
     font-size: 11px;
     font-weight: var(--mj-font-bold);
-    color: var(--mj-color-indigo-400);
-    background: color-mix(in srgb, var(--mj-color-indigo-500) 12%, transparent);
+    color: var(--mj-brand-primary);
+    background: color-mix(in srgb, var(--mj-brand-primary) 12%, transparent);
     padding: 2px var(--mj-space-2-5);
     border-radius: 20px;
 }
@@ -225,7 +225,7 @@
 
 .row-overdue {
     background: var(--mj-status-error-bg);
-    border-left: 3px solid var(--mj-color-error-500);
+    border-left: 3px solid var(--mj-status-error);
 }
 
 .row-content {
@@ -267,21 +267,21 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: linear-gradient(135deg, var(--mj-color-indigo-500), var(--mj-color-indigo-400));
+    background: linear-gradient(135deg, var(--mj-brand-primary), var(--mj-brand-primary));
     border-radius: 10px;
     padding: var(--mj-space-1-5) var(--mj-space-1);
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--mj-brand-primary) 25%, transparent);
 }
 
 .date-past {
-    background: linear-gradient(135deg, var(--mj-color-neutral-400), #b4bfcd);
-    box-shadow: 0 2px 8px rgba(148, 163, 184, 0.2);
+    background: linear-gradient(135deg, var(--mj-text-disabled), var(--mj-text-disabled));
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--mj-text-muted) 20%, transparent);
 }
 
 .date-month {
     font-size: 10px;
     font-weight: var(--mj-font-bold);
-    color: rgba(255, 255, 255, 0.8);
+    color: color-mix(in srgb, var(--mj-brand-on-primary, #fff) 80%, transparent);
     text-transform: uppercase;
     letter-spacing: 0.8px;
 }
@@ -289,7 +289,7 @@
 .date-day {
     font-size: 20px;
     font-weight: var(--mj-font-bold);
-    color: var(--mj-color-neutral-0);
+    color: var(--mj-brand-on-primary, #fff);
     line-height: 1.1;
 }
 
@@ -297,19 +297,19 @@
 .join-btn {
     padding: var(--mj-space-1-5) 14px;
     border-radius: var(--mj-radius-md);
-    background: var(--mj-color-success-500);
-    color: var(--mj-color-neutral-0);
+    background: var(--mj-status-success);
+    color: var(--mj-brand-on-primary, #fff);
     font-size: var(--mj-text-xs);
     font-weight: var(--mj-font-semibold);
     text-decoration: none;
     transition: all 0.2s ease;
     flex-shrink: 0;
-    box-shadow: 0 1px 4px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 1px 4px color-mix(in srgb, var(--mj-status-success) 25%, transparent);
 }
 
 .join-btn:hover {
-    background: var(--mj-color-success-600);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    background: var(--mj-status-success-text);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--mj-status-success) 30%, transparent);
     transform: translateY(-1px);
 }
 
@@ -322,18 +322,18 @@
 }
 
 .dot-critical, .dot-high {
-    background: var(--mj-color-error-500);
-    box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.15);
+    background: var(--mj-status-error);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mj-status-error) 15%, transparent);
 }
 
 .dot-medium {
-    background: var(--mj-color-warning-500);
-    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+    background: var(--mj-status-warning);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mj-status-warning) 15%, transparent);
 }
 
 .dot-low {
-    background: var(--mj-color-success-500);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    background: var(--mj-status-success);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mj-status-success) 15%, transparent);
 }
 
 /* ─── Tags ─── */
@@ -347,7 +347,7 @@
 }
 
 .tag-open { background: var(--mj-status-warning-bg); color: var(--mj-status-warning-text); }
-.tag-inprogress { background: color-mix(in srgb, var(--mj-color-indigo-500) 16%, transparent); color: var(--mj-status-info-text); }
+.tag-inprogress { background: color-mix(in srgb, var(--mj-brand-primary) 16%, transparent); color: var(--mj-status-info-text); }
 .tag-completed { background: var(--mj-status-success-bg); color: var(--mj-status-success-text); }
 .tag-neutral { background: var(--mj-bg-surface-sunken); color: var(--mj-text-muted); }
 
@@ -356,7 +356,7 @@
     width: 40px;
     height: 40px;
     border-radius: 10px;
-    background: color-mix(in srgb, var(--mj-color-indigo-500) 12%, transparent);
+    background: color-mix(in srgb, var(--mj-brand-primary) 12%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -365,7 +365,7 @@
 
 .doc-icon i {
     font-size: var(--mj-text-base);
-    color: var(--mj-color-indigo-400);
+    color: var(--mj-brand-primary);
 }
 
 /* ─── Responsive ─── */

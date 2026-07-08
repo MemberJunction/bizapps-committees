@@ -55,16 +55,16 @@
     padding: 9px 18px;
     border: none;
     border-radius: 10px;
-    background: var(--mj-color-indigo-500);
+    background: var(--mj-brand-primary);
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-0);
-    box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
+    color: var(--mj-brand-on-primary, #fff);
+    box-shadow: 0 1px 3px color-mix(in srgb, var(--mj-brand-primary) 30%, transparent);
 }
 
 .btn-primary:hover {
-    background: var(--mj-color-indigo-600);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    background: var(--mj-brand-primary-hover);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--mj-brand-primary) 35%, transparent);
     transform: translateY(-1px);
 }
 
@@ -109,12 +109,12 @@
     font-weight: var(--mj-font-bold);
     padding: 1px var(--mj-space-2);
     border-radius: 10px;
-    background: rgba(0, 0, 0, 0.06);
+    background: color-mix(in srgb, var(--mj-text-primary) 8%, transparent);
 }
 
 .tab-pill.active .count {
-    background: color-mix(in srgb, var(--mj-color-indigo-500) 12%, transparent);
-    color: var(--mj-color-indigo-400);
+    background: color-mix(in srgb, var(--mj-brand-primary) 12%, transparent);
+    color: var(--mj-brand-primary);
 }
 
 /* ─── Meeting Grid ─── */
@@ -156,16 +156,16 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: linear-gradient(135deg, var(--mj-color-indigo-500), #818cf8);
+    background: linear-gradient(135deg, var(--mj-brand-primary), color-mix(in srgb, var(--mj-brand-primary) 70%, transparent));
     border-radius: var(--mj-radius-lg);
     padding: var(--mj-space-2) var(--mj-space-1-5);
-    color: var(--mj-color-neutral-0);
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+    color: var(--mj-brand-on-primary, #fff);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--mj-brand-primary) 25%, transparent);
 }
 
 .meeting-card.past .meeting-date-block {
-    background: linear-gradient(135deg, var(--mj-color-neutral-400), #b4bfcd);
-    box-shadow: 0 2px 8px rgba(148, 163, 184, 0.2);
+    background: linear-gradient(135deg, var(--mj-text-disabled), var(--mj-text-disabled));
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--mj-text-muted) 20%, transparent);
 }
 
 .meeting-date-block .month {
@@ -237,11 +237,11 @@
     margin-top: var(--mj-space-1-5);
 }
 
-.status-scheduled { background: color-mix(in srgb, var(--mj-color-indigo-500) 16%, transparent); color: var(--mj-status-info-text); }
+.status-scheduled { background: color-mix(in srgb, var(--mj-brand-primary) 16%, transparent); color: var(--mj-status-info-text); }
 .status-draft { background: var(--mj-status-warning-bg); color: var(--mj-status-warning-text); }
 .status-completed { background: var(--mj-status-success-bg); color: var(--mj-status-success-text); }
-.status-cancelled { background: var(--mj-status-error-bg); color: #991b1b; }
-.status-inprogress { background: var(--mj-status-info-bg); color: #1e40af; }
+.status-cancelled { background: var(--mj-status-error-bg); color: var(--mj-status-error-text); }
+.status-inprogress { background: var(--mj-status-info-bg); color: var(--mj-status-info-text); }
 .status-postponed { background: var(--mj-bg-surface-sunken); color: var(--mj-text-muted); }
 
 /* ─── Meeting Actions ─── */
@@ -251,8 +251,8 @@
     padding: var(--mj-space-1-5) 14px;
     border: none;
     border-radius: var(--mj-radius-md);
-    background: var(--mj-color-success-500);
-    color: var(--mj-color-neutral-0);
+    background: var(--mj-status-success);
+    color: var(--mj-brand-on-primary, #fff);
     font-size: var(--mj-text-xs);
     font-weight: var(--mj-font-semibold);
     cursor: pointer;
@@ -260,13 +260,13 @@
     display: inline-flex;
     align-items: center;
     gap: var(--mj-space-1-5);
-    box-shadow: 0 1px 4px rgba(16, 185, 129, 0.25);
+    box-shadow: 0 1px 4px color-mix(in srgb, var(--mj-status-success) 25%, transparent);
     font-family: inherit;
 }
 
 .btn-join:hover {
-    background: var(--mj-color-success-600);
-    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    background: var(--mj-status-success-text);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--mj-status-success) 30%, transparent);
     transform: translateY(-1px);
 }
 

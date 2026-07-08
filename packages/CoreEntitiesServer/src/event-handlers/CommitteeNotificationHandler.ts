@@ -18,6 +18,11 @@ import {
     UserInfo,
 } from '@memberjunction/core';
 import { MJUserNotificationEntity } from '@memberjunction/core-entities';
+import {
+    mjBizAppsCommitteesMeetingEntity,
+    mjBizAppsCommitteesActionItemEntity,
+    mjBizAppsCommitteesCommentEntity,
+} from '@mj-biz-apps/committees-entities';
 import { MJEventType, MJGlobal, MJEvent } from '@memberjunction/global';
 import { Subscription } from 'rxjs';
 
@@ -105,8 +110,8 @@ async function handleMeetingSave(event: BaseEntityEvent): Promise<void> {
         return;
     }
 
-    const meeting = event.baseEntity!;
-    const status = meeting.Get('Status') as string;
+    const meeting = event.baseEntity! as mjBizAppsCommitteesMeetingEntity;
+    const status = meeting.Status;
 
     // Only notify when meeting is actively scheduled
     if (status !== 'Scheduled') {
@@ -118,10 +123,10 @@ async function handleMeetingSave(event: BaseEntityEvent): Promise<void> {
         return;
     }
 
-    const committeeID = meeting.Get('CommitteeID') as string;
-    const title = meeting.Get('Name') as string;
-    const startDateTime = meeting.Get('StartDateTime') as Date;
-    const committeeName = meeting.Get('Committee') as string;
+    const committeeID = meeting.CommitteeID;
+    const title = meeting.Name;
+    const startDateTime = meeting.StartDateTime;
+    const committeeName = meeting.Committee ?? '';
 
     // Get all active members of this committee who have a linked User
     const userIDs = await getCommitteeMemberUserIDs(committeeID, contextUser);
@@ -154,13 +159,13 @@ async function handleActionItemSave(event: BaseEntityEvent): Promise<void> {
         return;
     }
 
-    const actionItem = event.baseEntity!;
+    const actionItem = event.baseEntity! as mjBizAppsCommitteesActionItemEntity;
     const contextUser = actionItem.ContextCurrentUser;
     if (!contextUser) {
         return;
     }
 
-    const assignedToPersonID = actionItem.Get('AssignedToPersonID') as string | null;
+    const assignedToPersonID = actionItem.AssignedToPersonID;
     if (!assignedToPersonID) {
         return;
     }
@@ -170,10 +175,10 @@ async function handleActionItemSave(event: BaseEntityEvent): Promise<void> {
         return; // Person doesn't have a linked MJ user
     }
 
-    const title = actionItem.Get('Name') as string;
-    const committeeName = actionItem.Get('Committee') as string;
-    const priority = actionItem.Get('Priority') as string;
-    const dueDate = actionItem.Get('DueDate') as Date | null;
+    const title = actionItem.Name;
+    const committeeName = actionItem.Committee ?? '';
+    const priority = actionItem.Priority;
+    const dueDate = actionItem.DueDate;
 
     const dueDateStr = dueDate ? ` (due ${formatDate(dueDate)})` : '';
     const verb = event.saveSubType === 'create' ? 'assigned to you' : 'reassigned to you';
@@ -200,21 +205,21 @@ async function handleCommentSave(event: BaseEntityEvent): Promise<void> {
         return;
     }
 
-    const comment = event.baseEntity!;
+    const comment = event.baseEntity! as mjBizAppsCommitteesCommentEntity;
     const contextUser = comment.ContextCurrentUser;
     if (!contextUser) {
         return;
     }
 
-    const authorPersonID = comment.Get('PersonID') as string;
-    const commentText = comment.Get('CommentText') as string;
-    const committeeName = comment.Get('Committee') as string;
+    const authorPersonID = comment.PersonID;
+    const commentText = comment.CommentText;
+    const committeeName = comment.Committee ?? '';
     const preview = commentText.length > 80 ? commentText.substring(0, 80) + '...' : commentText;
 
     const userIDsToNotify = new Set<string>();
 
     // 1. Notify parent comment author on replies
-    const parentCommentID = comment.Get('ParentCommentID') as string | null;
+    const parentCommentID = comment.ParentCommentID;
     if (parentCommentID) {
         const parentAuthorPersonID = await getCommentAuthorPersonID(parentCommentID, contextUser);
         if (parentAuthorPersonID && parentAuthorPersonID !== authorPersonID) {
@@ -223,14 +228,12 @@ async function handleCommentSave(event: BaseEntityEvent): Promise<void> {
         }
     }
 
-    // 2. Notify @mentioned people
-    const mentionedJSON = comment.Get('MentionedPersonIDs') as string | null;
+    // 2. Notify @mentioned people (one batched lookup — RunView is expensive)
+    const mentionedJSON = comment.MentionedPersonIDs;
     if (mentionedJSON) {
-        const mentionedIDs = parseMentionedPersonIDs(mentionedJSON);
-        for (const personID of mentionedIDs) {
-            if (personID === authorPersonID) continue; // Don't notify yourself
-            const userID = await getPersonLinkedUserID(personID, contextUser);
-            if (userID) userIDsToNotify.add(userID);
+        const mentionedIDs = parseMentionedPersonIDs(mentionedJSON).filter(id => id !== authorPersonID);
+        for (const userID of await getLinkedUserIDsForPeople(mentionedIDs, contextUser)) {
+            userIDsToNotify.add(userID);
         }
     }
 
@@ -238,7 +241,7 @@ async function handleCommentSave(event: BaseEntityEvent): Promise<void> {
         return;
     }
 
-    const authorName = comment.Get('Person') as string || 'Someone';
+    const authorName = comment.Person || 'Someone';
     const notifTitle = `New comment in ${committeeName}`;
     const notifMessage = `${authorName} commented: "${preview}"`;
 
@@ -268,11 +271,14 @@ async function getCommentAuthorPersonID(commentID: string, contextUser: UserInfo
 /**
  * Safely parses the MentionedPersonIDs JSON array.
  */
+const GUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 function parseMentionedPersonIDs(json: string): string[] {
     try {
         const parsed: unknown = JSON.parse(json);
         if (Array.isArray(parsed)) {
-            return parsed.filter((id): id is string => typeof id === 'string');
+            // Client-authored payload: only well-formed GUIDs may reach a SQL filter.
+            return parsed.filter((id): id is string => typeof id === 'string' && GUID_PATTERN.test(id));
         }
     } catch {
         // Invalid JSON — ignore
@@ -325,6 +331,23 @@ async function getCommitteeMemberUserIDs(committeeID: string, contextUser: UserI
     return people.Results
         .map(p => p.LinkedUserID)
         .filter((id): id is string => id != null);
+}
+
+/**
+ * Resolves many PersonIDs to their linked MJ UserIDs in a single query.
+ * Inputs must already be GUID-validated (parseMentionedPersonIDs).
+ */
+async function getLinkedUserIDsForPeople(personIDs: string[], contextUser: UserInfo): Promise<string[]> {
+    if (personIDs.length === 0) return [];
+    const rv = new RunView();
+    const result = await rv.RunView<{ ID: string; LinkedUserID: string | null }>({
+        EntityName: 'MJ_BizApps_Common: People',
+        ExtraFilter: `ID IN (${personIDs.map(id => `'${id}'`).join(',')})`,
+        Fields: ['ID', 'LinkedUserID'],
+        ResultType: 'simple',
+    }, contextUser);
+    if (!result.Success) return [];
+    return result.Results.map(p => p.LinkedUserID).filter((id): id is string => id != null);
 }
 
 /**

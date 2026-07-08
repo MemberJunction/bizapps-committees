@@ -37,7 +37,7 @@ export class GoogleMeetVideoProvider extends VideoProviderBase {
     private impersonatedUser = '';
     private configured = false;
 
-    async initialize(credentials: VideoProviderCredentials): Promise<void> {
+    async Initialize(credentials: VideoProviderCredentials): Promise<void> {
         this.serviceAccountEmail = credentials.client_id;
         this.privateKeyPem = credentials.client_secret;
         this.impersonatedUser = credentials.account_id;

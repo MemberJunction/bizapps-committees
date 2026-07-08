@@ -24,11 +24,11 @@
                 <span [class]="'status-badge status-' + (Meeting.Status || '').toLowerCase()">
                     {{ Meeting.Status }}
                 </span>
-                @if (Meeting.Status === 'Scheduled' || Meeting.Status === 'Draft') {
+                @if (IsOfficer && (Meeting.Status === 'Scheduled' || Meeting.Status === 'Draft')) {
                     <button class="btn btn-primary btn-sm" (click)="ShowLiveMeeting = true">
                         <i class="fa-solid fa-play"></i> Start meeting
                     </button>
-                } @else if (Meeting.Status === 'InProgress') {
+                } @else if (IsOfficer && Meeting.Status === 'InProgress') {
                     <button class="btn btn-primary btn-sm" (click)="ShowLiveMeeting = true">
                         <i class="fa-solid fa-tower-broadcast"></i> Resume live
                     </button>

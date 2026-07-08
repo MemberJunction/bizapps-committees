@@ -118,6 +118,9 @@ export class MinutesService {
         contextUser: UserInfo
     ): Promise<MinutesSaveResult> {
         try {
+            if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(meetingID)) {
+                return { Success: false, ErrorMessage: 'Invalid meeting ID', MinuteID: '' };
+            }
             const minute = await this.findOrCreateMinute(meetingID, contextUser);
             minute.MeetingID = meetingID;
             minute.Content = content;

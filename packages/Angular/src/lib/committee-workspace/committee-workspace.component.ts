@@ -4,6 +4,7 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { RunView } from '@memberjunction/core';
+import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
 import { CommitteeHealthService, TermHygiene, MotionService, MotionRegisterRow } from '@mj-biz-apps/committees-core';
 
 export type WorkspaceTab = 'overview' | 'roster' | 'meetings' | 'motions' | 'actions' | 'documents';
@@ -119,20 +120,25 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
     }
 
     private async reload(): Promise<void> {
-        if (!this._committeeID) { this.IsLoading = false; this.cdr.markForCheck(); return; }
-        this.IsLoading = true;
-        this.cdr.markForCheck();
-        await this.loadWorkspaceData(this._committeeID);
-        this.IsLoading = false;
-        this.cdr.markForCheck();
+        try {
+            if (!this._committeeID) { this.IsLoading = false; this.cdr.markForCheck(); return; }
+            this.IsLoading = true;
+            this.cdr.markForCheck();
+            await this.loadWorkspaceData(this._committeeID);
+            this.IsLoading = false;
+            this.cdr.markForCheck();
+        } finally {
+            this.IsLoading = false;
+            this.cdr.detectChanges();
+        }
     }
 
     private async loadWorkspaceData(id: string): Promise<void> {
         const rv = new RunView();
-        const [committee, terms, roles, meetings, actions, artifacts, motions] = await rv.RunViews([
+        await CommitteesLookupEngine.Instance.Config();
+        const [committee, terms, meetings, actions, artifacts, motions] = await rv.RunViews([
             { EntityName: 'Committees: Committees', ExtraFilter: `ID='${id}'`, Fields: ['ID', 'Name', 'Status', 'IsPublic', 'Type', 'MissionStatement', 'FormationDate', 'ParentCommittee'], ResultType: 'simple' },
             { EntityName: 'Committees: Terms', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'CommitteeID', 'Name', 'Status', 'StartDate', 'EndDate'], OrderBy: 'StartDate DESC', ResultType: 'simple' },
-            { EntityName: 'Committees: Roles', Fields: ['ID', 'Name', 'IsVotingRole', 'IsOfficer'], ResultType: 'simple' },
             { EntityName: 'Committees: Meetings', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Name', 'StartDateTime', 'EndDateTime', 'LocationType', 'LocationText', 'Status'], OrderBy: 'StartDateTime ASC', ResultType: 'simple' },
             { EntityName: 'Committees: Action Items', ExtraFilter: `CommitteeID='${id}' AND Status IN ('Open', 'InProgress')`, Fields: ['ID', 'Name', 'DueDate', 'Priority', 'Status', 'AssignedToPerson'], OrderBy: 'DueDate ASC', ResultType: 'simple' },
             { EntityName: 'Committees: Artifacts', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Name', 'Provider', 'URL', 'ArtifactType'], ResultType: 'simple' },
@@ -150,7 +156,8 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
             this.Terms.map(t => ({ ID: t.ID, CommitteeID: t.CommitteeID, Status: t.Status, StartDate: t.StartDate, EndDate: t.EndDate })),
             new Date()
         );
-        await this.loadMembers(roles.Success ? roles.Results as unknown as RoleRow[] : []);
+        // Roles come from the process-wide lookup engine — no per-load query.
+        await this.loadMembers(CommitteesLookupEngine.Instance.Roles.map(r => ({ ID: r.ID, Name: r.Name, IsVotingRole: r.IsVotingRole, IsOfficer: r.IsOfficer })));
     }
 
     /** Committee-scoped register: meeting motions plus this committee's ballot motions. */

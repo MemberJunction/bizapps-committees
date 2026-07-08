@@ -27,12 +27,12 @@ my-app {
 /* Application-specific toolbar styles */
 .custom-toolbar {
     width: 100%;
-    background-color: #f6f6f6;
+    background-color: var(--mj-bg-surface-sunken);
     line-height: 10px;
     border-bottom: inset;
     border-bottom-width: 1px;
     padding: 3px 8px;
-    color: #656565;
+    color: var(--mj-text-secondary);
 }
 
 .mail-box {

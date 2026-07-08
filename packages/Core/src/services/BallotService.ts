@@ -1,3 +1,5 @@
+import type { mjBizAppsCommitteesBallotEntity, mjBizAppsCommitteesVoteEntity } from '@mj-biz-apps/committees-entities';
+
 /**
  * Ballot + motion voting math for Phase 2 "Govern" (UX v2 screens 03/04).
  *
@@ -11,9 +13,10 @@
  * page components/services after CodeGen emits the Ballot entity.
  */
 
-export type BallotThresholdType = 'SimpleMajority' | 'TwoThirds' | 'Unanimous';
-export type BallotStatus = 'Open' | 'Closed' | 'Cancelled';
-export type VoteValue = 'Yes' | 'No' | 'Abstain' | 'Absent';
+// Derived from the generated entities so CHECK-constraint changes flow through CodeGen.
+export type BallotThresholdType = mjBizAppsCommitteesBallotEntity['ThresholdType'];
+export type BallotStatus = mjBizAppsCommitteesBallotEntity['Status'];
+export type VoteValue = mjBizAppsCommitteesVoteEntity['VoteValue'];
 
 /** What the threshold is measured against. */
 export type ThresholdBasis = 'VotingMembers' | 'VotesCast';

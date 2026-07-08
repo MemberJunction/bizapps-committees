@@ -35,7 +35,7 @@ export class TeamsVideoProvider extends VideoProviderBase {
     private organizerUserId = '';
     private configured = false;
 
-    async initialize(credentials: VideoProviderCredentials): Promise<void> {
+    async Initialize(credentials: VideoProviderCredentials): Promise<void> {
         this.clientId = credentials.client_id;
         this.clientSecret = credentials.client_secret;
         this.tenantId = credentials.account_id;

@@ -1,4 +1,5 @@
 import { Metadata, RunView, UserInfo, LogError } from '@memberjunction/core';
+import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core';
 import { MJUserNotificationEntity } from '@memberjunction/core-entities';
 
 /**
@@ -32,13 +33,16 @@ interface VoteRow { MembershipID: string; }
 interface PersonRow { ID: string; LinkedUserID: string | null; }
 
 export class BallotReminderService {
+    private static readonly guidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
     public async RemindNonVoters(ballotID: string, contextUser: UserInfo): Promise<RemindResult> {
         try {
+            if (!BallotReminderService.guidPattern.test(ballotID)) return this.fail('Invalid ballot ID');
             const ballot = await this.loadBallot(ballotID, contextUser);
             if (!ballot) return this.fail('Ballot not found');
             if (ballot.Status !== 'Open') return this.fail('Only open ballots can send reminders');
 
-            const nonVoters = await this.findNonVoters(ballot, contextUser);
+            const nonVoters = await this.FindNonVoters(ballot, contextUser);
             if (nonVoters.length === 0) {
                 return { Success: true, TotalNonVoters: 0, RemindedCount: 0, UnreachableNames: [] };
             }
@@ -63,17 +67,18 @@ export class BallotReminderService {
 
     // ── Non-voter computation (digest reuses this) ──────────────
 
-    public async findNonVoters(ballot: BallotRow, contextUser: UserInfo): Promise<MembershipRow[]> {
+    public async FindNonVoters(ballot: BallotRow, contextUser: UserInfo): Promise<MembershipRow[]> {
+        await CommitteesLookupEngine.Instance.Config(false, contextUser);
         const rv = new RunView();
-        const [termsR, membershipsR, rolesR, votesR] = await rv.RunViews([
+        const [termsR, membershipsR, votesR] = await rv.RunViews([
             { EntityName: 'Committees: Terms', ExtraFilter: `CommitteeID = '${ballot.CommitteeID}' AND Status = 'Active'`, Fields: ['ID', 'CommitteeID', 'Status'], ResultType: 'simple' },
             { EntityName: 'Committees: Memberships', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'TermID', 'PersonID', 'Person', 'RoleID'], ResultType: 'simple' },
-            { EntityName: 'Committees: Roles', Fields: ['ID', 'IsVotingRole'], ResultType: 'simple' },
             { EntityName: 'Committees: Votes', ExtraFilter: `MotionID = '${ballot.MotionID}'`, Fields: ['MembershipID'], ResultType: 'simple' },
         ], contextUser);
         const terms = (termsR.Success ? termsR.Results : []) as unknown as TermRow[];
         const memberships = (membershipsR.Success ? membershipsR.Results : []) as unknown as MembershipRow[];
-        const roles = (rolesR.Success ? rolesR.Results : []) as unknown as RoleRow[];
+        // Roles come from the process-wide lookup engine — no per-call query.
+        const roles: RoleRow[] = CommitteesLookupEngine.Instance.Roles.map(r => ({ ID: r.ID, IsVotingRole: r.IsVotingRole }));
         const votes = (votesR.Success ? votesR.Results : []) as unknown as VoteRow[];
 
         const termIDs = new Set(terms.map(t => t.ID.toLowerCase()));

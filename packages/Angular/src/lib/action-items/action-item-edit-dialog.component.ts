@@ -49,8 +49,8 @@ export class ActionItemEditDialogComponent implements OnInit {
 
     async ngOnInit(): Promise<void> {
         await Promise.all([
-            this.LoadLookups(),
-            this.LoadOrCreateActionItem()
+            this.loadLookups(),
+            this.loadOrCreateActionItem()
         ]);
         this.IsLoading = false;
         this.cdr.markForCheck();
@@ -59,7 +59,7 @@ export class ActionItemEditDialogComponent implements OnInit {
     async OnSave(): Promise<void> {
         if (!this.ActionItem) return;
 
-        const validationError = this.Validate();
+        const validationError = this.validate();
         if (validationError) {
             this.ErrorMessage = validationError;
             this.cdr.markForCheck();
@@ -113,7 +113,7 @@ export class ActionItemEditDialogComponent implements OnInit {
         this.DialogClosed.emit({ Saved: false, ActionItem: null });
     }
 
-    private Validate(): string | null {
+    private validate(): string | null {
         if (!this.ActionItem!.Name?.trim()) {
             return 'Title is required.';
         }
@@ -126,7 +126,7 @@ export class ActionItemEditDialogComponent implements OnInit {
         return null;
     }
 
-    private async LoadOrCreateActionItem(): Promise<void> {
+    private async loadOrCreateActionItem(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
             this.ActionItem = await md.GetEntityObject<mjBizAppsCommitteesActionItemEntity>('Committees: Action Items');
@@ -136,12 +136,12 @@ export class ActionItemEditDialogComponent implements OnInit {
             this.ActionItem = await md.GetEntityObject<mjBizAppsCommitteesActionItemEntity>('Committees: Action Items');
             await this.ActionItem.Load(this.ActionItemID!);
             if (this.ActionItem.DueDate) {
-                this.DueDateLocal = this.ToLocalDateString(this.ActionItem.DueDate);
+                this.DueDateLocal = this.toLocalDateString(this.ActionItem.DueDate);
             }
         }
     }
 
-    private async LoadLookups(): Promise<void> {
+    private async loadLookups(): Promise<void> {
         const rv = new RunView();
         const [committeesResult, meetingsResult, peopleResult] = await rv.RunViews([
             {
@@ -186,7 +186,7 @@ export class ActionItemEditDialogComponent implements OnInit {
     }
 
 
-    private ToLocalDateString(date: Date): string {
+    private toLocalDateString(date: Date): string {
         const d = new Date(date);
         return d.toISOString().split('T')[0];
     }

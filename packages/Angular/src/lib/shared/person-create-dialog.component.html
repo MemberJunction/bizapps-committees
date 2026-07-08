@@ -1,0 +1,46 @@
+<div class="pcd-overlay" (click)="OnCancel()">
+  <div class="pcd-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="pcd-title">
+    <header class="pcd-h">
+      <h2 id="pcd-title"><i class="fa-solid fa-user-plus"></i> New person</h2>
+      <span class="sub">Creates the person record — add them to a committee afterwards.</span>
+    </header>
+
+    <div class="pcd-b">
+      @if (ErrorMessage) {
+        <div class="callout error"><i class="fa-solid fa-triangle-exclamation"></i> {{ ErrorMessage }}</div>
+      }
+      <div class="fld-row">
+        <label class="fld">
+          <span>First name *</span>
+          <input type="text" [(ngModel)]="FirstName" autocomplete="off" />
+        </label>
+        <label class="fld">
+          <span>Last name *</span>
+          <input type="text" [(ngModel)]="LastName" autocomplete="off" />
+        </label>
+      </div>
+      <label class="fld">
+        <span>Email</span>
+        <input type="email" [(ngModel)]="Email" autocomplete="off" placeholder="links their user account for self-service" />
+      </label>
+      <div class="fld-row">
+        <label class="fld">
+          <span>Phone</span>
+          <input type="tel" [(ngModel)]="Phone" autocomplete="off" />
+        </label>
+        <label class="fld">
+          <span>Title</span>
+          <input type="text" [(ngModel)]="Title" autocomplete="off" placeholder="e.g. Dr., Prof." />
+        </label>
+      </div>
+    </div>
+
+    <footer class="pcd-f">
+      <button type="button" class="btn primary" [disabled]="!Valid || IsSaving" (click)="OnCreate()">
+        <i class="fa-solid fa-check"></i> {{ IsSaving ? 'Creating…' : 'Create person' }}
+      </button>
+      <span class="spacer"></span>
+      <button type="button" class="btn ghost" [disabled]="IsSaving" (click)="OnCancel()">Cancel</button>
+    </footer>
+  </div>
+</div>

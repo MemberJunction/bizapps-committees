@@ -56,6 +56,8 @@ interface MinuteRow {
     ApprovalStatus: string;
 }
 
+interface DetailBatchResult { Success: boolean; Results: Record<string, unknown>[]; }
+
 @Component({
     standalone: false,
     selector: 'meeting-detail-view',
@@ -216,7 +218,14 @@ export class MeetingDetailViewComponent implements OnInit {
 
     private async loadData(): Promise<void> {
         const rv = new RunView();
-        const [meetingResult, attendanceResult, agendaResult, motionResult, minuteResult] = await rv.RunViews([
+        const [meetingResult, attendanceResult, agendaResult, motionResult, minuteResult] =
+            await rv.RunViews(this.buildDetailQueries());
+        this.applyDetailResults(meetingResult, attendanceResult, agendaResult, motionResult, minuteResult);
+    }
+
+    /** The five per-meeting reads — one batch, one round trip. */
+    private buildDetailQueries(): Parameters<RunView['RunViews']>[0] {
+        return [
             {
                 EntityName: 'Committees: Meetings',
                 ExtraFilter: `ID='${this.MeetingID}'`,
@@ -251,16 +260,21 @@ export class MeetingDetailViewComponent implements OnInit {
                 Fields: ['ID', 'Content', 'ApprovalStatus'],
                 ResultType: 'simple',
             },
-        ]);
+        ];
+    }
 
+    private applyDetailResults(
+        meetingResult: DetailBatchResult, attendanceResult: DetailBatchResult,
+        agendaResult: DetailBatchResult, motionResult: DetailBatchResult, minuteResult: DetailBatchResult
+    ): void {
         if (meetingResult.Success && meetingResult.Results?.length) {
-            this.Meeting = meetingResult.Results[0] as MeetingRow;
+            this.Meeting = meetingResult.Results[0] as unknown as MeetingRow;
         }
-        if (attendanceResult.Success) this.Attendance = (attendanceResult.Results ?? []) as AttendanceRow[];
-        if (agendaResult.Success) this.AgendaItems = (agendaResult.Results ?? []) as AgendaRow[];
-        if (motionResult.Success) this.Motions = (motionResult.Results ?? []) as MotionRow[];
+        if (attendanceResult.Success) this.Attendance = (attendanceResult.Results ?? []) as unknown as AttendanceRow[];
+        if (agendaResult.Success) this.AgendaItems = (agendaResult.Results ?? []) as unknown as AgendaRow[];
+        if (motionResult.Success) this.Motions = (motionResult.Results ?? []) as unknown as MotionRow[];
         if (minuteResult.Success && minuteResult.Results?.length) {
-            this.Minute = minuteResult.Results[0] as MinuteRow;
+            this.Minute = minuteResult.Results[0] as unknown as MinuteRow;
         }
     }
 

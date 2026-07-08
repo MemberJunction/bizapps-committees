@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject }
 import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
-import { Metadata, RunView } from '@memberjunction/core';
+import { EntityInfo, Metadata, RunView } from '@memberjunction/core';
 import { DocumentDialogResult } from './document-edit-dialog.component';
 import { DocumentPreviewClosedEvent } from './document-preview-panel.component';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
@@ -12,6 +12,24 @@ type DateRangeFilter = 'all' | '7d' | '30d' | '90d' | 'year';
 interface CommitteeOption {
     ID: string;
     Name: string;
+}
+
+type LinkRow = { FileID: string; EntityID: string; RecordID: string };
+interface BatchResult { Success: boolean; Results: Record<string, unknown>[]; }
+interface LinkableEntities {
+    committee: EntityInfo | undefined;
+    meeting: EntityInfo | undefined;
+    agenda: EntityInfo | undefined;
+    action: EntityInfo | undefined;
+}
+interface LinkBatch {
+    linksResult: BatchResult; categoriesResult: BatchResult; committeesResult: BatchResult;
+    meetingsResult: BatchResult; agendasResult: BatchResult; actionItemsResult: BatchResult;
+}
+interface CommitteeLinkMaps {
+    meetingToCommittee: Map<string, string>;
+    agendaToCommittee: Map<string, string>;
+    actionToCommittee: Map<string, string>;
 }
 
 @RegisterClass(BaseResourceComponent, 'DocumentBrowserComponent')
@@ -60,8 +78,8 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
     async ngOnInit(): Promise<void> {
         this.NotifyLoadStarted();
         await Promise.all([
-            this.LoadFiles(),
-            this.LoadPermissions()
+            this.loadFiles(),
+            this.loadPermissions()
         ]);
         this.IsLoading = false;
         this.NotifyLoadComplete();
@@ -78,22 +96,22 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
 
     OnSearchChanged(text: string): void {
         this.SearchText = text;
-        this.ApplyFilters();
+        this.applyFilters();
     }
 
     OnCategoryFilterChanged(category: string): void {
         this.CategoryFilter = category;
-        this.ApplyFilters();
+        this.applyFilters();
     }
 
     OnCommitteeFilterChanged(committeeID: string): void {
         this.CommitteeFilter = committeeID;
-        this.ApplyFilters();
+        this.applyFilters();
     }
 
     OnDateRangeChanged(range: DateRangeFilter): void {
         this.DateRangeFilter = range;
-        this.ApplyFilters();
+        this.applyFilters();
     }
 
     OnCreateDocument(): void {
@@ -128,7 +146,7 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
     async OnDialogClosed(result: DocumentDialogResult): Promise<void> {
         this.ShowEditDialog = false;
         if (result.Saved) {
-            await this.LoadFiles();
+            await this.loadFiles();
         }
         this.cdr.markForCheck();
     }
@@ -147,7 +165,7 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
         }
     }
 
-    private async LoadPermissions(): Promise<void> {
+    private async loadPermissions(): Promise<void> {
         const [isStaff, isOfficer] = await Promise.all([
             CommitteePermissionHelper.IsStaffUser(),
             CommitteePermissionHelper.IsOfficerInAny()
@@ -156,7 +174,7 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
         this.CanManageDocuments = isStaff || isOfficer;
     }
 
-    private ApplyFilters(): void {
+    private applyFilters(): void {
         let result = this.Files;
 
         if (this.CategoryFilter !== 'All') {
@@ -170,7 +188,7 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
             });
         }
 
-        const cutoff = this.GetDateRangeCutoff();
+        const cutoff = this.getDateRangeCutoff();
         if (cutoff) {
             result = result.filter(f => {
                 const created = f['__mj_CreatedAt'] as string | Date | null;
@@ -192,7 +210,7 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
     }
 
     /** Returns timestamp ms for "files created on/after this", or null for "all time". */
-    private GetDateRangeCutoff(): number | null {
+    private getDateRangeCutoff(): number | null {
         if (this.DateRangeFilter === 'all') return null;
         const now = new Date();
         const cutoff = new Date(now);
@@ -205,7 +223,7 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
         return cutoff.getTime();
     }
 
-    private async LoadFiles(): Promise<void> {
+    private async loadFiles(): Promise<void> {
         const rv = new RunView();
         const md = new Metadata();
 
@@ -215,125 +233,115 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
             ? null  // null = no scoping (staff sees all)
             : await CommitteePermissionHelper.GetMemberCommitteeIDs();
 
-        const committeeEntity = md.Entities.find(e => e.Name === 'Committees: Committees');
-        const meetingEntity = md.Entities.find(e => e.Name === 'Committees: Meetings');
-        const agendaEntity = md.Entities.find(e => e.Name === 'Committees: Agenda Items');
-        const actionEntity = md.Entities.find(e => e.Name === 'Committees: Action Items');
-
-        const entityInfos = [committeeEntity, meetingEntity, agendaEntity, actionEntity].filter(e => e != null);
-        if (entityInfos.length === 0) {
-            this.Files = [];
-            this.Committees = [];
-            this.ApplyFilters();
-            return;
-        }
-
+        const entities = this.resolveLinkableEntities(md);
+        const entityInfos = [entities.committee, entities.meeting, entities.agenda, entities.action].filter(e => e != null);
         // Non-staff users with no memberships see no documents.
-        if (memberCommitteeIDs && memberCommitteeIDs.size === 0) {
+        if (entityInfos.length === 0 || (memberCommitteeIDs && memberCommitteeIDs.size === 0)) {
             this.Files = [];
             this.Committees = [];
-            this.ApplyFilters();
+            this.applyFilters();
             return;
         }
 
-        const entityIDFilter = entityInfos.map(e => `'${e!.ID}'`).join(', ');
+        const batch = await this.loadLinkBatch(rv, entityInfos.map(e => e!.ID));
+        this.applyCategories(batch.categoriesResult);
+        this.applyCommittees(batch.committeesResult, memberCommitteeIDs);
 
+        const maps = this.buildCommitteeLinkMaps(batch);
+        if (!batch.linksResult.Success || batch.linksResult.Results.length === 0) {
+            this.Files = [];
+            this.applyFilters();
+            return;
+        }
+        const fileToCommittees = this.resolveFileCommittees(batch.linksResult.Results as LinkRow[], entities, maps);
+        const visibleFileIDs = this.scopeVisibleFiles(batch.linksResult.Results as LinkRow[], fileToCommittees, memberCommitteeIDs);
+        if (visibleFileIDs.length === 0) {
+            this.Files = [];
+            this.applyFilters();
+            return;
+        }
+        await this.loadAndMapFiles(rv, visibleFileIDs, fileToCommittees, memberCommitteeIDs);
+        this.applyFilters();
+    }
+
+    private resolveLinkableEntities(md: Metadata): LinkableEntities {
+        return {
+            committee: md.EntityByName('Committees: Committees'),
+            meeting: md.EntityByName('Committees: Meetings'),
+            agenda: md.EntityByName('Committees: Agenda Items'),
+            action: md.EntityByName('Committees: Action Items'),
+        };
+    }
+
+    private async loadLinkBatch(rv: RunView, entityIDs: string[]): Promise<LinkBatch> {
+        const entityIDFilter = entityIDs.map(id => `'${id}'`).join(', ');
         const [linksResult, categoriesResult, committeesResult, meetingsResult, agendasResult, actionItemsResult] = await rv.RunViews([
-            {
-                EntityName: 'MJ: File Entity Record Links',
-                Fields: ['FileID', 'EntityID', 'RecordID'],
-                ExtraFilter: `EntityID IN (${entityIDFilter})`,
-                ResultType: 'simple'
-            },
-            {
-                EntityName: 'MJ: File Categories',
-                Fields: ['ID', 'Name'],
-                OrderBy: 'Name ASC',
-                ResultType: 'simple'
-            },
-            {
-                EntityName: 'Committees: Committees',
-                Fields: ['ID', 'Name'],
-                ExtraFilter: '',
-                OrderBy: 'Name ASC',
-                ResultType: 'simple'
-            },
-            {
-                EntityName: 'Committees: Meetings',
-                Fields: ['ID', 'CommitteeID'],
-                ResultType: 'simple'
-            },
-            {
-                EntityName: 'Committees: Agenda Items',
-                Fields: ['ID', 'MeetingID'],
-                ResultType: 'simple'
-            },
-            {
-                EntityName: 'Committees: Action Items',
-                Fields: ['ID', 'CommitteeID'],
-                ResultType: 'simple'
-            }
+            { EntityName: 'MJ: File Entity Record Links', Fields: ['FileID', 'EntityID', 'RecordID'], ExtraFilter: `EntityID IN (${entityIDFilter})`, ResultType: 'simple' },
+            { EntityName: 'MJ: File Categories', Fields: ['ID', 'Name'], OrderBy: 'Name ASC', ResultType: 'simple' },
+            { EntityName: 'Committees: Committees', Fields: ['ID', 'Name'], ExtraFilter: '', OrderBy: 'Name ASC', ResultType: 'simple' },
+            { EntityName: 'Committees: Meetings', Fields: ['ID', 'CommitteeID'], ResultType: 'simple' },
+            { EntityName: 'Committees: Agenda Items', Fields: ['ID', 'MeetingID'], ResultType: 'simple' },
+            { EntityName: 'Committees: Action Items', Fields: ['ID', 'CommitteeID'], ResultType: 'simple' },
         ]);
+        return {
+            linksResult, categoriesResult, committeesResult, meetingsResult, agendasResult, actionItemsResult,
+        } as unknown as LinkBatch;
+    }
 
-        if (categoriesResult.Success) {
-            this.Categories = categoriesResult.Results;
-            this.CategoryFilterOptions = ['All', ...categoriesResult.Results.map(c => String(c['Name'] || ''))];
-        }
+    private applyCategories(categoriesResult: LinkBatch['categoriesResult']): void {
+        if (!categoriesResult.Success) return;
+        this.Categories = categoriesResult.Results;
+        this.CategoryFilterOptions = ['All', ...categoriesResult.Results.map(c => String(c['Name'] || ''))];
+    }
 
-        if (committeesResult.Success) {
-            const allCommittees = (committeesResult.Results as { ID: string; Name: string }[])
-                .map(c => ({ ID: c.ID, Name: c.Name }));
-            // Members/officers see only committees they belong to; staff sees all.
-            this.Committees = memberCommitteeIDs
-                ? allCommittees.filter(c => memberCommitteeIDs.has(c.ID))
-                : allCommittees;
-        }
+    private applyCommittees(committeesResult: LinkBatch['committeesResult'], memberCommitteeIDs: Set<string> | null): void {
+        if (!committeesResult.Success) return;
+        const allCommittees = (committeesResult.Results as { ID: string; Name: string }[])
+            .map(c => ({ ID: c.ID, Name: c.Name }));
+        // Members/officers see only committees they belong to; staff sees all.
+        this.Committees = memberCommitteeIDs
+            ? allCommittees.filter(c => memberCommitteeIDs.has(c.ID))
+            : allCommittees;
+    }
 
-        // Build lookup maps for resolving indirect committee links
+    /** Lookup maps for resolving indirect committee links (meeting/agenda/action → committee). */
+    private buildCommitteeLinkMaps(batch: LinkBatch): CommitteeLinkMaps {
         const meetingToCommittee = new Map<string, string>();
-        if (meetingsResult.Success) {
-            for (const m of meetingsResult.Results as { ID: string; CommitteeID: string }[]) {
+        if (batch.meetingsResult.Success) {
+            for (const m of batch.meetingsResult.Results as { ID: string; CommitteeID: string }[]) {
                 meetingToCommittee.set(m.ID, m.CommitteeID);
             }
         }
         const agendaToCommittee = new Map<string, string>();
-        if (agendasResult.Success) {
-            for (const a of agendasResult.Results as { ID: string; MeetingID: string }[]) {
+        if (batch.agendasResult.Success) {
+            for (const a of batch.agendasResult.Results as { ID: string; MeetingID: string }[]) {
                 const cid = meetingToCommittee.get(a.MeetingID);
                 if (cid) agendaToCommittee.set(a.ID, cid);
             }
         }
         const actionToCommittee = new Map<string, string>();
-        if (actionItemsResult.Success) {
-            for (const ai of actionItemsResult.Results as { ID: string; CommitteeID: string }[]) {
+        if (batch.actionItemsResult.Success) {
+            for (const ai of batch.actionItemsResult.Results as { ID: string; CommitteeID: string }[]) {
                 if (ai.CommitteeID) actionToCommittee.set(ai.ID, ai.CommitteeID);
             }
         }
-        const committeeNameByID = new Map<string, string>();
-        for (const c of this.Committees) {
-            committeeNameByID.set(c.ID, c.Name);
-        }
+        return { meetingToCommittee, agendaToCommittee, actionToCommittee };
+    }
 
-        if (!linksResult.Success || linksResult.Results.length === 0) {
-            this.Files = [];
-            this.ApplyFilters();
-            return;
-        }
-
-        // For each file, resolve all linked committees (direct and indirect)
+    /** For each file, resolve all linked committees (direct and indirect). */
+    private resolveFileCommittees(links: LinkRow[], entities: LinkableEntities, maps: CommitteeLinkMaps): Map<string, Set<string>> {
         const fileToCommittees = new Map<string, Set<string>>();
-        for (const link of linksResult.Results as { FileID: string; EntityID: string; RecordID: string }[]) {
+        for (const link of links) {
             let committeeID: string | undefined;
-            if (link.EntityID === committeeEntity?.ID) {
+            if (link.EntityID === entities.committee?.ID) {
                 committeeID = link.RecordID;
-            } else if (link.EntityID === meetingEntity?.ID) {
-                committeeID = meetingToCommittee.get(link.RecordID);
-            } else if (link.EntityID === agendaEntity?.ID) {
-                committeeID = agendaToCommittee.get(link.RecordID);
-            } else if (link.EntityID === actionEntity?.ID) {
-                committeeID = actionToCommittee.get(link.RecordID);
+            } else if (link.EntityID === entities.meeting?.ID) {
+                committeeID = maps.meetingToCommittee.get(link.RecordID);
+            } else if (link.EntityID === entities.agenda?.ID) {
+                committeeID = maps.agendaToCommittee.get(link.RecordID);
+            } else if (link.EntityID === entities.action?.ID) {
+                committeeID = maps.actionToCommittee.get(link.RecordID);
             }
-
             if (committeeID) {
                 let set = fileToCommittees.get(link.FileID);
                 if (!set) {
@@ -343,28 +351,32 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
                 set.add(committeeID);
             }
         }
+        return fileToCommittees;
+    }
 
-        // Scope to user's committees: only show files linked to at least one of them.
-        const allFileIDs = [...new Set(linksResult.Results.map(l => String(l['FileID'])))];
-        const visibleFileIDs = memberCommitteeIDs
-            ? allFileIDs.filter(fid => {
-                const fileCommittees = fileToCommittees.get(fid);
-                if (!fileCommittees) return false;
-                for (const cid of fileCommittees) {
-                    if (memberCommitteeIDs.has(cid)) return true;
-                }
-                return false;
-            })
-            : allFileIDs;
+    /** Scope to user's committees: only files linked to at least one of them. */
+    private scopeVisibleFiles(links: LinkRow[], fileToCommittees: Map<string, Set<string>>, memberCommitteeIDs: Set<string> | null): string[] {
+        const allFileIDs = [...new Set(links.map(l => String(l.FileID)))];
+        if (!memberCommitteeIDs) return allFileIDs;
+        return allFileIDs.filter(fid => {
+            const fileCommittees = fileToCommittees.get(fid);
+            if (!fileCommittees) return false;
+            for (const cid of fileCommittees) {
+                if (memberCommitteeIDs.has(cid)) return true;
+            }
+            return false;
+        });
+    }
 
-        if (visibleFileIDs.length === 0) {
-            this.Files = [];
-            this.ApplyFilters();
-            return;
+    private async loadAndMapFiles(
+        rv: RunView, visibleFileIDs: string[],
+        fileToCommittees: Map<string, Set<string>>, memberCommitteeIDs: Set<string> | null
+    ): Promise<void> {
+        const committeeNameByID = new Map<string, string>();
+        for (const c of this.Committees) {
+            committeeNameByID.set(c.ID, c.Name);
         }
-
         const fileIDFilter = visibleFileIDs.map(id => `'${id}'`).join(', ');
-
         const filesResult = await rv.RunView<Record<string, unknown>>({
             EntityName: 'MJ: Files',
             Fields: ['ID', 'Name', 'Description', 'Category', 'Provider', 'ContentType', 'Status', 'ProviderKey', '__mj_CreatedAt'],
@@ -373,26 +385,19 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
             MaxRows: 200,
             ResultType: 'simple'
         });
-
-        if (filesResult.Success) {
-            this.Files = filesResult.Results.map(f => {
-                const fileID = f['ID'] as string;
-                const allCommitteeIDs = [...(fileToCommittees.get(fileID) ?? new Set<string>())];
-                // Non-staff: only surface committee names the user belongs to.
-                const visibleCommitteeIDs = memberCommitteeIDs
-                    ? allCommitteeIDs.filter(id => memberCommitteeIDs.has(id))
-                    : allCommitteeIDs;
-                const committeeNames = visibleCommitteeIDs
-                    .map(id => committeeNameByID.get(id))
-                    .filter((n): n is string => !!n);
-                return {
-                    ...f,
-                    CommitteeIDs: visibleCommitteeIDs,
-                    CommitteeNames: committeeNames
-                };
-            });
-        }
-        this.ApplyFilters();
+        if (!filesResult.Success) return;
+        this.Files = filesResult.Results.map(f => {
+            const fileID = f['ID'] as string;
+            const allCommitteeIDs = [...(fileToCommittees.get(fileID) ?? new Set<string>())];
+            // Non-staff: only surface committee names the user belongs to.
+            const visibleCommitteeIDs = memberCommitteeIDs
+                ? allCommitteeIDs.filter(id => memberCommitteeIDs.has(id))
+                : allCommitteeIDs;
+            const committeeNames = visibleCommitteeIDs
+                .map(id => committeeNameByID.get(id))
+                .filter((n): n is string => !!n);
+            return { ...f, CommitteeIDs: visibleCommitteeIDs, CommitteeNames: committeeNames };
+        });
     }
 }
 

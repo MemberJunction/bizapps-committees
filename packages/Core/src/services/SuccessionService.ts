@@ -1,4 +1,6 @@
 import { RunView, UserInfo } from '@memberjunction/core';
+import { CommitteesLookupEngine } from '../engines/CommitteesLookupEngine.js';
+import type { mjBizAppsCommitteesMembershipEntity } from '@mj-biz-apps/committees-entities';
 
 /**
  * Term-clock and succession computation for Phase 3 "Sustain"
@@ -18,7 +20,8 @@ export const AT_RISK_ATTENDANCE = 0.5;
 /** Unanswered intent with the term ending within this window is "At risk". */
 export const AT_RISK_UNANSWERED_DAYS = 30;
 
-export type RenewalIntentValue = 'Yes' | 'No' | 'Undecided' | null;
+// Derived from the generated entity so CHECK-constraint changes flow through CodeGen.
+export type RenewalIntentValue = mjBizAppsCommitteesMembershipEntity['RenewalIntent'];
 export type SeatStatus = 'Opening' | 'AtRisk' | 'Returning' | 'AwaitingAnswer';
 export type LensState = 'Lapsed' | 'Expiring' | 'Renewed' | 'Current';
 
@@ -111,16 +114,17 @@ export class SuccessionService {
      */
     public async GetTermClock(committeeID: string | null, contextUser?: UserInfo): Promise<TermClock> {
         const rv = new RunView();
-        const [terms, memberships, roles, meetings] = await rv.RunViews([
+        await CommitteesLookupEngine.Instance.Config(false, contextUser);
+        const [terms, memberships, meetings] = await rv.RunViews([
             { EntityName: 'Committees: Terms', Fields: ['ID', 'CommitteeID', 'Committee', 'Name', 'StartDate', 'EndDate', 'Status'], ResultType: 'simple' },
             // Ended memberships stay in: they are the timeline's past-service bars.
             { EntityName: 'Committees: Memberships', ExtraFilter: "Status IN ('Active', 'Ended')", Fields: ['ID', 'TermID', 'PersonID', 'Person', 'RoleID', 'Role', 'Status', 'RenewalIntent'], ResultType: 'simple' },
-            { EntityName: 'Committees: Roles', Fields: ['ID', 'Name', 'IsVotingRole', 'IsOfficer'], ResultType: 'simple' },
             { EntityName: 'Committees: Meetings', ExtraFilter: "Status = 'Completed'", Fields: ['ID', 'CommitteeID', 'Status', 'StartDateTime'], ResultType: 'simple' },
         ], contextUser);
         const termRows = (terms.Success ? terms.Results : []) as unknown as TermRow[];
         const membershipRows = (memberships.Success ? memberships.Results : []) as unknown as MembershipRow[];
-        const roleRows = (roles.Success ? roles.Results : []) as unknown as RoleRow[];
+        // Roles come from the process-wide lookup engine — no per-call query.
+        const roleRows: RoleRow[] = CommitteesLookupEngine.Instance.Roles.map(r => ({ ID: r.ID, Name: r.Name, IsVotingRole: r.IsVotingRole, IsOfficer: r.IsOfficer }));
         const meetingRows = (meetings.Success ? meetings.Results : []) as unknown as CompletedMeetingRow[];
 
         const attendance = await this.loadAttendance(meetingRows.map(m => m.ID), contextUser);

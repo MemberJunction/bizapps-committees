@@ -220,3 +220,17 @@ surface, not a broadcast tool.
    beyond trivial).
 3. Playwright pass: add/edit/reorder/delete items on the Jul 13 meeting,
    verify Member Home's hero counts update.
+
+> **Status: shipped** (`9ceae0c`) — 15/15 end-to-end. Decisions taken: builder in
+> the Agenda tab (Scheduled only); up/down reorder, no CDK; agenda live as edited.
+
+---
+
+## Feature 4 — Notification Digest: DEFERRED (2026-07-07)
+
+Decision: publish without email. In-app bell notifications remain the delivery
+channel (ballot Remind and committee events already use them); Member Home's
+copy now promises "a notification", not an email. The digest becomes the
+flagship post-publish feature — its PRD starts with the email-infrastructure
+choice (MJ Communication framework provider), and BallotReminderService's
+non-voter computation was built to be reused by it.

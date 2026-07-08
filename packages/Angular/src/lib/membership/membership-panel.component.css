@@ -37,17 +37,32 @@
     padding: 9px 18px;
     border: none;
     border-radius: 10px;
-    background: var(--mj-color-indigo-500);
+    background: var(--mj-brand-primary);
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-0);
-    box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
+    color: var(--mj-brand-on-primary, #fff);
+    box-shadow: 0 1px 3px color-mix(in srgb, var(--mj-brand-primary) 30%, transparent);
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: var(--mj-color-indigo-600);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    background: var(--mj-brand-primary-hover);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--mj-brand-primary) 35%, transparent);
     transform: translateY(-1px);
+}
+
+.btn-secondary {
+    padding: 9px 18px;
+    border: 1px solid var(--mj-border-strong);
+    border-radius: 10px;
+    background: var(--mj-bg-surface);
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-text-secondary);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--mj-bg-surface-hover);
+    color: var(--mj-text-primary);
 }
 
 /* ─── Success Banner ─── */
@@ -101,7 +116,7 @@
 }
 
 .filter-select:focus {
-    box-shadow: 0 0 0 2px var(--mj-color-indigo-500), 0 4px 12px rgba(99, 102, 241, 0.12);
+    box-shadow: 0 0 0 2px var(--mj-brand-primary), 0 4px 12px color-mix(in srgb, var(--mj-brand-primary) 12%, transparent);
 }
 
 .btn-term-action {
@@ -167,9 +182,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: color-mix(in srgb, var(--mj-color-indigo-500) 12%, transparent);
+    background: color-mix(in srgb, var(--mj-brand-primary) 12%, transparent);
     border-radius: 10px;
-    color: var(--mj-color-indigo-400);
+    color: var(--mj-brand-primary);
     font-size: 15px;
 }
 
@@ -198,8 +213,8 @@
     font-weight: var(--mj-font-bold);
     padding: 2px 7px;
     border-radius: var(--mj-radius-sm);
-    background: color-mix(in srgb, var(--mj-color-indigo-500) 12%, transparent);
-    color: var(--mj-color-indigo-400);
+    background: color-mix(in srgb, var(--mj-brand-primary) 12%, transparent);
+    color: var(--mj-brand-primary);
     text-transform: uppercase;
     letter-spacing: 0.4px;
 }

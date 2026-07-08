@@ -62,16 +62,16 @@
     padding: 9px 18px;
     border: none;
     border-radius: 10px;
-    background: var(--mj-color-indigo-500);
+    background: var(--mj-brand-primary);
     font-size: var(--mj-text-sm);
     font-weight: var(--mj-font-semibold);
-    color: var(--mj-color-neutral-0);
-    box-shadow: 0 1px 3px rgba(99, 102, 241, 0.3);
+    color: var(--mj-brand-on-primary, #fff);
+    box-shadow: 0 1px 3px color-mix(in srgb, var(--mj-brand-primary) 30%, transparent);
 }
 
 .btn-primary:hover {
-    background: var(--mj-color-indigo-600);
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    background: var(--mj-brand-primary-hover);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--mj-brand-primary) 35%, transparent);
     transform: translateY(-1px);
 }
 
@@ -137,7 +137,7 @@
 }
 
 .committee-select:focus {
-    box-shadow: 0 0 0 2px var(--mj-color-indigo-500), 0 4px 12px rgba(99, 102, 241, 0.12);
+    box-shadow: 0 0 0 2px var(--mj-brand-primary), 0 4px 12px color-mix(in srgb, var(--mj-brand-primary) 12%, transparent);
 }
 
 .search-box {
@@ -175,7 +175,7 @@
 .search-box input::placeholder { color: var(--mj-text-disabled); }
 
 .search-box input:focus {
-    box-shadow: 0 0 0 2px var(--mj-color-indigo-500), 0 4px 12px rgba(99, 102, 241, 0.12);
+    box-shadow: 0 0 0 2px var(--mj-brand-primary), 0 4px 12px color-mix(in srgb, var(--mj-brand-primary) 12%, transparent);
 }
 
 .filter-pill {
@@ -228,7 +228,7 @@
     width: 44px;
     height: 44px;
     border-radius: var(--mj-radius-lg);
-    background: color-mix(in srgb, var(--mj-color-indigo-500) 12%, transparent);
+    background: color-mix(in srgb, var(--mj-brand-primary) 12%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -237,7 +237,7 @@
 
 .doc-icon i {
     font-size: 18px;
-    color: var(--mj-color-indigo-400);
+    color: var(--mj-brand-primary);
 }
 
 /* ─── Doc Content ─── */
@@ -329,8 +329,8 @@
 }
 
 .btn-icon:hover {
-    background: color-mix(in srgb, var(--mj-color-indigo-500) 12%, transparent);
-    color: var(--mj-color-indigo-400);
+    background: color-mix(in srgb, var(--mj-brand-primary) 12%, transparent);
+    color: var(--mj-brand-primary);
 }
 
 .status-badge {

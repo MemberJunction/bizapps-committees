@@ -121,25 +121,25 @@
 
 .vote-btn.active {
     border-color: transparent;
-    color: var(--mj-color-neutral-0);
+    color: var(--mj-brand-on-primary, #fff);
 }
 
 .vote-btn.vote-yes {
-    background: var(--mj-color-success-500);
-    border-color: var(--mj-color-success-500);
-    color: var(--mj-color-neutral-0);
+    background: var(--mj-status-success);
+    border-color: var(--mj-status-success);
+    color: var(--mj-brand-on-primary, #fff);
 }
 
 .vote-btn.vote-no {
-    background: var(--mj-color-error-500);
-    border-color: var(--mj-color-error-500);
-    color: var(--mj-color-neutral-0);
+    background: var(--mj-status-error);
+    border-color: var(--mj-status-error);
+    color: var(--mj-brand-on-primary, #fff);
 }
 
 .vote-btn.vote-abstain {
-    background: var(--mj-color-neutral-500);
-    border-color: var(--mj-color-neutral-500);
-    color: var(--mj-color-neutral-0);
+    background: var(--mj-text-muted);
+    border-color: var(--mj-text-muted);
+    color: var(--mj-brand-on-primary, #fff);
 }
 
 .vote-btn.vote-absent {

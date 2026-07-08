@@ -43,7 +43,7 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
             this.WorkspaceCommitteeID = params.get('committeeId');
             this.cdr.markForCheck();
         });
-        await this.LoadCommittees();
+        await this.loadCommittees();
         this.IsLoading = false;
         this.NotifyLoadComplete();
         this.cdr.markForCheck();
@@ -64,12 +64,12 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
 
     OnSearchChanged(text: string): void {
         this.SearchText = text;
-        this.ApplyFilters();
+        this.applyFilters();
     }
 
     OnStatusFilterChanged(status: 'All' | 'Active' | 'Inactive' | 'Dissolved'): void {
         this.StatusFilter = status;
-        this.ApplyFilters();
+        this.applyFilters();
     }
 
     OnCreateCommittee(): void {
@@ -92,7 +92,7 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
     async OnDialogClosed(result: CommitteeDialogResult): Promise<void> {
         this.ShowEditDialog = false;
         if (result.Saved) {
-            await this.LoadCommittees();
+            await this.loadCommittees();
         }
         this.cdr.markForCheck();
     }
@@ -105,12 +105,12 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
     async OnBulkImportClosed(event: { Imported: boolean }): Promise<void> {
         this.ShowBulkImport = false;
         if (event.Imported) {
-            await this.LoadCommittees();
+            await this.loadCommittees();
         }
         this.cdr.markForCheck();
     }
 
-    private ApplyFilters(): void {
+    private applyFilters(): void {
         let result = this.Committees;
         if (this.StatusFilter !== 'All') {
             result = result.filter(c => c['Status'] === this.StatusFilter);
@@ -126,7 +126,7 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
         this.cdr.markForCheck();
     }
 
-    private async LoadCommittees(): Promise<void> {
+    private async loadCommittees(): Promise<void> {
         const rv = new RunView();
         const [committeesResult, termsResult, membershipsResult] = await rv.RunViews([
             {
@@ -169,7 +169,7 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
                 ...c,
                 MemberCount: memberCounts.get(c['ID'] as string) ?? 0
             }));
-            this.ApplyFilters();
+            this.applyFilters();
         }
     }
 }

@@ -23,7 +23,7 @@ export class PersonDetailPanelComponent implements OnInit {
     private cdr = inject(ChangeDetectorRef);
 
     async ngOnInit(): Promise<void> {
-        await this.LoadPerson();
+        await this.loadPerson();
         this.IsLoading = false;
         this.cdr.markForCheck();
     }
@@ -60,14 +60,14 @@ export class PersonDetailPanelComponent implements OnInit {
     OnCancelEdit(): void {
         this.IsEditMode = false;
         this.ErrorMessage = '';
-        this.LoadPerson().then(() => this.cdr.markForCheck());
+        this.loadPerson().catch(() => { /* load failure surfaces via empty panel */ }).then(() => this.cdr.markForCheck());
     }
 
     OnClose(): void {
         this.PanelClosed.emit();
     }
 
-    private async LoadPerson(): Promise<void> {
+    private async loadPerson(): Promise<void> {
         if (!this.PersonID) return;
         const md = new Metadata();
         const entity = await md.GetEntityObject<mjBizAppsCommonPersonEntity>('MJ_BizApps_Common: People');

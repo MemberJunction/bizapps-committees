@@ -89,14 +89,14 @@ export class MeetingEditDialogComponent implements OnInit {
 
     async ngOnInit(): Promise<void> {
         await Promise.all([
-            this.LoadLookups(),
-            this.LoadOrCreateMeeting()
+            this.loadLookups(),
+            this.loadOrCreateMeeting()
         ]);
         if (!this.IsNew) {
             await Promise.all([
-                this.LoadAttendees(),
-                this.LoadAgendaItems(),
-                this.LoadMotions()
+                this.loadAttendees(),
+                this.loadAgendaItems(),
+                this.loadMotions()
             ]);
         }
         this.IsLoading = false;
@@ -106,7 +106,7 @@ export class MeetingEditDialogComponent implements OnInit {
     async OnSave(): Promise<void> {
         if (!this.Meeting) return;
 
-        const validationError = this.Validate();
+        const validationError = this.validate();
         if (validationError) {
             this.ErrorMessage = validationError;
             this.cdr.markForCheck();
@@ -123,7 +123,7 @@ export class MeetingEditDialogComponent implements OnInit {
         // Auto-set VideoProviderID from the default provider for virtual/hybrid meetings
         const locationType = this.Meeting.LocationType;
         if (this.DefaultProvider && (locationType === 'Virtual' || locationType === 'Hybrid')) {
-            this.Meeting.Set('VideoProviderID', this.DefaultProvider.ID);
+            this.Meeting.VideoProviderID = this.DefaultProvider.ID;
         }
 
         const success = await this.Meeting.Save();
@@ -135,12 +135,12 @@ export class MeetingEditDialogComponent implements OnInit {
         }
 
         // Save attendee changes
-        await this.SaveAttendees();
+        await this.saveAttendees();
 
         // Provision video meeting if provider is set and no URL yet
         if (this.DefaultProvider && !this.Meeting.VideoJoinURL &&
             (locationType === 'Virtual' || locationType === 'Hybrid')) {
-            await this.ProvisionVideoMeeting(this.Meeting.ID);
+            await this.provisionVideoMeeting(this.Meeting.ID);
         }
 
         this.IsSaving = false;
@@ -213,7 +213,7 @@ export class MeetingEditDialogComponent implements OnInit {
     async OnMotionDialogClosed(result: MotionDialogResult): Promise<void> {
         this.ShowMotionDialog = false;
         if (result.Saved) {
-            await this.LoadMotions();
+            await this.loadMotions();
         }
         this.cdr.markForCheck();
     }
@@ -229,7 +229,7 @@ export class MeetingEditDialogComponent implements OnInit {
         }
     }
 
-    private async LoadMotions(): Promise<void> {
+    private async loadMotions(): Promise<void> {
         if (!this.MeetingID) return;
         const rv = new RunView();
         const result = await rv.RunView({
@@ -260,7 +260,7 @@ export class MeetingEditDialogComponent implements OnInit {
     async OnAgendaDialogClosed(result: AgendaItemDialogResult): Promise<void> {
         this.ShowAgendaDialog = false;
         if (result.Saved) {
-            await this.LoadAgendaItems();
+            await this.loadAgendaItems();
         }
         this.cdr.markForCheck();
     }
@@ -307,7 +307,7 @@ export class MeetingEditDialogComponent implements OnInit {
         }
     }
 
-    private async LoadAgendaItems(): Promise<void> {
+    private async loadAgendaItems(): Promise<void> {
         if (!this.MeetingID) return;
         const rv = new RunView();
         const result = await rv.RunView({
@@ -322,7 +322,7 @@ export class MeetingEditDialogComponent implements OnInit {
         }
     }
 
-    private Validate(): string | null {
+    private validate(): string | null {
         if (!this.Meeting!.Name?.trim()) {
             return 'Meeting title is required.';
         }
@@ -338,7 +338,7 @@ export class MeetingEditDialogComponent implements OnInit {
         return null;
     }
 
-    private async LoadOrCreateMeeting(): Promise<void> {
+    private async loadOrCreateMeeting(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
             this.Meeting = await md.GetEntityObject<mjBizAppsCommitteesMeetingEntity>('Committees: Meetings');
@@ -346,20 +346,20 @@ export class MeetingEditDialogComponent implements OnInit {
             this.Meeting.LocationType = 'Virtual';
             const now = new Date();
             now.setHours(now.getHours() + 1, 0, 0, 0);
-            this.StartDateTimeLocal = this.ToLocalDateTimeString(now);
+            this.StartDateTimeLocal = this.toLocalDateTimeString(now);
         } else {
             this.Meeting = await md.GetEntityObject<mjBizAppsCommitteesMeetingEntity>('Committees: Meetings');
             await this.Meeting.Load(this.MeetingID!);
-            this.StartDateTimeLocal = this.ToLocalDateTimeString(this.Meeting.StartDateTime);
+            this.StartDateTimeLocal = this.toLocalDateTimeString(this.Meeting.StartDateTime);
             if (this.Meeting.EndDateTime) {
-                this.EndDateTimeLocal = this.ToLocalDateTimeString(this.Meeting.EndDateTime);
+                this.EndDateTimeLocal = this.toLocalDateTimeString(this.Meeting.EndDateTime);
             }
         }
     }
 
-    private async LoadLookups(): Promise<void> {
+    private async loadLookups(): Promise<void> {
         const rv = new RunView();
-        const [committeesResult, peopleResult] = await rv.RunViews([
+        const [committeesResult, peopleResult, providerResult] = await rv.RunViews([
             {
                 EntityName: 'Committees: Committees',
                 Fields: ['ID', 'Name'],
@@ -372,6 +372,13 @@ export class MeetingEditDialogComponent implements OnInit {
                 Fields: ['ID', 'DisplayName'],
                 OrderBy: 'DisplayName ASC',
                 MaxRows: 500,
+                ResultType: 'simple'
+            },
+            {
+                EntityName: 'Committees: Video Providers',
+                Fields: ['ID', 'Name'],
+                ExtraFilter: `IsDefault = 1 AND IsActive = 1`,
+                MaxRows: 1,
                 ResultType: 'simple'
             }
         ]);
@@ -394,21 +401,13 @@ export class MeetingEditDialogComponent implements OnInit {
             this.AllPeople = peopleResult.Results as { ID: string; DisplayName: string }[];
         }
 
-        // Load default video provider
-        const providerResult = await rv.RunView<{ ID: string; Name: string }>({
-            EntityName: 'Committees: Video Providers',
-            Fields: ['ID', 'Name'],
-            ExtraFilter: `IsDefault = 1 AND IsActive = 1`,
-            MaxRows: 1,
-            ResultType: 'simple'
-        });
         if (providerResult.Success && providerResult.Results.length > 0) {
-            this.DefaultProvider = providerResult.Results[0];
+            this.DefaultProvider = providerResult.Results[0] as { ID: string; Name: string };
         }
     }
 
 
-    private async LoadAttendees(): Promise<void> {
+    private async loadAttendees(): Promise<void> {
         const rv = new RunView();
         const result = await rv.RunView({
             EntityName: 'Committees: Attendances',
@@ -429,7 +428,7 @@ export class MeetingEditDialogComponent implements OnInit {
         }
     }
 
-    private async SaveAttendees(): Promise<void> {
+    private async saveAttendees(): Promise<void> {
         const md = new Metadata();
 
         // Delete removed attendees
@@ -449,7 +448,7 @@ export class MeetingEditDialogComponent implements OnInit {
         }
     }
 
-    private async ProvisionVideoMeeting(meetingID: string): Promise<void> {
+    private async provisionVideoMeeting(meetingID: string): Promise<void> {
         const gqlProvider = Metadata.Provider as GraphQLDataProvider;
         const mutation = `mutation ProvisionVideo($MeetingID: String!) {
             ProvisionVideoMeeting(MeetingID: $MeetingID) {
@@ -468,7 +467,7 @@ export class MeetingEditDialogComponent implements OnInit {
         }
     }
 
-    private ToLocalDateTimeString(date: Date): string {
+    private toLocalDateTimeString(date: Date): string {
         const d = new Date(date);
         const offset = d.getTimezoneOffset();
         const local = new Date(d.getTime() - offset * 60 * 1000);

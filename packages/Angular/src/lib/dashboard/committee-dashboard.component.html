@@ -97,7 +97,7 @@
                 } @else {
                     <div class="panel-body">
                         @for (item of MyActionItems; track item['ID']) {
-                            <div class="row-item" [class.row-overdue]="item['DueDate'] != null && item['DueDate'] < todayString">
+                            <div class="row-item" [class.row-overdue]="item['DueDate'] != null && item['DueDate'] < TodayString">
                                 <div [class]="'priority-dot dot-' + ($any(item['Priority']) || 'medium').toLowerCase()"></div>
                                 <div class="row-content">
                                     <div class="row-title">{{ item['Name'] }}</div>

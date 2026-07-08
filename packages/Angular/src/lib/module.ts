@@ -26,7 +26,6 @@ import { PersonPickerComponent } from './shared/person-picker.component';
 import { CommentThreadComponent, LoadCommentThread } from './comments/comment-thread.component';
 import { AgendaItemEditDialogComponent, LoadAgendaItemEditDialog } from './agenda/agenda-item-edit-dialog.component';
 import { MotionEditDialogComponent, LoadMotionEditDialog } from './motions/motion-edit-dialog.component';
-import { MeetingLiveViewComponent, LoadMeetingLiveView } from './meeting-live/meeting-live-view.component';
 import { TermEditDialogComponent, LoadTermEditDialog } from './terms/term-edit-dialog.component';
 import { MembershipListComponent, LoadMembershipList } from './membership/membership-list.component';
 import { MembershipPanelComponent, LoadMembershipPanel } from './membership/membership-panel.component';
@@ -52,6 +51,7 @@ import { SuccessionSuggestionsComponent } from './people-terms/succession-sugges
 import { TermRenewalWizardComponent } from './people-terms/term-renewal-wizard.component';
 import { BallotCloseDialogComponent } from './motions-ballots/ballot-close-dialog.component';
 import { AgendaBuilderComponent } from './meeting-detail/agenda-builder.component';
+import { PersonCreateDialogComponent } from './shared/person-create-dialog.component';
 import { MemberHomeComponent, LoadMemberHome } from './member-home/member-home.component';
 
 @NgModule({
@@ -70,7 +70,6 @@ import { MemberHomeComponent, LoadMemberHome } from './member-home/member-home.c
         CommentThreadComponent,
         AgendaItemEditDialogComponent,
         MotionEditDialogComponent,
-        MeetingLiveViewComponent,
         TermEditDialogComponent,
         MembershipListComponent,
         MembershipPanelComponent,
@@ -96,6 +95,7 @@ import { MemberHomeComponent, LoadMemberHome } from './member-home/member-home.c
         TermRenewalWizardComponent,
         BallotCloseDialogComponent,
         AgendaBuilderComponent,
+        PersonCreateDialogComponent,
         MemberHomeComponent,
     ],
     imports: [
@@ -122,7 +122,6 @@ import { MemberHomeComponent, LoadMemberHome } from './member-home/member-home.c
         CommentThreadComponent,
         AgendaItemEditDialogComponent,
         MotionEditDialogComponent,
-        MeetingLiveViewComponent,
         TermEditDialogComponent,
         MembershipListComponent,
         MembershipPanelComponent,
@@ -160,7 +159,6 @@ export function LoadCommitteesModule() {
     LoadCommentThread();
     LoadAgendaItemEditDialog();
     LoadMotionEditDialog();
-    LoadMeetingLiveView();
     LoadTermEditDialog();
     LoadMembershipList();
     LoadMembershipPanel();

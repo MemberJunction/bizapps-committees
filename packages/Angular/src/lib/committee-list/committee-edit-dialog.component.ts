@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
+import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
 import { mjBizAppsCommitteesCommitteeEntity } from '@mj-biz-apps/committees-entities';
 
 export interface CommitteeDialogResult {
@@ -43,8 +44,8 @@ export class CommitteeEditDialogComponent implements OnInit {
 
     async ngOnInit(): Promise<void> {
         await Promise.all([
-            this.LoadLookups(),
-            this.LoadOrCreateCommittee()
+            this.loadLookups(),
+            this.loadOrCreateCommittee()
         ]);
         this.IsLoading = false;
         this.cdr.markForCheck();
@@ -117,7 +118,7 @@ export class CommitteeEditDialogComponent implements OnInit {
         }
     }
 
-    private async LoadOrCreateCommittee(): Promise<void> {
+    private async loadOrCreateCommittee(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
             this.Committee = await md.GetEntityObject<mjBizAppsCommitteesCommitteeEntity>('Committees: Committees');
@@ -129,15 +130,11 @@ export class CommitteeEditDialogComponent implements OnInit {
         }
     }
 
-    private async LoadLookups(): Promise<void> {
+    private async loadLookups(): Promise<void> {
+        // Types come from the process-wide lookup engine — no per-open query.
+        await CommitteesLookupEngine.Instance.Config();
         const rv = new RunView();
-        const [typesResult, orgsResult, committeesResult] = await rv.RunViews([
-            {
-                EntityName: 'Committees: Types',
-                Fields: ['ID', 'Name'],
-                OrderBy: 'Name ASC',
-                ResultType: 'simple'
-            },
+        const [orgsResult, committeesResult] = await rv.RunViews([
             {
                 EntityName: 'MJ_BizApps_Common: Organizations',
                 Fields: ['ID', 'Name'],
@@ -152,8 +149,10 @@ export class CommitteeEditDialogComponent implements OnInit {
             }
         ]);
 
-        if (typesResult.Success) {
-            this.Types = typesResult.Results as { ID: string; Name: string }[];
+        {
+            this.Types = [...CommitteesLookupEngine.Instance.CommitteeTypes]
+                .sort((a, b) => a.Name.localeCompare(b.Name))
+                .map(t => ({ ID: t.ID, Name: t.Name }));
         }
         if (orgsResult.Success) {
             this.Organizations = orgsResult.Results as { ID: string; Name: string }[];

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
-import { Metadata, RunView } from '@memberjunction/core';
+import { Metadata, RunView, RunViewParams, RunViewResult } from '@memberjunction/core';
 import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
 import { MJFileEntity, MJFileEntityRecordLinkEntity } from '@memberjunction/core-entities';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
@@ -55,10 +55,10 @@ export class DocumentEditDialogComponent implements OnInit {
     }
 
     async ngOnInit(): Promise<void> {
-        // Lookups must finish first — LoadOrCreateFile reads ExternalProviders to
+        // Lookups must finish first — loadOrCreateFile reads ExternalProviders to
         // set the default provider (new) and to detect link-vs-upload mode (existing).
-        await this.LoadLookups();
-        await this.LoadOrCreateFile();
+        await this.loadLookups();
+        await this.loadOrCreateFile();
         this.IsLoading = false;
         this.cdr.markForCheck();
     }
@@ -71,7 +71,7 @@ export class DocumentEditDialogComponent implements OnInit {
     async OnSave(): Promise<void> {
         if (!this.FileRecord) return;
 
-        const validationError = this.Validate();
+        const validationError = this.validate();
         if (validationError) {
             this.ErrorMessage = validationError;
             this.cdr.markForCheck();
@@ -83,13 +83,13 @@ export class DocumentEditDialogComponent implements OnInit {
         this.cdr.markForCheck();
 
         if (this.IsNew && this.DocumentMode === 'upload' && this.SelectedFile) {
-            await this.SaveUploadMode();
+            await this.saveUploadMode();
         } else {
-            await this.SaveLinkMode();
+            await this.saveLinkMode();
         }
     }
 
-    private async SaveLinkMode(): Promise<void> {
+    private async saveLinkMode(): Promise<void> {
         if (!this.FileRecord) return;
 
         // For external URL mode on new records, set status to Uploaded (no upload lifecycle)
@@ -107,16 +107,52 @@ export class DocumentEditDialogComponent implements OnInit {
 
         // Create context links for new records
         if (this.IsNew) {
-            await this.CreateContextLinks();
+            await this.createContextLinks();
         }
 
         this.IsSaving = false;
         this.DialogClosed.emit({ Saved: true, File: this.FileRecord });
     }
 
-    private async SaveUploadMode(): Promise<void> {
+    private async saveUploadMode(): Promise<void> {
         if (!this.FileRecord || !this.SelectedFile) return;
 
+        const created = await this.createFileRecordViaGraphQL();
+        if (!created) return;
+
+        const uploaded = await this.uploadFileViaProxy(created.uploadUrl);
+        if (!uploaded) return;
+
+        // Store the entity for context links
+        this.FileRecord = await this.markFileUploaded(created.fileData);
+
+        // Create context links
+        await this.createContextLinks();
+
+        this.IsSaving = false;
+        this.DialogClosed.emit({ Saved: true, File: this.FileRecord });
+    }
+
+    /** Builds the CreateMJFileInput payload from the current form state (upload mode). */
+    private buildCreateFileInput(): Record<string, unknown> {
+        const input: Record<string, unknown> = {
+            Name: this.FileRecord!.Name,
+            ProviderID: this.FileRecord!.ProviderID,
+            ContentType: this.SelectedFile!.type || 'application/octet-stream',
+            Status: 'Pending',
+        };
+
+        if (this.FileRecord!.Description) {
+            input['Description'] = this.FileRecord!.Description;
+        }
+        if (this.FileRecord!.CategoryID) {
+            input['CategoryID'] = this.FileRecord!.CategoryID;
+        }
+        return input;
+    }
+
+    /** Creates the file record server-side and returns the upload URL + file data, or null on failure. */
+    private async createFileRecordViaGraphQL(): Promise<{ uploadUrl: string; fileData: Record<string, unknown> } | null> {
         // Use GraphQL mutation directly to get the upload URL
         const mutation = `mutation CreateFile($input: CreateMJFileInput!) {
             CreateFile(input: $input) {
@@ -126,33 +162,24 @@ export class DocumentEditDialogComponent implements OnInit {
             }
         }`;
 
-        const input: Record<string, unknown> = {
-            Name: this.FileRecord.Name,
-            ProviderID: this.FileRecord.ProviderID,
-            ContentType: this.SelectedFile.type || 'application/octet-stream',
-            Status: 'Pending',
-        };
-
-        if (this.FileRecord.Description) {
-            input['Description'] = this.FileRecord.Description;
-        }
-        if (this.FileRecord.CategoryID) {
-            input['CategoryID'] = this.FileRecord.CategoryID;
-        }
-
         const gqlProvider = Metadata.Provider as GraphQLDataProvider;
-        const result = await gqlProvider.ExecuteGQL(mutation, { input });
+        const result = await gqlProvider.ExecuteGQL(mutation, { input: this.buildCreateFileInput() });
         const payload = (result as Record<string, Record<string, unknown>>)?.['CreateFile'];
         if (!payload?.['UploadUrl'] || !payload?.['File']) {
             this.IsSaving = false;
             this.ErrorMessage = 'Failed to create file record. Check server logs.';
             this.cdr.markForCheck();
-            return;
+            return null;
         }
 
-        const uploadUrl = payload['UploadUrl'] as string;
-        const fileData = payload['File'] as Record<string, unknown>;
+        return {
+            uploadUrl: payload['UploadUrl'] as string,
+            fileData: payload['File'] as Record<string, unknown>
+        };
+    }
 
+    /** Uploads the selected file through the server proxy. Returns false (and sets error state) on failure. */
+    private async uploadFileViaProxy(uploadUrl: string): Promise<boolean> {
         // Upload via server proxy to avoid CORS issues with providers like Dropbox
         try {
             const provider = Metadata.Provider as GraphQLDataProvider;
@@ -171,29 +198,24 @@ export class DocumentEditDialogComponent implements OnInit {
                 const errBody = await proxyResponse.json().catch(() => null);
                 throw new Error(errBody?.error || `Upload failed with status ${proxyResponse.status}`);
             }
+            return true;
         } catch (err: unknown) {
             this.IsSaving = false;
             const msg = err instanceof Error ? err.message : 'Upload failed';
             this.ErrorMessage = `Failed to upload file: ${msg}`;
             this.cdr.markForCheck();
-            return;
+            return false;
         }
+    }
 
-        // Update file status to 'Uploaded'
+    /** Marks the server-created file record as Uploaded and returns the saved entity. */
+    private async markFileUploaded(fileData: Record<string, unknown>): Promise<MJFileEntity> {
         const md = new Metadata();
         const fileEntity = await md.GetEntityObject<MJFileEntity>('MJ: Files');
         await fileEntity.LoadFromData(fileData);
         fileEntity.Status = 'Uploaded';
         await fileEntity.Save();
-
-        // Store the entity for context links
-        this.FileRecord = fileEntity;
-
-        // Create context links
-        await this.CreateContextLinks();
-
-        this.IsSaving = false;
-        this.DialogClosed.emit({ Saved: true, File: this.FileRecord });
+        return fileEntity;
     }
 
     async OnDelete(): Promise<void> {
@@ -204,7 +226,7 @@ export class DocumentEditDialogComponent implements OnInit {
         this.cdr.markForCheck();
 
         // Delete associated File Entity Record Links first (FK constraint)
-        const linksDeleted = await this.DeleteContextLinks();
+        const linksDeleted = await this.deleteContextLinks();
         if (!linksDeleted) {
             this.IsSaving = false;
             this.ErrorMessage = 'Failed to delete document links. Please try again.';
@@ -231,7 +253,7 @@ export class DocumentEditDialogComponent implements OnInit {
     OnFileSelected(event: Event): void {
         const input = event.target as HTMLInputElement;
         if (input.files && input.files.length > 0) {
-            this.SetSelectedFile(input.files[0]);
+            this.setSelectedFile(input.files[0]);
         }
     }
 
@@ -255,7 +277,7 @@ export class DocumentEditDialogComponent implements OnInit {
         event.stopPropagation();
         this.IsDragging = false;
         if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
-            this.SetSelectedFile(event.dataTransfer.files[0]);
+            this.setSelectedFile(event.dataTransfer.files[0]);
         }
     }
 
@@ -270,7 +292,7 @@ export class DocumentEditDialogComponent implements OnInit {
         return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
     }
 
-    private SetSelectedFile(file: File): void {
+    private setSelectedFile(file: File): void {
         this.SelectedFile = file;
         if (this.FileRecord) {
             if (!this.FileRecord.Name?.trim()) {
@@ -281,7 +303,7 @@ export class DocumentEditDialogComponent implements OnInit {
         this.cdr.markForCheck();
     }
 
-    private Validate(): string | null {
+    private validate(): string | null {
         if (!this.FileRecord!.Name?.trim()) {
             return 'Title is required.';
         }
@@ -303,7 +325,7 @@ export class DocumentEditDialogComponent implements OnInit {
         return null;
     }
 
-    private async LoadOrCreateFile(): Promise<void> {
+    private async loadOrCreateFile(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
             this.FileRecord = await md.GetEntityObject<MJFileEntity>('MJ: Files');
@@ -320,13 +342,12 @@ export class DocumentEditDialogComponent implements OnInit {
             const isExternal = this.ExternalProviders.some(p => p.ID === this.FileRecord!.ProviderID);
             this.DocumentMode = isExternal ? 'link' : 'upload';
             // Load existing context links
-            await this.LoadExistingLinks();
+            await this.loadExistingLinks();
         }
     }
 
-    private async LoadLookups(): Promise<void> {
-        const rv = new RunView();
-        const [committeesResult, meetingsResult, categoriesResult, externalProvidersResult, storageProvidersResult] = await rv.RunViews([
+    private buildLookupQueries(): RunViewParams[] {
+        return [
             {
                 EntityName: 'Committees: Committees',
                 Fields: ['ID', 'Name'],
@@ -362,7 +383,11 @@ export class DocumentEditDialogComponent implements OnInit {
                 OrderBy: 'Name ASC',
                 ResultType: 'simple'
             }
-        ]);
+        ];
+    }
+
+    /** Scopes the committee dropdown: staff sees all; officers see their committees (or all if none resolved). */
+    private async applyCommitteeScope(committeesResult: RunViewResult<{ ID: string; Name: string }>): Promise<void> {
         const allCommittees = committeesResult.Success
             ? committeesResult.Results as { ID: string; Name: string }[]
             : [];
@@ -376,6 +401,14 @@ export class DocumentEditDialogComponent implements OnInit {
                 ? allCommittees.filter(c => officerCommitteeIDs.has(c.ID))
                 : allCommittees;
         }
+    }
+
+    private async loadLookups(): Promise<void> {
+        const rv = new RunView();
+        const [committeesResult, meetingsResult, categoriesResult, externalProvidersResult, storageProvidersResult] =
+            await rv.RunViews(this.buildLookupQueries());
+
+        await this.applyCommitteeScope(committeesResult);
 
         if (meetingsResult.Success) {
             this.Meetings = meetingsResult.Results as { ID: string; Name: string }[];
@@ -391,7 +424,7 @@ export class DocumentEditDialogComponent implements OnInit {
         }
     }
 
-    private async LoadExistingLinks(): Promise<void> {
+    private async loadExistingLinks(): Promise<void> {
         const rv = new RunView();
         const result = await rv.RunView<{ EntityID: string; RecordID: string; Entity: string }>({
             EntityName: 'MJ: File Entity Record Links',
@@ -411,7 +444,7 @@ export class DocumentEditDialogComponent implements OnInit {
         }
     }
 
-    private async DeleteContextLinks(): Promise<boolean> {
+    private async deleteContextLinks(): Promise<boolean> {
         const rv = new RunView();
         const result = await rv.RunView<MJFileEntityRecordLinkEntity>({
             EntityName: 'MJ: File Entity Record Links',
@@ -427,22 +460,22 @@ export class DocumentEditDialogComponent implements OnInit {
         return true;
     }
 
-    private async CreateContextLinks(): Promise<void> {
+    private async createContextLinks(): Promise<void> {
         const md = new Metadata();
         const linkPromises: Promise<boolean>[] = [];
 
         if (this.SelectedCommitteeID) {
-            linkPromises.push(this.CreateLink(md, 'Committees: Committees', this.SelectedCommitteeID));
+            linkPromises.push(this.createLink(md, 'Committees: Committees', this.SelectedCommitteeID));
         }
         if (this.SelectedMeetingID) {
-            linkPromises.push(this.CreateLink(md, 'Committees: Meetings', this.SelectedMeetingID));
+            linkPromises.push(this.createLink(md, 'Committees: Meetings', this.SelectedMeetingID));
         }
 
         await Promise.all(linkPromises);
     }
 
-    private async CreateLink(md: Metadata, entityName: string, recordID: string): Promise<boolean> {
-        const entityInfo = md.Entities.find(e => e.Name === entityName);
+    private async createLink(md: Metadata, entityName: string, recordID: string): Promise<boolean> {
+        const entityInfo = md.EntityByName(entityName);
         if (!entityInfo) return false;
 
         const link = await md.GetEntityObject<MJFileEntityRecordLinkEntity>('MJ: File Entity Record Links');

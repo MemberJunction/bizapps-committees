@@ -43,8 +43,8 @@ export class AgendaItemEditDialogComponent implements OnInit {
 
     async ngOnInit(): Promise<void> {
         await Promise.all([
-            this.LoadLookups(),
-            this.LoadOrCreateItem()
+            this.loadLookups(),
+            this.loadOrCreateItem()
         ]);
         this.IsLoading = false;
         this.cdr.markForCheck();
@@ -60,7 +60,7 @@ export class AgendaItemEditDialogComponent implements OnInit {
     async OnSave(): Promise<void> {
         if (!this.AgendaItem) return;
 
-        const validationError = this.Validate();
+        const validationError = this.validate();
         if (validationError) {
             this.ErrorMessage = validationError;
             this.cdr.markForCheck();
@@ -112,7 +112,7 @@ export class AgendaItemEditDialogComponent implements OnInit {
         this.DialogClosed.emit({ Saved: false, AgendaItem: null });
     }
 
-    private Validate(): string | null {
+    private validate(): string | null {
         if (!this.AgendaItem!.Name?.trim()) {
             return 'Title is required.';
         }
@@ -122,7 +122,7 @@ export class AgendaItemEditDialogComponent implements OnInit {
         return null;
     }
 
-    private async LoadOrCreateItem(): Promise<void> {
+    private async loadOrCreateItem(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
             this.AgendaItem = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items');
@@ -136,7 +136,7 @@ export class AgendaItemEditDialogComponent implements OnInit {
         }
     }
 
-    private async LoadLookups(): Promise<void> {
+    private async loadLookups(): Promise<void> {
         const rv = new RunView();
         const result = await rv.RunView<{ ID: string; DisplayName: string }>({
             EntityName: 'MJ_BizApps_Common: People',

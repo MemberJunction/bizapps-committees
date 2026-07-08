@@ -15,8 +15,8 @@
 }
 
 .dropzone.drag-active {
-    border-color: var(--mj-color-indigo-500);
-    background: color-mix(in srgb, var(--mj-color-indigo-500) 12%, transparent);
+    border-color: var(--mj-brand-primary);
+    background: color-mix(in srgb, var(--mj-brand-primary) 12%, transparent);
 }
 
 .dropzone-icon {
@@ -202,8 +202,8 @@
 }
 
 .row-input:focus {
-    border-color: var(--mj-color-indigo-500);
-    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    border-color: var(--mj-brand-primary);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mj-brand-primary) 10%, transparent);
 }
 
 select.row-input {
@@ -232,7 +232,7 @@ select.row-input {
 
 .result-icon {
     font-size: 56px;
-    color: var(--mj-color-success-500);
+    color: var(--mj-status-success);
     margin-bottom: var(--mj-space-3);
 }
 
@@ -303,7 +303,7 @@ select.row-input {
 .confirm-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.4);
+    background: color-mix(in srgb, var(--mj-bg-overlay, #000) 45%, transparent);
     display: flex;
     align-items: center;
     justify-content: center;

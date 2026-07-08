@@ -2,6 +2,8 @@ import { Component, ChangeDetectionStrategy, ChangeDetectorRef, EventEmitter, In
 import { Metadata, RunView } from '@memberjunction/core';
 import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
 import { BallotService, MotionService, VoteTally, OutcomeForecast } from '@mj-biz-apps/committees-core';
+import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
+import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 import {
     mjBizAppsCommitteesMeetingEntity, mjBizAppsCommitteesAgendaItemEntity,
     mjBizAppsCommitteesMotionEntity, mjBizAppsCommitteesVoteEntity,
@@ -107,7 +109,22 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
 
     private cdr = inject(ChangeDetectorRef);
 
+    /** Scribe controls are for officers/staff; everyone else observes. */
+    CanDrive = false;
+
+    private assertDrive(): boolean {
+        if (this.CanDrive) return true;
+        this.ErrorMessage = 'Observer mode — only officers and staff can drive the meeting.';
+        this.cdr.detectChanges();
+        return false;
+    }
+
     async ngOnInit(): Promise<void> {
+        const [officer, staff] = await Promise.all([
+            CommitteePermissionHelper.IsOfficerInAny(),
+            CommitteePermissionHelper.IsStaffUser(),
+        ]);
+        this.CanDrive = officer || staff;
         if (this._meetingID && this.IsLoading) await this.Load();
         this.elapsedTimer = setInterval(() => { this.updateElapsed(); this.cdr.detectChanges(); }, 1000);
     }
@@ -126,7 +143,8 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
         try {
             const rv = new RunView();
             const id = this._meetingID;
-            const [meeting, agenda, attendance, motions, votesRes, terms, memberships, roles, minutes] = await rv.RunViews([
+            await CommitteesLookupEngine.Instance.Config();
+            const [meeting, agenda, attendance, motions, votesRes, terms, memberships, minutes] = await rv.RunViews([
                 { EntityName: 'Committees: Meetings', ExtraFilter: `ID = '${id}'`, ResultType: 'simple' },
                 { EntityName: 'Committees: Agenda Items', ExtraFilter: `MeetingID = '${id}'`, OrderBy: 'Sequence ASC', ResultType: 'simple' },
                 { EntityName: 'Committees: Attendances', ExtraFilter: `MeetingID = '${id}'`, ResultType: 'simple' },
@@ -134,7 +152,6 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
                 { EntityName: 'Committees: Votes', ExtraFilter: `MotionID IN (SELECT ID FROM __mj_BizAppsCommittees.vwMotions WHERE MeetingID = '${id}')`, ResultType: 'simple' },
                 { EntityName: 'Committees: Terms', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'CommitteeID', 'Status'], ResultType: 'simple' },
                 { EntityName: 'Committees: Memberships', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'PersonID', 'Person', 'Role', 'RoleID', 'TermID'], ResultType: 'simple' },
-                { EntityName: 'Committees: Roles', Fields: ['ID', 'IsVotingRole'], ResultType: 'simple' },
                 { EntityName: 'Committees: Minutes', ExtraFilter: `MeetingID = '${id}'`, ResultType: 'simple' },
             ]);
             this.Meeting = ((meeting.Success ? meeting.Results : []) as unknown as MeetingRow[])[0] ?? null;
@@ -145,7 +162,8 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
             this.buildRollCall(
                 (terms.Success ? terms.Results : []) as unknown as TermRow[],
                 (memberships.Success ? memberships.Results : []) as unknown as MemberRow[],
-                (roles.Success ? roles.Results : []) as unknown as RoleRow[]);
+                // Roles come from the process-wide lookup engine — no per-load query.
+                CommitteesLookupEngine.Instance.Roles.map(r => ({ ID: r.ID, IsVotingRole: r.IsVotingRole })));
             this.pickCurrentItem();
             this.refreshFloorMotion();
             this.loadMinutes(((minutes.Success ? minutes.Results : []) as unknown as { ID: string; Content: string | null }[])[0] ?? null);
@@ -295,11 +313,13 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
     // ── Meeting lifecycle ───────────────────────────────────────
 
     async OnStartMeeting(): Promise<void> {
+        if (!this.assertDrive()) return;
         await this.saveMeetingStatus('InProgress');
         if (this.IsInProgress) this.liveAnchor = new Date();
     }
 
     async OnEndMeeting(): Promise<void> {
+        if (!this.assertDrive()) return;
         await this.saveMeetingStatus('Completed');
         this.Exited.emit();
     }
@@ -358,6 +378,7 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
     // ── Motions & voting ────────────────────────────────────────
 
     async OnCreateMotion(): Promise<void> {
+        if (!this.assertDrive()) return;
         if (!this.Meeting || !this.NewMotionTitle.trim() || this.IsActing) return;
         this.IsActing = true;
         try {
@@ -389,6 +410,7 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
     }
 
     async OnCastVote(row: RollCallRow, value: 'Yes' | 'No' | 'Abstain'): Promise<void> {
+        if (!this.assertDrive()) return;
         if (!this.FloorMotion || this.IsActing || this.FloorMotion.Result !== 'Pending') return;
         this.IsActing = true;
         try {
@@ -414,6 +436,7 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
     }
 
     async OnRecordResult(): Promise<void> {
+        if (!this.assertDrive()) return;
         if (!this.FloorMotion || this.IsActing) return;
         this.IsActing = true;
         try {
@@ -443,6 +466,7 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
     // ── Attendance ──────────────────────────────────────────────
 
     async OnSetAttendance(row: RollCallRow, status: 'Present' | 'Absent' | 'Excused'): Promise<void> {
+        if (!this.assertDrive()) return;
         if (!this.Meeting || this.IsActing) return;
         this.IsActing = true;
         try {
@@ -507,6 +531,7 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
     }
 
     async OnGenerateAIDraft(): Promise<void> {
+        if (!this.assertDrive()) return;
         if (!this.Meeting || this.IsDrafting) return;
         this.IsDrafting = true;
         this.cdr.detectChanges();
@@ -543,6 +568,7 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
     }
 
     async OnAcceptDraft(): Promise<void> {
+        if (!this.assertDrive()) return;
         const item = this.CurrentItem;
         if (!item || !this.DraftText.trim() || !this.Meeting || this.IsActing) return;
         this.IsActing = true;
@@ -555,7 +581,9 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
                 minute.MeetingID = this.Meeting.ID;
                 minute.ApprovalStatus = 'Draft';
             }
-            const user = new Metadata().CurrentUser?.Name ?? 'Secretary';
+            const u = new Metadata().CurrentUser;
+            // Name is often the login email — prefer the human display name
+            const user = [u?.FirstName, u?.LastName].filter(Boolean).join(' ') || u?.Name || 'Secretary';
             const stamp = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
             const provenance = this.IsDraftAI
                 ? `Drafted by AI · Confirmed by ${user}, ${stamp}`

@@ -10,6 +10,7 @@ import {
 } from '@mj-biz-apps/committees-core';
 import { mjBizAppsCommitteesBallotEntity, mjBizAppsCommitteesMotionEntity, mjBizAppsCommitteesVoteEntity } from '@mj-biz-apps/committees-entities';
 import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
+import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 interface BallotRow {
@@ -114,6 +115,7 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
         this.ErrorMessage = '';
         this.cdr.detectChanges();
         try {
+            await CommitteesLookupEngine.Instance.Config();
             const rv = new RunView();
             const [register, ballotsResult, extras] = await Promise.all([
                 this.motionService.GetRegister(),
@@ -125,17 +127,19 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
                 rv.RunViews([
                     { EntityName: 'Committees: Terms', Fields: ['ID', 'CommitteeID', 'Status'], ResultType: 'simple' },
                     { EntityName: 'Committees: Memberships', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'PersonID', 'Person', 'Role', 'RoleID', 'TermID', 'Status'], ResultType: 'simple' },
-                    { EntityName: 'Committees: Roles', Fields: ['ID', 'IsVotingRole'], ResultType: 'simple' },
                 ]),
             ]);
             const ballots = (ballotsResult.Success ? ballotsResult.Results : []) as unknown as BallotRow[];
-            const [terms, memberships, roles] = extras;
+            const [terms, memberships] = extras;
+            // Roles come from the process-wide lookup engine — no per-load query.
+            const roles: RoleRow[] = CommitteesLookupEngine.Instance.Roles
+                .map(r => ({ ID: r.ID, IsVotingRole: r.IsVotingRole }));
             await this.assemble(
                 register,
                 ballots,
                 (terms.Success ? terms.Results : []) as unknown as TermRow[],
                 (memberships.Success ? memberships.Results : []) as unknown as MembershipFullRow[],
-                (roles.Success ? roles.Results : []) as unknown as RoleRow[],
+                roles,
             );
         } catch (err) {
             this.ErrorMessage = err instanceof Error ? err.message : 'Failed to load motions and ballots';

@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
+import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
 import { mjBizAppsCommitteesMotionEntity, mjBizAppsCommitteesVoteEntity } from '@mj-biz-apps/committees-entities';
 
 export interface MotionDialogResult {
@@ -59,13 +60,13 @@ export class MotionEditDialogComponent implements OnInit {
 
     async ngOnInit(): Promise<void> {
         await Promise.all([
-            this.LoadLookups(),
-            this.LoadOrCreateMotion()
+            this.loadLookups(),
+            this.loadOrCreateMotion()
         ]);
         if (!this.IsNew) {
-            await this.LoadVotes();
+            await this.loadVotes();
         } else {
-            this.InitVoterRows();
+            this.initVoterRows();
         }
         this.IsLoading = false;
         this.cdr.markForCheck();
@@ -84,7 +85,7 @@ export class MotionEditDialogComponent implements OnInit {
     async OnSave(): Promise<void> {
         if (!this.Motion) return;
 
-        const err = this.Validate();
+        const err = this.validate();
         if (err) {
             this.ErrorMessage = err;
             this.cdr.markForCheck();
@@ -110,7 +111,7 @@ export class MotionEditDialogComponent implements OnInit {
         }
 
         // Save votes
-        await this.SaveVotes();
+        await this.saveVotes();
 
         this.IsSaving = false;
         this.DialogClosed.emit({ Saved: true, Motion: this.Motion });
@@ -130,12 +131,12 @@ export class MotionEditDialogComponent implements OnInit {
         }
     }
 
-    private Validate(): string | null {
+    private validate(): string | null {
         if (!this.Motion!.Name?.trim()) return 'Title is required.';
         return null;
     }
 
-    private async LoadOrCreateMotion(): Promise<void> {
+    private async loadOrCreateMotion(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
             this.Motion = await md.GetEntityObject<mjBizAppsCommitteesMotionEntity>('Committees: Motions');
@@ -148,16 +149,14 @@ export class MotionEditDialogComponent implements OnInit {
         }
     }
 
-    private async LoadLookups(): Promise<void> {
-        const rv = new RunView();
-        const queries: Parameters<typeof rv.RunViews>[0] = [
-            {
-                EntityName: 'Committees: Roles',
-                Fields: ['ID', 'IsVotingRole'],
-                ResultType: 'simple'
-            }
-        ];
+    private async loadLookups(): Promise<void> {
+        // Roles come from the process-wide lookup engine — no per-open query.
+        await CommitteesLookupEngine.Instance.Config();
+        const votingRoleIDs = new Set(
+            CommitteesLookupEngine.Instance.Roles.filter(r => r.IsVotingRole).map(r => r.ID));
 
+        const rv = new RunView();
+        const queries: Parameters<typeof rv.RunViews>[0] = [];
         if (this.MeetingID) {
             queries.push({
                 EntityName: 'Committees: Agenda Items',
@@ -167,52 +166,51 @@ export class MotionEditDialogComponent implements OnInit {
                 ResultType: 'simple'
             });
         }
-
-        const results = await rv.RunViews(queries);
-
-        const votingRoleIDs = new Set<string>();
-        if (results[0].Success) {
-            for (const r of results[0].Results as { ID: string; IsVotingRole: boolean | number }[]) {
-                if (r.IsVotingRole === true || r.IsVotingRole === 1) votingRoleIDs.add(r.ID);
-            }
-        }
-
-        if (results[1]?.Success) {
-            this.AgendaItems = results[1].Results as { ID: string; Name: string }[];
-        }
-
-        // Load committee members through terms
         if (this.CommitteeID) {
-            const termsResult = await rv.RunView<{ ID: string }>({
+            queries.push({
                 EntityName: 'Committees: Terms',
                 ExtraFilter: `CommitteeID = '${this.CommitteeID}'`,
                 Fields: ['ID'],
                 ResultType: 'simple'
             });
+        }
+        const results = queries.length > 0 ? await rv.RunViews(queries) : [];
+        const agendaResult = this.MeetingID ? results[0] : undefined;
+        const termsResult = this.CommitteeID ? results[this.MeetingID ? 1 : 0] : undefined;
 
-            if (termsResult.Success && termsResult.Results && termsResult.Results.length > 0) {
-                const termIDs = termsResult.Results.map(t => `'${t.ID}'`).join(',');
-                const membersResult = await rv.RunView<{ ID: string; PersonID: string; Person: string; RoleID: string; Role: string }>({
-                    EntityName: 'Committees: Memberships',
-                    ExtraFilter: `TermID IN (${termIDs}) AND Status = 'Active'`,
-                    Fields: ['ID', 'PersonID', 'Person', 'RoleID', 'Role'],
-                    OrderBy: 'Role ASC, Person ASC',
-                    ResultType: 'simple'
-                });
+        if (agendaResult?.Success) {
+            this.AgendaItems = agendaResult.Results as { ID: string; Name: string }[];
+        }
+        await this.loadMembersForTerms(rv, termsResult, votingRoleIDs);
+    }
 
-                if (membersResult.Success) {
-                    this.Members = membersResult.Results.map(m => ({
-                        ID: m.ID,
-                        Person: m.Person || 'Unknown',
-                        Role: m.Role,
-                        IsVotingRole: votingRoleIDs.has(m.RoleID)
-                    }));
-                }
-            }
+    /** Committee members resolve through terms — dependent on the terms read above. */
+    private async loadMembersForTerms(
+        rv: RunView,
+        termsResult: { Success: boolean; Results: unknown[] } | undefined,
+        votingRoleIDs: Set<string>
+    ): Promise<void> {
+        const termRows = (termsResult?.Success ? termsResult.Results : []) as { ID: string }[];
+        if (termRows.length === 0) return;
+        const termIDs = termRows.map(t => `'${t.ID}'`).join(',');
+        const membersResult = await rv.RunView<{ ID: string; PersonID: string; Person: string; RoleID: string; Role: string }>({
+            EntityName: 'Committees: Memberships',
+            ExtraFilter: `TermID IN (${termIDs}) AND Status = 'Active'`,
+            Fields: ['ID', 'PersonID', 'Person', 'RoleID', 'Role'],
+            OrderBy: 'Role ASC, Person ASC',
+            ResultType: 'simple'
+        });
+        if (membersResult.Success) {
+            this.Members = membersResult.Results.map(m => ({
+                ID: m.ID,
+                Person: m.Person || 'Unknown',
+                Role: m.Role,
+                IsVotingRole: votingRoleIDs.has(m.RoleID)
+            }));
         }
     }
 
-    private InitVoterRows(): void {
+    private initVoterRows(): void {
         this.Voters = this.Members.map(m => ({
             MembershipID: m.ID,
             PersonName: m.Person,
@@ -224,8 +222,8 @@ export class MotionEditDialogComponent implements OnInit {
         }));
     }
 
-    private async LoadVotes(): Promise<void> {
-        this.InitVoterRows();
+    private async loadVotes(): Promise<void> {
+        this.initVoterRows();
 
         const rv = new RunView();
         const result = await rv.RunView<{ ID: string; MembershipID: string; VoteValue: string }>({
@@ -246,7 +244,7 @@ export class MotionEditDialogComponent implements OnInit {
         }
     }
 
-    private async SaveVotes(): Promise<void> {
+    private async saveVotes(): Promise<void> {
         const md = new Metadata();
         const changedVoters = this.Voters.filter(v => v.Changed);
 

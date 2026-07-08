@@ -1,3 +1,10 @@
+:host {
+    /* App-scoped AI provisional tokens, derived from MJ violet primitives */
+    --cmt-ai: var(--mj-color-violet-600, #7c3aed);
+    --cmt-ai-bg: color-mix(in srgb, var(--mj-color-violet-500, #8b5cf6) 10%, transparent);
+    --cmt-ai-border: color-mix(in srgb, var(--mj-color-violet-400, #a78bfa) 55%, transparent);
+}
+
 /* Meeting Detail View — uses MJ design tokens (--mj-*) */
 
 .detail-loading,
@@ -13,7 +20,7 @@
 
 .detail-not-found i {
     font-size: 32px;
-    color: var(--mj-color-error-500);
+    color: var(--mj-status-error);
 }
 
 /* ── Container ── */
@@ -30,7 +37,7 @@
     gap: var(--mj-space-1-5);
     background: none;
     border: none;
-    color: var(--mj-color-indigo-400);
+    color: var(--mj-brand-primary);
     font-size: 13px;
     font-weight: var(--mj-font-medium);
     cursor: pointer;
@@ -39,7 +46,7 @@
 }
 
 .back-btn:hover {
-    color: var(--mj-color-indigo-400);
+    color: var(--mj-brand-primary);
 }
 
 .header-meta {
@@ -111,8 +118,8 @@
 }
 
 .section-tab.active {
-    color: var(--mj-color-indigo-400);
-    border-bottom-color: var(--mj-color-indigo-500);
+    color: var(--mj-brand-primary);
+    border-bottom-color: var(--mj-brand-primary);
 }
 
 .tab-count {
@@ -130,15 +137,15 @@
 }
 
 .section-tab.active .tab-count {
-    background: color-mix(in srgb, var(--mj-color-violet-500) 14%, transparent);
-    color: var(--mj-color-indigo-400);
+    background: var(--cmt-ai-bg);
+    color: var(--mj-brand-primary);
 }
 
 .tab-count-dot {
     min-width: var(--mj-space-2);
     height: var(--mj-space-2);
     padding: 0;
-    background: var(--mj-color-indigo-500);
+    background: var(--mj-brand-primary);
     border-radius: 50%;
 }
 
@@ -194,7 +201,7 @@
 }
 
 .card-header i {
-    color: var(--mj-color-indigo-400);
+    color: var(--mj-brand-primary);
     font-size: 15px;
 }
 
@@ -232,7 +239,7 @@
     font-size: 13px;
 }
 
-.attendance-row.present i { color: var(--mj-color-success-500); }
+.attendance-row.present i { color: var(--mj-status-success); }
 .attendance-row.absent i  { color: var(--mj-text-muted); }
 
 .absence-label {
@@ -272,7 +279,7 @@
     color: var(--mj-text-primary);
 }
 
-.stat-value.passed { color: var(--mj-color-success-500); }
+.stat-value.passed { color: var(--mj-status-success); }
 
 /* ── Agenda ── */
 .agenda-list {
@@ -332,7 +339,7 @@
 .agenda-completed { background: var(--mj-status-success-bg); color: var(--mj-status-success-text); }
 .agenda-tabled    { background: var(--mj-status-warning-bg); color: var(--mj-status-warning-text); }
 .agenda-skipped   { background: var(--mj-bg-surface-sunken); color: var(--mj-text-muted); }
-.agenda-discussed { background: color-mix(in srgb, var(--mj-color-violet-500) 14%, transparent); color: var(--mj-color-indigo-400); }
+.agenda-discussed { background: var(--cmt-ai-bg); color: var(--mj-brand-primary); }
 
 .agenda-meta {
     display: flex;
@@ -469,13 +476,13 @@
     color: var(--mj-text-primary);
     margin: 0 0 18px;
     padding-bottom: var(--mj-space-3);
-    border-bottom: 2px solid var(--mj-color-indigo-500);
+    border-bottom: 2px solid var(--mj-brand-primary);
 }
 
 ::ng-deep .markdown-preview h2 {
     font-size: 13px;
     font-weight: var(--mj-font-bold);
-    color: var(--mj-color-indigo-400);
+    color: var(--mj-brand-primary);
     text-transform: uppercase;
     letter-spacing: 0.6px;
     margin: var(--mj-space-6) 0 var(--mj-space-2);

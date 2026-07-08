@@ -34,8 +34,8 @@ export class CommitteeListComponent extends BaseResourceComponent implements OnI
     async ngOnInit(): Promise<void> {
         this.NotifyLoadStarted();
         await Promise.all([
-            this.LoadCommittees(),
-            this.LoadUserMemberships()
+            this.loadCommittees(),
+            this.loadUserMemberships()
         ]);
         this.IsLoading = false;
         this.NotifyLoadComplete();
@@ -52,12 +52,12 @@ export class CommitteeListComponent extends BaseResourceComponent implements OnI
 
     OnSearchChanged(text: string): void {
         this.SearchText = text;
-        this.ApplyFilters();
+        this.applyFilters();
     }
 
     OnStatusFilterChanged(status: 'All' | 'Active' | 'Inactive'): void {
         this.StatusFilter = status;
-        this.ApplyFilters();
+        this.applyFilters();
     }
 
     IsOfficerOf(committeeID: string): boolean {
@@ -84,12 +84,12 @@ export class CommitteeListComponent extends BaseResourceComponent implements OnI
     async OnDialogClosed(result: CommitteeDialogResult): Promise<void> {
         this.ShowEditDialog = false;
         if (result.Saved) {
-            await this.LoadCommittees();
+            await this.loadCommittees();
         }
         this.cdr.markForCheck();
     }
 
-    private ApplyFilters(): void {
+    private applyFilters(): void {
         let result = this.Committees;
         if (this.StatusFilter !== 'All') {
             result = result.filter(c => c['Status'] === this.StatusFilter);
@@ -105,7 +105,7 @@ export class CommitteeListComponent extends BaseResourceComponent implements OnI
         this.cdr.markForCheck();
     }
 
-    private async LoadCommittees(): Promise<void> {
+    private async loadCommittees(): Promise<void> {
         const rv = new RunView();
         const [committeesResult, termsResult, membershipsResult] = await rv.RunViews([
             {
@@ -151,11 +151,11 @@ export class CommitteeListComponent extends BaseResourceComponent implements OnI
                 ...c,
                 MemberCount: memberCounts.get(c['ID'] as string) ?? 0
             }));
-            this.ApplyFilters();
+            this.applyFilters();
         }
     }
 
-    private async LoadUserMemberships(): Promise<void> {
+    private async loadUserMemberships(): Promise<void> {
         this.OfficerCommitteeIDs = await CommitteePermissionHelper.GetOfficerCommitteeIDs();
         this.MemberCommitteeIDs = await CommitteePermissionHelper.GetMemberCommitteeIDs();
     }

@@ -173,6 +173,10 @@
     align-items: center;
     text-align: center;
     gap: 8px;
+    /* height:auto is explicit: the Explorer shell ships a global
+       `.empty { height: 150px }` that otherwise clamps this card and pushes
+       the CTA past its bottom edge. Our scoped rule wins on specificity. */
+    height: auto;
     padding: 36px 20px;
     color: var(--mj-text-muted);
 }

@@ -90,7 +90,7 @@ export class EBallotDialogComponent implements OnInit {
             motion.Name = this.Name.trim();
             if (this.MotionText.trim()) motion.Description = this.MotionText.trim();
             motion.Result = 'Pending';
-            if (!await motion.Save()) throw new Error(motion.LatestResult?.Message ?? 'Failed to create motion');
+            if (!await motion.Save()) throw new Error(motion.LatestResult?.CompleteMessage ?? 'Failed to create motion');
 
             const ballot = await md.GetEntityObject<mjBizAppsCommitteesBallotEntity>('Committees: Ballots');
             ballot.CommitteeID = this.CommitteeID;
@@ -100,7 +100,7 @@ export class EBallotDialogComponent implements OnInit {
             ballot.ThresholdType = this.Threshold;
             ballot.IsSealed = this.IsSealed;
             ballot.Status = 'Open';
-            if (!await ballot.Save()) throw new Error(ballot.LatestResult?.Message ?? 'Failed to create ballot');
+            if (!await ballot.Save()) throw new Error(ballot.LatestResult?.CompleteMessage ?? 'Failed to create ballot');
 
             this.DialogClosed.emit(true);
         } catch (err) {

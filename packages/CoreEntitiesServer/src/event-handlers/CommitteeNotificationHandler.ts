@@ -23,7 +23,7 @@ import {
     mjBizAppsCommitteesActionItemEntity,
     mjBizAppsCommitteesCommentEntity,
 } from '@mj-biz-apps/committees-entities';
-import { MJEventType, MJGlobal, MJEvent } from '@memberjunction/global';
+import { MJEventType, MJGlobal, MJEvent , UUIDsEqual } from '@memberjunction/global';
 import { Subscription } from 'rxjs';
 
 /** Entity names we listen for */
@@ -222,7 +222,7 @@ async function handleCommentSave(event: BaseEntityEvent): Promise<void> {
     const parentCommentID = comment.ParentCommentID;
     if (parentCommentID) {
         const parentAuthorPersonID = await getCommentAuthorPersonID(parentCommentID, contextUser);
-        if (parentAuthorPersonID && parentAuthorPersonID !== authorPersonID) {
+        if (parentAuthorPersonID && !UUIDsEqual(parentAuthorPersonID, authorPersonID)) {
             const userID = await getPersonLinkedUserID(parentAuthorPersonID, contextUser);
             if (userID) userIDsToNotify.add(userID);
         }
@@ -231,7 +231,7 @@ async function handleCommentSave(event: BaseEntityEvent): Promise<void> {
     // 2. Notify @mentioned people (one batched lookup — RunView is expensive)
     const mentionedJSON = comment.MentionedPersonIDs;
     if (mentionedJSON) {
-        const mentionedIDs = parseMentionedPersonIDs(mentionedJSON).filter(id => id !== authorPersonID);
+        const mentionedIDs = parseMentionedPersonIDs(mentionedJSON).filter(id => !UUIDsEqual(id, authorPersonID));
         for (const userID of await getLinkedUserIDsForPeople(mentionedIDs, contextUser)) {
             userIDsToNotify.add(userID);
         }
@@ -392,7 +392,7 @@ async function createNotificationsForUsers(
 
         const saved = await notification.Save();
         if (!saved) {
-            LogError(`[Committees] Failed to save notification for user ${userID}: ${notification.LatestResult?.Message}`);
+            LogError(`[Committees] Failed to save notification for user ${userID}: ${notification.LatestResult?.CompleteMessage}`);
         }
     });
 

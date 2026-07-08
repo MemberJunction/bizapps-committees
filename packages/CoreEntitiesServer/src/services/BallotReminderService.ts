@@ -128,7 +128,7 @@ export class BallotReminderService {
             n.Message = `${ballot.Committee} has an open e-ballot that closes ${closes}. Cast your vote from My Committees.`;
             n.Unread = true;
             if (!await n.Save()) {
-                LogError(`[BallotReminderService] notification save failed for user ${userID}: ${n.LatestResult?.Message}`);
+                LogError(`[BallotReminderService] notification save failed for user ${userID}: ${n.LatestResult?.CompleteMessage}`);
             }
         }
     }

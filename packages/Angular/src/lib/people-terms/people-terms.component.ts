@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { RegisterClass } from '@memberjunction/global';
+import { RegisterClass , UUIDsEqual } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import {
@@ -41,6 +41,8 @@ export class PeopleTermsComponent extends BaseResourceComponent implements OnIni
 
     async ngOnInit(): Promise<void> {
         await this.Load();
+        // Required by the shell: clears the app loading screen on direct URL loads.
+        this.NotifyLoadComplete();
     }
 
     async Load(): Promise<void> {
@@ -73,7 +75,7 @@ export class PeopleTermsComponent extends BaseResourceComponent implements OnIni
     }
 
     get SelectedCommitteeName(): string {
-        return this.Clock?.Committees.find(c => c.ID === this.SelectedCommitteeID)?.Name ?? '';
+        return this.Clock?.Committees.find(c => UUIDsEqual(c.ID, this.SelectedCommitteeID))?.Name ?? '';
     }
 
     get OpeningsCount(): number {

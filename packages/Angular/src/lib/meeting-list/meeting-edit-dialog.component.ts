@@ -1,3 +1,4 @@
+import { UUIDsEqual } from '@memberjunction/global';
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
 import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
@@ -172,7 +173,7 @@ export class MeetingEditDialogComponent implements OnInit {
 
     OnAddAttendee(): void {
         if (!this.SelectedPersonID) return;
-        const person = this.AllPeople.find(p => p.ID === this.SelectedPersonID);
+        const person = this.AllPeople.find(p => UUIDsEqual(p.ID, this.SelectedPersonID));
         if (!person) return;
 
         this.Attendees.push({

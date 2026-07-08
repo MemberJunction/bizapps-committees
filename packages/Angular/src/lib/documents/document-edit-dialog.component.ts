@@ -1,3 +1,4 @@
+import { UUIDsEqual } from '@memberjunction/global';
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView, RunViewParams, RunViewResult } from '@memberjunction/core';
 import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
@@ -339,7 +340,7 @@ export class DocumentEditDialogComponent implements OnInit {
             await this.FileRecord.Load(this.FileID!);
             // Determine mode from the provider: external-URL providers store the link
             // in ProviderKey; anything else is an uploaded file in a storage backend.
-            const isExternal = this.ExternalProviders.some(p => p.ID === this.FileRecord!.ProviderID);
+            const isExternal = this.ExternalProviders.some(p => UUIDsEqual(p.ID, this.FileRecord!.ProviderID));
             this.DocumentMode = isExternal ? 'link' : 'upload';
             // Load existing context links
             await this.loadExistingLinks();

@@ -102,6 +102,8 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
 
     async ngOnInit(): Promise<void> {
         await this.Load();
+        // Required by the shell: clears the app loading screen on direct URL loads.
+        this.NotifyLoadComplete();
     }
 
     // ── Load ────────────────────────────────────────────────────
@@ -331,7 +333,7 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
                 att.PersonID = this.personID;
             }
             att.AttendanceStatus = attending ? 'Expected' : 'Absent';
-            if (!await att.Save()) throw new Error(att.LatestResult?.Message ?? 'RSVP failed');
+            if (!await att.Save()) throw new Error(att.LatestResult?.CompleteMessage ?? 'RSVP failed');
             this.myAttendanceID = att.ID;
             this.MyRsvp = attending ? 'Expected' : 'Absent';
         } catch (err) {
@@ -350,7 +352,7 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
             if (!await action.Load(item.ActionItemID)) throw new Error('Action item not found');
             action.Status = 'Completed';
             action.CompletedAt = new Date();
-            if (!await action.Save()) throw new Error(action.LatestResult?.Message ?? 'Update failed');
+            if (!await action.Save()) throw new Error(action.LatestResult?.CompleteMessage ?? 'Update failed');
             this.Needs = this.Needs.filter(n => n.Key !== item.Key);
         } catch (err) {
             this.ErrorMessage = err instanceof Error ? err.message : 'Failed to complete';
@@ -368,7 +370,7 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
             vote.MotionID = item.BallotMotionID;
             vote.MembershipID = item.MyMembershipID;
             vote.VoteValue = value;
-            if (!await vote.Save()) throw new Error(vote.LatestResult?.Message ?? 'Vote failed');
+            if (!await vote.Save()) throw new Error(vote.LatestResult?.CompleteMessage ?? 'Vote failed');
             this.Needs = this.Needs.filter(n => n.Key !== item.Key);
         } catch (err) {
             this.ErrorMessage = err instanceof Error ? err.message : 'Vote failed';
@@ -397,7 +399,7 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
             const membership = await md.GetEntityObject<mjBizAppsCommitteesMembershipEntity>('Committees: Memberships');
             if (!await membership.Load(committee.MembershipID)) throw new Error('Membership not found');
             membership.RenewalIntent = value;
-            if (!await membership.Save()) throw new Error(membership.LatestResult?.Message ?? 'Save failed');
+            if (!await membership.Save()) throw new Error(membership.LatestResult?.CompleteMessage ?? 'Save failed');
             committee.RenewalIntent = value;
             committee.EditingIntent = false;
         } catch (err) {

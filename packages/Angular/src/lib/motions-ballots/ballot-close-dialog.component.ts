@@ -127,7 +127,7 @@ export class BallotCloseDialogComponent implements OnInit {
         motion.YesCount = this.View.Tally.Yes;
         motion.NoCount = this.View.Tally.No;
         motion.AbstainCount = this.View.Tally.Abstain;
-        if (!await motion.Save()) throw new Error(motion.LatestResult?.Message ?? 'Motion stamp failed');
+        if (!await motion.Save()) throw new Error(motion.LatestResult?.CompleteMessage ?? 'Motion stamp failed');
     }
 
     private async writeBallot(status: 'Closed' | 'Cancelled'): Promise<void> {
@@ -137,7 +137,7 @@ export class BallotCloseDialogComponent implements OnInit {
         ballot.Status = status;
         ballot.ClosedAt = new Date();
         ballot.ResultNotes = this.Notes.trim() || null;
-        if (!await ballot.Save()) throw new Error(ballot.LatestResult?.Message ?? 'Ballot save failed');
+        if (!await ballot.Save()) throw new Error(ballot.LatestResult?.CompleteMessage ?? 'Ballot save failed');
     }
 
     // ── Exit ────────────────────────────────────────────────────

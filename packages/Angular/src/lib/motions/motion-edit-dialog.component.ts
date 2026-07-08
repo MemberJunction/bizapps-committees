@@ -1,3 +1,4 @@
+import { UUIDsEqual } from '@memberjunction/global';
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
 import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
@@ -235,7 +236,7 @@ export class MotionEditDialogComponent implements OnInit {
 
         if (result.Success) {
             for (const vote of result.Results) {
-                const voter = this.Voters.find(v => v.MembershipID === vote.MembershipID);
+                const voter = this.Voters.find(v => UUIDsEqual(v.MembershipID, vote.MembershipID));
                 if (voter) {
                     voter.VoteID = vote.ID;
                     voter.VoteValue = vote.VoteValue as VoterRow['VoteValue'];

@@ -1,6 +1,6 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
-import { RegisterClass } from '@memberjunction/global';
+import { RegisterClass , UUIDsEqual } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import {
@@ -108,6 +108,8 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
 
     async ngOnInit(): Promise<void> {
         await this.Load();
+        // Required by the shell: clears the app loading screen on direct URL loads.
+        this.NotifyLoadComplete();
     }
 
     async Load(): Promise<void> {
@@ -288,7 +290,7 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
     }
 
     ToggleRollCall(row: MotionRegisterRow): void {
-        if (this.ExpandedMotionID === row.MotionID) {
+        if (UUIDsEqual(this.ExpandedMotionID, row.MotionID)) {
             this.ExpandedMotionID = null;
             this.ExpandedRollCall = [];
             return;
@@ -334,7 +336,7 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
             vote.MotionID = view.Ballot.MotionID;
             vote.MembershipID = view.MyVotableMembershipID;
             vote.VoteValue = value;
-            if (!await vote.Save()) throw new Error(vote.LatestResult?.Message ?? 'Vote failed to save');
+            if (!await vote.Save()) throw new Error(vote.LatestResult?.CompleteMessage ?? 'Vote failed to save');
             await this.Load();
         } catch (err) {
             this.ErrorMessage = err instanceof Error ? err.message : 'Failed to record vote';
@@ -363,7 +365,7 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
         try {
             const ballot = await this.loadBallotEntity(view.Ballot.ID);
             ballot.ClosesAt = newClose;
-            if (!await ballot.Save()) throw new Error(ballot.LatestResult?.Message ?? 'Extend failed');
+            if (!await ballot.Save()) throw new Error(ballot.LatestResult?.CompleteMessage ?? 'Extend failed');
             await this.Load();
         } catch (err) {
             this.ErrorMessage = err instanceof Error ? err.message : 'Failed to extend deadline';

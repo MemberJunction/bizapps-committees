@@ -163,7 +163,7 @@ export class AgendaBuilderComponent implements OnInit {
             item.ItemType = this.NewType;
             item.Sequence = (this.Rows[this.Rows.length - 1]?.Sequence ?? 0) + 1;
             item.Status = 'Pending';
-            if (!await item.Save()) throw new Error(item.LatestResult?.Message ?? 'Add failed');
+            if (!await item.Save()) throw new Error(item.LatestResult?.CompleteMessage ?? 'Add failed');
             this.NewName = '';
         });
     }
@@ -187,7 +187,7 @@ export class AgendaBuilderComponent implements OnInit {
             item.DurationMinutes = row.DurationMinutes || null;
             item.PresenterPersonID = row.PresenterPersonID || null;
             item.Notes = row.Notes?.trim() || null;
-            if (!await item.Save()) throw new Error(item.LatestResult?.Message ?? 'Save failed');
+            if (!await item.Save()) throw new Error(item.LatestResult?.CompleteMessage ?? 'Save failed');
         });
     }
 
@@ -212,7 +212,7 @@ export class AgendaBuilderComponent implements OnInit {
         await this.write(async (md) => {
             const item = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items');
             if (!await item.Load(row.ID)) throw new Error('Agenda item not found');
-            if (!await item.Delete()) throw new Error(item.LatestResult?.Message ?? 'Delete failed');
+            if (!await item.Delete()) throw new Error(item.LatestResult?.CompleteMessage ?? 'Delete failed');
             this.Rows = this.Rows.filter(r => r !== row);
             await this.saveSequences(new Metadata());
         });
@@ -232,7 +232,7 @@ export class AgendaBuilderComponent implements OnInit {
             const item = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items');
             if (!await item.Load(this.Rows[i].ID)) throw new Error('Agenda item not found');
             item.Sequence = wanted;
-            if (!await item.Save()) throw new Error(item.LatestResult?.Message ?? 'Reorder failed');
+            if (!await item.Save()) throw new Error(item.LatestResult?.CompleteMessage ?? 'Reorder failed');
             this.Rows[i].Sequence = wanted;
             this.Rows[i].PersistedSequence = wanted;
         }

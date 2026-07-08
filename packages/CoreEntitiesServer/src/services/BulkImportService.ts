@@ -322,7 +322,7 @@ export class BulkImportService {
 
                 const saved = await entity.Save();
                 if (!saved) {
-                    errors.push({ Entity: 'Committee', Identifier: row.Name, Message: entity.LatestResult?.Message ?? 'Save failed' });
+                    errors.push({ Entity: 'Committee', Identifier: row.Name, Message: entity.LatestResult?.CompleteMessage ?? 'Save failed' });
                     continue;
                 }
                 committeeIDs.set(row.Name, entity.ID);
@@ -366,7 +366,7 @@ export class BulkImportService {
 
                 const saved = await entity.Save();
                 if (!saved) {
-                    errors.push({ Entity: 'Term', Identifier: `${row.CommitteeRef}/${entity.Name}`, Message: entity.LatestResult?.Message ?? 'Save failed' });
+                    errors.push({ Entity: 'Term', Identifier: `${row.CommitteeRef}/${entity.Name}`, Message: entity.LatestResult?.CompleteMessage ?? 'Save failed' });
                     continue;
                 }
                 termIDs.set(row.CommitteeRef, entity.ID);
@@ -408,7 +408,7 @@ export class BulkImportService {
 
                 const saved = await entity.Save();
                 if (!saved) {
-                    errors.push({ Entity: 'Person', Identifier: row.Email, Message: entity.LatestResult?.Message ?? 'Save failed' });
+                    errors.push({ Entity: 'Person', Identifier: row.Email, Message: entity.LatestResult?.CompleteMessage ?? 'Save failed' });
                     continue;
                 }
                 personIDs.set(emailKey, entity.ID);
@@ -457,7 +457,7 @@ export class BulkImportService {
 
                 const saved = await entity.Save();
                 if (!saved) {
-                    errors.push({ Entity: 'Membership', Identifier: `${row.PersonRef} → ${row.CommitteeRef}`, Message: entity.LatestResult?.Message ?? 'Save failed' });
+                    errors.push({ Entity: 'Membership', Identifier: `${row.PersonRef} → ${row.CommitteeRef}`, Message: entity.LatestResult?.CompleteMessage ?? 'Save failed' });
                     continue;
                 }
                 counts.memberships++;

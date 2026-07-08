@@ -1,4 +1,4 @@
-import { BaseEntity, ValidationResult, ValidationErrorInfo, ValidationErrorType, RunView } from '@memberjunction/core';
+import { BaseEntity, IRunViewProvider, ValidationResult, ValidationErrorInfo, ValidationErrorType, RunView } from '@memberjunction/core';
 import { RegisterClass } from '@memberjunction/global';
 import { mjBizAppsCommitteesMembershipEntity } from '../generated/entity_subclasses';
 
@@ -83,12 +83,16 @@ export class MembershipEntityCustom extends mjBizAppsCommitteesMembershipEntity 
             return;
         }
 
-        const rv = new RunView();
+        // This entity owns a provider — route the query through it and carry the
+        // entity's user context (MJ rule: never reach for the global provider here).
+        // The concrete provider implements both interfaces; the cast bridges the
+        // disjoint IEntityDataProvider/IRunViewProvider declarations.
+        const rv = new RunView(this.ProviderToUse as unknown as IRunViewProvider);
         const dupeCheck = await rv.RunView<mjBizAppsCommitteesMembershipEntity>({
             EntityName: 'Committees: Memberships',
             ExtraFilter: `PersonID='${this.PersonID}' AND TermID='${this.TermID}' AND Status='Active' AND ID<>'${this.ID}'`,
             ResultType: 'simple',
-        });
+        }, this.ContextCurrentUser);
 
         if (dupeCheck.Success && dupeCheck.Results.length > 0) {
             result.Errors.push(new ValidationErrorInfo(

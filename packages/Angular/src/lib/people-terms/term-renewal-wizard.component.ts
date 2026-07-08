@@ -1,3 +1,4 @@
+import { UUIDsEqual } from '@memberjunction/global';
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, EventEmitter, Input, Output, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
 import {
@@ -123,7 +124,7 @@ export class TermRenewalWizardComponent {
     get NewRosterCount(): number { return this.CarriedRows.length + this.Added.length; }
 
     RoleName(roleID: string): string {
-        return this.Context?.Roles.find(r => r.ID === roleID)?.Name ?? '';
+        return this.Context?.Roles.find(r => UUIDsEqual(r.ID, roleID))?.Name ?? '';
     }
 
     get DefaultRoleID(): string {
@@ -182,7 +183,7 @@ export class TermRenewalWizardComponent {
 
     AddPerson(person: PersonSearchRow): void {
         this.Added.push({ PersonID: person.ID, PersonName: person.DisplayName, RoleID: this.DefaultRoleID, Source: 'search' });
-        this.SearchResults = this.SearchResults.filter(p => p.ID !== person.ID);
+        this.SearchResults = this.SearchResults.filter(p => !UUIDsEqual(p.ID, person.ID));
         this.cdr.markForCheck();
     }
 
@@ -240,7 +241,7 @@ export class TermRenewalWizardComponent {
         term.StartDate = new Date(this.StartDateStr + 'T00:00:00Z');
         term.EndDate = new Date(this.EndDateStr + 'T00:00:00Z');
         term.Status = this.DerivedStatus;
-        if (!await term.Save()) throw new Error(term.LatestResult?.Message ?? 'term save failed');
+        if (!await term.Save()) throw new Error(term.LatestResult?.CompleteMessage ?? 'term save failed');
         return term.ID;
     }
 
@@ -268,7 +269,7 @@ export class TermRenewalWizardComponent {
             m.TermID = termID;
             m.StartDate = new Date(this.StartDateStr + 'T00:00:00Z');
             m.Status = 'Active';
-            if (!await m.Save()) throw new Error(m.LatestResult?.Message ?? 'membership save failed');
+            if (!await m.Save()) throw new Error(m.LatestResult?.CompleteMessage ?? 'membership save failed');
             already.add(w.PersonID.toLowerCase());
         }
     }
@@ -290,14 +291,14 @@ export class TermRenewalWizardComponent {
             m.Status = 'Ended';
             m.EndDate = endDate;
             m.EndReason = declined.has(m.ID.toLowerCase()) ? 'Declined renewal' : 'Term ended';
-            if (!await m.Save()) throw new Error(m.LatestResult?.Message ?? 'membership close failed');
+            if (!await m.Save()) throw new Error(m.LatestResult?.CompleteMessage ?? 'membership close failed');
         }
 
         if (prev.Status !== 'Completed') {
             const term = await md.GetEntityObject<mjBizAppsCommitteesTermEntity>('Committees: Terms');
             if (!await term.Load(prev.ID)) throw new Error('previous term not found');
             term.Status = 'Completed';
-            if (!await term.Save()) throw new Error(term.LatestResult?.Message ?? 'term completion failed');
+            if (!await term.Save()) throw new Error(term.LatestResult?.CompleteMessage ?? 'term completion failed');
         }
     }
 

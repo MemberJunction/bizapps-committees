@@ -201,7 +201,7 @@ export class MinutesReviewComponent implements OnInit {
             const minute = await md.GetEntityObject<mjBizAppsCommitteesMinuteEntity>('Committees: Minutes');
             if (!await minute.Load(this.Minute.ID)) throw new Error('Minute not found');
             minute.Content = this.serializeSections();
-            if (!await minute.Save()) throw new Error(minute.LatestResult?.Message ?? 'Save failed');
+            if (!await minute.Save()) throw new Error(minute.LatestResult?.CompleteMessage ?? 'Save failed');
             this.Minute.Content = minute.Content;
         } catch (err) {
             this.ErrorMessage = err instanceof Error ? err.message : 'Failed to save minutes';
@@ -244,7 +244,7 @@ export class MinutesReviewComponent implements OnInit {
             minute.ApprovalStatus = 'Draft';
         }
         minute.Content = content;
-        if (!await minute.Save()) throw new Error(minute.LatestResult?.Message ?? 'Save failed');
+        if (!await minute.Save()) throw new Error(minute.LatestResult?.CompleteMessage ?? 'Save failed');
     }
 
     async OnFinalize(): Promise<void> { await this.setStatus('PendingApproval'); }
@@ -262,7 +262,7 @@ export class MinutesReviewComponent implements OnInit {
             if (!await minute.Load(this.Minute.ID)) throw new Error('Minute not found');
             minute.ApprovalStatus = status as mjBizAppsCommitteesMinuteEntity['ApprovalStatus'];
             if (status === 'Approved') minute.ApprovedAt = new Date();
-            if (!await minute.Save()) throw new Error(minute.LatestResult?.Message ?? 'Save failed');
+            if (!await minute.Save()) throw new Error(minute.LatestResult?.CompleteMessage ?? 'Save failed');
             await this.Load();
         } catch (err) {
             this.ErrorMessage = err instanceof Error ? err.message : 'Failed to update status';

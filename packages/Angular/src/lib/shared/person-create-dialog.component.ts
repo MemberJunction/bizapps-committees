@@ -61,7 +61,7 @@ export class PersonCreateDialogComponent {
             person.Phone = this.Phone.trim() || null;
             person.Title = this.Title.trim() || null;
             person.Status = 'Active';
-            if (!await person.Save()) throw new Error(person.LatestResult?.Message ?? 'Person save failed');
+            if (!await person.Save()) throw new Error(person.LatestResult?.CompleteMessage ?? 'Person save failed');
             this.Created.emit({ PersonID: person.ID, DisplayName: `${person.FirstName} ${person.LastName}` });
         } catch (err) {
             this.ErrorMessage = err instanceof Error ? err.message : 'Failed to create person';

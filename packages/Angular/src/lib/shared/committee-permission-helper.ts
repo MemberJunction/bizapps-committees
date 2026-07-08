@@ -1,3 +1,4 @@
+import { UUIDsEqual } from '@memberjunction/global';
 import { Metadata, RunView } from '@memberjunction/core';
 import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
 
@@ -184,7 +185,7 @@ export class CommitteePermissionHelper {
         }
 
         const memberships = await this.GetCurrentUserMemberships();
-        const forCommittee = memberships.filter(m => m.CommitteeID === committeeID);
+        const forCommittee = memberships.filter(m => UUIDsEqual(m.CommitteeID, committeeID));
 
         if (forCommittee.length === 0) return NO_PERMISSIONS;
 

@@ -1,3 +1,4 @@
+import { UUIDsEqual } from '@memberjunction/global';
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
 import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
@@ -235,7 +236,7 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
     // ── Derived view state ──────────────────────────────────────
 
     get CurrentItem(): AgendaRow | null {
-        return this.Agenda.find(a => a.ID === this.CurrentItemID) ?? null;
+        return this.Agenda.find(a => UUIDsEqual(a.ID, this.CurrentItemID)) ?? null;
     }
 
     get TopLevelAgenda(): AgendaRow[] { return this.Agenda; }
@@ -334,7 +335,7 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
             const meeting = await md.GetEntityObject<mjBizAppsCommitteesMeetingEntity>('Committees: Meetings');
             if (!await meeting.Load(this.Meeting.ID)) throw new Error('Meeting not found');
             meeting.Status = status as mjBizAppsCommitteesMeetingEntity['Status'];
-            if (!await meeting.Save()) throw new Error(meeting.LatestResult?.Message ?? 'Status change failed');
+            if (!await meeting.Save()) throw new Error(meeting.LatestResult?.CompleteMessage ?? 'Status change failed');
             this.Meeting = { ...this.Meeting, Status: status };
         } catch (err) {
             this.ErrorMessage = err instanceof Error ? err.message : 'Failed to update meeting';
@@ -365,7 +366,7 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
             const entity = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items');
             if (!await entity.Load(item.ID)) throw new Error('Agenda item not found');
             entity.Status = status as mjBizAppsCommitteesAgendaItemEntity['Status'];
-            if (!await entity.Save()) throw new Error(entity.LatestResult?.Message ?? 'Agenda update failed');
+            if (!await entity.Save()) throw new Error(entity.LatestResult?.CompleteMessage ?? 'Agenda update failed');
             item.Status = status;
             if (advance) { this.pickCurrentItem(); this.refreshFloorMotion(); this.refreshDraftProposal(); }
         } catch (err) {
@@ -391,7 +392,7 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
             if (this.NewMotionMovedBy) motion.MovedByMembershipID = this.NewMotionMovedBy;
             if (this.NewMotionSecondedBy) motion.SecondedByMembershipID = this.NewMotionSecondedBy;
             motion.Result = 'Pending';
-            if (!await motion.Save()) throw new Error(motion.LatestResult?.Message ?? 'Motion create failed');
+            if (!await motion.Save()) throw new Error(motion.LatestResult?.CompleteMessage ?? 'Motion create failed');
             this.allMotions.push({
                 ID: motion.ID, AgendaItemID: this.CurrentItemID, Name: motion.Name,
                 Description: motion.Description ?? null,
@@ -424,9 +425,9 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
                 vote.MembershipID = row.MembershipID;
             }
             vote.VoteValue = value;
-            if (!await vote.Save()) throw new Error(vote.LatestResult?.Message ?? 'Vote failed');
+            if (!await vote.Save()) throw new Error(vote.LatestResult?.CompleteMessage ?? 'Vote failed');
             const record: VoteRowLocal = { ID: vote.ID, MotionID: this.FloorMotion.ID, MembershipID: row.MembershipID, VoteValue: value, Notes: null };
-            this.allVotes = this.allVotes.filter(v => v.ID !== record.ID).concat(record);
+            this.allVotes = this.allVotes.filter(v => !UUIDsEqual(v.ID, record.ID)).concat(record);
             this.applyVotesToRollCall();
         } catch (err) {
             this.ErrorMessage = err instanceof Error ? err.message : 'Failed to record vote';
@@ -451,9 +452,9 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
             motion.NoCount = tally.No;
             motion.AbstainCount = tally.Abstain;
             motion.ResultSummary = `${result} ${tally.Yes}-${tally.No}-${tally.Abstain} by roll call`;
-            if (!await motion.Save()) throw new Error(motion.LatestResult?.Message ?? 'Record failed');
+            if (!await motion.Save()) throw new Error(motion.LatestResult?.CompleteMessage ?? 'Record failed');
             this.FloorMotion = { ...this.FloorMotion, Result: result, YesCount: tally.Yes, NoCount: tally.No, AbstainCount: tally.Abstain };
-            const idx = this.allMotions.findIndex(m => m.ID === this.FloorMotion!.ID);
+            const idx = this.allMotions.findIndex(m => UUIDsEqual(m.ID, this.FloorMotion!.ID));
             if (idx >= 0) this.allMotions[idx] = this.FloorMotion;
             this.refreshDraftProposal();
         } catch (err) {
@@ -481,7 +482,7 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
             }
             att.AttendanceStatus = status;
             if (status === 'Present' && !att.JoinedAt) att.JoinedAt = new Date();
-            if (!await att.Save()) throw new Error(att.LatestResult?.Message ?? 'Attendance failed');
+            if (!await att.Save()) throw new Error(att.LatestResult?.CompleteMessage ?? 'Attendance failed');
             this.attendanceByPerson.set(row.PersonID.toLowerCase(), {
                 ID: att.ID, PersonID: row.PersonID, Person: row.PersonName,
                 AttendanceStatus: status, JoinedAt: att.JoinedAt ?? null,
@@ -590,7 +591,7 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
                 : `Drafted from meeting record · Confirmed by ${user}, ${stamp}`;
             const section = `## ${item.Sequence} · ${item.Name}\n${this.DraftText.trim()}\n_${provenance}_\n`;
             minute.Content = (minute.Content ? minute.Content + '\n' : '') + section;
-            if (!await minute.Save()) throw new Error(minute.LatestResult?.Message ?? 'Minutes save failed');
+            if (!await minute.Save()) throw new Error(minute.LatestResult?.CompleteMessage ?? 'Minutes save failed');
             this.minuteID = minute.ID;
             this.MinutesEntries.push({ Heading: `${item.Sequence} · ${item.Name}`, Body: this.DraftText.trim(), Provenance: provenance });
             this.DraftText = '';

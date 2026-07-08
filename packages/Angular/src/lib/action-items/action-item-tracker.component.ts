@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
-import { RegisterClass } from '@memberjunction/global';
+import { RegisterClass , UUIDsEqual } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { RunView } from '@memberjunction/core';
@@ -41,13 +41,13 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
         if (!this.SelectedCommitteeID) {
             return this.Committees.length > 0 && this.Committees.every(c => c.IsOfficer);
         }
-        return this.Committees.find(c => c.CommitteeID === this.SelectedCommitteeID)?.IsOfficer ?? false;
+        return this.Committees.find(c => UUIDsEqual(c.CommitteeID, this.SelectedCommitteeID))?.IsOfficer ?? false;
     }
 
     /** CategoryID for the task panel filter */
     get SelectedCategoryID(): string | null {
         if (!this.SelectedCommitteeID) return null;
-        return this.Committees.find(c => c.CommitteeID === this.SelectedCommitteeID)?.CategoryID ?? null;
+        return this.Committees.find(c => UUIDsEqual(c.CommitteeID, this.SelectedCommitteeID))?.CategoryID ?? null;
     }
 
     /** Name of the single committee (if user is in exactly one) */

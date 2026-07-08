@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { RegisterClass } from '@memberjunction/global';
+import { RegisterClass , UUIDsEqual } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { RunView } from '@memberjunction/core';
@@ -85,7 +85,7 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
     }
 
     OnToggleExpand(committeeID: string): void {
-        this.ExpandedCommitteeID = this.ExpandedCommitteeID === committeeID ? null : committeeID;
+        this.ExpandedCommitteeID = UUIDsEqual(this.ExpandedCommitteeID, committeeID) ? null : committeeID;
         this.cdr.markForCheck();
     }
 

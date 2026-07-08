@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
-import { RegisterClass } from '@memberjunction/global';
+import { RegisterClass , UUIDsEqual } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { EntityInfo, Metadata, RunView } from '@memberjunction/core';
@@ -333,13 +333,13 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
         const fileToCommittees = new Map<string, Set<string>>();
         for (const link of links) {
             let committeeID: string | undefined;
-            if (link.EntityID === entities.committee?.ID) {
+            if (UUIDsEqual(link.EntityID, entities.committee?.ID ?? null)) {
                 committeeID = link.RecordID;
-            } else if (link.EntityID === entities.meeting?.ID) {
+            } else if (UUIDsEqual(link.EntityID, entities.meeting?.ID ?? null)) {
                 committeeID = maps.meetingToCommittee.get(link.RecordID);
-            } else if (link.EntityID === entities.agenda?.ID) {
+            } else if (UUIDsEqual(link.EntityID, entities.agenda?.ID ?? null)) {
                 committeeID = maps.agendaToCommittee.get(link.RecordID);
-            } else if (link.EntityID === entities.action?.ID) {
+            } else if (UUIDsEqual(link.EntityID, entities.action?.ID ?? null)) {
                 committeeID = maps.actionToCommittee.get(link.RecordID);
             }
             if (committeeID) {

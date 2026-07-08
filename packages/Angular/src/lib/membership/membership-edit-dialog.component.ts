@@ -1,3 +1,4 @@
+import { UUIDsEqual } from '@memberjunction/global';
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
 import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
@@ -56,7 +57,7 @@ export class MembershipEditDialogComponent implements OnInit {
 
     get SelectedTerm(): TermLookup | null {
         if (!this.Membership?.TermID) return null;
-        return this.Terms.find(t => t.ID === this.Membership!.TermID) ?? null;
+        return this.Terms.find(t => UUIDsEqual(t.ID, this.Membership!.TermID)) ?? null;
     }
 
     get TermDateRange(): string {

@@ -1,3 +1,4 @@
+import { UUIDsEqual } from '@memberjunction/global';
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
 import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
@@ -160,7 +161,7 @@ export class CommitteeEditDialogComponent implements OnInit {
         if (committeesResult.Success) {
             // Filter out the current committee (can't be its own parent)
             this.ParentCommittees = (committeesResult.Results as { ID: string; Name: string }[])
-                .filter(c => c.ID !== this.CommitteeID);
+                .filter(c => !UUIDsEqual(c.ID, this.CommitteeID));
         }
     }
 }

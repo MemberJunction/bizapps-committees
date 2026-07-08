@@ -1,0 +1,200 @@
+<div class="trw-overlay" (click)="Cancel()">
+  <div class="trw-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="trw-title">
+
+    <!-- ── Header ─────────────────────────────────────────────── -->
+    <header class="trw-h">
+      <div class="trw-titles">
+        <h2 id="trw-title"><i class="fa-solid fa-rotate"></i> Term renewal — {{ Context?.CommitteeName || '…' }}</h2>
+        @if (Context?.PreviousTerm; as prev) {
+          <span class="sub">Continues from {{ prev.Name }} (ended {{ prev.EndDate | date:'MMM d, y':'UTC' }})</span>
+        } @else if (Context) {
+          <span class="sub">First term for this committee</span>
+        }
+      </div>
+      <div class="steps" aria-label="Wizard steps">
+        <span class="stp" [class.on]="Step === 1" [class.done]="Step > 1">1 · Term</span>
+        <span class="stp" [class.on]="Step === 2" [class.done]="Step > 2">2 · Roster</span>
+        <span class="stp" [class.on]="Step === 3">3 · Review</span>
+      </div>
+      <button type="button" class="x" (click)="Cancel()" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+    </header>
+
+    <div class="trw-b">
+      @if (ErrorMessage) {
+        <div class="callout error"><i class="fa-solid fa-triangle-exclamation"></i> {{ ErrorMessage }}</div>
+      }
+      @if (IsLoading) {
+        <div class="skel" style="height:220px"></div>
+      } @else if (Context) {
+
+        <!-- ── Step 1 · Term ─────────────────────────────────── -->
+        @if (Step === 1) {
+          <div class="frm">
+            <label class="fld">
+              <span>Term name</span>
+              <input type="text" [(ngModel)]="TermName" placeholder="e.g. 2026-2027" />
+              @if (IsDuplicateName) {
+                <small class="warn"><i class="fa-solid fa-triangle-exclamation"></i>
+                  A term with this name already exists — creating will reuse and update it.</small>
+              }
+            </label>
+            <div class="fld-row">
+              <label class="fld">
+                <span>Starts</span>
+                <input type="date" [(ngModel)]="StartDateStr" />
+              </label>
+              <label class="fld">
+                <span>Ends</span>
+                <input type="date" [(ngModel)]="EndDateStr" />
+              </label>
+              <div class="fld">
+                <span>Status</span>
+                <span class="badge" [class.success]="DerivedStatus === 'Active'" [class.neutral]="DerivedStatus === 'Upcoming'">{{ DerivedStatus }}</span>
+              </div>
+            </div>
+            @if (!DatesValid && StartDateStr && EndDateStr) {
+              <small class="warn">End date must be after the start date.</small>
+            }
+            @if (Context.PreviousTermStillActive) {
+              <div class="callout info"><i class="fa-solid fa-circle-info"></i>
+                The current term is still active — this renewal is staged as the next term and the
+                current roster is left untouched.</div>
+            }
+          </div>
+        }
+
+        <!-- ── Step 2 · Roster ───────────────────────────────── -->
+        @if (Step === 2) {
+          <div class="roster">
+            <p class="hint">Defaults come from each member's renewal answer — override any row.
+              Unconfirmed members are carried but flagged.</p>
+
+            @for (row of Rows; track row.MembershipID) {
+              <div class="r-row" [class.off]="!row.Carry">
+                <label class="chk">
+                  <input type="checkbox" [(ngModel)]="row.Carry" />
+                </label>
+                <span class="av">{{ Initials(row.PersonName) }}</span>
+                <div class="r-txt">
+                  <b>{{ row.PersonName }}</b>
+                  <small [class.err]="row.Intent === 'No'" [class.warn]="row.Decision === 'carry-unconfirmed'">{{ row.Reason }}</small>
+                </div>
+                <select class="role-sel" [(ngModel)]="row.RoleID" [disabled]="!row.Carry" [attr.aria-label]="'Role for ' + row.PersonName">
+                  @for (r of Context.Roles; track r.ID) { <option [value]="r.ID">{{ r.Name }}</option> }
+                </select>
+              </div>
+            } @empty {
+              <div class="empty-note">No previous roster — build the founding roster below.</div>
+            }
+
+            @for (row of Added; track row.PersonID) {
+              <div class="r-row added">
+                <span class="chk"><i class="fa-solid fa-user-plus"></i></span>
+                <span class="av">{{ Initials(row.PersonName) }}</span>
+                <div class="r-txt">
+                  <b>{{ row.PersonName }}</b>
+                  <small>{{ row.Source === 'ai' ? 'Added from AI suggestion' : 'Added to the new roster' }}</small>
+                </div>
+                <select class="role-sel" [(ngModel)]="row.RoleID" [attr.aria-label]="'Role for ' + row.PersonName">
+                  @for (r of Context.Roles; track r.ID) { <option [value]="r.ID">{{ r.Name }}</option> }
+                </select>
+                <button type="button" class="btn sm ghost" (click)="RemoveAdded(row)">Remove</button>
+              </div>
+            }
+
+            <!-- add person -->
+            <div class="add-p">
+              <div class="add-row">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" [(ngModel)]="SearchTerm" (keyup.enter)="OnSearch()" placeholder="Add a person — search by name…" />
+                <button type="button" class="btn sm" [disabled]="IsSearching || SearchTerm.trim().length < 2" (click)="OnSearch()">
+                  {{ IsSearching ? 'Searching…' : 'Search' }}
+                </button>
+              </div>
+              @for (p of SearchResults; track p.ID) {
+                <div class="hit">
+                  <span class="av">{{ Initials(p.DisplayName) }}</span>
+                  <div class="r-txt"><b>{{ p.DisplayName }}</b><small>{{ p.Email || '' }}</small></div>
+                  <button type="button" class="btn sm" (click)="AddPerson(p)"><i class="fa-solid fa-plus"></i> Add</button>
+                </div>
+              } @empty {
+                @if (HasSearched && SearchTerm.trim().length >= 2) {
+                  <div class="hit">
+                    <div class="r-txt"><small>No one matches "{{ SearchTerm }}".</small></div>
+                    <button type="button" class="btn sm" (click)="ShowPersonCreate = true">
+                      <i class="fa-solid fa-id-card"></i> Create new person
+                    </button>
+                  </div>
+                }
+              }
+            </div>
+
+            <!-- AI suggestions for openings (opt-in, reused rail) -->
+            @if (DroppedRows.length > 0) {
+              <div class="openings">
+                <h3><i class="fa-solid fa-door-open"></i> Openings ({{ DroppedRows.length }})</h3>
+                <p class="hint">{{ DroppedRows.length }} seat{{ DroppedRows.length === 1 ? '' : 's' }} not carrying over.
+                  Ask for grounded successor ideas, or add people directly above.</p>
+                <committees-succession-suggestions
+                  [CommitteeID]="CommitteeID" [CommitteeName]="Context.CommitteeName"
+                  [EnablePick]="true" (Picked)="OnSuggestionPicked($event)">
+                </committees-succession-suggestions>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- ── Step 3 · Review ───────────────────────────────── -->
+        @if (Step === 3) {
+          <div class="review">
+            <div class="rv-grid">
+              <div class="rv-card">
+                <span class="k">New term</span>
+                <b>{{ TermName }}</b>
+                <small>{{ StartDateStr | date:'MMM d, y':'UTC' }} → {{ EndDateStr | date:'MMM d, y':'UTC' }} · {{ DerivedStatus }}</small>
+              </div>
+              <div class="rv-card">
+                <span class="k">Roster</span>
+                <b>{{ NewRosterCount }} member{{ NewRosterCount === 1 ? '' : 's' }}</b>
+                <small>{{ CarriedRows.length }} carried · {{ Added.length }} added · {{ DroppedRows.length }} not returning</small>
+              </div>
+            </div>
+            @if (DroppedRows.length > 0) {
+              <div class="rv-list">
+                <span class="k">Not carrying over</span>
+                @for (r of DroppedRows; track r.MembershipID) {
+                  <span class="badge neutral">{{ r.PersonName }} — {{ r.RoleName }}</span>
+                }
+              </div>
+            }
+            <p class="hint">Writes are applied in order (term → roster → close-out of the previous term).
+              If a step fails, re-running the wizard skips what already succeeded.</p>
+          </div>
+        }
+      }
+    </div>
+
+    <!-- ── Footer ─────────────────────────────────────────────── -->
+    <footer class="trw-f">
+      @if (Step < 3) {
+        <button type="button" class="btn primary" [disabled]="IsLoading || (Step === 1 && !Step1Valid)" (click)="Next()">
+          Next <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      } @else {
+        <button type="button" class="btn primary" [disabled]="IsSaving" (click)="OnCreate()">
+          <i class="fa-solid fa-check"></i> {{ IsSaving ? SaveProgress : 'Create term & roster' }}
+        </button>
+      }
+      <span class="spacer"></span>
+      @if (Step > 1) {
+        <button type="button" class="btn" [disabled]="IsSaving" (click)="Back()"><i class="fa-solid fa-arrow-left"></i> Back</button>
+      }
+      <button type="button" class="btn ghost" [disabled]="IsSaving" (click)="Cancel()">Cancel</button>
+    </footer>
+  </div>
+</div>
+
+@if (ShowPersonCreate) {
+  <committees-person-create-dialog [PrefillName]="SearchTerm" (Created)="OnPersonCreated($event)" (Cancelled)="ShowPersonCreate = false">
+  </committees-person-create-dialog>
+}

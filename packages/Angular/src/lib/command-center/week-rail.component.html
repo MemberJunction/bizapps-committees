@@ -1,0 +1,34 @@
+<section class="card" aria-labelledby="wk-title">
+    <div class="card-h">
+        <i class="fa-regular fa-calendar"></i>
+        <h2 id="wk-title">This week</h2>
+    </div>
+    <div class="card-b rail-body">
+        @if (Meetings.length === 0) {
+            <div class="empty rail-empty">
+                <b>No meetings this week</b>
+                <p>Meetings scheduled in the next 7 days will appear here.</p>
+            </div>
+        }
+        @for (meeting of Meetings; track meeting.MeetingID) {
+            @let forecast = ForecastBadge(meeting);
+            <div class="upc">
+                <div class="date">
+                    <b>{{ meeting.StartDateTime | date:'d' }}</b>
+                    <small>{{ meeting.StartDateTime | date:'MMM' }}</small>
+                </div>
+                <div class="m">
+                    <b>{{ meeting.Name }}</b>
+                    <div class="row">
+                        <span>
+                            <i class="fa-regular fa-clock"></i>
+                            {{ meeting.StartDateTime | date:'h:mm a' }}@if (meeting.EndDateTime) {&ndash;{{ meeting.EndDateTime | date:'h:mm a' }}}
+                        </span>
+                        <span><i [class]="PlatformIcon(meeting)"></i> {{ PlatformLabel(meeting) }}</span>
+                        <span [class]="'badge ' + forecast.Tone">{{ forecast.Label }}</span>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</section>

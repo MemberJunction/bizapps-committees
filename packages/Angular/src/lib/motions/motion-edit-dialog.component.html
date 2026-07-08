@@ -1,0 +1,155 @@
+<!-- Backdrop -->
+<div class="dialog-backdrop" (click)="OnClose()"></div>
+
+<!-- Dialog -->
+<div class="dialog-panel">
+    <div class="dialog-header">
+        <h2 class="dialog-title">{{ DialogTitle }}</h2>
+        <button class="dialog-close" (click)="OnClose()" [disabled]="IsSaving">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    @if (IsLoading) {
+        <div class="dialog-loading">
+            <mj-loading text="Loading..."></mj-loading>
+        </div>
+    } @else if (Motion) {
+        <div class="dialog-body">
+            @if (ErrorMessage) {
+                <div class="error-banner">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ ErrorMessage }}
+                </div>
+            }
+
+            <!-- Title -->
+            <div class="form-group">
+                <label class="form-label required">Motion Title</label>
+                <input class="form-input"
+                    type="text"
+                    [ngModel]="Motion.Name"
+                    (ngModelChange)="Motion.Name = $event"
+                    placeholder="e.g. Approve Q4 budget allocation" />
+            </div>
+
+            <!-- Agenda Item & Result -->
+            <div class="form-row">
+                @if (AgendaItems.length > 0) {
+                    <div class="form-group">
+                        <label class="form-label">Agenda Item</label>
+                        <select class="form-input"
+                            [ngModel]="Motion.AgendaItemID"
+                            (ngModelChange)="Motion.AgendaItemID = $event">
+                            <option [ngValue]="null">None</option>
+                            @for (item of AgendaItems; track item.ID) {
+                                <option [ngValue]="item.ID">{{ item.Name }}</option>
+                            }
+                        </select>
+                    </div>
+                }
+                <div class="form-group">
+                    <label class="form-label">Result</label>
+                    <select class="form-input"
+                        [ngModel]="Motion.Result"
+                        (ngModelChange)="Motion.Result = $event">
+                        @for (result of ResultOptions; track result) {
+                            <option [ngValue]="result">{{ result }}</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- Moved By & Seconded By -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Moved By</label>
+                    <select class="form-input"
+                        [ngModel]="Motion.MovedByMembershipID"
+                        (ngModelChange)="Motion.MovedByMembershipID = $event">
+                        <option [ngValue]="null">Select member...</option>
+                        @for (member of Members; track member.ID) {
+                            <option [ngValue]="member.ID">{{ member.Person }} ({{ member.Role }})</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Seconded By</label>
+                    <select class="form-input"
+                        [ngModel]="Motion.SecondedByMembershipID"
+                        (ngModelChange)="Motion.SecondedByMembershipID = $event">
+                        <option [ngValue]="null">Select member...</option>
+                        @for (member of Members; track member.ID) {
+                            <option [ngValue]="member.ID">{{ member.Person }} ({{ member.Role }})</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-input form-textarea"
+                    [ngModel]="Motion.Description"
+                    (ngModelChange)="Motion.Description = $event"
+                    placeholder="Full text of the motion"
+                    rows="2"></textarea>
+            </div>
+
+            <!-- Voting Section -->
+            @if (!IsNew) {
+                <div class="voting-section">
+                    <div class="voting-header">
+                        <label class="form-label">Votes</label>
+                        <span class="vote-tally">{{ TallyText }}</span>
+                    </div>
+
+                    <div class="voter-grid">
+                        @for (voter of Voters; track voter.MembershipID) {
+                            <div class="voter-row" [class.non-voting]="!voter.IsVotingRole">
+                                <div class="voter-info">
+                                    <span class="voter-name">{{ voter.PersonName }}</span>
+                                    <span class="voter-role">{{ voter.RoleName }}</span>
+                                    @if (!voter.IsVotingRole) {
+                                        <span class="non-voting-tag">Non-voting</span>
+                                    }
+                                </div>
+                                <div class="vote-buttons">
+                                    @for (opt of VoteOptions; track opt) {
+                                        <button
+                                            [class]="'vote-btn ' + (voter.VoteValue === opt ? GetVoteClass(opt) : '')"
+                                            [class.active]="voter.VoteValue === opt"
+                                            (click)="OnVote(voter, opt)">
+                                            {{ opt }}
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Notes -->
+            <div class="form-group">
+                <label class="form-label">Notes</label>
+                <textarea class="form-input form-textarea"
+                    [ngModel]="Motion.Notes"
+                    (ngModelChange)="Motion.Notes = $event"
+                    placeholder="Additional notes about the motion or discussion"
+                    rows="2"></textarea>
+            </div>
+        </div>
+
+        <div class="dialog-actions">
+            <button class="btn btn-primary" (click)="OnSave()" [disabled]="IsSaving">
+                @if (IsSaving) {
+                    <i class="fa-solid fa-spinner fa-spin"></i> Saving...
+                } @else {
+                    {{ IsNew ? 'Create Motion' : 'Save' }}
+                }
+            </button>
+            <button class="btn btn-secondary" (click)="OnClose()" [disabled]="IsSaving">Cancel</button>
+        </div>
+    }
+</div>

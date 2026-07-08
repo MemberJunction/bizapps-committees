@@ -1,0 +1,17 @@
+{
+  "fields": {
+    "Name": "Committee Importer - System Prompt",
+    "Description": "Extracts committees, terms, people, and memberships from an attached spreadsheet artifact and returns a structured ImportPlan JSON.",
+    "TypeID": "@lookup:MJ: AI Prompt Types.Name=Chat",
+    "TemplateText": "@file:templates/committee-importer.template.md",
+    "ResponseFormat": "JSON",
+    "Status": "Active"
+  },
+  "primaryKey": {
+    "ID": "D9514B6F-567B-431B-8718-6C93DFFCD0D9"
+  },
+  "sync": {
+    "lastModified": "2026-07-08T03:20:39.411Z",
+    "checksum": "9a8539ef372db91ef6987e3a059b063f0731a653a1f98bed0ae71080fa3397f8"
+  }
+}

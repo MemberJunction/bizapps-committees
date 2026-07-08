@@ -1,0 +1,67 @@
+<div class="dialog-backdrop" (click)="OnClose()"></div>
+<div class="dialog-panel preview-panel">
+    <div class="dialog-header">
+        <div class="header-info">
+            <h2 class="dialog-title">{{ FileName }}</h2>
+            @if (File) {
+                <div class="header-meta">
+                    @if (FileCategory) {
+                        <span class="meta-chip">
+                            <i class="fa-solid fa-folder"></i>
+                            {{ FileCategory }}
+                        </span>
+                    }
+                    @if (FileProvider) {
+                        <span class="meta-chip">
+                            <i class="fa-solid fa-cloud"></i>
+                            {{ FileProvider }}
+                        </span>
+                    }
+                </div>
+            }
+        </div>
+        <button class="dialog-close" (click)="OnClose()" title="Close">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <div class="preview-body">
+        @if (IsLoading) {
+            <div class="dialog-loading">
+                <mj-loading text="Loading document..."></mj-loading>
+            </div>
+        } @else if (CanPreview) {
+            <iframe class="preview-iframe"
+                [src]="SafeUrl"
+                (error)="OnIframeError()"
+                title="Document preview"
+                referrerpolicy="no-referrer-when-downgrade"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads"></iframe>
+        } @else {
+            <div class="preview-fallback">
+                <i class="fa-solid fa-file-circle-exclamation"></i>
+                <p>{{ PreviewError || 'Preview unavailable' }}</p>
+                @if (FileURL) {
+                    <button class="btn btn-primary" (click)="OnOpenInNewTab()">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Open in new tab
+                    </button>
+                }
+            </div>
+        }
+    </div>
+
+    <div class="dialog-actions">
+        @if (FileURL) {
+            <button class="btn btn-secondary" (click)="OnOpenInNewTab()" title="Open in new tab">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Open in new tab
+            </button>
+        }
+        <div class="actions-spacer"></div>
+        @if (CanEdit) {
+            <button class="btn btn-primary" (click)="OnEdit()" title="Edit document">
+                <i class="fa-solid fa-pen-to-square"></i> Edit
+            </button>
+        }
+        <button class="btn btn-secondary" (click)="OnClose()">Close</button>
+    </div>
+</div>

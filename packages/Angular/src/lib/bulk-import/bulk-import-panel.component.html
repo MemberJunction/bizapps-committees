@@ -1,0 +1,324 @@
+<div class="dialog-backdrop" (click)="OnClose()"></div>
+
+<div class="dialog-panel bulk-import-panel" (click)="$event.stopPropagation()">
+
+    <div class="dialog-header">
+        <h2 class="dialog-title">
+            <i class="fa-solid fa-file-import"></i>
+            Bulk Import Committees
+        </h2>
+        <button class="dialog-close" (click)="OnClose()" aria-label="Close">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <div class="dialog-body">
+
+        @if (Error) {
+            <div class="error-banner">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                {{ Error }}
+            </div>
+        }
+
+        <!-- ─── State A: Upload ─── -->
+        @if (State === 'upload') {
+            <div class="dropzone"
+                 [class.drag-active]="DragActive">
+                <i class="fa-solid fa-cloud-arrow-up dropzone-icon"></i>
+                <p class="dropzone-text">Drop a spreadsheet here</p>
+                <p class="dropzone-hint">or</p>
+                <label class="btn btn-primary">
+                    <i class="fa-solid fa-folder-open"></i>
+                    Browse files
+                    <input type="file"
+                           accept=".xlsx,.xls,.csv"
+                           (change)="OnFileSelected($event)"
+                           hidden />
+                </label>
+                <p class="dropzone-formats">Accepted: .xlsx, .xls, .csv</p>
+            </div>
+        }
+
+        <!-- ─── State B: Analyzing ─── -->
+        @if (State === 'analyzing') {
+            <div class="dialog-loading">
+                <mj-loading [text]="'AI is reading ' + FileName + '...'"></mj-loading>
+            </div>
+        }
+
+        <!-- ─── State C: Preview ─── -->
+        @if (State === 'preview' && Plan) {
+            <div class="preview-summary">
+                <div class="summary-stat">
+                    <span class="summary-num">{{ Plan.committees.length }}</span>
+                    <span class="summary-label">Committees</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="summary-num">{{ Plan.terms.length }}</span>
+                    <span class="summary-label">Terms</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="summary-num">{{ Plan.people.length }}</span>
+                    <span class="summary-label">People</span>
+                </div>
+                <div class="summary-stat">
+                    <span class="summary-num">{{ Plan.memberships.length }}</span>
+                    <span class="summary-label">Memberships</span>
+                </div>
+                @if (GetTotalProblemCount() > 0) {
+                    <div class="summary-problems">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        {{ GetTotalProblemCount() }} {{ GetTotalProblemCount() === 1 ? 'problem' : 'problems' }} to review
+                    </div>
+                }
+            </div>
+
+            <!-- Committees -->
+            <div class="section">
+                <button class="section-header" (click)="ToggleSection('committees')">
+                    <i [class]="SectionExpanded['committees'] ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right'"></i>
+                    <span class="section-title">Committees ({{ Plan.committees.length }})</span>
+                    @if (GetCommitteeProblemCount() > 0) {
+                        <span class="section-problem-badge">⚠ {{ GetCommitteeProblemCount() }}</span>
+                    }
+                </button>
+                @if (SectionExpanded['committees']) {
+                    <div class="section-body">
+                        @for (row of Plan.committees; track TrackCommittee($index, row)) {
+                            <div class="row-card">
+                                <div class="row-name">{{ row.Name || '(unnamed)' }}</div>
+                                <div class="row-fields">
+                                    <div class="row-field">
+                                        <label>Type</label>
+                                        <select class="row-input"
+                                                [(ngModel)]="row.CommitteeType"
+                                                (change)="ClearProblem(row, 'CommitteeType')">
+                                            @for (type of CommitteeTypes; track type) {
+                                                <option [value]="type">{{ type }}</option>
+                                            }
+                                        </select>
+                                        @if (GetProblemForField(row, 'CommitteeType'); as problem) {
+                                            <span class="row-problem" [class.error]="problem.severity === 'error'" [title]="problem.message">
+                                                {{ problem.severity === 'error' ? '✖' : '⚠' }} {{ problem.message }}
+                                            </span>
+                                        }
+                                    </div>
+                                    @if (row.Description) {
+                                        <div class="row-field row-field-wide">
+                                            <label>Description</label>
+                                            <input type="text" class="row-input"
+                                                   [(ngModel)]="row.Description"
+                                                   (change)="ClearProblem(row, 'Description')" />
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Terms -->
+            <div class="section">
+                <button class="section-header" (click)="ToggleSection('terms')">
+                    <i [class]="SectionExpanded['terms'] ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right'"></i>
+                    <span class="section-title">Terms ({{ Plan.terms.length }})</span>
+                    @if (GetTermProblemCount() > 0) {
+                        <span class="section-problem-badge">⚠ {{ GetTermProblemCount() }}</span>
+                    }
+                </button>
+                @if (SectionExpanded['terms']) {
+                    <div class="section-body">
+                        @for (row of Plan.terms; track TrackTerm($index, row)) {
+                            <div class="row-card">
+                                <div class="row-name">{{ row.CommitteeRef }} — {{ row.Year ?? '?' }}</div>
+                                <div class="row-fields">
+                                    <div class="row-field">
+                                        <label>Start</label>
+                                        <input type="date" class="row-input"
+                                               [(ngModel)]="row.StartDate"
+                                               (change)="ClearProblem(row, 'StartDate')" />
+                                        @if (GetProblemForField(row, 'StartDate'); as problem) {
+                                            <span class="row-problem" [class.error]="problem.severity === 'error'" [title]="problem.message">
+                                                {{ problem.severity === 'error' ? '✖' : '⚠' }} {{ problem.message }}
+                                            </span>
+                                        }
+                                    </div>
+                                    <div class="row-field">
+                                        <label>End</label>
+                                        <input type="date" class="row-input"
+                                               [(ngModel)]="row.EndDate"
+                                               (change)="ClearProblem(row, 'EndDate')" />
+                                        @if (GetProblemForField(row, 'EndDate'); as problem) {
+                                            <span class="row-problem" [class.error]="problem.severity === 'error'" [title]="problem.message">
+                                                {{ problem.severity === 'error' ? '✖' : '⚠' }} {{ problem.message }}
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- People -->
+            <div class="section">
+                <button class="section-header" (click)="ToggleSection('people')">
+                    <i [class]="SectionExpanded['people'] ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right'"></i>
+                    <span class="section-title">People ({{ Plan.people.length }})</span>
+                    @if (GetPersonProblemCount() > 0) {
+                        <span class="section-problem-badge">⚠ {{ GetPersonProblemCount() }}</span>
+                    }
+                </button>
+                @if (SectionExpanded['people']) {
+                    <div class="section-body">
+                        @for (row of Plan.people; track TrackPerson($index, row)) {
+                            <div class="row-card">
+                                <div class="row-name">{{ row.FirstName }} {{ row.LastName }}</div>
+                                <div class="row-fields">
+                                    <div class="row-field row-field-wide">
+                                        <label>Email</label>
+                                        <input type="email" class="row-input"
+                                               [(ngModel)]="row.Email"
+                                               (change)="ClearProblem(row, 'Email')" />
+                                        @if (GetProblemForField(row, 'Email'); as problem) {
+                                            <span class="row-problem" [class.error]="problem.severity === 'error'" [title]="problem.message">
+                                                {{ problem.severity === 'error' ? '✖' : '⚠' }} {{ problem.message }}
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Memberships -->
+            <div class="section">
+                <button class="section-header" (click)="ToggleSection('memberships')">
+                    <i [class]="SectionExpanded['memberships'] ? 'fa-solid fa-chevron-down' : 'fa-solid fa-chevron-right'"></i>
+                    <span class="section-title">Memberships ({{ Plan.memberships.length }})</span>
+                    @if (GetMembershipProblemCount() > 0) {
+                        <span class="section-problem-badge">⚠ {{ GetMembershipProblemCount() }}</span>
+                    }
+                </button>
+                @if (SectionExpanded['memberships']) {
+                    <div class="section-body">
+                        @for (row of Plan.memberships; track TrackMembership($index, row)) {
+                            <div class="row-card">
+                                <div class="row-name">{{ row.PersonRef }} → {{ row.CommitteeRef }}</div>
+                                <div class="row-fields">
+                                    <div class="row-field">
+                                        <label>Role</label>
+                                        <select class="row-input"
+                                                [(ngModel)]="row.Role"
+                                                (change)="ClearProblem(row, 'Role')">
+                                            @for (role of Roles; track role) {
+                                                <option [value]="role">{{ role }}</option>
+                                            }
+                                        </select>
+                                        @if (GetProblemForField(row, 'Role'); as problem) {
+                                            <span class="row-problem" [class.error]="problem.severity === 'error'" [title]="problem.message">
+                                                {{ problem.severity === 'error' ? '✖' : '⚠' }} {{ problem.message }}
+                                            </span>
+                                        }
+                                    </div>
+                                    <div class="row-field">
+                                        <label>Status</label>
+                                        <select class="row-input"
+                                                [(ngModel)]="row.Status"
+                                                (change)="ClearProblem(row, 'Status')">
+                                            @for (status of Statuses; track status) {
+                                                <option [value]="status">{{ status }}</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- ─── State D: Importing ─── -->
+        @if (State === 'importing') {
+            <div class="dialog-loading">
+                <mj-loading text="Importing committees..."></mj-loading>
+            </div>
+        }
+
+        <!-- ─── State E: Result ─── -->
+        @if (State === 'result' && Result) {
+            <div class="result-block">
+                <div class="result-icon">
+                    <i class="fa-solid fa-circle-check"></i>
+                </div>
+                <h3 class="result-title">Import complete</h3>
+                <div class="result-stats">
+                    <div><strong>{{ Result.CommitteesCreated }}</strong> committees</div>
+                    <div><strong>{{ Result.TermsCreated }}</strong> terms</div>
+                    <div><strong>{{ Result.PeopleCreated }}</strong> people</div>
+                    <div><strong>{{ Result.MembershipsCreated }}</strong> memberships</div>
+                </div>
+
+                @if (Result.Errors.length > 0) {
+                    <div class="result-errors">
+                        <h4>{{ Result.Errors.length }} {{ Result.Errors.length === 1 ? 'item' : 'items' }} couldn't be imported</h4>
+                        <ul>
+                            @for (err of Result.Errors; track $index) {
+                                <li>
+                                    <span class="err-entity">{{ err.Entity }}:</span>
+                                    <span class="err-id">{{ err.Identifier }}</span>
+                                    — <span class="err-msg">{{ err.Message }}</span>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- ─── Footer actions ─── -->
+    <div class="dialog-actions">
+        @if (State === 'preview') {
+            <button class="btn btn-secondary" (click)="OnClose()">Cancel</button>
+            <div class="actions-spacer"></div>
+            <button class="btn btn-primary" (click)="OnConfirmClicked()">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                Confirm and Import
+            </button>
+        }
+        @if (State === 'result') {
+            <div class="actions-spacer"></div>
+            <button class="btn btn-primary" (click)="OnViewCommittees()">
+                View Committees
+            </button>
+        }
+        @if (State === 'upload' || State === 'analyzing' || State === 'importing') {
+            <div class="actions-spacer"></div>
+            <button class="btn btn-secondary" (click)="OnClose()" [disabled]="State === 'analyzing' || State === 'importing'">
+                Cancel
+            </button>
+        }
+    </div>
+</div>
+
+<!-- Confirm-modal overlay (Path C) -->
+@if (ConfirmModalVisible) {
+    <div class="confirm-overlay">
+        <div class="confirm-modal">
+            <h3>{{ GetTotalProblemCount() }} {{ GetTotalProblemCount() === 1 ? 'problem was' : 'problems were' }} not resolved</h3>
+            <p>Items with errors will be skipped. The rest of the import will proceed.</p>
+            <div class="confirm-actions">
+                <button class="btn btn-secondary" (click)="OnConfirmModalCancel()">Cancel</button>
+                <div class="actions-spacer"></div>
+                <button class="btn btn-primary" (click)="OnConfirmModalProceed()">Import Anyway</button>
+            </div>
+        </div>
+    </div>
+}

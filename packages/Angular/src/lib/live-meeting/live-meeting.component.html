@@ -1,0 +1,313 @@
+<div class="lm" role="dialog" aria-label="Live meeting mode">
+  <!-- ── Top bar ─────────────────────────────────────────────── -->
+  <header class="lm-top">
+    <button type="button" class="btn ghost sm" (click)="OnExit()" title="Exit meeting mode">
+      <i class="fa-solid fa-xmark"></i> Exit
+    </button>
+    @if (Meeting) {
+      <div class="ttl">
+        <b>{{ Meeting.Name }}</b>
+        <small>{{ Meeting.Committee }} · {{ Meeting.StartDateTime | date:'MMM d, y · h:mm a' }}
+          @if (Meeting.LocationType) { · {{ Meeting.LocationText || Meeting.LocationType }} }</small>
+      </div>
+      @if (IsInProgress) {
+        <span class="live-pill"><span class="p"></span> LIVE @if (ElapsedLabel) { · {{ ElapsedLabel }} }</span>
+      } @else if (Meeting.Status === 'Completed') {
+        <span class="badge success">Completed</span>
+      } @else {
+        <button type="button" class="btn primary sm" [disabled]="IsActing" (click)="OnStartMeeting()">
+          <i class="fa-solid fa-play"></i> Start meeting
+        </button>
+      }
+      <span class="spacer"></span>
+      <div class="quorum" [class.short]="!HasQuorum" role="status"
+           [attr.aria-label]="'Quorum ' + (HasQuorum ? 'met' : 'not met') + ': ' + PresentVotingCount + ' of ' + VotingCount + ' voting members present, ' + QuorumRequired + ' required'">
+        <b>
+          <i class="fa-solid" [class.fa-check]="HasQuorum" [class.fa-triangle-exclamation]="!HasQuorum"></i>
+          {{ HasQuorum ? 'Quorum met' : 'No quorum' }} · {{ PresentVotingCount }} of {{ VotingCount }} voting
+        </b>
+        <span class="pips" aria-hidden="true">
+          @for (row of VotingRollCall; track row.MembershipID) {
+            <span class="pip" [class.off]="row.AttendanceStatus !== 'Present' && row.AttendanceStatus !== 'Partial'"></span>
+          }
+        </span>
+        <small>need {{ QuorumRequired }}</small>
+      </div>
+      <button type="button" class="btn ghost sm" [class.on]="ShowAttendance" (click)="ShowAttendance = !ShowAttendance" title="Attendance">
+        <i class="fa-solid fa-users"></i> Attendance
+      </button>
+      @if (IsInProgress) {
+        <button type="button" class="btn danger sm" [disabled]="IsActing" (click)="OnEndMeeting()">End meeting</button>
+      }
+    }
+  </header>
+
+  @if (ErrorMessage) {
+    <div class="callout error"><i class="fa-solid fa-triangle-exclamation"></i> {{ ErrorMessage }}</div>
+  }
+
+  @if (IsLoading) {
+    <div class="lm-loading"><div class="skel" style="height:60%;width:70%"></div></div>
+  } @else if (Meeting) {
+    <div class="lm-cols">
+      <!-- ── Agenda rail ─────────────────────────────────────── -->
+      <nav class="lm-col lm-agenda" aria-label="Meeting agenda">
+        <div class="col-label"><i class="fa-solid fa-list"></i> Agenda · {{ Agenda.length }} items</div>
+        @if (Agenda.length === 0) {
+          <div class="empty-sm">No agenda items. Add items from the meeting record before going live.</div>
+        }
+        @for (item of TopLevelAgenda; track item.ID) {
+          <button type="button" class="ag"
+                  [class.done]="item.Status === 'Completed'"
+                  [class.skipped]="item.Status === 'Skipped' || item.Status === 'Tabled'"
+                  [class.now]="item.ID === CurrentItemID"
+                  [class.sub]="item.ParentAgendaItemID"
+                  [attr.aria-current]="item.ID === CurrentItemID ? 'step' : null"
+                  (click)="SelectItem(item)">
+            <span class="n">
+              @if (item.Status === 'Completed') { <i class="fa-solid fa-check"></i> }
+              @else if (item.Status === 'Skipped') { <i class="fa-solid fa-forward"></i> }
+              @else if (item.Status === 'Tabled') { <i class="fa-solid fa-pause"></i> }
+              @else { {{ item.Sequence }} }
+            </span>
+            <span class="ag-body">
+              <b>{{ item.Name }}</b>
+              <small>
+                <span class="itemtype" [class.vote]="ItemTypeClass(item.ItemType) === 'vote'"
+                      [class.report]="ItemTypeClass(item.ItemType) === 'report'"
+                      [class.discussion]="ItemTypeClass(item.ItemType) === 'discussion'">{{ item.ItemType }}</span>
+                @if (item.PresenterPerson) { <span>{{ item.PresenterPerson }}</span> }
+                @if (item.DurationMinutes) { <span>{{ item.DurationMinutes }} min</span> }
+              </small>
+            </span>
+            @if (item.ID === CurrentItemID) { <span class="itime">now</span> }
+          </button>
+        }
+      </nav>
+
+      <!-- ── Center: current item + motion ───────────────────── -->
+      <section class="lm-col lm-center" aria-label="Current agenda item">
+        @if (ShowAttendance) {
+          <div class="card att-panel">
+            <div class="card-h"><i class="fa-solid fa-users"></i><h2>Attendance</h2>
+              <span class="spacer"></span>
+              <button type="button" class="btn ghost sm" (click)="ShowAttendance = false"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="card-b">
+              @for (row of RollCall; track row.MembershipID) {
+                <div class="att-row">
+                  <div class="who"><b>{{ row.PersonName }}</b><small class="muted">{{ row.RoleName }}{{ row.IsVoting ? '' : ' · non-voting' }}</small></div>
+                  <div class="seg" role="group" [attr.aria-label]="'Attendance for ' + row.PersonName">
+                    <button type="button" class="y" [class.on]="row.AttendanceStatus === 'Present'" [disabled]="IsActing" (click)="OnSetAttendance(row, 'Present')">Present</button>
+                    <button type="button" class="nn" [class.on]="row.AttendanceStatus === 'Absent'" [disabled]="IsActing" (click)="OnSetAttendance(row, 'Absent')">Absent</button>
+                    <button type="button" class="ab" [class.on]="row.AttendanceStatus === 'Excused'" [disabled]="IsActing" (click)="OnSetAttendance(row, 'Excused')">Excused</button>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (CurrentItem; as item) {
+          <div class="now-card card">
+            <div class="now-h">
+              <div class="now-title">
+                <div class="grow">
+                  <span class="itemtype" [class.vote]="ItemTypeClass(item.ItemType) === 'vote'"
+                        [class.report]="ItemTypeClass(item.ItemType) === 'report'"
+                        [class.discussion]="ItemTypeClass(item.ItemType) === 'discussion'">{{ item.ItemType }} item</span>
+                  <h2>{{ item.Name }}</h2>
+                  @if (item.PresenterPerson || item.Description) {
+                    <p class="small muted">
+                      @if (item.PresenterPerson) { Presenter: {{ item.PresenterPerson }}@if (item.Description) { · } }
+                      {{ item.Description }}
+                      @if (item.RelatedDocumentURL) { <a [href]="item.RelatedDocumentURL" target="_blank" rel="noopener"><i class="fa-solid fa-file-lines"></i> Linked document</a> }
+                    </p>
+                  }
+                </div>
+                <div class="now-actions">
+                  <button type="button" class="btn sm ghost" [disabled]="IsActing" (click)="TableCurrentItem()"><i class="fa-solid fa-pause"></i> Table</button>
+                  <button type="button" class="btn sm ghost" [disabled]="IsActing" (click)="SkipCurrentItem()">Skip <i class="fa-solid fa-chevron-right"></i></button>
+                  <button type="button" class="btn sm primary" [disabled]="IsActing" (click)="CompleteCurrentItem()"><i class="fa-solid fa-check"></i> Complete &amp; next</button>
+                </div>
+              </div>
+            </div>
+
+            @if (FloorMotion; as motion) {
+              <div class="motion" [attr.aria-label]="'Motion: ' + motion.Name">
+                <div class="motion-h">
+                  <i class="fa-solid fa-gavel"></i>
+                  <div class="grow">
+                    <b>Motion: {{ motion.Name }}</b>
+                    @if (motion.Description) { <small>“{{ motion.Description }}”</small> }
+                  </div>
+                  @if (motion.Result === 'Pending') { <span class="badge info">Roll call</span> }
+                  @else { <span class="badge" [class.success]="motion.Result === 'Passed'" [class.error]="motion.Result === 'Failed'">{{ motion.Result }}</span> }
+                </div>
+                <div class="movers">
+                  @if (MemberName(motion.MovedByMembershipID); as moved) {
+                    <span class="mover"><span class="lbl">Moved by</span> {{ moved }}</span>
+                  }
+                  @if (MemberName(motion.SecondedByMembershipID); as seconded) {
+                    <span class="mover"><span class="lbl">Seconded by</span> {{ seconded }}</span>
+                  }
+                  <span class="thresh-note muted">Threshold: simple majority of votes cast</span>
+                </div>
+                <div class="rollcall" role="group" aria-label="Roll-call votes">
+                  @for (row of VotingRollCall; track row.MembershipID) {
+                    @if (row.AttendanceStatus === 'Absent' || row.AttendanceStatus === 'Excused') {
+                      <div class="rc-row na">
+                        <div class="who"><b>{{ row.PersonName }}</b><small class="muted">{{ row.RoleName }}</small></div>
+                        <span class="badge neutral">{{ row.AttendanceStatus }}</span>
+                      </div>
+                    } @else {
+                      <div class="rc-row" [class.pending]="motion.Result === 'Pending' && !row.Vote">
+                        <div class="who"><b>{{ row.PersonName }}</b><small class="muted">{{ row.RoleName }}</small></div>
+                        @if (motion.Result === 'Pending' && !row.Vote) { <span class="badge warning">awaiting vote</span> }
+                        <div class="seg" role="group" [attr.aria-label]="'Vote for ' + row.PersonName">
+                          <button type="button" class="y" [class.on]="row.Vote === 'Yes'" [disabled]="IsActing || motion.Result !== 'Pending'" (click)="OnCastVote(row, 'Yes')">Yes</button>
+                          <button type="button" class="nn" [class.on]="row.Vote === 'No'" [disabled]="IsActing || motion.Result !== 'Pending'" (click)="OnCastVote(row, 'No')">No</button>
+                          <button type="button" class="ab" [class.on]="row.Vote === 'Abstain'" [disabled]="IsActing || motion.Result !== 'Pending'" (click)="OnCastVote(row, 'Abstain')">Abstain</button>
+                        </div>
+                      </div>
+                    }
+                  }
+                  @for (row of NonVotingRollCall; track row.MembershipID) {
+                    <div class="rc-row na">
+                      <div class="who"><b>{{ row.PersonName }}</b><small class="muted">{{ row.RoleName }}</small></div>
+                      <span class="badge neutral">Non-voting</span>
+                    </div>
+                  }
+                </div>
+                <div class="tally" aria-live="polite">
+                  <div class="tallybar" role="img"
+                       [attr.aria-label]="'Tally: ' + Tally.Yes + ' yes, ' + Tally.No + ' no, ' + Tally.Abstain + ' abstain, ' + Tally.Outstanding + ' outstanding. Passes at ' + Forecast.RequiredYes + ' yes votes.'">
+                    <span class="y" [style.width.%]="TallyYesPct"></span>
+                    <span class="nn" [style.width.%]="TallyNoPct"></span>
+                    <span class="thresh" [style.left.%]="ThresholdPct" [title]="'Passes at ' + Forecast.RequiredYes"></span>
+                  </div>
+                  <div class="tallynums">
+                    <span><span class="dot ok"></span> Yes <b>{{ Tally.Yes }}</b></span>
+                    <span><span class="dot risk"></span> No <b>{{ Tally.No }}</b></span>
+                    <span><span class="dot off"></span> Abstain <b>{{ Tally.Abstain }}</b></span>
+                    @if (Tally.Outstanding > 0) { <span class="muted">· {{ Tally.Outstanding }} vote{{ Tally.Outstanding === 1 ? '' : 's' }} outstanding</span> }
+                    @if (motion.Result === 'Pending' && Forecast.IsDecided && Forecast.DecidedReason === 'ThresholdMet') {
+                      <span class="badge success end"><i class="fa-solid fa-check"></i> Threshold met — passes even if remaining votes are No</span>
+                    } @else if (motion.Result === 'Pending' && Forecast.IsDecided && Forecast.DecidedReason === 'CannotReachThreshold') {
+                      <span class="badge error end">Cannot reach threshold</span>
+                    }
+                  </div>
+                </div>
+                @if (motion.Result === 'Pending') {
+                  <div class="motion-foot">
+                    <button type="button" class="btn primary sm" [disabled]="IsActing || Tally.Cast === 0" (click)="OnRecordResult()">
+                      <i class="fa-solid fa-gavel"></i> Record result
+                    </button>
+                    <span class="small muted end">Each vote writes a Vote record; the result stamps the Motion — nothing is editable after recording.</span>
+                  </div>
+                }
+              </div>
+            } @else if (ShowNewMotion) {
+              <div class="new-motion">
+                <div class="form-row">
+                  <label>Motion title</label>
+                  <input type="text" [(ngModel)]="NewMotionTitle" placeholder="e.g. Approve $150,000 for H2 2026 standards development">
+                </div>
+                <div class="form-row">
+                  <label>Motion text</label>
+                  <textarea rows="2" [(ngModel)]="NewMotionText" placeholder="“…as presented by the Finance & Audit Committee.”"></textarea>
+                </div>
+                <div class="form-pair">
+                  <div class="form-row">
+                    <label>Moved by</label>
+                    <select [(ngModel)]="NewMotionMovedBy">
+                      <option value="">—</option>
+                      @for (row of VotingRollCall; track row.MembershipID) { <option [value]="row.MembershipID">{{ row.PersonName }}</option> }
+                    </select>
+                  </div>
+                  <div class="form-row">
+                    <label>Seconded by</label>
+                    <select [(ngModel)]="NewMotionSecondedBy">
+                      <option value="">—</option>
+                      @for (row of VotingRollCall; track row.MembershipID) { <option [value]="row.MembershipID">{{ row.PersonName }}</option> }
+                    </select>
+                  </div>
+                </div>
+                <div class="form-actions">
+                  <button type="button" class="btn primary sm" [disabled]="!NewMotionTitle.trim() || IsActing" (click)="OnCreateMotion()"><i class="fa-solid fa-gavel"></i> Put motion on the floor</button>
+                  <button type="button" class="btn ghost sm" (click)="ShowNewMotion = false">Cancel</button>
+                </div>
+              </div>
+            } @else {
+              <div class="no-motion">
+                <button type="button" class="btn sm" (click)="ShowNewMotion = true"><i class="fa-solid fa-gavel"></i> New motion on this item</button>
+              </div>
+            }
+          </div>
+
+          <div class="callout info record-note">
+            <i class="fa-solid fa-shield-halved"></i>
+            <div><b>Everything on this screen is the record.</b> Attendance, agenda item outcomes, motions and every
+            individual vote are entity writes with full history — the minutes cite them, they don't replace them.</div>
+          </div>
+        } @else {
+          <div class="empty-center">
+            <div class="eicon"><i class="fa-solid fa-flag-checkered"></i></div>
+            <b>Agenda complete</b>
+            <p>Every item has been handled. End the meeting from the top bar to mark it Completed.</p>
+          </div>
+        }
+      </section>
+
+      <!-- ── Minutes rail ────────────────────────────────────── -->
+      <aside class="lm-col lm-minutes" aria-label="Minutes draft">
+        <div class="col-label"><i class="fa-solid fa-wand-magic-sparkles"></i> Minutes draft · assist mode</div>
+        <div class="ai-note">
+          Nothing enters the minutes until it's confirmed here. Confirmed sections write to the Minute record.
+        </div>
+
+        @for (entry of MinutesEntries; track $index) {
+          <div class="min-entry">
+            <b class="t">{{ entry.Heading }}</b>
+            {{ entry.Body }}
+            @if (entry.Provenance) { <div class="prov"><i class="fa-solid fa-wand-magic-sparkles"></i> {{ entry.Provenance }}</div> }
+          </div>
+        }
+
+        @if (CurrentItem && DraftText) {
+          <div class="min-draft" aria-label="Draft awaiting review">
+            <span class="ai-tag"><i class="fa-solid fa-wand-magic-sparkles"></i> {{ IsDraftAI ? 'AI draft' : 'Drafted from record' }} — current item</span>
+            @if (EditingDraft) {
+              <textarea class="draft-edit" rows="6" [(ngModel)]="DraftText"></textarea>
+            } @else {
+              <p><b class="t">{{ CurrentItem.Sequence }} · {{ CurrentItem.Name }}</b>{{ DraftText }}</p>
+            }
+            <div class="ai-actions">
+              <button type="button" class="btn sm primary" [disabled]="IsActing" (click)="OnAcceptDraft()"><i class="fa-solid fa-check"></i> Accept</button>
+              <button type="button" class="btn sm" (click)="EditingDraft = !EditingDraft"><i class="fa-solid fa-pen"></i> {{ EditingDraft ? 'Preview' : 'Edit' }}</button>
+              <button type="button" class="btn sm ai" [disabled]="IsDrafting" (click)="OnGenerateAIDraft()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> {{ IsDrafting ? 'Drafting…' : 'Rewrite with AI' }}
+              </button>
+              <button type="button" class="btn sm ghost" (click)="OnDismissDraft()">Dismiss</button>
+            </div>
+          </div>
+        }
+
+        <div class="col-label room-label"><i class="fa-solid fa-users"></i> In the room</div>
+        <div class="room">
+          @for (row of RollCall; track row.MembershipID) {
+            @if (row.AttendanceStatus === 'Present' || row.AttendanceStatus === 'Partial') {
+              <span class="badge success"><i class="fa-solid fa-check"></i> {{ row.PersonName }}</span>
+            } @else if (row.AttendanceStatus === 'Excused') {
+              <span class="badge neutral">{{ row.PersonName }} — Excused</span>
+            } @else if (row.AttendanceStatus === 'Absent') {
+              <span class="badge neutral">{{ row.PersonName }} — Absent</span>
+            } @else {
+              <span class="badge warning">{{ row.PersonName }} — Expected</span>
+            }
+          }
+        </div>
+      </aside>
+    </div>
+  }
+</div>

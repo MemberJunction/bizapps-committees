@@ -1,0 +1,89 @@
+@if (IsLoading) {
+    <div class="list-loading">
+        <mj-loading text="Loading committees..."></mj-loading>
+    </div>
+} @else {
+    <div class="committee-list-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-header-text">
+                <h1 class="page-title">Committees</h1>
+                <p class="page-subtitle">Browse and manage all committees</p>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="list-toolbar">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input
+                    type="text"
+                    placeholder="Search committees..."
+                    [ngModel]="SearchText"
+                    (ngModelChange)="OnSearchChanged($event)" />
+            </div>
+            <div class="status-filters">
+                <button class="filter-pill"
+                    [class.active]="StatusFilter === 'All'"
+                    (click)="OnStatusFilterChanged('All')">All</button>
+                <button class="filter-pill"
+                    [class.active]="StatusFilter === 'Active'"
+                    (click)="OnStatusFilterChanged('Active')">Active</button>
+                <button class="filter-pill"
+                    [class.active]="StatusFilter === 'Inactive'"
+                    (click)="OnStatusFilterChanged('Inactive')">Inactive</button>
+            </div>
+        </div>
+
+        <!-- Committee Cards -->
+        @if (FilteredCommittees.length === 0) {
+            <div class="empty-state">
+                <i class="fa-solid fa-users-slash"></i>
+                <p>No committees found matching your search.</p>
+            </div>
+        } @else {
+            <div class="committee-grid">
+                @for (committee of FilteredCommittees; track committee['ID']) {
+                    <div class="committee-card"
+                         [class.inactive]="committee['Status'] === 'Inactive'"
+                         [class.clickable]="IsMemberOf($any(committee['ID']))"
+                         (click)="OnEditCommittee($any(committee['ID']))">
+                        <div class="card-header">
+                            <h3 class="committee-name">{{ committee['Name'] }}</h3>
+                            @if (committee['Type']) {
+                                <span class="committee-type">{{ committee['Type'] }}</span>
+                            }
+                        </div>
+                        @if (committee['Description']) {
+                            <p class="committee-description">{{ committee['Description'] }}</p>
+                        }
+                        <div class="card-footer">
+                            <span class="member-count">
+                                <i class="fa-solid fa-users"></i>
+                                {{ committee['MemberCount'] || 0 }} members
+                            </span>
+                            @if (committee['Organization']) {
+                                <span class="org-name">
+                                    <i class="fa-solid fa-building"></i>
+                                    {{ committee['Organization'] }}
+                                </span>
+                            }
+                            <span [class]="'status-badge status-' + ($any(committee['Status']) || '').toLowerCase()">
+                                {{ committee['Status'] }}
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+<!-- View Dialog (read-only — committee editing is staff-only, in Committee Management app) -->
+@if (ShowEditDialog) {
+    <committee-edit-dialog
+        [CommitteeID]="EditingCommitteeID"
+        [ReadOnly]="true"
+        (DialogClosed)="OnDialogClosed($event)">
+    </committee-edit-dialog>
+}

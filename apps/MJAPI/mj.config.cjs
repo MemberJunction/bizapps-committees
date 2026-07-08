@@ -60,6 +60,6 @@
 
 /** @type {import('@memberjunction/config').MJConfig} */
 module.exports = {
-  // Empty config - everything uses defaults from DEFAULT_SERVER_CONFIG!
-  // Add any custom overrides here if needed.
+  // Move GraphQL to /graphql so custom REST routes like /api/upload-proxy work
+  graphqlRootPath: '/graphql',
 };

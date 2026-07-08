@@ -1,0 +1,164 @@
+@if (IsLoading) {
+    <div class="list-loading">
+        <mj-loading text="Loading members..."></mj-loading>
+    </div>
+} @else {
+    <div class="membership-panel-container">
+        @if (SuccessMessage) {
+            <div class="success-banner">
+                <i class="fa-solid fa-circle-check"></i>
+                {{ SuccessMessage }}
+            </div>
+        }
+
+        <!-- No Terms Warning -->
+        @if (Terms.length === 0) {
+            <div class="empty-state">
+                <i class="fa-solid fa-calendar-xmark"></i>
+                <p>No terms defined for this committee.</p>
+                @if (EffectivePermissions.IsStaff) {
+                    <button class="btn btn-primary empty-action" (click)="OnCreateTerm()">
+                        <i class="fa-solid fa-plus"></i> Create First Term
+                    </button>
+                } @else {
+                    <p class="empty-hint">A staff member needs to create a term first.</p>
+                }
+            </div>
+        } @else {
+            <!-- Term Filter & Summary -->
+            <div class="filter-bar">
+                <select class="filter-select"
+                    [ngModel]="SelectedTermID"
+                    (ngModelChange)="OnTermFilterChanged($event)">
+                    <option [ngValue]="null">All Terms</option>
+                    @for (term of Terms; track term.ID) {
+                        <option [ngValue]="term.ID">{{ term.Name }}
+                            @if (term.Status === 'Active') { (Active) }
+                        </option>
+                    }
+                </select>
+                @if (EffectivePermissions.IsStaff) {
+                    <button class="btn-term-action" (click)="OnCreateTerm()" title="New Term">
+                        <i class="fa-solid fa-plus"></i> New Term
+                    </button>
+                    @if (SelectedTermID) {
+                        <button class="btn-term-action" (click)="OnEditTerm(SelectedTermID)" title="Edit Term">
+                            <i class="fa-solid fa-pen"></i> Edit Term
+                        </button>
+                    }
+                }
+                <span class="member-count">
+                    {{ ActiveCount }} active of {{ FilteredMemberships.length }} total
+                </span>
+                @if (EffectivePermissions.CanManageMembers) {
+                    <button class="btn btn-secondary" (click)="ShowPersonCreate = true">
+                        <i class="fa-solid fa-id-card"></i> New Person
+                    </button>
+                    <button class="btn btn-primary" (click)="OnCreateMembership()" [disabled]="Terms.length === 0">
+                        <i class="fa-solid fa-user-plus"></i> Add Member
+                    </button>
+                }
+            </div>
+
+            <!-- Member List -->
+            @if (FilteredMemberships.length === 0) {
+                <div class="empty-state">
+                    <i class="fa-solid fa-users-slash"></i>
+                    <p>No members found for the selected term.</p>
+                </div>
+            } @else {
+                <div class="member-grid">
+                    @for (member of FilteredMemberships; track member['ID']) {
+                        <div class="member-card clickable" (click)="OnViewPerson($any(member['PersonID']))">
+                            <div class="member-avatar">
+                                <i [class]="GetRoleIcon($any(member['Role']))"></i>
+                            </div>
+                            <div class="member-details">
+                                <h3 class="member-name">{{ member['Person'] }}</h3>
+                                <div class="member-meta">
+                                    <span class="role-badge">{{ member['Role'] }}</span>
+                                    <span class="term-name">
+                                        <i class="fa-solid fa-calendar"></i>
+                                        {{ member['Term'] }}
+                                    </span>
+                                </div>
+                                <!-- Inline contact chips -->
+                                @if (member['PersonEmail'] || member['PersonPhone']) {
+                                    <div class="contact-chips">
+                                        @if (member['PersonEmail']) {
+                                            <span class="contact-chip">
+                                                <i class="fa-solid fa-envelope"></i>
+                                                {{ member['PersonEmail'] }}
+                                            </span>
+                                        }
+                                        @if (member['PersonPhone']) {
+                                            <span class="contact-chip">
+                                                <i class="fa-solid fa-phone"></i>
+                                                {{ member['PersonPhone'] }}
+                                            </span>
+                                        }
+                                    </div>
+                                }
+                                @if (member['StartDate']) {
+                                    <div class="member-dates">
+                                        <i class="fa-solid fa-clock"></i>
+                                        {{ $any(member['StartDate']) | date:'MMM d, yyyy':'UTC' }}
+                                        &ndash;
+                                        @if (member['EndDate']) {
+                                            {{ $any(member['EndDate']) | date:'MMM d, yyyy':'UTC' }}
+                                        } @else {
+                                            Ongoing
+                                        }
+                                    </div>
+                                }
+                            </div>
+                            <div class="member-actions">
+                                <span [class]="GetStatusClass($any(member['Status']))">
+                                    {{ member['Status'] }}
+                                </span>
+                                @if (EffectivePermissions.CanManageMembers) {
+                                    <button class="btn-icon-sm" title="Edit membership"
+                                        (click)="OnEditMembership($any(member['ID']), $event)">
+                                        <i class="fa-solid fa-pen"></i> Edit Membership
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+}
+
+<!-- Membership Edit Dialog -->
+@if (ShowEditDialog) {
+    <membership-edit-dialog
+        [MembershipID]="EditingMembershipID"
+        [CommitteeID]="CommitteeID"
+        (DialogClosed)="OnDialogClosed($event)">
+    </membership-edit-dialog>
+}
+
+<!-- Term Edit Dialog -->
+@if (ShowTermDialog) {
+    <term-edit-dialog
+        [TermID]="EditingTermID"
+        [CommitteeID]="CommitteeID"
+        (DialogClosed)="OnTermDialogClosed($event)">
+    </term-edit-dialog>
+}
+
+<!-- Person Detail Panel -->
+@if (ShowPersonPanel && ViewingPersonID) {
+    <person-detail-panel
+        [PersonID]="ViewingPersonID"
+        [CanEdit]="EffectivePermissions.IsStaff || ViewingPersonID === CurrentUserPersonID"
+        (PanelClosed)="OnPersonPanelClosed()">
+    </person-detail-panel>
+}
+
+@if (ShowPersonCreate) {
+    <committees-person-create-dialog (Created)="OnPersonCreated()" (Cancelled)="ShowPersonCreate = false">
+    </committees-person-create-dialog>
+}

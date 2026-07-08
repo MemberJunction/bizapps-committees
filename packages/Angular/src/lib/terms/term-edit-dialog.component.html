@@ -1,0 +1,90 @@
+<!-- Backdrop -->
+<div class="dialog-backdrop" (click)="OnClose()"></div>
+
+<!-- Dialog -->
+<div class="dialog-panel">
+    <div class="dialog-header">
+        <h2 class="dialog-title">{{ DialogTitle }}</h2>
+        <button class="dialog-close" (click)="OnClose()" [disabled]="IsSaving">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    @if (IsLoading) {
+        <div class="dialog-loading">
+            <mj-loading text="Loading..."></mj-loading>
+        </div>
+    } @else if (Term) {
+        <div class="dialog-body">
+            @if (ErrorMessage) {
+                <div class="error-banner">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ ErrorMessage }}
+                </div>
+            }
+
+            <!-- Name -->
+            <div class="form-group">
+                <label class="form-label required">Term Name</label>
+                <input class="form-input"
+                    type="text"
+                    [ngModel]="Term.Name"
+                    (ngModelChange)="Term.Name = $event"
+                    placeholder="e.g. 2026-2027" />
+            </div>
+
+            <!-- Start & End Date row -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label required">Start Date</label>
+                    <input class="form-input"
+                        type="date"
+                        [ngModel]="StartDateLocal"
+                        (ngModelChange)="StartDateLocal = $event" />
+                </div>
+                <div class="form-group">
+                    <label class="form-label">End Date</label>
+                    <input class="form-input"
+                        type="date"
+                        [ngModel]="EndDateLocal"
+                        (ngModelChange)="EndDateLocal = $event" />
+                </div>
+            </div>
+
+            <!-- Status -->
+            <div class="form-group">
+                <label class="form-label">Status</label>
+                <select class="form-input"
+                    [ngModel]="Term.Status"
+                    (ngModelChange)="Term.Status = $event">
+                    @for (status of StatusOptions; track status) {
+                        <option [ngValue]="status">{{ status }}</option>
+                    }
+                </select>
+            </div>
+        </div>
+
+        <div class="dialog-actions">
+            <button class="btn btn-primary" (click)="OnSave()" [disabled]="IsSaving">
+                @if (IsSaving) {
+                    <i class="fa-solid fa-spinner fa-spin"></i> Saving...
+                } @else {
+                    {{ IsNew ? 'Create Term' : 'Save' }}
+                }
+            </button>
+            <button class="btn btn-secondary" (click)="OnClose()" [disabled]="IsSaving">Cancel</button>
+            @if (!IsNew && !HasMembers) {
+                <div class="actions-spacer"></div>
+                @if (!ShowDeleteConfirm) {
+                    <button class="btn btn-danger-outline" (click)="ShowDeleteConfirm = true" [disabled]="IsSaving">
+                        <i class="fa-solid fa-trash"></i> Delete
+                    </button>
+                } @else {
+                    <span class="confirm-text">Are you sure?</span>
+                    <button class="btn btn-danger" (click)="OnDelete()" [disabled]="IsSaving">Yes, delete</button>
+                    <button class="btn btn-secondary" (click)="ShowDeleteConfirm = false" [disabled]="IsSaving">No</button>
+                }
+            }
+        </div>
+    }
+</div>

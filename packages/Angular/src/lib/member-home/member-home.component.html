@@ -1,0 +1,186 @@
+<div class="mh">
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <header class="mh-header">
+    <div class="ph-icon"><i class="fa-solid fa-user"></i></div>
+    <div class="ph-titles">
+      <h1>My Committees</h1>
+      <div class="sub">
+        Welcome back{{ FirstName ? ', ' + FirstName : '' }}@if (NextMeeting) { — here's what needs you before {{ NextMeetingDay }}.} @else { — here's where things stand.}
+      </div>
+      @if (!IsLoading) {
+        <div class="ph-meta">
+          @if (NeedsCount > 0) {
+            <span class="badge warning">{{ NeedsCount }} thing{{ NeedsCount === 1 ? '' : 's' }} need{{ NeedsCount === 1 ? 's' : '' }} you</span>
+          } @else {
+            <span class="badge success"><i class="fa-solid fa-check"></i> All caught up</span>
+          }
+        </div>
+      }
+    </div>
+  </header>
+
+  <div class="mh-body">
+    @if (ErrorMessage) {
+      <div class="callout error"><i class="fa-solid fa-triangle-exclamation"></i> {{ ErrorMessage }}</div>
+    }
+
+    @if (IsLoading) {
+      <div class="skel" style="height:140px;margin-bottom:14px"></div>
+      <div class="skel" style="height:200px"></div>
+    } @else {
+
+      <!-- ── Next meeting hero ──────────────────────────────── -->
+      @if (NextMeeting) {
+        <section class="next-meet" aria-labelledby="nm-title">
+          <div class="nm-h">
+            <div class="nm-date" aria-hidden="true">
+              <b>{{ NextMeeting.StartDateTime | date:'d' }}</b>
+              <small>{{ NextMeeting.StartDateTime | date:'MMMM' }}</small>
+            </div>
+            <div class="nm-info">
+              <span class="k">Your next meeting</span>
+              <h2 id="nm-title">{{ NextMeeting.Name }}</h2>
+              <div class="row">
+                <span><i class="fa-solid fa-clock"></i> {{ NextMeeting.StartDateTime | date:'EEE, MMM d · h:mm a' }}@if (NextMeeting.EndDateTime) {–{{ NextMeeting.EndDateTime | date:'h:mm a' }}}</span>
+                @if (NextMeeting.LocationType) {
+                  <span><i class="fa-solid fa-video"></i> {{ NextMeeting.LocationText || NextMeeting.LocationType }}</span>
+                }
+                <span><i class="fa-solid fa-list"></i> {{ NextMeetingAgendaCount }} agenda item{{ NextMeetingAgendaCount === 1 ? '' : 's' }}@if (NextMeetingVoteCount > 0) { · {{ NextMeetingVoteCount }} vote{{ NextMeetingVoteCount === 1 ? '' : 's' }} expected}</span>
+              </div>
+            </div>
+          </div>
+          <div class="nm-cta">
+            <div class="seg" role="group" aria-label="RSVP">
+              <button type="button" class="y" [class.on]="MyRsvp === 'Expected'" [disabled]="IsActing" (click)="OnRsvp(true)">
+                <i class="fa-solid fa-check"></i> Attending
+              </button>
+              <button type="button" class="nn" [class.on]="MyRsvp === 'Absent'" [disabled]="IsActing" (click)="OnRsvp(false)">
+                Can't make it
+              </button>
+            </div>
+            <button type="button" class="btn" (click)="OnAddToCalendar()"><i class="fa-solid fa-calendar-days"></i> Add to calendar</button>
+            <button type="button" class="btn primary" [disabled]="!JoinEnabled"
+                    [title]="JoinEnabled ? '' : 'Join opens 15 minutes before start'" (click)="OnJoin()">
+              <i class="fa-solid fa-video"></i> {{ JoinEnabled ? 'Join now' : 'Join opens ' + (NextMeeting.StartDateTime | date:'MMM d') }}
+            </button>
+          </div>
+        </section>
+      }
+
+      <!-- ── Needs you ──────────────────────────────────────── -->
+      <section class="panel" aria-labelledby="need-title">
+        <div class="panel-h">
+          <i class="fa-solid fa-flag"></i><h2 id="need-title">Needs you</h2>
+          <span class="badge" [class.warning]="NeedsCount > 0" [class.success]="NeedsCount === 0">{{ NeedsCount }}</span>
+          <span class="spacer"></span>
+          <span class="small muted">tap once, done</span>
+        </div>
+        @if (Needs.length === 0) {
+          <div class="empty">
+            <span class="eicon"><i class="fa-solid fa-check"></i></span>
+            <b>You're all caught up</b>
+            <p>Nothing needs you@if (NextMeeting) { before the {{ NextMeeting.StartDateTime | date:'MMM d' }} meeting}. You'll get a notification if that changes — no need to check back.</p>
+          </div>
+        }
+        @for (item of Needs; track item.Key) {
+          <div class="need-i">
+            <span class="nicon" [class.err]="item.Urgent" [class.info]="!item.Urgent">
+              @switch (item.Kind) {
+                @case ('action') { <i class="fa-solid fa-square-check"></i> }
+                @case ('ballot') { <i class="fa-solid fa-gavel"></i> }
+                @case ('minutes') { <i class="fa-solid fa-file-lines"></i> }
+              }
+            </span>
+            <div class="need-txt">
+              <b>{{ item.Title }}</b>
+              <small [class.urgent]="item.Urgent">{{ item.Detail }}</small>
+            </div>
+            @switch (item.Kind) {
+              @case ('action') {
+                <button type="button" class="btn lg primary" [disabled]="IsActing" (click)="OnCompleteAction(item)">
+                  <i class="fa-solid fa-check"></i> Mark complete
+                </button>
+              }
+              @case ('ballot') {
+                <div class="seg" role="group" [attr.aria-label]="'Vote: ' + item.Title" [title]="SealNote(item)">
+                  <button type="button" class="y" [disabled]="IsActing" (click)="OnBallotVote(item, 'Yes')">Yes</button>
+                  <button type="button" class="nn" [disabled]="IsActing" (click)="OnBallotVote(item, 'No')">No</button>
+                  <button type="button" class="ab" [disabled]="IsActing" (click)="OnBallotVote(item, 'Abstain')">Abstain</button>
+                </div>
+              }
+              @case ('minutes') {
+                <button type="button" class="btn lg" (click)="OnReadMinutes(item)"><i class="fa-solid fa-file-lines"></i> Read minutes</button>
+              }
+            }
+          </div>
+        }
+      </section>
+
+      <!-- ── Your committees ────────────────────────────────── -->
+      <section class="panel" aria-labelledby="mc-title">
+        <div class="panel-h"><i class="fa-solid fa-users"></i><h2 id="mc-title">Your committees</h2></div>
+        @for (c of Committees; track c.MembershipID) {
+          <div class="mycmt">
+            <span class="cicon"><i class="fa-solid fa-landmark"></i></span>
+            <div class="mycmt-body">
+              <div class="mycmt-title">
+                <b>{{ c.CommitteeName }}</b>
+                <span class="badge neutral">{{ c.RoleName }}{{ c.IsVoting ? ' · voting' : '' }}</span>
+              </div>
+              <div class="sv">
+                @if (c.TermEnd) { <span>Term ends {{ c.TermEnd | date:'MMM d, y':'UTC' }}</span> }
+                @if (c.AttendanceRate != null) { <span>Attendance this term: {{ (c.AttendanceRate * 100) | number:'1.0-0' }}%</span> }
+              </div>
+              @if (c.AskIntent) {
+                @if (!c.RenewalIntent || c.EditingIntent) {
+                  <div class="intent">
+                    <span class="q">Will you serve another term?</span>
+                    <div class="seg sm" role="group" aria-label="Renewal intent">
+                      @for (opt of IntentButtons(); track opt) {
+                        <button type="button" [class.on]="c.RenewalIntent === opt" [disabled]="IsActing" (click)="OnIntent(c, opt)">{{ opt }}</button>
+                      }
+                    </div>
+                    <span class="small muted">your answer feeds the succession pipeline</span>
+                  </div>
+                } @else {
+                  <div class="intent-done">
+                    <i class="fa-solid fa-circle-check"></i>
+                    <span>{{ IntentAnsweredText(c) }}</span>
+                    <button type="button" class="link" (click)="c.EditingIntent = true">Change answer</button>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+        } @empty {
+          <div class="empty">
+            <span class="eicon"><i class="fa-solid fa-users"></i></span>
+            <b>No committee memberships</b>
+            <p>When you're appointed to a committee, everything you need shows up here.</p>
+          </div>
+        }
+      </section>
+
+      <!-- ── Recent decisions ───────────────────────────────── -->
+      @if (Decisions.length > 0) {
+        <section class="panel" aria-labelledby="rd-title">
+          <div class="panel-h"><i class="fa-solid fa-gavel"></i><h2 id="rd-title">Recent decisions you were part of</h2></div>
+          @for (d of Decisions; track $index) {
+            <div class="decis">
+              <span class="d">{{ d.When | date:'MMM d' }}</span>
+              <div><b>{{ d.Text }}</b> <span class="muted">(you voted {{ d.MyVote }})</span></div>
+            </div>
+          }
+        </section>
+      }
+
+      @if (Needs.length === 0 && NextMeeting) {
+        <p class="signoff">That's everything. See you {{ NextMeetingDay }}{{ FirstName ? ', ' + FirstName : '' }}. 👋</p>
+      }
+    }
+  </div>
+</div>
+
+@if (MinutesReviewMeetingID) {
+  <committees-minutes-review [MeetingID]="MinutesReviewMeetingID" (Exited)="OnMinutesExited()"></committees-minutes-review>
+}

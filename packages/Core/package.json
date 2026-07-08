@@ -1,0 +1,46 @@
+{
+  "name": "@mj-biz-apps/committees-core",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "Core business logic services for the Committees OpenApp",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./lookup": {
+      "types": "./dist/engines/CommitteesLookupEngine.d.ts",
+      "import": "./dist/engines/CommitteesLookupEngine.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "/dist"
+  ],
+  "scripts": {
+    "build": "tsc && tsc-alias -f",
+    "test": "vitest run"
+  },
+  "author": "MemberJunction.com",
+  "license": "ISC",
+  "devDependencies": {
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "@memberjunction/core": "^5.44.0",
+    "@memberjunction/global": "^5.44.0"
+  },
+  "dependencies": {
+    "@mj-biz-apps/common-entities": "^5.31.3",
+    "@mj-biz-apps/committees-entities": "1.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MemberJunction/bizapps-committees"
+  }
+}

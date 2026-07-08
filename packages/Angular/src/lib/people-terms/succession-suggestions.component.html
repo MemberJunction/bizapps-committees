@@ -1,0 +1,43 @@
+<section class="ai-rail" aria-label="Succession suggestions">
+  <div class="ai-head">
+    <span class="ai-tag"><i class="fa-solid fa-wand-magic-sparkles"></i> Succession suggestions</span>
+    <button type="button" class="btn ai sm" [disabled]="IsGenerating || !CommitteeID" (click)="OnGenerate()">
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+      {{ IsGenerating ? 'Analyzing…' : (HasGenerated ? 'Regenerate' : 'Suggest successors') }}
+    </button>
+  </div>
+  <p class="hint">
+    Grounded in attendance, roles held, and cross-committee service — evidence is computed from the record,
+    the AI only proposes. Nothing is created until you act through the roster.
+  </p>
+
+  @if (ErrorMessage) {
+    <div class="ai-error"><i class="fa-solid fa-triangle-exclamation"></i> {{ ErrorMessage }}</div>
+  }
+
+  @for (s of VisibleSuggestions; track s.PersonID) {
+    <div class="sugg">
+      <span class="av">{{ Initials(s.PersonName) }}</span>
+      <div class="sugg-body">
+        <b>{{ s.PersonName }}</b> <span class="badge ai"><i class="fa-solid fa-wand-magic-sparkles"></i> suggested</span>
+        <p class="ev">
+          {{ s.CurrentRoles }}
+          @if (s.AttendanceRate != null) { · {{ (s.AttendanceRate * 100) | number:'1.0-0' }}% attendance }
+          · {{ s.CommitteeCount }} committee{{ s.CommitteeCount === 1 ? '' : 's' }}
+        </p>
+        <p class="fit">Fit: <b>{{ s.Fit }}</b></p>
+        <p class="why">{{ s.Rationale }}</p>
+        <div class="acts">
+          @if (EnablePick) {
+            <button type="button" class="btn ai sm" (click)="Pick(s)"><i class="fa-solid fa-user-plus"></i> Add to roster</button>
+          }
+          <button type="button" class="btn sm ghost" (click)="Dismiss(s)">Not now</button>
+        </div>
+      </div>
+    </div>
+  } @empty {
+    @if (HasGenerated && !IsGenerating) {
+      <p class="hint">No candidates surfaced — the roster may already cover every opening.</p>
+    }
+  }
+</section>

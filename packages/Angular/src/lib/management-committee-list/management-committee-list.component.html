@@ -1,0 +1,130 @@
+@if (WorkspaceCommitteeID) {
+    <div class="ws-wrap">
+        <button type="button" class="ws-back" (click)="CloseWorkspace()">
+            <i class="fa-solid fa-arrow-left"></i> All committees
+        </button>
+        <committee-workspace [CommitteeID]="WorkspaceCommitteeID"></committee-workspace>
+    </div>
+} @else {
+@if (IsLoading) {
+    <div class="list-loading">
+        <mj-loading text="Loading committees..."></mj-loading>
+    </div>
+} @else {
+    <div class="committee-list-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-header-text">
+                <h1 class="page-title">Committees</h1>
+                <p class="page-subtitle">Manage all committees, terms, and memberships</p>
+            </div>
+            <div class="page-header-actions">
+                <button class="btn btn-secondary" (click)="OnOpenBulkImport()">
+                    <i class="fa-solid fa-file-import"></i> Bulk Import
+                </button>
+                <button class="btn btn-primary" (click)="OnCreateCommittee()">
+                    <i class="fa-solid fa-plus"></i> New Committee
+                </button>
+            </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="list-toolbar">
+            <div class="search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input
+                    type="text"
+                    placeholder="Search committees..."
+                    [ngModel]="SearchText"
+                    (ngModelChange)="OnSearchChanged($event)" />
+            </div>
+            <div class="status-filters">
+                <button class="filter-pill"
+                    [class.active]="StatusFilter === 'All'"
+                    (click)="OnStatusFilterChanged('All')">All</button>
+                <button class="filter-pill"
+                    [class.active]="StatusFilter === 'Active'"
+                    (click)="OnStatusFilterChanged('Active')">Active</button>
+                <button class="filter-pill"
+                    [class.active]="StatusFilter === 'Inactive'"
+                    (click)="OnStatusFilterChanged('Inactive')">Inactive</button>
+                <button class="filter-pill"
+                    [class.active]="StatusFilter === 'Dissolved'"
+                    (click)="OnStatusFilterChanged('Dissolved')">Dissolved</button>
+            </div>
+        </div>
+
+        <!-- Committee Cards -->
+        @if (FilteredCommittees.length === 0) {
+            <div class="empty-state">
+                <i class="fa-solid fa-users-slash"></i>
+                <p>No committees found matching your search.</p>
+            </div>
+        } @else {
+            <div class="committee-grid">
+                @for (committee of FilteredCommittees; track committee['ID']) {
+                    <div class="committee-card clickable"
+                         [class.inactive]="committee['Status'] === 'Inactive'"
+                         [class.expanded]="ExpandedCommitteeID === committee['ID']"
+                         (click)="OnToggleExpand($any(committee['ID']))">
+                        <div class="card-header">
+                            <h3 class="committee-name">{{ committee['Name'] }}</h3>
+                            @if (committee['Type']) {
+                                <span class="committee-type">{{ committee['Type'] }}</span>
+                            }
+                        </div>
+                        <button class="btn-edit" (click)="OnEditCommittee($any(committee['ID'])); $event.stopPropagation();"
+                            title="Edit committee settings"
+                            aria-label="Edit committee settings">
+                            <i class="fa-solid fa-ellipsis"></i>
+                        </button>
+                        @if (committee['Description']) {
+                            <p class="committee-description">{{ committee['Description'] }}</p>
+                        }
+                        <div class="card-footer">
+                            <span class="member-count">
+                                <i class="fa-solid fa-users"></i>
+                                {{ committee['MemberCount'] || 0 }} members
+                            </span>
+                            @if (committee['Organization']) {
+                                <span class="org-name">
+                                    <i class="fa-solid fa-building"></i>
+                                    {{ committee['Organization'] }}
+                                </span>
+                            }
+                            <span [class]="'status-badge status-' + ($any(committee['Status']) || '').toLowerCase()">
+                                {{ committee['Status'] }}
+                            </span>
+                            <i [class]="ExpandedCommitteeID === committee['ID'] ? 'fa-solid fa-chevron-up expand-icon' : 'fa-solid fa-chevron-down expand-icon'"></i>
+                        </div>
+
+                        <!-- Inline Membership Panel (read-only preview) -->
+                        @if (ExpandedCommitteeID === committee['ID']) {
+                            <div class="inline-membership" (click)="$event.stopPropagation()">
+                                <committees-membership-panel
+                                    [CommitteeID]="$any(committee['ID'])"
+                                    [ReadOnly]="true">
+                                </committees-membership-panel>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+<!-- Edit Dialog -->
+@if (ShowEditDialog) {
+    <committee-edit-dialog
+        [CommitteeID]="EditingCommitteeID"
+        (DialogClosed)="OnDialogClosed($event)">
+    </committee-edit-dialog>
+}
+
+<!-- Bulk Import Slide-In Panel -->
+@if (ShowBulkImport) {
+    <bulk-import-panel (PanelClosed)="OnBulkImportClosed($event)"></bulk-import-panel>
+}
+
+}

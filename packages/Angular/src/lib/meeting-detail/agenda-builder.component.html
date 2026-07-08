@@ -1,0 +1,120 @@
+<div class="ab">
+  @if (ErrorMessage) {
+    <div class="callout error"><i class="fa-solid fa-triangle-exclamation"></i> {{ ErrorMessage }}</div>
+  }
+
+  <!-- ── Time budget rail ─────────────────────────────────────── -->
+  <div class="budget">
+    <div class="b-item">
+      <span class="k">Planned</span>
+      <b>{{ PlannedMinutes }}m</b>
+    </div>
+    @if (WindowMinutes != null) {
+      <div class="b-item">
+        <span class="k">Meeting window</span>
+        <b>{{ WindowMinutes }}m</b>
+      </div>
+      <div class="b-item">
+        <span class="k">{{ BudgetDelta! >= 0 ? 'Unallocated' : 'Over budget' }}</span>
+        <b [class.over]="BudgetDelta! < 0" [class.ok]="BudgetDelta! >= 0">
+          {{ BudgetDelta! < 0 ? '−' : '' }}{{ BudgetDelta! < 0 ? -BudgetDelta! : BudgetDelta! }}m
+        </b>
+      </div>
+    }
+    <span class="spacer"></span>
+    @if (VoteCount > 0) {
+      <span class="badge"><i class="fa-solid fa-gavel"></i> {{ VoteCount }} vote{{ VoteCount === 1 ? '' : 's' }} expected</span>
+    }
+    <span class="hint">the agenda is live — members see it immediately</span>
+  </div>
+
+  @if (IsLoading) {
+    <div class="skel" style="height:160px"></div>
+  } @else {
+
+    <!-- ── Rows ─────────────────────────────────────────────────── -->
+    @for (row of Rows; track row.ID; let first = $first; let last = $last) {
+      <div class="a-row" [class.editing]="row.Editing">
+        <div class="a-main">
+          <div class="ord">
+            <button type="button" class="ord-btn" [disabled]="first || IsSaving" (click)="Move(row, -1)" aria-label="Move up"><i class="fa-solid fa-chevron-up"></i></button>
+            <span class="seq">{{ row.Sequence }}</span>
+            <button type="button" class="ord-btn" [disabled]="last || IsSaving" (click)="Move(row, 1)" aria-label="Move down"><i class="fa-solid fa-chevron-down"></i></button>
+          </div>
+          <span class="ticon" [class.vote]="row.ItemType === 'Vote'"><i [class]="TypeIcon(row.ItemType)"></i></span>
+          <div class="a-txt" (click)="ToggleEdit(row)">
+            <b>{{ row.Name }}</b>
+            <small>
+              {{ row.ItemType }}
+              @if (row.DurationMinutes) { · {{ row.DurationMinutes }}m }
+              @if (row.PresenterName) { · {{ row.PresenterName }} }
+            </small>
+            @if (row.DurationMinutes) {
+              <span class="share" aria-hidden="true"><span [style.width.%]="SharePct(row)"></span></span>
+            }
+          </div>
+          <button type="button" class="btn sm ghost" (click)="ToggleEdit(row)">
+            <i class="fa-solid" [class.fa-pen]="!row.Editing" [class.fa-chevron-up]="row.Editing"></i>
+            {{ row.Editing ? 'Collapse' : 'Edit' }}
+          </button>
+          @if (!row.ConfirmingDelete) {
+            <button type="button" class="btn sm ghost danger" [disabled]="IsSaving" (click)="row.ConfirmingDelete = true" aria-label="Delete item"><i class="fa-solid fa-trash-can"></i></button>
+          } @else {
+            <button type="button" class="btn sm danger" [disabled]="IsSaving" (click)="OnDelete(row)">Really delete</button>
+            <button type="button" class="btn sm ghost" (click)="row.ConfirmingDelete = false">Keep</button>
+          }
+        </div>
+
+        @if (row.Editing) {
+          <div class="a-edit">
+            <label class="fld grow">
+              <span>Title</span>
+              <input type="text" [(ngModel)]="row.Name" />
+            </label>
+            <label class="fld">
+              <span>Type</span>
+              <select [(ngModel)]="row.ItemType">
+                @for (t of ItemTypes; track t) { <option [value]="t">{{ t }}</option> }
+              </select>
+            </label>
+            <label class="fld">
+              <span>Minutes</span>
+              <input type="number" min="0" step="5" [(ngModel)]="row.DurationMinutes" />
+            </label>
+            <label class="fld">
+              <span>Presenter</span>
+              <select [(ngModel)]="row.PresenterPersonID">
+                <option [ngValue]="null">—</option>
+                @for (m of Members; track m.PersonID) { <option [value]="m.PersonID">{{ m.PersonName }}</option> }
+              </select>
+            </label>
+            <label class="fld wide">
+              <span>Notes</span>
+              <textarea rows="2" [(ngModel)]="row.Notes"></textarea>
+            </label>
+            <div class="edit-acts">
+              <button type="button" class="btn sm primary" [disabled]="IsSaving || !row.Name.trim()" (click)="OnSaveRow(row)">
+                <i class="fa-solid fa-check"></i> {{ IsSaving ? 'Saving…' : 'Save item' }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    } @empty {
+      <div class="empty-note">
+        <i class="fa-solid fa-list-check"></i>
+        No agenda yet — add the first item below. Call to order and adjournment are good bookends.
+      </div>
+    }
+
+    <!-- ── Inline add ───────────────────────────────────────────── -->
+    <div class="add">
+      <i class="fa-solid fa-plus"></i>
+      <input type="text" [(ngModel)]="NewName" (keyup.enter)="OnAdd()" placeholder="Add an agenda item — type a title and press Enter…" />
+      <select [(ngModel)]="NewType" aria-label="New item type">
+        @for (t of ItemTypes; track t) { <option [value]="t">{{ t }}</option> }
+      </select>
+      <button type="button" class="btn sm primary" [disabled]="IsSaving || !NewName.trim()" (click)="OnAdd()">Add</button>
+    </div>
+  }
+</div>

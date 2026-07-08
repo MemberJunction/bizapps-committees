@@ -7,8 +7,8 @@ vi.mock('@memberjunction/server-bootstrap', () => ({
   createMJServer: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('mj_generatedentities', () => ({}));
-vi.mock('mj_generatedactions', () => ({}));
+vi.mock('@mj-biz-apps/committees-entities', () => ({}));
+vi.mock('@mj-biz-apps/committees-actions', () => ({}));
 vi.mock('@memberjunction/server-bootstrap/mj-class-registrations', () => ({}));
 
 // Mock the generated manifest

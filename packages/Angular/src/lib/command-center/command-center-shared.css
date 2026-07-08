@@ -1,0 +1,205 @@
+/* ══════════════════════════════════════════════════════════
+   Command Center — shared primitives (badges, cards, buttons,
+   dots, skeletons, empty states). Token-only colors (--mj-*).
+   Included in the styleUrls of every command-center component.
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Badges ── */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 9px;
+    border-radius: var(--mj-radius-full);
+    white-space: nowrap;
+    font-size: var(--mj-text-xs);
+    font-weight: var(--mj-font-semibold);
+    line-height: 1.6;
+    border: 1px solid transparent;
+}
+.badge i {
+    font-size: 11px;
+}
+.badge.success {
+    background: var(--mj-status-success-bg);
+    color: var(--mj-status-success-text);
+    border-color: color-mix(in srgb, var(--mj-status-success-border) 35%, transparent);
+}
+.badge.warning {
+    background: var(--mj-status-warning-bg);
+    color: var(--mj-status-warning-text);
+    border-color: color-mix(in srgb, var(--mj-status-warning-border) 35%, transparent);
+}
+.badge.error {
+    background: var(--mj-status-error-bg);
+    color: var(--mj-status-error-text);
+    border-color: color-mix(in srgb, var(--mj-status-error-border) 35%, transparent);
+}
+.badge.info {
+    background: var(--mj-status-info-bg);
+    color: var(--mj-status-info-text);
+    border-color: color-mix(in srgb, var(--mj-status-info-border) 35%, transparent);
+}
+.badge.neutral {
+    background: var(--mj-bg-surface-sunken);
+    color: var(--mj-text-secondary);
+    border-color: var(--mj-border-subtle);
+}
+
+/* ── Health dots ── */
+.dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: none;
+    display: inline-block;
+}
+.dot.ok { background: var(--mj-status-success); }
+.dot.watch { background: var(--mj-status-warning); }
+.dot.risk { background: var(--mj-status-error); }
+.dot.off { background: var(--mj-text-disabled); }
+
+/* ── Cards ── */
+.card {
+    background: var(--mj-bg-surface);
+    border: 1px solid var(--mj-border-default);
+    border-radius: var(--mj-radius-lg);
+    box-shadow: var(--mj-shadow-sm);
+}
+.card-h {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--mj-border-subtle);
+}
+.card-h h2 {
+    margin: 0;
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-text-primary);
+}
+.card-h > i {
+    font-size: 14px;
+    color: var(--mj-text-muted);
+}
+.card-h .spacer { flex: 1; }
+.card-b { padding: 14px 16px; }
+.card-f {
+    padding: 10px 16px;
+    border-top: 1px solid var(--mj-border-subtle);
+    font-size: var(--mj-text-xs);
+    color: var(--mj-text-muted);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ── Buttons ── */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border-radius: var(--mj-radius-md);
+    font-family: inherit;
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-medium);
+    border: 1px solid var(--mj-border-default);
+    background: var(--mj-bg-surface);
+    color: var(--mj-text-primary);
+    white-space: nowrap;
+    cursor: pointer;
+    transition: var(--mj-transition-fast);
+}
+.btn:hover { background: var(--mj-bg-surface-hover); }
+.btn i { font-size: 13px; }
+.btn.primary {
+    background: var(--mj-brand-primary);
+    border-color: var(--mj-brand-primary);
+    color: var(--mj-brand-on-primary);
+}
+.btn.primary:hover {
+    background: var(--mj-brand-primary-hover);
+    border-color: var(--mj-brand-primary-hover);
+}
+.btn.ghost {
+    border-color: transparent;
+    background: transparent;
+    color: var(--mj-text-secondary);
+}
+.btn.ghost:hover {
+    background: var(--mj-bg-surface-hover);
+    color: var(--mj-text-primary);
+}
+.btn.sm {
+    padding: 4px 10px;
+    font-size: var(--mj-text-xs);
+    border-radius: var(--mj-radius-sm);
+}
+
+/* ── Skeleton shimmer ── */
+.skel {
+    position: relative;
+    overflow: hidden;
+    background: var(--mj-bg-surface-sunken);
+    border-radius: var(--mj-radius-sm);
+    display: block;
+}
+.skel::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+        90deg,
+        transparent,
+        color-mix(in srgb, var(--mj-text-primary) 7%, transparent),
+        transparent
+    );
+    animation: cc-shimmer 1.6s infinite;
+}
+@keyframes cc-shimmer {
+    100% { transform: translateX(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .skel::after { animation: none; }
+}
+
+/* ── Empty state ── */
+.empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 8px;
+    /* height:auto is explicit: the Explorer shell ships a global
+       `.empty { height: 150px }` that otherwise clamps this card and pushes
+       the CTA past its bottom edge. Our scoped rule wins on specificity. */
+    height: auto;
+    padding: 36px 20px;
+    color: var(--mj-text-muted);
+}
+.empty .eicon {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--mj-bg-surface-sunken);
+    color: var(--mj-text-disabled);
+}
+.empty .eicon i { font-size: 18px; }
+.empty b {
+    color: var(--mj-text-secondary);
+    font-size: var(--mj-text-sm);
+}
+.empty p {
+    margin: 0;
+    font-size: var(--mj-text-xs);
+    max-width: 340px;
+}
+
+/* ── Text utilities ── */
+.muted { color: var(--mj-text-muted); }
+.small { font-size: var(--mj-text-xs); }

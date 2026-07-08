@@ -1,0 +1,266 @@
+@if (IsLoading) {
+  <div class="ws-loading" aria-busy="true">
+    <div class="skel skel-title"></div>
+    <div class="skel skel-block"></div>
+    <div class="skel skel-block"></div>
+    <p class="small muted">Loading committee…</p>
+  </div>
+} @else if (!Committee) {
+  <div class="empty">
+    <div class="eicon"><i class="fa-solid fa-users-rectangle"></i></div>
+    <b>Select a committee</b>
+    <p>Open a committee from the Command Center health grid or the Committees directory.</p>
+    <button type="button" class="btn sm" (click)="BackToCommandCenter()">Back to Command Center</button>
+  </div>
+} @else {
+  <header class="ws-header">
+    <div class="ws-title">
+      <i class="fa-solid fa-users-rectangle ws-icon"></i>
+      <div>
+        <h1>{{ Committee.Name }}</h1>
+        <p class="sub">
+          {{ Committee.Type }}
+          @if (ChairName) { · Chaired by {{ ChairName }} }
+          @if (Committee.FormationDate) { · Formed {{ Committee.FormationDate | date: 'mediumDate' : 'UTC' }} }
+        </p>
+      </div>
+    </div>
+    <div class="ws-meta">
+      @if (TermLapsed) {
+        <span class="badge error"><i class="fa-solid fa-triangle-exclamation"></i> No active term</span>
+      }
+      <span class="badge neutral">{{ Members.length }} members · {{ VotingCount }} voting</span>
+      <span class="badge neutral">{{ Committee.IsPublic ? 'Public' : 'Private' }}</span>
+    </div>
+  </header>
+
+  <div class="ws">
+    <nav class="ws-tabs" role="tablist" aria-label="Committee sections">
+      <button type="button" role="tab" [attr.aria-selected]="ActiveTab === 'overview'" [class.on]="ActiveTab === 'overview'" (click)="SelectTab('overview')">
+        <i class="fa-solid fa-flag"></i> Overview
+      </button>
+      <button type="button" role="tab" [attr.aria-selected]="ActiveTab === 'roster'" [class.on]="ActiveTab === 'roster'" (click)="SelectTab('roster')">
+        <i class="fa-solid fa-users"></i> Roster &amp; Terms <span class="cnt">{{ Members.length }}</span>
+      </button>
+      <button type="button" role="tab" [attr.aria-selected]="ActiveTab === 'meetings'" [class.on]="ActiveTab === 'meetings'" (click)="SelectTab('meetings')">
+        <i class="fa-solid fa-calendar-days"></i> Meetings <span class="cnt">{{ Meetings.length }}</span>
+      </button>
+      <button type="button" role="tab" [attr.aria-selected]="ActiveTab === 'motions'" [class.on]="ActiveTab === 'motions'" (click)="SelectTab('motions')">
+        <i class="fa-solid fa-gavel"></i> Motions <span class="cnt">{{ MotionCount }}</span>
+      </button>
+      <button type="button" role="tab" [attr.aria-selected]="ActiveTab === 'actions'" [class.on]="ActiveTab === 'actions'" (click)="SelectTab('actions')">
+        <i class="fa-solid fa-square-check"></i> Actions <span class="cnt">{{ OpenActions.length }}</span>
+      </button>
+      <button type="button" role="tab" [attr.aria-selected]="ActiveTab === 'documents'" [class.on]="ActiveTab === 'documents'" (click)="SelectTab('documents')">
+        <i class="fa-solid fa-file-lines"></i> Documents <span class="cnt">{{ Artifacts.length }}</span>
+      </button>
+    </nav>
+
+    <div class="ws-panel">
+      @switch (ActiveTab) {
+        @case ('overview') {
+          @if (TermLapsed) {
+            <div class="callout error" role="alert">
+              <b>This committee has no active term.</b>
+              Memberships remain active but are not anchored to a term — votes and quorum math
+              still work, but term reporting and succession planning are blind here.
+              <a href="javascript:void(0)" (click)="SelectTab('roster')">Review roster &amp; terms →</a>
+            </div>
+          }
+          <div class="two">
+            <div>
+              <section class="card">
+                <div class="card-h"><i class="fa-solid fa-flag"></i><h2>Mission</h2></div>
+                <div class="card-b">
+                  <p>{{ Committee.MissionStatement || 'No mission statement recorded.' }}</p>
+                  <dl class="kv">
+                    <dt>Type</dt><dd>{{ Committee.Type }}</dd>
+                    <dt>Formed</dt><dd>{{ Committee.FormationDate ? (Committee.FormationDate | date: 'longDate' : 'UTC') : '—' }}</dd>
+                    <dt>Reports to</dt><dd>{{ Committee.ParentCommittee || '—' }}</dd>
+                    <dt>Visibility</dt><dd>{{ Committee.IsPublic ? 'Public' : 'Private' }}</dd>
+                  </dl>
+                </div>
+              </section>
+              <section class="card">
+                <div class="card-h"><i class="fa-solid fa-calendar-days"></i><h2>Meetings</h2></div>
+                <div class="card-b">
+                  @if (!NextMeeting) {
+                    <div class="callout warning">
+                      <b>Nothing scheduled.</b>
+                      @if (LastMeeting) { Last met {{ LastMeeting.StartDateTime | date: 'mediumDate' }}. }
+                      @else { This committee has not met yet. }
+                    </div>
+                  } @else {
+                    <div class="doc-row">
+                      <i class="fa-solid fa-calendar-check"></i>
+                      <div>
+                        <b>{{ NextMeeting.Name }}</b>
+                        <small>{{ NextMeeting.StartDateTime | date: 'medium' }} · {{ NextMeeting.LocationType || 'TBD' }}</small>
+                      </div>
+                      <span class="badge info">Upcoming</span>
+                    </div>
+                  }
+                </div>
+              </section>
+            </div>
+            <div>
+              <section class="card">
+                <div class="card-h"><i class="fa-solid fa-users"></i><h2>Officers</h2></div>
+                <div class="card-b">
+                  @for (o of Officers; track o.ID) {
+                    <div class="officer">
+                      <span class="av">{{ o.Person.charAt(0) }}</span>
+                      <div><b>{{ o.Person }}</b><small>{{ o.Role }} · since {{ o.StartDate | date: 'MMM yyyy' : 'UTC' }}</small></div>
+                    </div>
+                  } @empty {
+                    <p class="small muted">No officers assigned.</p>
+                  }
+                </div>
+              </section>
+            </div>
+          </div>
+        }
+        @case ('roster') {
+          <div class="two">
+            <committees-membership-panel [CommitteeID]="Committee.ID"></committees-membership-panel>
+            <section class="card">
+              <div class="card-h"><i class="fa-solid fa-timeline"></i><h2>Term history</h2></div>
+              <div class="card-b">
+                @for (t of Terms; track t.ID) {
+                  <div class="mini-term">
+                    <span class="badge" [class.success]="t.Status === 'Active'" [class.neutral]="t.Status !== 'Active'">{{ t.Name }}</span>
+                    <small>{{ t.StartDate | date: 'MMM yyyy' : 'UTC' }} – {{ t.EndDate ? (t.EndDate | date: 'MMM yyyy' : 'UTC') : 'ongoing' }} · {{ t.Status }}</small>
+                  </div>
+                } @empty {
+                  <p class="small muted">No terms recorded.</p>
+                }
+                @if (TermLapsed) {
+                  <div class="mini-term gap"><span class="badge error">Gap</span><small>No active term</small></div>
+                }
+              </div>
+            </section>
+          </div>
+        }
+        @case ('meetings') {
+          <section class="card">
+            <div class="card-h"><i class="fa-solid fa-calendar-days"></i><h2>All meetings</h2></div>
+            <div class="card-b table-wrap">
+              <table class="tbl">
+                <thead><tr><th>Meeting</th><th>When</th><th>Where</th><th>Status</th><th></th></tr></thead>
+                <tbody>
+                  @for (m of Meetings; track m.ID) {
+                    <tr>
+                      <td><b>{{ m.Name }}</b></td>
+                      <td class="nowrap">{{ m.StartDateTime | date: 'MMM d, y · h:mm a' }}</td>
+                      <td>{{ m.LocationType || '—' }}{{ m.LocationText ? ' · ' + m.LocationText : '' }}</td>
+                      <td><span class="badge" [class.success]="m.Status === 'Completed'" [class.info]="m.Status === 'Scheduled'" [class.neutral]="m.Status !== 'Completed' && m.Status !== 'Scheduled'">{{ m.Status }}</span></td>
+                      <td class="nowrap">
+                        @if (m.Status === 'Scheduled') {
+                          <button type="button" class="btn-live" (click)="OpenLiveMeeting(m.ID)"><i class="fa-solid fa-play"></i> Start meeting</button>
+                        } @else if (m.Status === 'InProgress') {
+                          <button type="button" class="btn-live live" (click)="OpenLiveMeeting(m.ID)"><i class="fa-solid fa-tower-broadcast"></i> Resume live</button>
+                        }
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr><td colspan="5" class="small muted">No meetings recorded.</td></tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </section>
+        }
+        @case ('motions') {
+          <section class="card">
+            <div class="card-h">
+              <i class="fa-solid fa-gavel"></i><h2>Motions</h2>
+              <span class="spacer"></span>
+              @if (OpenBallotCount > 0) {
+                <span class="badge info"><i class="fa-solid fa-gavel"></i> {{ OpenBallotCount }} e-ballot{{ OpenBallotCount === 1 ? '' : 's' }} open</span>
+              }
+              <button type="button" class="btn-live" (click)="ShowEBallotDialog = true"><i class="fa-solid fa-plus"></i> New e-ballot</button>
+            </div>
+            @if (MotionRows.length === 0) {
+              <div class="empty">
+                <div class="eicon"><i class="fa-solid fa-gavel"></i></div>
+                <b>No motions recorded this cycle</b>
+                <p>Motions captured in Live Meeting Mode land here automatically with their
+                   roll-call votes. Between meetings, open an e-ballot to put a question to
+                   the committee asynchronously.</p>
+              </div>
+            } @else {
+              <div class="card-b table-wrap">
+                <table class="tbl">
+                  <thead><tr><th>Motion</th><th>Where</th><th>Moved / Seconded</th><th>Result</th><th>Tally Y-N-A</th></tr></thead>
+                  <tbody>
+                    @for (row of MotionRows; track row.MotionID) {
+                      <tr>
+                        <td><b>{{ row.Name }}</b>@if (row.Description) { <small class="muted">{{ row.Description }}</small> }</td>
+                        <td class="nowrap">
+                          @if (row.IsBallotMotion) { <span class="badge info">E-ballot</span> }
+                          @else { {{ row.MeetingTitle ?? '—' }} }
+                        </td>
+                        <td class="small">{{ row.MovedByName ?? '—' }}@if (row.SecondedByName) { / {{ row.SecondedByName }}}</td>
+                        <td><span class="badge" [class.success]="row.Result === 'Passed'" [class.error]="row.Result === 'Failed'"
+                                  [class.warning]="row.Result === 'Pending'" [class.neutral]="row.Result !== 'Passed' && row.Result !== 'Failed' && row.Result !== 'Pending'">{{ row.Result }}</span></td>
+                        <td class="nowrap">{{ row.Tally ? (row.Tally.Yes + '-' + row.Tally.No + '-' + row.Tally.Abstain) : '—' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
+          </section>
+        }
+        @case ('actions') {
+          <section class="card">
+            <div class="card-h"><i class="fa-solid fa-square-check"></i><h2>Open action items</h2>
+              @if (OpenActions.length > 0) { <span class="badge warning">{{ OpenActions.length }}</span> }
+            </div>
+            <div class="card-b">
+              @for (a of OpenActions; track a.ID) {
+                <div class="act">
+                  <div>
+                    <b>{{ a.Name }}</b>
+                    <small>{{ a.AssigneeName || 'Unassigned' }}</small>
+                  </div>
+                  @if (a.DueAt) {
+                    <span class="badge" [class.error]="IsOverdue(a)" [class.warning]="!IsOverdue(a)">Due {{ a.DueAt | date: 'MMM d' : 'UTC' }}</span>
+                  }
+                  @if (a.Priority) { <span class="badge neutral">{{ a.Priority }}</span> }
+                </div>
+              } @empty {
+                <p class="small muted">No open action items.</p>
+              }
+            </div>
+          </section>
+        }
+        @case ('documents') {
+          <section class="card">
+            <div class="card-h"><i class="fa-solid fa-file-lines"></i><h2>Documents</h2></div>
+            <div class="card-b">
+              @for (d of Artifacts; track d.ID) {
+                <div class="doc-row">
+                  <i class="fa-solid fa-file-lines"></i>
+                  <div><b>{{ d.Name }}</b><small>{{ d.ArtifactType || 'Document' }}</small></div>
+                  @if (d.Provider) { <span class="badge neutral">{{ d.Provider }}</span> }
+                  @if (d.URL) { <a class="btn sm ghost" [href]="d.URL" target="_blank" rel="noopener">Open</a> }
+                </div>
+              } @empty {
+                <p class="small muted">No documents linked. Files stay in your providers — Committees stores the links.</p>
+              }
+            </div>
+          </section>
+        }
+      }
+    </div>
+  </div>
+}
+
+@if (LiveMeetingID) {
+  <committees-live-meeting [MeetingID]="LiveMeetingID" (Exited)="OnLiveMeetingExited()"></committees-live-meeting>
+}
+
+@if (ShowEBallotDialog) {
+  <committees-e-ballot-dialog [PreselectedCommitteeID]="CommitteeID" (DialogClosed)="OnEBallotDialogClosed($event)"></committees-e-ballot-dialog>
+}

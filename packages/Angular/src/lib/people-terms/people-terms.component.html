@@ -1,0 +1,155 @@
+<div class="pt-page">
+  <!-- ── Header ──────────────────────────────────────────────── -->
+  <header class="pt-header">
+    <div class="ph-icon"><i class="fa-solid fa-timeline"></i></div>
+    <div class="ph-titles">
+      <h1>People &amp; Terms</h1>
+      <div class="sub">Roster timeline, term expirations, and the succession pipeline</div>
+      <div class="ph-meta">
+        @if (ExpiringCount > 0) {
+          <span class="badge warning"><i class="fa-solid fa-clock"></i> {{ ExpiringCount }} term{{ ExpiringCount === 1 ? '' : 's' }} expire ≤ {{ ExpiringWindowDays }} days</span>
+        }
+        @if (LapsedCount > 0) {
+          <span class="badge error"><i class="fa-solid fa-triangle-exclamation"></i> {{ LapsedCount }} committee{{ LapsedCount === 1 ? '' : 's' }} without an active term</span>
+        }
+        @if (ExpiringCount === 0 && LapsedCount === 0 && !IsLoading) {
+          <span class="badge success"><i class="fa-solid fa-check"></i> All terms healthy</span>
+        }
+      </div>
+    </div>
+  </header>
+
+  <div class="pt-body">
+    @if (ErrorMessage) {
+      <div class="callout error"><i class="fa-solid fa-triangle-exclamation"></i> {{ ErrorMessage }}</div>
+    }
+
+    @if (IsLoading) {
+      <div class="skel" style="height:64px;margin-bottom:14px"></div>
+      <div class="skel" style="height:320px"></div>
+    } @else if (Clock) {
+
+      <!-- ── 90-day lens ────────────────────────────────────── -->
+      <div class="lens" role="list" aria-label="Terms expiring in the next 90 days">
+        @for (chip of Clock.Lens; track chip.CommitteeID) {
+          <button type="button" class="lens-chip" role="listitem" (click)="OnChipClick(chip)">
+            <span class="when" [class.err]="LensTone(chip) === 'err'" [class.warn]="LensTone(chip) === 'warn'" [class.ok]="LensTone(chip) === 'ok'">{{ LensWhen(chip) }}</span>
+            <b>{{ chip.CommitteeName }}</b>
+            <small>
+              @switch (chip.State) {
+                @case ('Lapsed') { No active term — renew now }
+                @case ('Renewed') { Next term staged ✓ }
+                @case ('Expiring') { Active term ends {{ chip.EndDate | date:'MMM d, y':'UTC' }} }
+                @default { Term healthy }
+              }
+            </small>
+          </button>
+        }
+      </div>
+
+      <div class="pt-grid">
+        <!-- ── Roster timeline ──────────────────────────────── -->
+        <section class="card" aria-labelledby="gantt-title">
+          <div class="card-h">
+            <i class="fa-solid fa-timeline"></i>
+            <h2 id="gantt-title">{{ SelectedCommitteeName }} — roster timeline</h2>
+            <span class="spacer"></span>
+            <span class="legend">
+              <span><span class="sw past"></span> past</span>
+              <span><span class="sw current"></span> current</span>
+              <span><span class="sw expiring"></span> expiring</span>
+            </span>
+            <select class="cmt-select" [ngModel]="SelectedCommitteeID" (ngModelChange)="OnCommitteeChange($event)" aria-label="Switch committee">
+              @for (c of Clock.Committees; track c.ID) {
+                <option [value]="c.ID">{{ c.Name }}</option>
+              }
+            </select>
+            <button type="button" class="btn sm renew-btn" (click)="OpenRenewal(SelectedCommitteeID)">
+              <i class="fa-solid fa-rotate"></i> Start term renewal
+            </button>
+          </div>
+          <div class="card-b gantt">
+            <div class="g-head" [style.grid-template-columns]="'220px repeat(' + Clock.Axis.Buckets.length + ', 1fr) 118px'">
+              <span>Member</span>
+              @for (b of Clock.Axis.Buckets; track $index) { <span>{{ b.Label }}</span> }
+              <span class="g-status-h">Status</span>
+            </div>
+            @for (row of Clock.Rows; track row.PersonID) {
+              <div class="g-row">
+                <div class="g-who">
+                  <span class="av">{{ Initials(row.PersonName) }}</span>
+                  <div class="who-txt">
+                    <span class="nm">{{ row.PersonName }}</span>
+                    <span class="rl">{{ row.RoleName }}@if (row.AttendanceRate != null) { · {{ (row.AttendanceRate * 100) | number:'1.0-0' }}% attendance }</span>
+                  </div>
+                </div>
+                <div class="g-track">
+                  @if (Clock.Axis.TodayPct != null) {
+                    <span class="g-today" [style.left.%]="Clock.Axis.TodayPct" aria-hidden="true"></span>
+                  }
+                  @for (bar of row.Bars; track bar.TermID) {
+                    <span class="g-bar" [class.past]="bar.State === 'past'" [class.current]="bar.State === 'current'"
+                          [class.expiring]="bar.State === 'expiring'" [class.future]="bar.State === 'future'"
+                          [style.left.%]="bar.LeftPct" [style.width.%]="bar.WidthPct" [title]="bar.Label">
+                      {{ bar.Label }}
+                    </span>
+                  }
+                </div>
+                <div class="g-status">
+                  @if (RowFlag(row); as flag) {
+                    <span class="badge" [class.error]="flag.tone === 'error'" [class.success]="flag.tone === 'success'" [class.neutral]="flag.tone === 'neutral'">{{ flag.label }}</span>
+                  }
+                </div>
+              </div>
+            } @empty {
+              <div class="empty">
+                <div class="eicon"><i class="fa-solid fa-timeline"></i></div>
+                <b>No memberships recorded</b>
+                <p>Term-anchored memberships render here as timeline bars.</p>
+              </div>
+            }
+          </div>
+          <div class="card-f">Bars are Term-anchored Memberships (Term start → end). Attendance is the rate across this committee's completed meetings.</div>
+        </section>
+
+        <!-- ── Pipeline + AI rail ───────────────────────────── -->
+        <div class="rail">
+          <section class="card" aria-labelledby="pipe-title">
+            <div class="card-h">
+              <i class="fa-solid fa-users"></i>
+              <h2 id="pipe-title">Vacancy pipeline — next cycle</h2>
+              <span class="spacer"></span>
+              @if (OpeningsCount > 0) {
+                <span class="badge warning">{{ OpeningsCount }} seat{{ OpeningsCount === 1 ? '' : 's' }} to watch</span>
+              }
+            </div>
+            <div class="card-b pipe">
+              @for (seat of Clock.Pipeline; track seat.MembershipID) {
+                <div class="pipe-seat">
+                  <span class="av">{{ Initials(seat.PersonName) }}</span>
+                  <div class="seat-txt">
+                    <b>{{ seat.RoleName }}</b>
+                    <small>{{ seat.PersonName }} — {{ seat.Reason }}</small>
+                  </div>
+                  <span class="badge" [class.error]="SeatTone(seat) === 'error'" [class.warning]="SeatTone(seat) === 'warning'"
+                        [class.success]="SeatTone(seat) === 'success'" [class.neutral]="SeatTone(seat) === 'neutral'">{{ SeatLabel(seat) }}</span>
+                </div>
+              } @empty {
+                <p class="small muted">No active-term seats — this committee's term has lapsed. Renew the term to build a pipeline.</p>
+              }
+            </div>
+            <div class="card-f">Intent capture runs through Member Home self-service — “Will you serve another term?”</div>
+          </section>
+
+          <committees-succession-suggestions [CommitteeID]="SelectedCommitteeID" [CommitteeName]="SelectedCommitteeName">
+          </committees-succession-suggestions>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+@if (RenewalCommitteeID) {
+  <committees-term-renewal-wizard [CommitteeID]="RenewalCommitteeID" (Exited)="OnRenewalExited($event)">
+  </committees-term-renewal-wizard>
+}

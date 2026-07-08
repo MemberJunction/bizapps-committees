@@ -1,0 +1,106 @@
+/* ══════════════════════════════════════════════════════════
+   Membership List — Premium Light
+   Uses MJ design tokens (--mj-*) from @memberjunction/ng-shared-generic
+   ══════════════════════════════════════════════════════════ */
+
+:host {
+    display: block;
+    background: var(--mj-bg-surface-card);
+    height: 100%;
+    overflow-y: auto;
+    font-family: var(--mj-font-family);
+    -webkit-font-smoothing: antialiased;
+}
+
+.list-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+}
+
+.membership-list-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--mj-space-12) var(--mj-space-8);
+}
+
+/* ─── Page Header ─── */
+.page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--mj-space-6);
+    margin-bottom: var(--mj-space-8);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: var(--mj-space-5);
+}
+
+.page-title {
+    font-size: 34px;
+    font-weight: var(--mj-font-bold);
+    color: var(--mj-text-primary);
+    margin: 0;
+    letter-spacing: -0.8px;
+    white-space: nowrap;
+}
+
+.committee-select {
+    padding: var(--mj-space-2) 36px var(--mj-space-2) 14px;
+    border: none;
+    border-radius: 10px;
+    background: var(--mj-bg-surface);
+    font-size: 15px;
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-text-primary);
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239ca3af' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    transition: box-shadow 0.2s ease;
+    font-family: inherit;
+}
+
+.committee-select:focus {
+    box-shadow: 0 0 0 2px var(--mj-brand-primary), 0 4px 12px color-mix(in srgb, var(--mj-brand-primary) 12%, transparent);
+}
+
+.single-committee-name {
+    font-size: 15px;
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-text-muted);
+}
+
+/* ─── Empty State ─── */
+.empty-state {
+    text-align: center;
+    padding: 64px var(--mj-space-6);
+}
+
+.empty-state i {
+    font-size: 40px;
+    color: var(--mj-text-disabled);
+    display: block;
+    margin-bottom: var(--mj-space-4);
+}
+
+.empty-state p {
+    font-size: 15px;
+    font-weight: var(--mj-font-medium);
+    color: var(--mj-text-muted);
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .membership-list-container { padding: var(--mj-space-6) var(--mj-space-4); }
+    .header-left { flex-direction: column; align-items: flex-start; gap: var(--mj-space-3); }
+    .page-title { font-size: 26px; }
+    .committee-select { width: 100%; }
+}

@@ -3,6 +3,16 @@
 node_modules/
 .turbo/
 .angular/
+.playwright-cli/
+.vscode/
+tmp/
+test-data/
+plans/BIZAPPS_TASKS_PLAN.md
+dashboard-*.png
+dashboard-*.yml
+home.yml
+logged-in.yml
+login.yml
 codegen.output.log
 dist/
 SQL Scripts/
@@ -45,3 +55,8 @@ SQL Scripts/generated/.gitkeep
 SQL Scripts/utilities/MJ Metadata Wipe Out - CAREFUL.sql
 report.html
 report.json
+
+# Local vendoring / scratch (restructure hygiene)
+.tasks-tarballs/
+temp_sql_scripts/
+metadata/sql_logging

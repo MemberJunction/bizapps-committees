@@ -1,0 +1,76 @@
+/* "Needs your attention" rail — token-only colors (--mj-*). */
+
+.rail-body {
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+.rail-empty {
+    padding: 20px 12px;
+}
+
+.attn {
+    display: flex;
+    gap: 10px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--mj-border-subtle);
+    align-items: flex-start;
+    width: 100%;
+    background: none;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    font: inherit;
+    text-align: left;
+    color: inherit;
+    cursor: pointer;
+}
+.attn:last-child {
+    border-bottom: none;
+}
+.attn:hover .attn-text b {
+    color: var(--mj-text-link-hover);
+    text-decoration: underline;
+}
+.attn .aicon {
+    width: 26px;
+    height: 26px;
+    flex: none;
+    border-radius: var(--mj-radius-md);
+    display: grid;
+    place-items: center;
+}
+.attn .aicon i {
+    font-size: 12px;
+}
+.attn .aicon.warn {
+    background: var(--mj-status-warning-bg);
+    color: var(--mj-status-warning-text);
+}
+.attn .aicon.err {
+    background: var(--mj-status-error-bg);
+    color: var(--mj-status-error-text);
+}
+.attn-text {
+    min-width: 0;
+    flex: 1;
+}
+.attn-text b {
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-medium);
+    display: block;
+    line-height: 1.35;
+    color: var(--mj-text-primary);
+}
+.attn-text small {
+    color: var(--mj-text-muted);
+    font-size: var(--mj-text-xs);
+}
+.attn .go {
+    margin-left: auto;
+    align-self: center;
+    color: var(--mj-text-disabled);
+    flex: none;
+}
+.attn .go i {
+    font-size: 11px;
+}

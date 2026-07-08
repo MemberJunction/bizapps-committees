@@ -3,11 +3,24 @@
   "push": {
     "autoCreateMissingRecords": true
   },
+  "sqlLogging": {
+    "enabled": true,
+    "outputDirectory": "./sql_logging",
+    "formatAsMigration": true,
+    "filterPatterns": [
+      "*spCreateAIPromptRun*",
+      "*spUpdateAIPromptRun*"
+    ],
+    "filterType": "exclude"
+  },
   "directoryOrder": [
-    "schema-info",
+    "credential-types",
     "committee-types",
     "roles",
-    "artifact-types"
+    "artifact-types",
+    "file-storage-providers",
+    "prompts",
+    "agents"
   ],
   "emitSyncNotes": false
 }

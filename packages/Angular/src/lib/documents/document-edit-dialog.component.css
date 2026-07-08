@@ -1,0 +1,216 @@
+/* Document Edit Dialog — component-specific overrides only.
+   Base styles from ../shared/slide-panel.css
+   Uses MJ design tokens (--mj-*) from @memberjunction/ng-shared-generic */
+
+/* ─── Mode Toggle ─── */
+.mode-toggle {
+    display: flex;
+    gap: 0;
+    margin-bottom: var(--mj-space-5);
+    border: 2px solid var(--mj-border-default);
+    border-radius: var(--mj-radius-lg);
+    overflow: hidden;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: var(--mj-space-3) var(--mj-space-4);
+    border: none;
+    background: var(--mj-bg-surface);
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--mj-space-2);
+    transition: all 0.15s ease;
+    font-family: inherit;
+}
+
+.mode-btn:first-child {
+    border-right: 2px solid var(--mj-border-default);
+}
+
+.mode-btn.active {
+    background: var(--mj-status-info-bg);
+    color: var(--mj-status-info-text);
+}
+
+.mode-btn:hover:not(.active) {
+    background: var(--mj-bg-surface-card);
+    color: var(--mj-text-secondary);
+}
+
+/* ─── File Upload Drop Zone ─── */
+.drop-zone {
+    border: 2px dashed var(--mj-border-strong);
+    border-radius: 14px;
+    padding: var(--mj-space-8) var(--mj-space-5);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: var(--mj-bg-surface-card);
+}
+
+.drop-zone:hover {
+    border-color: color-mix(in srgb, var(--mj-status-info) 45%, transparent);
+    background: var(--mj-status-info-bg);
+}
+
+.drop-zone.dragging {
+    border-color: var(--mj-status-info);
+    background: var(--mj-status-info-bg);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--mj-status-info) 12%, transparent);
+}
+
+.drop-zone i {
+    font-size: 32px;
+    color: color-mix(in srgb, var(--mj-status-info) 45%, transparent);
+    display: block;
+    margin-bottom: var(--mj-space-2-5);
+}
+
+.drop-text {
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-text-secondary);
+    margin: 0 0 var(--mj-space-1) 0;
+}
+
+.drop-hint {
+    font-size: var(--mj-text-xs);
+    color: var(--mj-text-muted);
+    margin: 0;
+}
+
+.file-input-hidden {
+    display: none;
+}
+
+/* ─── No Storage Notice ─── */
+.no-storage-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--mj-space-2-5);
+    padding: 14px var(--mj-space-4);
+    background: var(--mj-status-warning-bg);
+    border: 2px solid color-mix(in srgb, var(--mj-status-warning-border) 35%, transparent);
+    border-radius: var(--mj-radius-lg);
+    font-size: 13px;
+    font-weight: var(--mj-font-medium);
+    color: var(--mj-status-warning-text);
+    line-height: 1.4;
+}
+
+.no-storage-notice i {
+    font-size: var(--mj-text-base);
+    color: var(--mj-status-warning-text);
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* ─── File Preview ─── */
+.file-preview {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px var(--mj-space-4);
+    border: 2px solid var(--mj-border-default);
+    border-radius: var(--mj-radius-lg);
+    background: var(--mj-bg-surface);
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: var(--mj-space-3);
+    min-width: 0;
+}
+
+.file-info i {
+    font-size: 22px;
+    color: var(--mj-status-info);
+    flex-shrink: 0;
+}
+
+.file-name {
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-text-primary);
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.file-size {
+    font-size: var(--mj-text-xs);
+    color: var(--mj-text-muted);
+    font-weight: var(--mj-font-medium);
+}
+
+.file-remove {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: var(--mj-bg-surface-sunken);
+    border-radius: var(--mj-radius-md);
+    font-size: var(--mj-text-sm);
+    color: var(--mj-text-muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+}
+
+.file-remove:hover {
+    background: var(--mj-status-error-bg);
+    color: var(--mj-status-error);
+}
+
+/* ─── Divider ─── */
+.divider-row {
+    text-align: center;
+    position: relative;
+    margin: 18px 0;
+}
+
+.divider-row::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--mj-bg-surface-active);
+}
+
+.divider-text {
+    position: relative;
+    background: var(--mj-bg-surface);
+    padding: 0 14px;
+    font-size: var(--mj-text-xs);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* ─── Upload Progress ─── */
+.upload-progress {
+    display: flex;
+    align-items: center;
+    gap: var(--mj-space-2-5);
+    padding: var(--mj-space-3) var(--mj-space-4);
+    background: var(--mj-status-info-bg);
+    border: 2px solid color-mix(in srgb, var(--mj-status-info) 35%, transparent);
+    border-radius: var(--mj-radius-lg);
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-status-info-text);
+    margin-bottom: 18px;
+}

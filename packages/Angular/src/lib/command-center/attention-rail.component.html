@@ -1,0 +1,29 @@
+<section class="card" aria-labelledby="attn-title">
+    <div class="card-h">
+        <i class="fa-regular fa-bell"></i>
+        <h2 id="attn-title">Needs your attention</h2>
+        @if (Items.length > 0) {
+            <span class="badge error">{{ Items.length }}</span>
+        }
+    </div>
+    <div class="card-b rail-body">
+        @if (Items.length === 0) {
+            <div class="empty rail-empty">
+                <b>All clear</b>
+                <p>Nothing needs your attention right now.</p>
+            </div>
+        }
+        @for (item of Items; track item.CommitteeID + item.Kind) {
+            <button type="button" class="attn" (click)="ItemSelected.emit(item)">
+                <span [class]="'aicon ' + IconTone(item.Kind)">
+                    <i [class]="IconClass(item.Kind)"></i>
+                </span>
+                <div class="attn-text">
+                    <b>{{ item.Name }}</b>
+                    <small>{{ item.Detail }}</small>
+                </div>
+                <span class="go"><i class="fa-solid fa-chevron-right"></i></span>
+            </button>
+        }
+    </div>
+</section>

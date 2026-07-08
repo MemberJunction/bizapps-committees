@@ -1,0 +1,164 @@
+<div class="mr" role="dialog" aria-label="Minutes review">
+  <!-- ── Top bar ─────────────────────────────────────────────── -->
+  <header class="mr-top">
+    <button type="button" class="btn ghost sm" (click)="OnExit()"><i class="fa-solid fa-xmark"></i> Close</button>
+    @if (Meeting) {
+      <div class="ttl">
+        <b>Minutes — {{ Meeting.Name }}</b>
+        <small>{{ Meeting.Committee }} · Meeting of {{ Meeting.StartDateTime | date:'longDate' }}</small>
+      </div>
+      @if (Minute) {
+        <span class="badge" [class.success]="StatusBadgeTone === 'success'" [class.warning]="StatusBadgeTone === 'warning'"
+              [class.error]="StatusBadgeTone === 'error'" [class.neutral]="StatusBadgeTone === 'neutral'">
+          {{ Minute.ApprovalStatus === 'PendingApproval' ? 'Pending approval' : Minute.ApprovalStatus }}
+        </span>
+      }
+      <span class="spacer"></span>
+      @if (CanEdit) {
+        <div class="viewas" role="group" aria-label="View as role">
+          <span class="small muted">View as</span>
+          <div class="seg">
+            <button type="button" [class.on]="ViewAs === 'secretary'" (click)="ViewAs = 'secretary'">Secretary</button>
+            <button type="button" [class.on]="ViewAs === 'member'" (click)="ViewAs = 'member'">Member</button>
+          </div>
+        </div>
+      }
+      @if (IsSecretaryView && Minute && Minute.ApprovalStatus === 'Draft') {
+        <button type="button" class="btn primary sm" [disabled]="IsActing || UnconfirmedCount > 0"
+                [title]="UnconfirmedCount > 0 ? UnconfirmedCount + ' section(s) still need review' : ''"
+                (click)="OnFinalize()">
+          <i class="fa-solid fa-check"></i> Finalize draft
+        </button>
+      }
+      @if (IsSecretaryView && Minute && Minute.ApprovalStatus === 'PendingApproval') {
+        <button type="button" class="btn primary sm" [disabled]="IsActing" (click)="OnApprove()">
+          <i class="fa-solid fa-gavel"></i> Mark approved
+        </button>
+      }
+    }
+  </header>
+
+  @if (ErrorMessage) {
+    <div class="callout error"><i class="fa-solid fa-triangle-exclamation"></i> {{ ErrorMessage }}</div>
+  }
+
+  @if (IsLoading) {
+    <div class="mr-loading"><div class="skel" style="height:50%;width:60%"></div></div>
+  } @else {
+    <div class="mr-body">
+      <!-- ── Document pane ─────────────────────────────────── -->
+      <div class="doc-col">
+        @if (!IsSecretaryView && CanEdit === false) {
+          <div class="callout info ro-banner">
+            <i class="fa-solid fa-lock"></i>
+            <div><b>Read-only.</b> Only officers or staff can edit or confirm sections.</div>
+          </div>
+        }
+        @if (IsLocked) {
+          <div class="callout success">
+            <i class="fa-solid fa-check-double"></i>
+            <div><b>Approved record.</b> These minutes were approved
+              {{ Minute?.ApprovedAt ? 'on ' + (Minute!.ApprovedAt | date:'longDate') : '' }} and are locked.</div>
+          </div>
+        }
+
+        @if (!Minute || Sections.length === 0) {
+          <div class="empty">
+            <div class="eicon"><i class="fa-solid fa-file-lines"></i></div>
+            <b>No minutes yet</b>
+            <p>Sections accepted during Live Meeting Mode land here — or draft the whole document from the meeting record with AI.</p>
+            @if (CanEdit) {
+              <button type="button" class="btn ai" [disabled]="IsDrafting" (click)="OnGenerateAIDraft()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> {{ IsDrafting ? 'Drafting…' : 'Generate AI draft' }}
+              </button>
+            }
+          </div>
+        } @else {
+          <article class="docpage" aria-label="Minutes document">
+            <div class="dochead">
+              <h2>Minutes of {{ Meeting?.Committee }}</h2>
+              <p>{{ Meeting?.Name }} · {{ Meeting?.StartDateTime | date:'longDate' }}</p>
+            </div>
+
+            @for (section of Sections; track $index) {
+              <div class="msec" [class.ai-open]="!section.IsConfirmed">
+                @if (!section.IsConfirmed) {
+                  <span class="ai-tag"><i class="fa-solid fa-wand-magic-sparkles"></i> Draft — awaiting review</span>
+                }
+                @if (section.Heading) { <h3>{{ section.Heading }}</h3> }
+                @if (EditingIndex === $index) {
+                  <textarea class="sec-edit" rows="6" [(ngModel)]="EditText"></textarea>
+                  <div class="tools">
+                    <button type="button" class="btn sm primary" [disabled]="IsActing" (click)="SaveEdit($index)"><i class="fa-solid fa-check"></i> Save &amp; confirm</button>
+                    <button type="button" class="btn sm ghost" (click)="CancelEdit()">Cancel</button>
+                  </div>
+                } @else {
+                  <p class="sec-body">{{ section.Body }}</p>
+                  @if (section.Provenance) {
+                    <div class="provenance"><i class="fa-solid fa-wand-magic-sparkles"></i> {{ section.Provenance }}</div>
+                  }
+                  @if (IsSecretaryView && !IsLocked) {
+                    <div class="tools">
+                      @if (!section.IsConfirmed) {
+                        <button type="button" class="btn sm primary" [disabled]="IsActing" (click)="AcceptSection($index)"><i class="fa-solid fa-check"></i> Accept section</button>
+                      }
+                      <button type="button" class="btn sm ghost" (click)="StartEdit($index)"><i class="fa-solid fa-pen"></i> Edit</button>
+                    </div>
+                  }
+                }
+              </div>
+            }
+          </article>
+        }
+      </div>
+
+      <!-- ── Right rail ────────────────────────────────────── -->
+      <aside class="rail-col">
+        <section class="card">
+          <div class="card-h"><i class="fa-solid fa-list-check"></i><h2>Approval workflow</h2></div>
+          <div class="card-b">
+            <div class="wfstep" [class.done]="StepState(0) === 'done'" [class.now]="StepState(0) === 'now'">
+              <span class="wicon"><i class="fa-solid" [class.fa-check]="StepState(0) !== 'todo'" [class.fa-pen]="StepState(0) === 'todo'"></i></span>
+              <div><b>Drafted</b><small>Sections confirmed by the Secretary{{ UnconfirmedCount > 0 ? ' · ' + UnconfirmedCount + ' awaiting review' : '' }}</small></div>
+            </div>
+            <div class="wfstep" [class.done]="StepState(1) === 'done'" [class.now]="StepState(1) === 'now'">
+              <span class="wicon"><i class="fa-solid" [class.fa-check]="StepState(1) === 'done'" [class.fa-clock]="StepState(1) !== 'done'"></i></span>
+              <div><b>Pending approval</b><small>Formal approval by motion at a subsequent meeting</small></div>
+            </div>
+            <div class="wfstep" [class.done]="StepState(2) === 'done'" [class.now]="StepState(2) === 'now'">
+              <span class="wicon"><i class="fa-solid fa-gavel"></i></span>
+              <div><b>Approved</b><small>{{ Minute?.ApprovedAt ? ('Approved ' + (Minute!.ApprovedAt | date:'mediumDate') + ' — document locked') : 'Stamps ApprovedAt; document locks' }}</small></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-h"><i class="fa-solid fa-link"></i><h2>Linked records</h2></div>
+          <div class="card-b linked">
+            @if (Meeting) {
+              <div class="lrow"><i class="fa-solid fa-calendar-days"></i><span>{{ Meeting.Name }}</span>
+                <span class="badge neutral end">{{ Meeting.Status }}</span></div>
+            }
+            <div class="lrow"><i class="fa-solid fa-users"></i><span>Attendance</span>
+              <span class="badge neutral end">{{ AttendanceCount }} present</span></div>
+            @if (Minute?.Artifact) {
+              <div class="lrow"><i class="fa-solid fa-file-lines"></i><span>{{ Minute!.Artifact }}</span></div>
+            }
+          </div>
+        </section>
+
+        @if (IsSecretaryView && Minute && !IsLocked) {
+          <section class="card">
+            <div class="card-h"><i class="fa-solid fa-wand-magic-sparkles"></i><h2>AI assist</h2></div>
+            <div class="card-b">
+              <p class="small muted">Regenerate the full draft from the meeting record (agenda outcomes, motions, votes, attendance). Replaces current content — confirmed sections included.</p>
+              <button type="button" class="btn ai sm" [disabled]="IsDrafting" (click)="OnGenerateAIDraft()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> {{ IsDrafting ? 'Drafting…' : 'Regenerate with AI' }}
+              </button>
+            </div>
+          </section>
+        }
+      </aside>
+    </div>
+  }
+</div>

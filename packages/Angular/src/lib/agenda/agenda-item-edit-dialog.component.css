@@ -1,0 +1,37 @@
+/* Agenda Item Edit Dialog — component-specific overrides only.
+   Base styles from ../shared/slide-panel.css
+   Uses MJ design tokens (--mj-*) from @memberjunction/ng-shared-generic */
+
+:host {
+    z-index: 1001;
+}
+
+/* ─── Delete Confirmation Banner ─── */
+.delete-confirm-banner {
+    padding: 14px var(--mj-space-4);
+    background: var(--mj-status-error-bg);
+    border: 2px solid color-mix(in srgb, var(--mj-status-error-border) 35%, transparent);
+    border-radius: 10px;
+    margin-bottom: var(--mj-space-5);
+    animation: fadeIn 0.15s ease;
+}
+
+.delete-confirm-text {
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-status-error-text);
+    margin-bottom: var(--mj-space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--mj-space-2);
+}
+
+.delete-confirm-actions {
+    display: flex;
+    gap: var(--mj-space-2);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+}

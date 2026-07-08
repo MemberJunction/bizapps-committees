@@ -1,0 +1,252 @@
+<div class="mb-page">
+  <!-- ── Page header ─────────────────────────────────────────── -->
+  <header class="mb-header">
+    <div class="ph-icon"><i class="fa-solid fa-gavel"></i></div>
+    <div class="ph-titles">
+      <h1>Motions &amp; Ballots</h1>
+      <div class="sub">Cross-committee motion register and between-meeting e-ballots</div>
+      <div class="ph-meta">
+        @if (OpenBallots.length > 0) {
+          <span class="badge info"><i class="fa-solid fa-gavel"></i> {{ OpenBallots.length }} ballot{{ OpenBallots.length === 1 ? '' : 's' }} open</span>
+        }
+        <span class="badge neutral">{{ DecidedThisQuarter }} motions decided this quarter</span>
+      </div>
+    </div>
+    <div class="ph-actions">
+      <button type="button" class="btn primary" (click)="ShowNewBallotDialog = true">
+        <i class="fa-solid fa-plus"></i> New E-Ballot
+      </button>
+    </div>
+  </header>
+
+  <!-- ── Toolbar ─────────────────────────────────────────────── -->
+  <div class="mb-toolbar">
+    <div class="search">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input type="search" placeholder="Search motions and ballots…" aria-label="Search motions"
+             [(ngModel)]="SearchText">
+    </div>
+  </div>
+
+  <div class="mb-body">
+    @if (ErrorMessage) {
+      <div class="callout error"><i class="fa-solid fa-triangle-exclamation"></i> {{ ErrorMessage }}</div>
+    }
+
+    @if (IsLoading) {
+      <div class="skel" style="height:180px;margin-bottom:14px"></div>
+      <div class="skel" style="height:280px"></div>
+    } @else {
+
+      <!-- ── Open ballot heroes + audit ─────────────────────── -->
+      @for (view of OpenBallots; track view.Ballot.ID) {
+        <div class="mb-grid">
+          <section class="card ballot-hero" [attr.aria-label]="'Open ballot: ' + view.MotionTitle">
+            <div class="bh">
+              <div class="bh-badges">
+                <span class="badge info"><i class="fa-solid fa-gavel"></i> E-Ballot · Open</span>
+                <span class="badge neutral">{{ view.Ballot.Committee }}</span>
+                <span class="countdown">
+                  <i class="fa-solid fa-clock"></i>
+                  @if (view.Countdown.IsOverdue) { Past scheduled close — close it below }
+                  @else { Closes in {{ view.Countdown.DaysRemaining }} day{{ view.Countdown.DaysRemaining === 1 ? '' : 's' }} — {{ view.Ballot.ClosesAt | date:'EEE MMM d, h:mm a' }} }
+                </span>
+              </div>
+              <h2>{{ view.MotionTitle }}</h2>
+              <p class="small muted">
+                Opened {{ view.Ballot.OpensAt | date:'MMM d' }}@if (view.OpenedByName) { by {{ view.OpenedByName }}}
+                @if (view.MotionText) { · Motion text: “{{ view.MotionText }}” }
+              </p>
+            </div>
+            <div class="card-b">
+              <div class="participation">
+                <b>Participation — {{ view.Tally.Cast }} of {{ view.VotingMemberCount }} voted</b>
+                <span class="badge warning">Needs {{ view.Forecast.RequiredYes }} Yes ({{ ThresholdLabel(view.Ballot.ThresholdType) }}) to pass</span>
+                @if (view.Sealed) {
+                  <span class="badge neutral seal"><i class="fa-solid fa-lock"></i> Choices sealed until close</span>
+                }
+              </div>
+              <div class="meter" role="progressbar"
+                   [attr.aria-valuenow]="view.VotingMemberCount ? (view.Tally.Cast / view.VotingMemberCount * 100) : 0"
+                   aria-valuemin="0" aria-valuemax="100"
+                   [attr.aria-label]="view.Tally.Cast + ' of ' + view.VotingMemberCount + ' votes cast'">
+                <span [style.width.%]="view.VotingMemberCount ? (view.Tally.Cast / view.VotingMemberCount * 100) : 0"></span>
+              </div>
+
+              @if (view.MyVotableMembershipID) {
+                <div class="myvote">
+                  <b>Your vote:</b>
+                  <div class="seg" role="group" aria-label="Cast your vote">
+                    <button type="button" class="y" [disabled]="IsActing" (click)="OnCastVote(view, 'Yes')">Yes</button>
+                    <button type="button" class="nn" [disabled]="IsActing" (click)="OnCastVote(view, 'No')">No</button>
+                    <button type="button" class="ab" [disabled]="IsActing" (click)="OnCastVote(view, 'Abstain')">Abstain</button>
+                  </div>
+                  @if (view.Sealed) { <small class="muted">Your choice is sealed until the ballot closes.</small> }
+                </div>
+              }
+
+              <div class="voters">
+                @for (voter of view.Voters; track voter.MembershipID) {
+                  <div class="voterchip" [class.observer]="!voter.IsVoting">
+                    <div class="who">
+                      <b>{{ voter.PersonName }}</b>
+                      <small class="muted">{{ voter.RoleName }} · {{ voter.IsVoting ? 'voting' : 'non-voting' }}</small>
+                    </div>
+                    @if (!voter.IsVoting) {
+                      <span class="badge neutral">Observer</span>
+                    } @else if (voter.HasVoted) {
+                      <span class="badge success"><i class="fa-solid fa-check"></i> Voted{{ voter.VotedAt ? ' ' + (voter.VotedAt | date:'MMM d') : '' }}</span>
+                    } @else {
+                      <span class="badge warning">Not yet voted</span>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+            <div class="card-f">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>Votes are Vote records against this motion@if (view.Sealed) { — a secret ballot: individual choices stay sealed permanently, only the tally is revealed at close}.</span>
+              <span class="spacer"></span>
+              <button type="button" class="btn sm ghost" [disabled]="RemindingBallotID === view.Ballot.ID" (click)="OnRemind(view)">
+                <i class="fa-solid fa-bell"></i> {{ RemindingBallotID === view.Ballot.ID ? 'Reminding…' : 'Remind' }}
+              </button>
+              <button type="button" class="btn sm ghost" [disabled]="IsActing" (click)="ExtendTarget = view">Extend deadline</button>
+              <button type="button" class="btn sm danger" [disabled]="IsActing" (click)="OnCloseBallot(view)">
+                {{ view.Countdown.IsOverdue ? 'Close ballot' : 'Close early' }}
+              </button>
+            </div>
+            @if (RemindResults.get(view.Ballot.ID); as remindText) {
+              <div class="card-f remind-note"><i class="fa-solid fa-bell"></i> <span>{{ remindText }}</span></div>
+            }
+          </section>
+
+          <section class="card" aria-label="Ballot audit trail">
+            <div class="card-h">
+              <i class="fa-solid fa-clock-rotate-left"></i><h2>Ballot audit trail</h2>
+              <span class="spacer"></span>
+              <span class="badge neutral"><i class="fa-solid fa-shield-halved"></i> immutable</span>
+            </div>
+            <div class="card-b audit">
+              @for (ev of view.Audit; track $index) {
+                <div class="audit-i" [class.vote]="ev.Kind === 'vote'" [class.scheduled]="ev.IsScheduled">
+                  <span class="txt">{{ ev.Text }}</span>
+                  <span class="when">{{ ev.When | date:'MMM d · h:mm a' }}{{ ev.IsScheduled ? ' (scheduled)' : '' }}</span>
+                </div>
+              }
+            </div>
+            <div class="card-f">Every write is captured in MJ Record Changes — exportable for counsel or accreditation review.</div>
+          </section>
+        </div>
+
+        @if (ExtendTarget === view) {
+          <div class="extend-row">
+            <label for="extend-{{ view.Ballot.ID }}">New close date/time:</label>
+            <input id="extend-{{ view.Ballot.ID }}" type="datetime-local" #extendInput>
+            <button type="button" class="btn sm primary" (click)="ConfirmExtend(view, extendInput.value)">Extend</button>
+            <button type="button" class="btn sm ghost" (click)="ExtendTarget = null">Cancel</button>
+          </div>
+        }
+      }
+
+      <!-- ── Motion register ────────────────────────────────── -->
+      <section class="card register" aria-label="Motion register">
+        <div class="card-h">
+          <i class="fa-solid fa-gavel"></i><h2>Motion register</h2>
+          <span class="spacer"></span>
+          <span class="small muted">click a motion for its roll call</span>
+        </div>
+        @if (FilteredRows.length === 0) {
+          <div class="empty">
+            <div class="eicon"><i class="fa-solid fa-gavel"></i></div>
+            <b>No motions yet</b>
+            <p>Motions recorded in meetings and decided by e-ballot appear here.</p>
+          </div>
+        } @else {
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead>
+                <tr>
+                  <th></th><th class="wide">Motion</th><th>Committee · Meeting</th>
+                  <th>Moved / Seconded</th><th>Result</th><th>Tally Y-N-A</th><th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of FilteredRows; track row.MotionID) {
+                  <tr class="expander" tabindex="0"
+                      [attr.aria-expanded]="ExpandedMotionID === row.MotionID"
+                      (click)="ToggleRollCall(row)"
+                      (keydown.enter)="ToggleRollCall(row)">
+                    <td><i class="fa-solid chev" [class.fa-chevron-right]="ExpandedMotionID !== row.MotionID" [class.fa-chevron-down]="ExpandedMotionID === row.MotionID"></i></td>
+                    <td class="wide">
+                      <b>{{ row.Name }}</b>
+                      @if (row.Description) { <small class="muted">{{ row.Description }}</small> }
+                    </td>
+                    <td>
+                      {{ CommitteeNameFor(row) ?? '—' }}
+                      <small class="muted">{{ row.IsBallotMotion ? 'Between meetings' : (row.MeetingTitle ?? '') }}</small>
+                    </td>
+                    <td class="small">
+                      {{ row.MovedByName ?? '—' }}@if (row.SecondedByName) { / {{ row.SecondedByName }}}
+                    </td>
+                    <td><span class="badge" [class.success]="ResultTone(row.Result) === 'success'"
+                              [class.error]="ResultTone(row.Result) === 'error'"
+                              [class.warning]="ResultTone(row.Result) === 'warning'"
+                              [class.neutral]="ResultTone(row.Result) === 'neutral'">{{ row.Result }}</span></td>
+                    <td class="mono">
+                      @if (IsSealedRow(row) && row.Result === 'Pending') { <span class="small muted">sealed</span> }
+                      @else { {{ TallyLabel(row.Tally) }} }
+                    </td>
+                    <td class="small muted">
+                      {{ row.MeetingDate ? (row.MeetingDate | date:'MMM d, y') : '—' }}
+                    </td>
+                  </tr>
+                  @if (ExpandedMotionID === row.MotionID) {
+                    <tr class="xrow">
+                      <td colspan="7">
+                        <div class="xdetail">
+                          @if (ExpandedRollCall.length === 0) {
+                            <span class="muted small">No individual votes recorded for this motion.</span>
+                          } @else if (IsSealedRow(row)) {
+                            <span class="muted small"><i class="fa-solid fa-lock"></i> Choices are sealed until the ballot closes.</span>
+                          } @else {
+                            <b class="small">Roll call — {{ ExpandedRollCall.length }} votes recorded</b>
+                            <div class="vgrid">
+                              @for (entry of ExpandedRollCall; track entry.MembershipID) {
+                                <span class="xvote">
+                                  {{ entry.PersonName }}
+                                  <span class="vv" [class.yes]="entry.VoteValue === 'Yes'" [class.no]="entry.VoteValue === 'No'">{{ entry.VoteValue ?? '—' }}</span>
+                                </span>
+                              }
+                            </div>
+                            @for (entry of ExpandedRollCall; track entry.MembershipID) {
+                              @if (entry.VoteNotes) {
+                                <p class="muted small vote-note"><i class="fa-solid fa-file-lines"></i> Vote note — {{ entry.PersonName }}: “{{ entry.VoteNotes }}”</p>
+                              }
+                            }
+                          }
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="card-f">
+            {{ Register.Rows.length }} motions
+            <span class="spacer"></span>
+          </div>
+        }
+      </section>
+    }
+  </div>
+</div>
+
+@if (ShowNewBallotDialog) {
+  <committees-e-ballot-dialog (DialogClosed)="OnNewBallotClosed($event)"></committees-e-ballot-dialog>
+}
+
+@if (CloseTarget) {
+  <committees-ballot-close-dialog [View]="CloseTarget" (Exited)="OnCloseDialogExited($event)">
+  </committees-ballot-close-dialog>
+}

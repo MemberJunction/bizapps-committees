@@ -1,0 +1,44 @@
+/* Command Center stat tiles — token-only colors (--mj-*). */
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.stat {
+    background: var(--mj-bg-surface);
+    border: 1px solid var(--mj-border-default);
+    border-radius: var(--mj-radius-lg);
+    padding: 12px 14px;
+    box-shadow: var(--mj-shadow-sm);
+}
+.stat .k {
+    font-size: var(--mj-text-xs);
+    color: var(--mj-text-muted);
+    font-weight: var(--mj-font-medium);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.stat .k i { font-size: 12px; }
+.stat .v,
+.stat .d {
+    display: block;
+}
+.stat .v {
+    font-size: var(--mj-text-2xl);
+    font-weight: var(--mj-font-bold);
+    letter-spacing: -0.02em;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+    color: var(--mj-text-primary);
+}
+.stat .d {
+    font-size: var(--mj-text-xs);
+    margin-top: 2px;
+    color: var(--mj-text-muted);
+}
+.stat .d.up { color: var(--mj-status-success-text); }
+.stat .d.down { color: var(--mj-status-error-text); }
+.stat .d.warn { color: var(--mj-status-warning-text); }

@@ -1,0 +1,128 @@
+/* Governance health grid — token-only colors (--mj-*). */
+
+.signals-note {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tbl-scroll {
+    overflow-x: auto;
+}
+
+.tbl {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--mj-text-sm);
+}
+.tbl th {
+    font-size: var(--mj-text-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--mj-text-muted);
+    font-weight: var(--mj-font-semibold);
+    text-align: left;
+    padding: 8px 7px;
+    border-bottom: 1px solid var(--mj-border-default);
+    white-space: nowrap;
+}
+.tbl td {
+    padding: 8px 7px;
+    border-bottom: 1px solid var(--mj-border-subtle);
+    vertical-align: middle;
+}
+.tbl th:first-child,
+.tbl td:first-child {
+    padding-left: 14px;
+}
+.tbl tbody tr:hover {
+    background: var(--mj-bg-surface-hover);
+}
+.tbl tbody tr:last-child td {
+    border-bottom: none;
+}
+.tbl .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+.tbl tr.dim td {
+    opacity: 0.55;
+}
+.tbl tr.locked td {
+    color: var(--mj-text-muted);
+}
+.health-tbl .badge {
+    padding: 2px 8px;
+    font-size: 11px;
+}
+.col-committee {
+    min-width: 195px;
+}
+
+/* Committee name cell */
+.health-name {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+}
+.health-name > div {
+    min-width: 0;
+}
+.health-name .cicon {
+    width: 26px;
+    height: 26px;
+    flex: none;
+    border-radius: var(--mj-radius-md);
+    display: grid;
+    place-items: center;
+    background: var(--mj-bg-surface-sunken);
+    color: var(--mj-text-secondary);
+}
+.health-name .cicon i {
+    font-size: 12px;
+}
+.health-name small {
+    display: block;
+    color: var(--mj-text-muted);
+    font-size: var(--mj-text-xs);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+.name-link {
+    background: none;
+    border: none;
+    padding: 0;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    color: var(--mj-text-primary);
+    font-weight: var(--mj-font-medium);
+}
+.name-link:hover {
+    color: var(--mj-text-link-hover);
+    text-decoration: underline;
+}
+.locked-name {
+    font-weight: var(--mj-font-medium);
+}
+.locked-msg {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Health chip */
+.hcell {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: var(--mj-font-medium);
+    white-space: nowrap;
+}
+
+.next-cell {
+    white-space: nowrap;
+}

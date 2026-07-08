@@ -1,32 +1,30 @@
 {
-  "name": "mj_generatedentities",
+  "name": "@mj-biz-apps/committees-entities",
   "type": "module",
   "version": "1.0.0",
-  "description": "Generated Entity Subclasses - Automatically Created and Maintained by MemberJunction CodeGen",
+  "description": "Entity subclasses for the Committees OpenApp",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "private": true,
+  "publishConfig": {
+    "access": "public"
+  },
   "files": [
     "/dist"
   ],
   "scripts": {
-    "start": "ts-node-dev src/index.ts",
-    "build": "tsc && tsc-alias -f",
-    "test": "echo \"No tests configured yet\""
+    "build": "tsc && tsc-alias -f"
   },
   "author": "MemberJunction.com",
   "license": "ISC",
-  "devDependencies": {
-    "ts-node-dev": "^2.0.0",
-    "typescript": "^5.9.3"
+  "peerDependencies": {
+    "@memberjunction/core": "^5.44.0",
+    "@memberjunction/global": "^5.44.0"
   },
   "dependencies": {
-    "@memberjunction/core": "4.4.0",
-    "@memberjunction/global": "4.4.0",
-    "zod": "~3.24.4"
+    "zod": "^3.25.28"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/MemberJunction/committees"
+    "url": "https://github.com/MemberJunction/bizapps-committees"
   }
 }

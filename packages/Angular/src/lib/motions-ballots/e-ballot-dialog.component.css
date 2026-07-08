@@ -1,0 +1,18 @@
+/* New E-Ballot dialog — form specifics on top of slide-panel.css */
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: var(--mj-font-medium, 500);
+    color: var(--mj-text-primary);
+    cursor: pointer;
+}
+
+.field-hint {
+    margin: 6px 0 0;
+    font-size: 12px;
+    color: var(--mj-text-muted);
+    line-height: 1.5;
+}

@@ -1,0 +1,96 @@
+@if (IsLoading) {
+    <div class="list-loading">
+        <mj-loading text="Loading tasks..."></mj-loading>
+    </div>
+} @else {
+    <div class="action-tracker-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Action Items</h1>
+                @if (SingleCommitteeName) {
+                    <p class="page-subtitle">{{ SingleCommitteeName }}</p>
+                } @else if (Committees.length === 0) {
+                    <p class="page-subtitle">
+                        @if (IsStaff) { No active committees available }
+                        @else { You are not a member of any committees }
+                    </p>
+                } @else {
+                    <p class="page-subtitle">
+                        @if (IsStaff) { Manage tasks across all committees }
+                        @else { Track tasks across your committees }
+                    </p>
+                }
+            </div>
+        </div>
+
+        @if (Committees.length > 0) {
+            <!-- Committee selector + tab bar -->
+            <div class="controls-bar">
+                @if (ShowDropdown) {
+                    <select class="committee-select"
+                            [ngModel]="SelectedCommitteeID || ''"
+                            (ngModelChange)="OnCommitteeChanged($event)">
+                        <option value="">All Committees</option>
+                        @for (c of Committees; track c.CommitteeID) {
+                            <option [value]="c.CommitteeID">{{ c.CommitteeName }}</option>
+                        }
+                    </select>
+                }
+
+                @if (ShowTabBar) {
+                    <div class="tab-bar">
+                        <button class="tab-pill" [class.active]="ActiveTab === 'mine'"
+                                (click)="OnTabChanged('mine')">
+                            <i class="fa-solid fa-user"></i> My Tasks
+                        </button>
+                        <button class="tab-pill" [class.active]="ActiveTab === 'all'"
+                                (click)="OnTabChanged('all')">
+                            <i class="fa-solid fa-list-check"></i> All Tasks
+                        </button>
+                    </div>
+                }
+            </div>
+
+            @if (PanelVisible) {
+                <!-- My Tasks -->
+                @if (ActiveTab === 'mine') {
+                    @if (CurrentPersonID) {
+                        <bizapps-task-panel
+                            [CategoryID]="SelectedCategoryID"
+                            [ExtraFilter]="MyTasksFilter"
+                            [ShowCreateButton]="false"
+                            [ShowDelete]="IsStaff"
+                            [AssigneeScope]="AssigneeScope"
+                            [PersonID]="CurrentPersonID">
+                        </bizapps-task-panel>
+                    } @else {
+                        <div class="empty-state">
+                            <i class="fa-solid fa-user-slash"></i>
+                            <p>Could not determine your person record. My Tasks requires a linked Person.</p>
+                        </div>
+                    }
+                }
+
+                <!-- All Tasks (officers only) — full dashboard with view toggle -->
+                @if (ActiveTab === 'all') {
+                    <bizapps-task-dashboard
+                        [CategoryID]="SelectedCategoryID"
+                        [ExtraFilter]="null"
+                        [PersonID]="CurrentPersonID"
+                        [ShowDelete]="IsStaff"
+                        [EnabledViews]="['list', 'kanban', 'gantt']">
+                    </bizapps-task-dashboard>
+                }
+            }
+        } @else {
+            <div class="empty-state">
+                <i class="fa-solid fa-users-slash"></i>
+                <p>
+                    @if (IsStaff) { No active committees with task categories. }
+                    @else { You are not a member of any committees with task categories. }
+                </p>
+            </div>
+        }
+    </div>
+}

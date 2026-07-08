@@ -1,0 +1,171 @@
+@if (IsLoading) {
+    <div class="dashboard-loading">
+        <mj-loading text="Loading dashboard..."></mj-loading>
+    </div>
+} @else {
+    <div class="dashboard-container">
+        <!-- Hero -->
+        <div class="dashboard-hero">
+            <div class="hero-top">
+                <div class="hero-text">
+                    <h1 class="hero-title">Dashboard</h1>
+                    <p class="hero-subtitle">Welcome back. Here's what's happening across your committees.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="stats-row">
+            <div class="stat-card stat-indigo">
+                <div class="stat-number">{{ CommitteeCount }}</div>
+                <div class="stat-label">Committees</div>
+            </div>
+            <div class="stat-card stat-emerald">
+                <div class="stat-number">{{ ActiveMeetingCount }}</div>
+                <div class="stat-label">Upcoming</div>
+            </div>
+            <div class="stat-card stat-amber">
+                <div class="stat-number">{{ OpenTaskCount }}</div>
+                <div class="stat-label">Open Items</div>
+            </div>
+            <div class="stat-card stat-rose">
+                <div class="stat-number">{{ OverdueTaskCount }}</div>
+                <div class="stat-label">Overdue</div>
+            </div>
+        </div>
+
+        <!-- Two Column Layout -->
+        <div class="grid-2col">
+            <!-- Upcoming Meetings -->
+            <div class="panel">
+                <div class="panel-head">
+                    <h3>Upcoming Meetings</h3>
+                    <span class="panel-count">{{ UpcomingMeetings.length }}</span>
+                </div>
+                @if (UpcomingMeetings.length === 0) {
+                    <div class="panel-empty">
+                        <i class="fa-regular fa-calendar"></i>
+                        <span>No upcoming meetings</span>
+                    </div>
+                } @else {
+                    <div class="panel-body">
+                        @for (meeting of UpcomingMeetings; track meeting['ID']) {
+                            <div class="row-item">
+                                <div class="date-chip">
+                                    <span class="date-month">{{ $any(meeting['StartDateTime']) | date:'MMM' }}</span>
+                                    <span class="date-day">{{ $any(meeting['StartDateTime']) | date:'d' }}</span>
+                                </div>
+                                <div class="row-content">
+                                    <div class="row-title">{{ meeting['Name'] }}</div>
+                                    <div class="row-meta">
+                                        {{ meeting['Committee'] }}
+                                        <span class="meta-sep">&middot;</span>
+                                        {{ $any(meeting['StartDateTime']) | date:'h:mm a' }}
+                                        <span class="meta-sep">&middot;</span>
+                                        @if (meeting['LocationType'] === 'Virtual') {
+                                            <i class="fa-solid fa-video"></i>
+                                        } @else if (meeting['LocationType'] === 'InPerson') {
+                                            <i class="fa-solid fa-location-dot"></i>
+                                        } @else {
+                                            <i class="fa-solid fa-arrows-split-up-and-left"></i>
+                                        }
+                                        {{ meeting['LocationType'] }}
+                                    </div>
+                                </div>
+                                @if (meeting['VideoJoinURL']) {
+                                    <a class="join-btn" [href]="meeting['VideoJoinURL']" target="_blank" rel="noopener" (click)="$event.stopPropagation()">
+                                        Join
+                                    </a>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Action Items -->
+            <div class="panel">
+                <div class="panel-head">
+                    <h3>Action Items</h3>
+                    <span class="panel-count">{{ MyTasks.length }}</span>
+                </div>
+                @if (MyTasks.length === 0) {
+                    <div class="panel-empty">
+                        <i class="fa-regular fa-circle-check"></i>
+                        <span>All caught up!</span>
+                    </div>
+                } @else {
+                    <div class="panel-body">
+                        @for (item of MyTasks; track item.ID) {
+                            <div class="row-item" [class.row-overdue]="item.DueAt != null && item.DueAt < TodayString">
+                                <div [class]="'priority-dot dot-' + (item.Priority || 'medium').toLowerCase()"></div>
+                                <div class="row-content">
+                                    <div class="row-title">{{ item.Name }}</div>
+                                    <div class="row-meta">
+                                        {{ item.CommitteeNames.join(', ') }}
+                                        @if (item.DueAt) {
+                                            <span class="meta-sep">&middot;</span>
+                                            Due {{ item.DueAt | date:'MMM d' }}
+                                        }
+                                    </div>
+                                </div>
+                                <span [class]="'tag tag-' + (item.Status || '').toLowerCase()">
+                                    {{ FormatStatus(item.Status) }}
+                                </span>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Recent Meetings -->
+        @if (RecentMeetings.length > 0) {
+            <div class="panel panel-full">
+                <div class="panel-head">
+                    <h3>Recent Meetings</h3>
+                </div>
+                <div class="panel-body">
+                    @for (meeting of RecentMeetings; track meeting['ID']) {
+                        <div class="row-item row-muted">
+                            <div class="date-chip date-past">
+                                <span class="date-month">{{ $any(meeting['StartDateTime']) | date:'MMM' }}</span>
+                                <span class="date-day">{{ $any(meeting['StartDateTime']) | date:'d' }}</span>
+                            </div>
+                            <div class="row-content">
+                                <div class="row-title">{{ meeting['Name'] }}</div>
+                                <div class="row-meta">{{ meeting['Committee'] }}</div>
+                            </div>
+                            <span class="tag tag-completed">Completed</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        <!-- Recent Documents -->
+        @if (RecentDocuments.length > 0) {
+            <div class="panel panel-full">
+                <div class="panel-head">
+                    <h3>Recent Documents</h3>
+                </div>
+                <div class="panel-body">
+                    @for (doc of RecentDocuments; track doc['ID']) {
+                        <div class="row-item">
+                            <div class="doc-icon">
+                                <i [class]="GetDocIcon($any(doc['Category']))"></i>
+                            </div>
+                            <div class="row-content">
+                                <div class="row-title">{{ doc['Name'] }}</div>
+                                <div class="row-meta">{{ doc['Provider'] }}</div>
+                            </div>
+                            @if (doc['Category']) {
+                                <span class="tag tag-neutral">{{ doc['Category'] }}</span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}

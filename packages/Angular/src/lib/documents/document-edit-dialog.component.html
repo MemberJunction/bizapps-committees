@@ -1,0 +1,189 @@
+<div class="dialog-backdrop" (click)="OnClose()"></div>
+<div class="dialog-panel">
+    <div class="dialog-header">
+        <h2 class="dialog-title">{{ DialogTitle }}</h2>
+        <button class="dialog-close" (click)="OnClose()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    @if (IsLoading) {
+        <div class="dialog-loading">
+            <mj-loading text="Loading..."></mj-loading>
+        </div>
+    } @else if (FileRecord) {
+        <div class="dialog-body">
+            @if (ErrorMessage) {
+                <div class="error-banner">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ ErrorMessage }}
+                </div>
+            }
+
+            <!-- Mode Toggle (new documents only) -->
+            @if (IsNew) {
+                <div class="mode-toggle">
+                    <button class="mode-btn" [class.active]="DocumentMode === 'link'"
+                        (click)="OnModeChanged('link')">
+                        <i class="fa-solid fa-link"></i> Link External Document
+                    </button>
+                    <button class="mode-btn" [class.active]="DocumentMode === 'upload'"
+                        (click)="OnModeChanged('upload')">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> Upload File
+                    </button>
+                </div>
+            }
+
+            <!-- Upload Mode: Storage Provider & File Drop Zone -->
+            @if (DocumentMode === 'upload' && IsNew) {
+                <div class="form-group">
+                    <label class="form-label required">Storage Provider</label>
+                    <select class="form-input" [(ngModel)]="FileRecord.ProviderID">
+                        <option [ngValue]="null" disabled>Select storage provider...</option>
+                        @for (p of StorageProviders; track p.ID) {
+                            <option [ngValue]="p.ID">{{ p.Name }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Select File</label>
+                    @if (!SelectedFile) {
+                        <div class="drop-zone"
+                            [class.dragging]="IsDragging"
+                            (dragover)="OnDragOver($event)"
+                            (dragleave)="OnDragLeave($event)"
+                            (drop)="OnDrop($event)"
+                            (click)="fileInput.click()">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <p class="drop-text">Drag & drop a file here, or click to browse</p>
+                            <p class="drop-hint">PDF, Word, Excel, images, and more</p>
+                            <input #fileInput type="file" class="file-input-hidden"
+                                (change)="OnFileSelected($event)">
+                        </div>
+                    } @else {
+                        <div class="file-preview">
+                            <div class="file-info">
+                                <i class="fa-solid fa-file"></i>
+                                <div>
+                                    <span class="file-name">{{ SelectedFile.name }}</span>
+                                    <span class="file-size">{{ FormatFileSize(SelectedFile.size) }}</span>
+                                </div>
+                            </div>
+                            <button class="file-remove" (click)="OnClearFile()">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- Link Mode: Provider & URL -->
+            @if (DocumentMode === 'link') {
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label required">Provider</label>
+                        <select class="form-input" [(ngModel)]="FileRecord.ProviderID">
+                            <option [ngValue]="null" disabled>Select provider...</option>
+                            @for (p of ExternalProviders; track p.ID) {
+                                <option [ngValue]="p.ID">{{ p.Name }}</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 2">
+                        <label class="form-label required">URL</label>
+                        <input type="url" class="form-input"
+                            [(ngModel)]="FileRecord.ProviderKey"
+                            placeholder="https://docs.google.com/...">
+                    </div>
+                </div>
+            }
+
+            <!-- Title -->
+            <div class="form-group">
+                <label class="form-label required">Name</label>
+                <input type="text" class="form-input"
+                    [(ngModel)]="FileRecord.Name"
+                    placeholder="Document title">
+            </div>
+
+            <!-- Description -->
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-input form-textarea"
+                    [(ngModel)]="FileRecord.Description"
+                    placeholder="Brief description of this document..."
+                    rows="3"></textarea>
+            </div>
+
+            <!-- Category -->
+            <div class="form-group">
+                <label class="form-label">Category</label>
+                <select class="form-input" [(ngModel)]="FileRecord.CategoryID">
+                    <option [ngValue]="null">None</option>
+                    @for (c of Categories; track c.ID) {
+                        <option [ngValue]="c.ID">{{ c.Name }}</option>
+                    }
+                </select>
+            </div>
+
+            <!-- Committee & Meeting row (context linking) -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Committee</label>
+                    <select class="form-input" [(ngModel)]="SelectedCommitteeID">
+                        <option [ngValue]="null">None</option>
+                        @for (c of Committees; track c.ID) {
+                            <option [ngValue]="c.ID">{{ c.Name }}</option>
+                        }
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Meeting</label>
+                    <select class="form-input" [(ngModel)]="SelectedMeetingID">
+                        <option [ngValue]="null">None</option>
+                        @for (m of Meetings; track m.ID) {
+                            <option [ngValue]="m.ID">{{ m.Name }}</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- Content Type (optional metadata) -->
+            <div class="form-group">
+                <label class="form-label">MIME Type</label>
+                <input type="text" class="form-input"
+                    [(ngModel)]="FileRecord.ContentType"
+                    placeholder="e.g. application/pdf">
+            </div>
+        </div>
+
+        <div class="dialog-actions">
+            <button class="btn btn-primary" (click)="OnSave()" [disabled]="IsSaving">
+                @if (IsSaving) {
+                    <i class="fa-solid fa-spinner fa-spin"></i> Saving...
+                } @else {
+                    <i class="fa-solid fa-check"></i> Save
+                }
+            </button>
+            <button class="btn btn-secondary" (click)="OnClose()" [disabled]="IsSaving">
+                Cancel
+            </button>
+            @if (!IsNew) {
+                <div class="actions-spacer"></div>
+                @if (!ShowDeleteConfirm) {
+                    <button class="btn btn-danger-outline" (click)="ShowDeleteConfirm = true" [disabled]="IsSaving">
+                        <i class="fa-solid fa-trash"></i> Delete
+                    </button>
+                } @else {
+                    <span class="confirm-text">Are you sure?</span>
+                    <button class="btn btn-danger" (click)="OnDelete()" [disabled]="IsSaving">
+                        Yes, Delete
+                    </button>
+                    <button class="btn btn-secondary" (click)="ShowDeleteConfirm = false" [disabled]="IsSaving">
+                        No
+                    </button>
+                }
+            }
+        </div>
+    }
+</div>

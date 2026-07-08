@@ -1,0 +1,140 @@
+<div class="dialog-backdrop" (click)="OnClose()"></div>
+
+<div class="dialog-panel minutes-panel">
+    <div class="dialog-header">
+        <div class="header-left">
+            <i class="fa-solid fa-wand-magic-sparkles header-icon"></i>
+            <h2 class="dialog-title">Generate Meeting Minutes</h2>
+        </div>
+        <button class="dialog-close" (click)="OnClose()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <!-- Input state -->
+    @if (State === 'input') {
+        <div class="dialog-body">
+            @if (ErrorMessage) {
+                <div class="error-banner">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ ErrorMessage }}
+                </div>
+            }
+
+            <p class="section-label">Transcript Source</p>
+
+            <div class="source-options">
+                <label class="radio-option" [class.selected]="TranscriptSource === 'paste'">
+                    <input type="radio" [(ngModel)]="TranscriptSource" value="paste">
+                    <i class="fa-solid fa-clipboard"></i>
+                    <span>Paste transcript</span>
+                </label>
+                <label class="radio-option" [class.selected]="TranscriptSource === 'url'">
+                    <input type="radio" [(ngModel)]="TranscriptSource" value="url">
+                    <i class="fa-solid fa-link"></i>
+                    <span>Provide a URL</span>
+                </label>
+                @if (TranscriptURL) {
+                    <label class="radio-option" [class.selected]="TranscriptSource === 'meeting-url'">
+                        <input type="radio" [(ngModel)]="TranscriptSource" value="meeting-url">
+                        <i class="fa-solid fa-file-lines"></i>
+                        <span>Use meeting transcript URL</span>
+                    </label>
+                }
+                <label class="radio-option" [class.selected]="TranscriptSource === 'none'">
+                    <input type="radio" [(ngModel)]="TranscriptSource" value="none">
+                    <i class="fa-solid fa-ban"></i>
+                    <span>No transcript — draft from structured data only</span>
+                </label>
+            </div>
+
+            @if (TranscriptSource === 'paste') {
+                <textarea
+                    class="transcript-input"
+                    [(ngModel)]="TranscriptText"
+                    placeholder="Paste the meeting transcript here..."
+                    rows="12">
+                </textarea>
+            }
+
+            @if (TranscriptSource === 'url') {
+                <input
+                    class="url-input"
+                    type="url"
+                    [(ngModel)]="TranscriptURL_Input"
+                    placeholder="https://...">
+            }
+
+            @if (TranscriptSource === 'meeting-url' && TranscriptURL) {
+                <div class="url-preview">
+                    <i class="fa-solid fa-file-lines"></i>
+                    <span>{{ TranscriptURL }}</span>
+                </div>
+            }
+
+            <p class="hint-text">
+                <i class="fa-solid fa-circle-info"></i>
+                Minutes will be drafted using agenda items, motions, votes, and attendance — with or without a transcript.
+            </p>
+        </div>
+
+        <div class="dialog-actions">
+            <button class="btn btn-primary" (click)="OnGenerate()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate with AI
+            </button>
+            <button class="btn btn-secondary" (click)="OnClose()">Cancel</button>
+        </div>
+    }
+
+    <!-- Generating state -->
+    @if (State === 'generating') {
+        <div class="dialog-body generating-body">
+            <mj-loading text="Generating minutes with AI..."></mj-loading>
+            <p class="generating-hint">This may take 15–30 seconds.</p>
+        </div>
+    }
+
+    <!-- Preview / Editing states -->
+    @if (State === 'preview' || State === 'editing') {
+        <div class="preview-toolbar">
+            <button class="toolbar-tab" [class.active]="State === 'preview'" (click)="State = 'preview'">
+                <i class="fa-solid fa-eye"></i> Preview
+            </button>
+            <button class="toolbar-tab" [class.active]="State === 'editing'" (click)="State = 'editing'">
+                <i class="fa-solid fa-pen"></i> Edit
+            </button>
+            <div class="toolbar-spacer"></div>
+            <button class="btn-icon" (click)="OnCopyToClipboard()" [title]="CopySuccess ? 'Copied!' : 'Copy Markdown'">
+                <i [class]="CopySuccess ? 'fa-solid fa-check copy-success' : 'fa-regular fa-copy'"></i>
+            </button>
+        </div>
+
+        <div class="dialog-body preview-body">
+            @if (State === 'preview') {
+                <div class="markdown-preview" [innerHTML]="RenderedContent"></div>
+            } @else {
+                <textarea class="edit-textarea" [(ngModel)]="GeneratedContent"></textarea>
+            }
+        </div>
+
+        @if (SaveError) {
+            <div class="save-error">
+                <i class="fa-solid fa-circle-exclamation"></i> {{ SaveError }}
+            </div>
+        }
+
+        <div class="dialog-actions">
+            <button class="btn btn-primary" (click)="OnSaveDraft()" [disabled]="SaveSuccess">
+                @if (SaveSuccess) {
+                    <i class="fa-solid fa-check"></i> Saved as Draft
+                } @else {
+                    <i class="fa-solid fa-floppy-disk"></i> Save as Draft
+                }
+            </button>
+            <button class="btn btn-secondary" (click)="State = 'input'">
+                <i class="fa-solid fa-arrow-left"></i> Regenerate
+            </button>
+            <button class="btn btn-secondary" (click)="OnClose()">Close</button>
+        </div>
+    }
+</div>

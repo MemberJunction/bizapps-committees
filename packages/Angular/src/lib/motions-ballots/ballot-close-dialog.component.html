@@ -1,0 +1,115 @@
+<div class="bcd-overlay" (click)="Cancel()">
+  <div class="bcd-panel" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="bcd-title">
+
+    @if (Phase === 'confirm') {
+      <header class="bcd-h">
+        <h2 id="bcd-title"><i class="fa-solid fa-gavel"></i> {{ Mode === 'close' ? 'Close ballot' : 'Cancel ballot' }}</h2>
+        <span class="sub">{{ View.MotionTitle }} · {{ View.Ballot.Committee }}</span>
+        <div class="mode-seg" role="group" aria-label="Action">
+          <button type="button" [class.on]="Mode === 'close'" (click)="SetMode('close')">Close &amp; stamp</button>
+          <button type="button" [class.on]="Mode === 'cancel'" (click)="SetMode('cancel')">Cancel ballot</button>
+        </div>
+      </header>
+
+      <div class="bcd-b">
+        @if (ErrorMessage) {
+          <div class="callout error"><i class="fa-solid fa-triangle-exclamation"></i> {{ ErrorMessage }}</div>
+        }
+
+        <!-- participation -->
+        <div class="fact">
+          <span class="k">Participation</span>
+          <b>{{ View.Tally.Cast }} of {{ View.VotingMemberCount }} voting members cast</b>
+          @if (NonVoters.length > 0) {
+            <div class="who-list">
+              <span class="muted">Not voted:</span>
+              @for (v of NonVoters; track v.MembershipID) {
+                <span class="badge warning">{{ v.PersonName }}</span>
+              }
+            </div>
+          } @else {
+            <small class="ok"><i class="fa-solid fa-check"></i> Every voting member has cast a vote.</small>
+          }
+        </div>
+
+        @if (Mode === 'close') {
+          <!-- threshold math -->
+          <div class="fact">
+            <span class="k">Threshold</span>
+            <b>{{ View.Forecast.RequiredYes }} Yes needed ({{ ThresholdLabel() }} of {{ View.VotingMemberCount }}) · {{ View.Tally.Yes }} Yes so far</b>
+            <small>Outcome to be stamped: <b class="oc" [class.pass]="ProjectedResult === 'Passed'" [class.fail]="ProjectedResult === 'Failed'">{{ ProjectedResult }}</b>
+              — {{ View.Tally.Yes }}-{{ View.Tally.No }}-{{ View.Tally.Abstain }}</small>
+          </div>
+
+          @if (IsRisky) {
+            <div class="callout warning"><i class="fa-solid fa-triangle-exclamation"></i>
+              Closing early: {{ View.Tally.Outstanding }} outstanding vote{{ View.Tally.Outstanding === 1 ? '' : 's' }}
+              could still change this result. The scheduled close is {{ View.Ballot.ClosesAt | date:'MMM d, h:mm a' }}.</div>
+          } @else if (IsEarly) {
+            <div class="callout info"><i class="fa-solid fa-circle-info"></i>
+              Closing early, but the outcome is already mathematically decided — outstanding votes cannot change it.</div>
+          }
+          @if (View.Sealed) {
+            <div class="callout info"><i class="fa-solid fa-shield-halved"></i>
+              Secret ballot: closing reveals the tally only. Individual choices stay sealed permanently.</div>
+          }
+        } @else {
+          <div class="callout warning"><i class="fa-solid fa-triangle-exclamation"></i>
+            Cancelling withdraws the e-ballot without stamping the motion — votes are kept for the record
+            but no result is declared. A reason is required.</div>
+        }
+
+        <label class="fld">
+          <span>{{ Mode === 'close' ? 'Result notes (stamped on the ballot)' : 'Reason for cancelling (required)' }}</span>
+          <textarea rows="2" [(ngModel)]="Notes"></textarea>
+        </label>
+      </div>
+
+      <footer class="bcd-f">
+        <button type="button" class="btn primary" [class.danger]="Mode === 'cancel'" [disabled]="ConfirmDisabled" (click)="OnConfirm()">
+          <i class="fa-solid fa-gavel"></i>
+          {{ IsSaving ? 'Recording…' : (Mode === 'close' ? 'Close ballot & stamp ' + ProjectedResult.toLowerCase() : 'Cancel ballot') }}
+        </button>
+        <span class="spacer"></span>
+        <button type="button" class="btn ghost" [disabled]="IsSaving" (click)="Cancel()">Keep it open</button>
+      </footer>
+    }
+
+    @if (Phase === 'reveal') {
+      <div class="reveal">
+        <div class="rv-badge" [class.pass]="FinalResult === 'Passed'" [class.fail]="FinalResult === 'Failed'" [class.void]="FinalResult === 'Cancelled'">
+          <i class="fa-solid" [class.fa-check]="FinalResult === 'Passed'" [class.fa-xmark]="FinalResult === 'Failed'" [class.fa-ban]="FinalResult === 'Cancelled'"></i>
+        </div>
+        <h2>
+          @switch (FinalResult) {
+            @case ('Passed') { Motion passes }
+            @case ('Failed') { Motion fails }
+            @default { Ballot cancelled }
+          }
+        </h2>
+        <p class="sub">{{ View.MotionTitle }}</p>
+
+        @if (FinalResult !== 'Cancelled') {
+          <div class="tally">
+            <div class="t-bar" aria-hidden="true">
+              <span class="yes" [style.width.%]="YesPct"></span>
+              <span class="no" [style.width.%]="NoPct"></span>
+            </div>
+            <div class="t-nums">
+              <span class="y">{{ View.Tally.Yes }} Yes</span>
+              <span class="n">{{ View.Tally.No }} No</span>
+              <span class="a">{{ View.Tally.Abstain }} Abstain</span>
+            </div>
+            <small class="muted">{{ View.Tally.Cast }} of {{ View.VotingMemberCount }} voting members ·
+              {{ ThresholdLabel() }} required {{ View.Forecast.RequiredYes }} Yes
+              @if (View.Sealed) { · individual choices remain sealed }</small>
+          </div>
+        } @else {
+          <p class="muted">{{ Notes }}</p>
+        }
+
+        <button type="button" class="btn primary" (click)="Done()">Done</button>
+      </div>
+    }
+  </div>
+</div>

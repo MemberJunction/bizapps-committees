@@ -17,275 +17,8 @@ import { MaxLength } from 'class-validator';
 import * as mj_core_schema_server_object_types from '@memberjunction/server'
 
 
-import { mjBizAppsCommitteesActionItemEntity, mjBizAppsCommitteesAgendaItemEntity, mjBizAppsCommitteesArtifactTypeEntity, mjBizAppsCommitteesArtifactEntity, mjBizAppsCommitteesAttendanceEntity, mjBizAppsCommitteesBallotEntity, mjBizAppsCommitteesCommentEntity, mjBizAppsCommitteesCommitteeEntity, mjBizAppsCommitteesMeetingEntity, mjBizAppsCommitteesMembershipEntity, mjBizAppsCommitteesMinuteEntity, mjBizAppsCommitteesMotionEntity, mjBizAppsCommitteesRoleEntity, mjBizAppsCommitteesTermEntity, mjBizAppsCommitteesTypeEntity, mjBizAppsCommitteesVideoProviderEntity, mjBizAppsCommitteesVoteEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsCommitteesAgendaItemEntity, mjBizAppsCommitteesArtifactTypeEntity, mjBizAppsCommitteesArtifactEntity, mjBizAppsCommitteesAttendanceEntity, mjBizAppsCommitteesBallotEntity, mjBizAppsCommitteesCommentEntity, mjBizAppsCommitteesCommitteeEntity, mjBizAppsCommitteesMeetingEntity, mjBizAppsCommitteesMembershipEntity, mjBizAppsCommitteesMinuteEntity, mjBizAppsCommitteesMotionEntity, mjBizAppsCommitteesRoleEntity, mjBizAppsCommitteesTermEntity, mjBizAppsCommitteesTypeEntity, mjBizAppsCommitteesVideoProviderEntity, mjBizAppsCommitteesVoteEntity } from '@mj-biz-apps/committees-entities';
     
-
-//****************************************************************************
-// ENTITY CLASS for Committees: Action Items
-//****************************************************************************
-@ObjectType({ description: `Legacy action items assigned from committees or meetings (superseded by BizAppsTasks)` })
-export class mjBizAppsCommitteesActionItem_ {
-    @Field() 
-    @MaxLength(36)
-    ID: string;
-        
-    @Field() 
-    @MaxLength(36)
-    CommitteeID: string;
-        
-    @Field({nullable: true}) 
-    @MaxLength(36)
-    MeetingID?: string;
-        
-    @Field({nullable: true}) 
-    @MaxLength(36)
-    AgendaItemID?: string;
-        
-    @Field() 
-    @MaxLength(255)
-    Name: string;
-        
-    @Field({nullable: true}) 
-    Description?: string;
-        
-    @Field() 
-    @MaxLength(36)
-    AssignedToPersonID: string;
-        
-    @Field({nullable: true}) 
-    @MaxLength(36)
-    AssignedByPersonID?: string;
-        
-    @Field({nullable: true}) 
-    DueDate?: Date;
-        
-    @Field() 
-    @MaxLength(20)
-    Priority: string;
-        
-    @Field() 
-    @MaxLength(50)
-    Status: string;
-        
-    @Field({nullable: true}) 
-    CompletedAt?: Date;
-        
-    @Field({nullable: true}) 
-    CompletionNotes?: string;
-        
-    @Field() 
-    _mj__CreatedAt: Date;
-        
-    @Field() 
-    _mj__UpdatedAt: Date;
-        
-    @Field() 
-    @MaxLength(255)
-    Committee: string;
-        
-    @Field({nullable: true}) 
-    @MaxLength(255)
-    Meeting?: string;
-        
-    @Field({nullable: true}) 
-    @MaxLength(255)
-    AgendaItem?: string;
-        
-    @Field() 
-    @MaxLength(201)
-    AssignedToPerson: string;
-        
-    @Field({nullable: true}) 
-    @MaxLength(201)
-    AssignedByPerson?: string;
-        
-}
-
-//****************************************************************************
-// INPUT TYPE for Committees: Action Items
-//****************************************************************************
-@InputType()
-export class CreatemjBizAppsCommitteesActionItemInput {
-    @Field({ nullable: true })
-    ID?: string;
-
-    @Field({ nullable: true })
-    CommitteeID?: string;
-
-    @Field({ nullable: true })
-    MeetingID: string | null;
-
-    @Field({ nullable: true })
-    AgendaItemID: string | null;
-
-    @Field({ nullable: true })
-    Name?: string;
-
-    @Field({ nullable: true })
-    Description: string | null;
-
-    @Field({ nullable: true })
-    AssignedToPersonID?: string;
-
-    @Field({ nullable: true })
-    AssignedByPersonID: string | null;
-
-    @Field({ nullable: true })
-    DueDate: Date | null;
-
-    @Field({ nullable: true })
-    Priority?: string;
-
-    @Field({ nullable: true })
-    Status?: string;
-
-    @Field({ nullable: true })
-    CompletedAt: Date | null;
-
-    @Field({ nullable: true })
-    CompletionNotes: string | null;
-
-    @Field(() => RestoreContextInput, { nullable: true })
-    RestoreContext___?: RestoreContextInput;
-}
-    
-
-//****************************************************************************
-// INPUT TYPE for Committees: Action Items
-//****************************************************************************
-@InputType()
-export class UpdatemjBizAppsCommitteesActionItemInput {
-    @Field()
-    ID: string;
-
-    @Field({ nullable: true })
-    CommitteeID?: string;
-
-    @Field({ nullable: true })
-    MeetingID?: string | null;
-
-    @Field({ nullable: true })
-    AgendaItemID?: string | null;
-
-    @Field({ nullable: true })
-    Name?: string;
-
-    @Field({ nullable: true })
-    Description?: string | null;
-
-    @Field({ nullable: true })
-    AssignedToPersonID?: string;
-
-    @Field({ nullable: true })
-    AssignedByPersonID?: string | null;
-
-    @Field({ nullable: true })
-    DueDate?: Date | null;
-
-    @Field({ nullable: true })
-    Priority?: string;
-
-    @Field({ nullable: true })
-    Status?: string;
-
-    @Field({ nullable: true })
-    CompletedAt?: Date | null;
-
-    @Field({ nullable: true })
-    CompletionNotes?: string | null;
-
-    @Field(() => [KeyValuePairInput], { nullable: true })
-    OldValues___?: KeyValuePairInput[];
-
-    @Field(() => RestoreContextInput, { nullable: true })
-    RestoreContext___?: RestoreContextInput;
-}
-    
-//****************************************************************************
-// RESOLVER for Committees: Action Items
-//****************************************************************************
-@ObjectType()
-export class RunmjBizAppsCommitteesActionItemViewResult {
-    @Field(() => [mjBizAppsCommitteesActionItem_])
-    Results: mjBizAppsCommitteesActionItem_[];
-
-    @Field(() => String, {nullable: true})
-    UserViewRunID?: string;
-
-    @Field(() => Int, {nullable: true})
-    RowCount: number;
-
-    @Field(() => Int, {nullable: true})
-    TotalRowCount: number;
-
-    @Field(() => Int, {nullable: true})
-    ExecutionTime: number;
-
-    @Field({nullable: true})
-    ErrorMessage?: string;
-
-    @Field(() => Boolean, {nullable: false})
-    Success: boolean;
-}
-
-@Resolver(mjBizAppsCommitteesActionItem_)
-export class mjBizAppsCommitteesActionItemResolver extends ResolverBase {
-    @Query(() => RunmjBizAppsCommitteesActionItemViewResult)
-    async RunmjBizAppsCommitteesActionItemViewByID(@Arg('input', () => RunViewByIDInput) input: RunViewByIDInput, @Ctx() { providers, userPayload }: AppContext, @PubSub() pubSub: PubSubEngine) {
-        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
-        return super.RunViewByIDGeneric(input, provider, userPayload, pubSub);
-    }
-
-    @Query(() => RunmjBizAppsCommitteesActionItemViewResult)
-    async RunmjBizAppsCommitteesActionItemViewByName(@Arg('input', () => RunViewByNameInput) input: RunViewByNameInput, @Ctx() { providers, userPayload }: AppContext, @PubSub() pubSub: PubSubEngine) {
-        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
-        return super.RunViewByNameGeneric(input, provider, userPayload, pubSub);
-    }
-
-    @Query(() => RunmjBizAppsCommitteesActionItemViewResult)
-    async RunmjBizAppsCommitteesActionItemDynamicView(@Arg('input', () => RunDynamicViewInput) input: RunDynamicViewInput, @Ctx() { providers, userPayload }: AppContext, @PubSub() pubSub: PubSubEngine) {
-        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
-        input.EntityName = 'Committees: Action Items';
-        return super.RunDynamicViewGeneric(input, provider, userPayload, pubSub);
-    }
-    @Query(() => mjBizAppsCommitteesActionItem_, { nullable: true })
-    async mjBizAppsCommitteesActionItem(@Arg('ID', () => String) ID: string, @Ctx() { userPayload, providers }: AppContext, @PubSub() pubSub: PubSubEngine): Promise<mjBizAppsCommitteesActionItem_ | null> {
-        this.CheckUserReadPermissions('Committees: Action Items', userPayload);
-        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
-        const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_BizAppsCommittees', 'vwActionItems')} WHERE ${provider.QuoteIdentifier('ID')}=${provider.BuildParameterPlaceholder(0)} ` + this.getRowLevelSecurityWhereClause(provider, 'Committees: Action Items', userPayload, EntityPermissionType.Read, 'AND');
-        const rows = await provider.ExecuteSQL(sSQL, [ID], undefined, this.GetUserFromPayload(userPayload));
-        const result = await this.MapFieldNamesToCodeNames('Committees: Action Items', rows && rows.length > 0 ? rows[0] : null, this.GetUserFromPayload(userPayload));
-        return result;
-    }
-    
-    @Mutation(() => mjBizAppsCommitteesActionItem_)
-    async CreatemjBizAppsCommitteesActionItem(
-        @Arg('input', () => CreatemjBizAppsCommitteesActionItemInput) input: CreatemjBizAppsCommitteesActionItemInput,
-        @Ctx() { providers, userPayload }: AppContext,
-        @PubSub() pubSub: PubSubEngine
-    ) {
-        const provider = GetReadWriteProvider(providers);
-        return this.CreateRecord('Committees: Action Items', input, provider, userPayload, pubSub)
-    }
-        
-    @Mutation(() => mjBizAppsCommitteesActionItem_)
-    async UpdatemjBizAppsCommitteesActionItem(
-        @Arg('input', () => UpdatemjBizAppsCommitteesActionItemInput) input: UpdatemjBizAppsCommitteesActionItemInput,
-        @Ctx() { providers, userPayload }: AppContext,
-        @PubSub() pubSub: PubSubEngine
-    ) {
-        const provider = GetReadWriteProvider(providers);
-        return this.UpdateRecord('Committees: Action Items', input, provider, userPayload, pubSub);
-    }
-    
-    @Mutation(() => mjBizAppsCommitteesActionItem_)
-    async DeletemjBizAppsCommitteesActionItem(@Arg('ID', () => String) ID: string, @Arg('options___', () => DeleteOptionsInput) options: DeleteOptionsInput, @Ctx() { providers, userPayload }: AppContext, @PubSub() pubSub: PubSubEngine) {
-        const provider = GetReadWriteProvider(providers);
-        const key = new CompositeKey([{FieldName: 'ID', Value: ID}]);
-        return this.DeleteRecord('Committees: Action Items', key, options, provider, userPayload, pubSub);
-    }
-    
-}
 
 //****************************************************************************
 // ENTITY CLASS for Committees: Agenda Items
@@ -358,9 +91,6 @@ export class mjBizAppsCommitteesAgendaItem_ {
     @MaxLength(36)
     RootParentAgendaItemID?: string;
         
-    @Field(() => [mjBizAppsCommitteesActionItem_])
-    mjBizAppsCommitteesCommittees_ActionItems_AgendaItemIDArray: mjBizAppsCommitteesActionItem_[]; // Link to mjBizAppsCommitteesCommittees_ActionItems
-    
     @Field(() => [mjBizAppsCommitteesAgendaItem_])
     mjBizAppsCommitteesCommittees_AgendaItems_ParentAgendaItemIDArray: mjBizAppsCommitteesAgendaItem_[]; // Link to mjBizAppsCommitteesCommittees_AgendaItems
     
@@ -526,16 +256,6 @@ export class mjBizAppsCommitteesAgendaItemResolver extends ResolverBase {
         return result;
     }
     
-    @FieldResolver(() => [mjBizAppsCommitteesActionItem_])
-    async mjBizAppsCommitteesCommittees_ActionItems_AgendaItemIDArray(@Root() mjbizappscommitteesagendaitem_: mjBizAppsCommitteesAgendaItem_, @Ctx() { userPayload, providers }: AppContext, @PubSub() pubSub: PubSubEngine) {
-        this.CheckUserReadPermissions('Committees: Action Items', userPayload);
-        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
-        const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_BizAppsCommittees', 'vwActionItems')} WHERE ${provider.QuoteIdentifier('AgendaItemID')}=${provider.BuildParameterPlaceholder(0)} ` + this.getRowLevelSecurityWhereClause(provider, 'Committees: Action Items', userPayload, EntityPermissionType.Read, 'AND');
-        const rows = await provider.ExecuteSQL(sSQL, [mjbizappscommitteesagendaitem_.ID], undefined, this.GetUserFromPayload(userPayload));
-        const result = await this.ArrayMapFieldNamesToCodeNames('Committees: Action Items', rows, this.GetUserFromPayload(userPayload));
-        return result;
-    }
-        
     @FieldResolver(() => [mjBizAppsCommitteesAgendaItem_])
     async mjBizAppsCommitteesCommittees_AgendaItems_ParentAgendaItemIDArray(@Root() mjbizappscommitteesagendaitem_: mjBizAppsCommitteesAgendaItem_, @Ctx() { userPayload, providers }: AppContext, @PubSub() pubSub: PubSubEngine) {
         this.CheckUserReadPermissions('Committees: Agenda Items', userPayload);
@@ -1889,9 +1609,6 @@ export class mjBizAppsCommitteesCommittee_ {
     @Field(() => [mjBizAppsCommitteesTerm_])
     mjBizAppsCommitteesCommittees_Terms_CommitteeIDArray: mjBizAppsCommitteesTerm_[]; // Link to mjBizAppsCommitteesCommittees_Terms
     
-    @Field(() => [mjBizAppsCommitteesActionItem_])
-    mjBizAppsCommitteesCommittees_ActionItems_CommitteeIDArray: mjBizAppsCommitteesActionItem_[]; // Link to mjBizAppsCommitteesCommittees_ActionItems
-    
 }
 
 //****************************************************************************
@@ -2105,16 +1822,6 @@ export class mjBizAppsCommitteesCommitteeResolver extends ResolverBase {
         return result;
     }
         
-    @FieldResolver(() => [mjBizAppsCommitteesActionItem_])
-    async mjBizAppsCommitteesCommittees_ActionItems_CommitteeIDArray(@Root() mjbizappscommitteescommittee_: mjBizAppsCommitteesCommittee_, @Ctx() { userPayload, providers }: AppContext, @PubSub() pubSub: PubSubEngine) {
-        this.CheckUserReadPermissions('Committees: Action Items', userPayload);
-        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
-        const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_BizAppsCommittees', 'vwActionItems')} WHERE ${provider.QuoteIdentifier('CommitteeID')}=${provider.BuildParameterPlaceholder(0)} ` + this.getRowLevelSecurityWhereClause(provider, 'Committees: Action Items', userPayload, EntityPermissionType.Read, 'AND');
-        const rows = await provider.ExecuteSQL(sSQL, [mjbizappscommitteescommittee_.ID], undefined, this.GetUserFromPayload(userPayload));
-        const result = await this.ArrayMapFieldNamesToCodeNames('Committees: Action Items', rows, this.GetUserFromPayload(userPayload));
-        return result;
-    }
-        
     @Mutation(() => mjBizAppsCommitteesCommittee_)
     async CreatemjBizAppsCommitteesCommittee(
         @Arg('input', () => CreatemjBizAppsCommitteesCommitteeInput) input: CreatemjBizAppsCommitteesCommitteeInput,
@@ -2239,9 +1946,6 @@ export class mjBizAppsCommitteesMeeting_ {
     
     @Field(() => [mjBizAppsCommitteesAttendance_])
     mjBizAppsCommitteesCommittees_Attendances_MeetingIDArray: mjBizAppsCommitteesAttendance_[]; // Link to mjBizAppsCommitteesCommittees_Attendances
-    
-    @Field(() => [mjBizAppsCommitteesActionItem_])
-    mjBizAppsCommitteesCommittees_ActionItems_MeetingIDArray: mjBizAppsCommitteesActionItem_[]; // Link to mjBizAppsCommitteesCommittees_ActionItems
     
     @Field(() => [mjBizAppsCommitteesMinute_])
     mjBizAppsCommitteesCommittees_Minutes_ApprovedByMeetingIDArray: mjBizAppsCommitteesMinute_[]; // Link to mjBizAppsCommitteesCommittees_Minutes
@@ -2472,16 +2176,6 @@ export class mjBizAppsCommitteesMeetingResolver extends ResolverBase {
         const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_BizAppsCommittees', 'vwAttendances')} WHERE ${provider.QuoteIdentifier('MeetingID')}=${provider.BuildParameterPlaceholder(0)} ` + this.getRowLevelSecurityWhereClause(provider, 'Committees: Attendances', userPayload, EntityPermissionType.Read, 'AND');
         const rows = await provider.ExecuteSQL(sSQL, [mjbizappscommitteesmeeting_.ID], undefined, this.GetUserFromPayload(userPayload));
         const result = await this.ArrayMapFieldNamesToCodeNames('Committees: Attendances', rows, this.GetUserFromPayload(userPayload));
-        return result;
-    }
-        
-    @FieldResolver(() => [mjBizAppsCommitteesActionItem_])
-    async mjBizAppsCommitteesCommittees_ActionItems_MeetingIDArray(@Root() mjbizappscommitteesmeeting_: mjBizAppsCommitteesMeeting_, @Ctx() { userPayload, providers }: AppContext, @PubSub() pubSub: PubSubEngine) {
-        this.CheckUserReadPermissions('Committees: Action Items', userPayload);
-        const provider = GetReadOnlyProvider(providers, { allowFallbackToReadWrite: true });
-        const sSQL = `SELECT * FROM ${provider.QuoteSchemaAndView('__mj_BizAppsCommittees', 'vwActionItems')} WHERE ${provider.QuoteIdentifier('MeetingID')}=${provider.BuildParameterPlaceholder(0)} ` + this.getRowLevelSecurityWhereClause(provider, 'Committees: Action Items', userPayload, EntityPermissionType.Read, 'AND');
-        const rows = await provider.ExecuteSQL(sSQL, [mjbizappscommitteesmeeting_.ID], undefined, this.GetUserFromPayload(userPayload));
-        const result = await this.ArrayMapFieldNamesToCodeNames('Committees: Action Items', rows, this.GetUserFromPayload(userPayload));
         return result;
     }
         

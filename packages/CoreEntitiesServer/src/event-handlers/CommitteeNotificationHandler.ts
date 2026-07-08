@@ -5,8 +5,10 @@
  * (MJ: User Notifications) for key committee events:
  *
  * - Meeting scheduled → notify all active committee members
- * - Action item created → notify the assigned person
  * - Comment created → notify parent comment author (replies) and @mentioned people
+ *
+ * Task notifications (assignment, completion, blocked) are handled by the
+ * BizAppsTasks app's own TaskNotificationHandler (@mj-biz-apps/tasks-server).
  */
 import {
     BaseEntity,
@@ -20,7 +22,6 @@ import {
 import { MJUserNotificationEntity } from '@memberjunction/core-entities';
 import {
     mjBizAppsCommitteesMeetingEntity,
-    mjBizAppsCommitteesActionItemEntity,
     mjBizAppsCommitteesCommentEntity,
 } from '@mj-biz-apps/committees-entities';
 import { MJEventType, MJGlobal, MJEvent , UUIDsEqual } from '@memberjunction/global';
@@ -28,7 +29,6 @@ import { Subscription } from 'rxjs';
 
 /** Entity names we listen for */
 const MEETINGS_ENTITY = 'Committees: Meetings';
-const ACTION_ITEMS_ENTITY = 'Committees: Action Items';
 const COMMENTS_ENTITY = 'Committees: Comments';
 
 
@@ -75,9 +75,6 @@ function handleEntityEvent(event: BaseEntityEvent): void {
     switch (entityName) {
         case MEETINGS_ENTITY:
             handleMeetingSave(event).catch(logHandlerError('MeetingSave'));
-            break;
-        case ACTION_ITEMS_ENTITY:
-            handleActionItemSave(event).catch(logHandlerError('ActionItemSave'));
             break;
         case COMMENTS_ENTITY:
             handleCommentSave(event).catch(logHandlerError('CommentSave'));
@@ -140,53 +137,6 @@ async function handleMeetingSave(event: BaseEntityEvent): Promise<void> {
 
     await createNotificationsForUsers(userIDs, notifTitle, notifMessage, contextUser);
     LogStatus(`[Committees] Sent meeting notification to ${userIDs.length} member(s) for "${title}"`);
-}
-
-// ---------------------------------------------------------------------------
-// Action Item Notifications
-// ---------------------------------------------------------------------------
-
-/**
- * When a NEW action item is created, notify the assigned person.
- *
- * Note: We only notify on create (not update) because BaseEntity's
- * finalizeSave() resets dirty flags before the 'save' event fires,
- * making reassignment detection impossible from this event.
- */
-async function handleActionItemSave(event: BaseEntityEvent): Promise<void> {
-    // Only notify on create, not every update
-    if (event.saveSubType !== 'create') {
-        return;
-    }
-
-    const actionItem = event.baseEntity! as mjBizAppsCommitteesActionItemEntity;
-    const contextUser = actionItem.ContextCurrentUser;
-    if (!contextUser) {
-        return;
-    }
-
-    const assignedToPersonID = actionItem.AssignedToPersonID;
-    if (!assignedToPersonID) {
-        return;
-    }
-
-    const userID = await getPersonLinkedUserID(assignedToPersonID, contextUser);
-    if (!userID) {
-        return; // Person doesn't have a linked MJ user
-    }
-
-    const title = actionItem.Name;
-    const committeeName = actionItem.Committee ?? '';
-    const priority = actionItem.Priority;
-    const dueDate = actionItem.DueDate;
-
-    const dueDateStr = dueDate ? ` (due ${formatDate(dueDate)})` : '';
-    const verb = event.saveSubType === 'create' ? 'assigned to you' : 'reassigned to you';
-    const notifTitle = `Action Item: ${title}`;
-    const notifMessage = `"${title}" has been ${verb} in ${committeeName}. Priority: ${priority}${dueDateStr}.`;
-
-    await createNotificationsForUsers([userID], notifTitle, notifMessage, contextUser);
-    LogStatus(`[Committees] Sent action-item notification for "${title}"`);
 }
 
 // ---------------------------------------------------------------------------

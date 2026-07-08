@@ -25,11 +25,11 @@
                 <div class="stat-label">Upcoming</div>
             </div>
             <div class="stat-card stat-amber">
-                <div class="stat-number">{{ OpenActionItemCount }}</div>
+                <div class="stat-number">{{ OpenTaskCount }}</div>
                 <div class="stat-label">Open Items</div>
             </div>
             <div class="stat-card stat-rose">
-                <div class="stat-number">{{ OverdueActionItemCount }}</div>
+                <div class="stat-number">{{ OverdueTaskCount }}</div>
                 <div class="stat-label">Overdue</div>
             </div>
         </div>
@@ -87,30 +87,30 @@
             <div class="panel">
                 <div class="panel-head">
                     <h3>Action Items</h3>
-                    <span class="panel-count">{{ MyActionItems.length }}</span>
+                    <span class="panel-count">{{ MyTasks.length }}</span>
                 </div>
-                @if (MyActionItems.length === 0) {
+                @if (MyTasks.length === 0) {
                     <div class="panel-empty">
                         <i class="fa-regular fa-circle-check"></i>
                         <span>All caught up!</span>
                     </div>
                 } @else {
                     <div class="panel-body">
-                        @for (item of MyActionItems; track item['ID']) {
-                            <div class="row-item" [class.row-overdue]="item['DueDate'] != null && item['DueDate'] < TodayString">
-                                <div [class]="'priority-dot dot-' + ($any(item['Priority']) || 'medium').toLowerCase()"></div>
+                        @for (item of MyTasks; track item.ID) {
+                            <div class="row-item" [class.row-overdue]="item.DueAt != null && item.DueAt < TodayString">
+                                <div [class]="'priority-dot dot-' + (item.Priority || 'medium').toLowerCase()"></div>
                                 <div class="row-content">
-                                    <div class="row-title">{{ item['Name'] }}</div>
+                                    <div class="row-title">{{ item.Name }}</div>
                                     <div class="row-meta">
-                                        {{ item['Committee'] }}
-                                        @if (item['DueDate']) {
+                                        {{ item.CommitteeNames.join(', ') }}
+                                        @if (item.DueAt) {
                                             <span class="meta-sep">&middot;</span>
-                                            Due {{ $any(item['DueDate']) | date:'MMM d' }}
+                                            Due {{ item.DueAt | date:'MMM d' }}
                                         }
                                     </div>
                                 </div>
-                                <span [class]="'tag tag-' + ($any(item['Status']) || '').toLowerCase()">
-                                    {{ FormatStatus($any(item['Status'])) }}
+                                <span [class]="'tag tag-' + (item.Status || '').toLowerCase()">
+                                    {{ FormatStatus(item.Status) }}
                                 </span>
                             </div>
                         }

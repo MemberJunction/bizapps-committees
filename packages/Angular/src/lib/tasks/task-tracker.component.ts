@@ -12,15 +12,15 @@ interface CommitteeOption {
     IsOfficer: boolean;
 }
 
-@RegisterClass(BaseResourceComponent, 'ActionItemTrackerComponent')
+@RegisterClass(BaseResourceComponent, 'TaskTrackerComponent')
 @Component({
     standalone: false,
-    selector: 'committees-action-items',
-    templateUrl: './action-item-tracker.component.html',
-    styleUrls: ['../shared/design-system.css', './action-item-tracker.component.css'],
+    selector: 'committees-task-tracker',
+    templateUrl: './task-tracker.component.html',
+    styleUrls: ['../shared/design-system.css', './task-tracker.component.css'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ActionItemTrackerComponent extends BaseResourceComponent implements OnInit {
+export class TaskTrackerComponent extends BaseResourceComponent implements OnInit {
     IsLoading = true;
 
     /** Current user's PersonID */
@@ -228,4 +228,4 @@ export class ActionItemTrackerComponent extends BaseResourceComponent implements
     }
 }
 
-export function LoadActionItemTracker() { }
+export function LoadTaskTracker() { }

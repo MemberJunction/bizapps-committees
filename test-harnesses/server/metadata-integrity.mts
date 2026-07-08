@@ -13,7 +13,7 @@
  *       the first record through the REAL entity class — SetMany validates
  *       every returned view column against metadata
  *   M3  Applications: exactly the two pre-created apps (Committees /
- *       Committee Management), no schema-named app, 17 entities attached each
+ *       Committee Management), no schema-named app, 16 entities attached each
  *   M4  Permissions: every committees entity has EntityPermission rows
  *       (codegen creates them; missing rows = broken API access)
  *
@@ -26,7 +26,7 @@ import { Metadata, RunView } from '@memberjunction/core';
 import { bootstrap, test, assert, summary, SCHEMA, HarnessCtx } from './bootstrap.mjs';
 import { finishAndExit } from './harness-exit.mjs';
 
-const EXPECTED_ENTITY_COUNT = 17;
+const EXPECTED_ENTITY_COUNT = 16;
 const APP_MEMBER = 'Committees';
 const APP_STAFF = 'Committee Management';
 

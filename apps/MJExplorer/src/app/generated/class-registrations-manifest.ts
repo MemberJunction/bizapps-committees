@@ -11,10 +11,9 @@
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-// @mj-biz-apps/committees-entities (18 classes)
+// @mj-biz-apps/committees-entities (17 classes)
 import {
     MembershipEntityCustom,
-    mjBizAppsCommitteesActionItemEntity,
     mjBizAppsCommitteesAgendaItemEntity,
     mjBizAppsCommitteesArtifactEntity,
     mjBizAppsCommitteesArtifactTypeEntity,
@@ -35,7 +34,6 @@ import {
 
 // @mj-biz-apps/committees-ng (13 classes)
 import {
-    ActionItemTrackerComponent,
     CommandCenterComponent,
     CommitteeDashboardComponent,
     CommitteeListComponent,
@@ -48,6 +46,7 @@ import {
     MembershipListComponent,
     MotionsBallotsComponent,
     PeopleTermsComponent,
+    TaskTrackerComponent,
 } from '@mj-biz-apps/committees-ng';
 
 /**
@@ -57,7 +56,6 @@ import {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const CLASS_REGISTRATIONS: any[] = [
     MembershipEntityCustom,
-    mjBizAppsCommitteesActionItemEntity,
     mjBizAppsCommitteesAgendaItemEntity,
     mjBizAppsCommitteesArtifactEntity,
     mjBizAppsCommitteesArtifactTypeEntity,
@@ -74,7 +72,6 @@ export const CLASS_REGISTRATIONS: any[] = [
     mjBizAppsCommitteesTypeEntity,
     mjBizAppsCommitteesVideoProviderEntity,
     mjBizAppsCommitteesVoteEntity,
-    ActionItemTrackerComponent,
     CommandCenterComponent,
     CommitteeDashboardComponent,
     CommitteeListComponent,
@@ -87,13 +84,14 @@ export const CLASS_REGISTRATIONS: any[] = [
     MembershipListComponent,
     MotionsBallotsComponent,
     PeopleTermsComponent,
+    TaskTrackerComponent,
 ];
 
 /** Marker constant indicating the manifest has been loaded. */
 export const CLASS_REGISTRATIONS_MANIFEST_LOADED = true;
 
 /** Total @RegisterClass decorated classes discovered in dependency tree */
-export const CLASS_REGISTRATIONS_COUNT = 31;
+export const CLASS_REGISTRATIONS_COUNT = 30;
 
 /** Packages imported by this manifest */
 export const CLASS_REGISTRATIONS_PACKAGES = [

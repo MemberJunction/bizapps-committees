@@ -222,10 +222,10 @@
                 <div class="act">
                   <div>
                     <b>{{ a.Name }}</b>
-                    <small>{{ a.AssignedToPerson || 'Unassigned' }}</small>
+                    <small>{{ a.AssigneeName || 'Unassigned' }}</small>
                   </div>
-                  @if (a.DueDate) {
-                    <span class="badge" [class.error]="IsOverdue(a)" [class.warning]="!IsOverdue(a)">Due {{ a.DueDate | date: 'MMM d' : 'UTC' }}</span>
+                  @if (a.DueAt) {
+                    <span class="badge" [class.error]="IsOverdue(a)" [class.warning]="!IsOverdue(a)">Due {{ a.DueAt | date: 'MMM d' : 'UTC' }}</span>
                   }
                   @if (a.Priority) { <span class="badge neutral">{{ a.Priority }}</span> }
                 </div>

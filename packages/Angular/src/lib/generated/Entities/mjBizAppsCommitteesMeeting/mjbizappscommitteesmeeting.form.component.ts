@@ -21,7 +21,6 @@ export class mjBizAppsCommitteesMeetingFormComponent extends BaseFormComponent {
             { sectionKey: 'committeesAgendaItems', sectionName: 'Agenda Items', isExpanded: false },
             { sectionKey: 'committeesMotions', sectionName: 'Motions', isExpanded: false },
             { sectionKey: 'committeesAttendances', sectionName: 'Attendances', isExpanded: false },
-            { sectionKey: 'committeesActionItems', sectionName: 'Action Items', isExpanded: false },
             { sectionKey: 'committeesMinutesApprovedByMeetingID', sectionName: 'Minutes (Approved By Meeting ID)', isExpanded: false },
             { sectionKey: 'committeesMinutesMeetingID', sectionName: 'Minutes (Meeting ID)', isExpanded: false },
             { sectionKey: 'committeesComments', sectionName: 'Comments', isExpanded: false }

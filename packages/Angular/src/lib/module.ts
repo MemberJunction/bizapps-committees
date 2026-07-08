@@ -17,8 +17,7 @@ import { CommitteeListComponent, LoadCommitteeList } from './committee-list/comm
 import { CommitteeEditDialogComponent, LoadCommitteeEditDialog } from './committee-list/committee-edit-dialog.component';
 import { MeetingListComponent, LoadMeetingList } from './meeting-list/meeting-list.component';
 import { MeetingEditDialogComponent, LoadMeetingEditDialog } from './meeting-list/meeting-edit-dialog.component';
-import { ActionItemTrackerComponent, LoadActionItemTracker } from './action-items/action-item-tracker.component';
-import { ActionItemEditDialogComponent, LoadActionItemEditDialog } from './action-items/action-item-edit-dialog.component';
+import { TaskTrackerComponent, LoadTaskTracker } from './tasks/task-tracker.component';
 import { DocumentBrowserComponent, LoadDocumentBrowser } from './documents/document-browser.component';
 import { DocumentEditDialogComponent, LoadDocumentEditDialog } from './documents/document-edit-dialog.component';
 import { DocumentPreviewPanelComponent, LoadDocumentPreviewPanel } from './documents/document-preview-panel.component';
@@ -61,8 +60,7 @@ import { MemberHomeComponent, LoadMemberHome } from './member-home/member-home.c
         CommitteeEditDialogComponent,
         MeetingListComponent,
         MeetingEditDialogComponent,
-        ActionItemTrackerComponent,
-        ActionItemEditDialogComponent,
+        TaskTrackerComponent,
         DocumentBrowserComponent,
         DocumentEditDialogComponent,
         DocumentPreviewPanelComponent,
@@ -113,8 +111,7 @@ import { MemberHomeComponent, LoadMemberHome } from './member-home/member-home.c
         CommitteeEditDialogComponent,
         MeetingListComponent,
         MeetingEditDialogComponent,
-        ActionItemTrackerComponent,
-        ActionItemEditDialogComponent,
+        TaskTrackerComponent,
         DocumentBrowserComponent,
         DocumentEditDialogComponent,
         DocumentPreviewPanelComponent,
@@ -151,8 +148,7 @@ export function LoadCommitteesModule() {
     LoadCommitteeEditDialog();
     LoadMeetingList();
     LoadMeetingEditDialog();
-    LoadActionItemTracker();
-    LoadActionItemEditDialog();
+    LoadTaskTracker();
     LoadDocumentBrowser();
     LoadDocumentEditDialog();
     LoadDocumentPreviewPanel();

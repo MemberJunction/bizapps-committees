@@ -22,8 +22,7 @@ export class mjBizAppsCommitteesCommitteeFormComponent extends BaseFormComponent
             { sectionKey: 'committeesBallots', sectionName: 'Ballots', isExpanded: false },
             { sectionKey: 'committeesCommittees', sectionName: 'Committees', isExpanded: false },
             { sectionKey: 'committeesMeetings', sectionName: 'Meetings', isExpanded: false },
-            { sectionKey: 'committeesTerms', sectionName: 'Terms', isExpanded: false },
-            { sectionKey: 'committeesActionItems', sectionName: 'Action Items', isExpanded: false }
+            { sectionKey: 'committeesTerms', sectionName: 'Terms', isExpanded: false }
         ]);
     }
 }

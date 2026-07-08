@@ -1,12 +1,13 @@
 import { RunView, UserInfo } from '@memberjunction/core';
 import { CommitteesLookupEngine } from '../engines/CommitteesLookupEngine.js';
+import { CommitteeTaskService } from './CommitteeTaskService.js';
 
 /**
  * Committee health signal computation for the Governance Command Center.
  *
  * All signals are computed from real columns — Terms, Attendance, Minutes,
- * and Action Items — never from shadow fields. Thresholds below are the
- * UX v2 mockup defaults (plans/PHASE1_PRD.md §9.2); tune after first demo.
+ * and BizAppsTasks Tasks — never from shadow fields. Thresholds below are
+ * the UX v2 mockup defaults (plans/PHASE1_PRD.md §9.2); tune after first demo.
  */
 
 /** Terms ending within this many days count as "expiring soon" (warning). */
@@ -130,7 +131,8 @@ interface RoleRow { ID: string; Name: string; IsVotingRole: boolean; IsOfficer: 
 interface MeetingRow { ID: string; CommitteeID: string; Committee: string; Name: string; StartDateTime: string; EndDateTime: string | null; Status: string; LocationType: string | null; LocationText: string | null; VideoProvider_Virtual: string | null; }
 interface AttendanceRow { MeetingID: string; PersonID: string; AttendanceStatus: string; }
 interface MinuteRow { ID: string; MeetingID: string; ApprovalStatus: string; __mj_CreatedAt: string; }
-interface ActionItemRow { ID: string; CommitteeID: string; Name: string; DueDate: string | null; Status: string; AssignedToPerson: string | null; }
+/** A BizAppsTasks task flattened to one row per linked committee (field names kept date-string based for the pure compute functions). */
+interface TaskHealthRow { ID: string; CommitteeID: string; Name: string; DueDate: string | null; Status: string; AssignedToPerson: string | null; }
 interface AgendaItemRow { ID: string; MeetingID: string; }
 interface MembershipRoleRow extends MembershipRow { RoleID: string; }
 
@@ -149,15 +151,18 @@ export class CommitteeHealthService {
         const now = new Date();
         const lookbackISO = new Date(now.getTime() - 365 * 86400000).toISOString();
         await CommitteesLookupEngine.Instance.Config(false, contextUser);
-        const [committees, terms, memberships, meetings, minutes, actionItems, agendaItems] = await rv.RunViews([
+        // Open tasks come from BizAppsTasks via the shared committee-scope service,
+        // concurrently with the committees batch below.
+        const tasksPromise = new CommitteeTaskService().GetTasks({}, contextUser);
+        const [committees, terms, memberships, meetings, minutes, agendaItems] = await rv.RunViews([
             { EntityName: 'Committees: Committees', Fields: ['ID', 'Name', 'Status', 'IsPublic', 'Type', 'FormationDate', '__mj_CreatedAt'], ResultType: 'simple' },
             { EntityName: 'Committees: Terms', Fields: ['ID', 'CommitteeID', 'Status', 'StartDate', 'EndDate'], ResultType: 'simple' },
             { EntityName: 'Committees: Memberships', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'TermID', 'PersonID', 'RoleID', 'Status', 'Role', 'Person'], ResultType: 'simple' },
             { EntityName: 'Committees: Meetings', ExtraFilter: `StartDateTime >= '${lookbackISO}'`, Fields: ['ID', 'CommitteeID', 'Committee', 'Name', 'StartDateTime', 'EndDateTime', 'Status', 'LocationType', 'LocationText', 'VideoProvider_Virtual'], OrderBy: 'StartDateTime ASC', ResultType: 'simple' },
             { EntityName: 'Committees: Minutes', ExtraFilter: "ApprovalStatus IN ('Draft', 'PendingApproval')", Fields: ['ID', 'MeetingID', 'ApprovalStatus', '__mj_CreatedAt'], ResultType: 'simple' },
-            { EntityName: 'Committees: Action Items', ExtraFilter: "Status IN ('Open', 'InProgress')", Fields: ['ID', 'CommitteeID', 'Name', 'DueDate', 'Status', 'AssignedToPerson'], ResultType: 'simple' },
             { EntityName: 'Committees: Agenda Items', Fields: ['ID', 'MeetingID'], ResultType: 'simple' },
         ], contextUser);
+        const taskRows = await tasksPromise;
 
         // Attendance is loaded second because it is scoped to the meetings above.
         const meetingRows = (meetings.Success ? meetings.Results : []) as unknown as MeetingRow[];
@@ -182,7 +187,9 @@ export class CommitteeHealthService {
             Meetings: meetingRows,
             Attendance: attendanceRows,
             Minutes: (minutes.Success ? minutes.Results : []) as unknown as MinuteRow[],
-            ActionItems: (actionItems.Success ? actionItems.Results : []) as unknown as ActionItemRow[],
+            Tasks: taskRows.flatMap(t => t.CommitteeIDs.map(cid => ({
+                ID: t.ID, CommitteeID: cid, Name: t.Name, DueDate: t.DueAt, Status: t.Status, AssignedToPerson: t.AssigneeName,
+            }))),
             AgendaItems: (agendaItems.Success ? agendaItems.Results : []) as unknown as AgendaItemRow[],
         };
     }
@@ -198,7 +205,7 @@ export class CommitteeHealthService {
         const termsByCommittee = groupBy(data.Terms, t => t.CommitteeID);
         const membershipsByTerm = groupBy(data.Memberships, m => m.TermID);
         const meetingsByCommittee = groupBy(data.Meetings, m => m.CommitteeID);
-        const actionsByCommittee = groupBy(data.ActionItems, a => a.CommitteeID);
+        const actionsByCommittee = groupBy(data.Tasks, a => a.CommitteeID);
         const meetingCommittee = new Map(data.Meetings.map(m => [m.ID, m.CommitteeID] as const));
         const minutesByCommittee = groupBy(
             data.Minutes.filter(mi => meetingCommittee.has(mi.MeetingID)),
@@ -269,7 +276,7 @@ export class CommitteeHealthService {
         return { PendingCount: minutes.length, OldestPendingDays: Math.floor(oldest / 86400000) };
     }
 
-    public static ComputeActionAging(actions: ActionItemRow[], now: Date): ActionAging {
+    public static ComputeActionAging(actions: TaskHealthRow[], now: Date): ActionAging {
         const overdue = actions.filter(a => a.DueDate !== null && new Date(a.DueDate) < now);
         const oldest = overdue.length === 0 ? 0 : Math.max(...overdue.map(a => now.getTime() - new Date(a.DueDate as string).getTime()));
         return { OpenCount: actions.length, OverdueCount: overdue.length, OldestOverdueDays: Math.floor(oldest / 86400000) };
@@ -292,7 +299,7 @@ export class CommitteeHealthService {
         meetings: MeetingRow[],
         attendanceByMeeting: Map<string, AttendanceRow[]>,
         minutes: MinuteRow[],
-        actions: ActionItemRow[],
+        actions: TaskHealthRow[],
         now: Date,
     ): CommitteeHealthRow {
         const term = this.ComputeTermHygiene(terms, now);
@@ -458,7 +465,7 @@ export interface PortfolioData {
     Meetings: MeetingRow[];
     Attendance: AttendanceRow[];
     Minutes: MinuteRow[];
-    ActionItems: ActionItemRow[];
+    Tasks: TaskHealthRow[];
     AgendaItems: AgendaItemRow[];
 }
 

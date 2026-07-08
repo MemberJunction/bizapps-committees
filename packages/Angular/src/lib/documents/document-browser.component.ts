@@ -6,6 +6,7 @@ import { EntityInfo, Metadata, RunView } from '@memberjunction/core';
 import { DocumentDialogResult } from './document-edit-dialog.component';
 import { DocumentPreviewClosedEvent } from './document-preview-panel.component';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
+import { CommitteeTaskService } from '@mj-biz-apps/committees-core';
 
 type DateRangeFilter = 'all' | '7d' | '30d' | '90d' | 'year';
 
@@ -20,16 +21,16 @@ interface LinkableEntities {
     committee: EntityInfo | undefined;
     meeting: EntityInfo | undefined;
     agenda: EntityInfo | undefined;
-    action: EntityInfo | undefined;
+    task: EntityInfo | undefined;
 }
 interface LinkBatch {
     linksResult: BatchResult; categoriesResult: BatchResult; committeesResult: BatchResult;
-    meetingsResult: BatchResult; agendasResult: BatchResult; actionItemsResult: BatchResult;
+    meetingsResult: BatchResult; agendasResult: BatchResult; taskCommittees: Map<string, string>;
 }
 interface CommitteeLinkMaps {
     meetingToCommittee: Map<string, string>;
     agendaToCommittee: Map<string, string>;
-    actionToCommittee: Map<string, string>;
+    taskToCommittee: Map<string, string>;
 }
 
 @RegisterClass(BaseResourceComponent, 'DocumentBrowserComponent')
@@ -234,7 +235,7 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
             : await CommitteePermissionHelper.GetMemberCommitteeIDs();
 
         const entities = this.resolveLinkableEntities(md);
-        const entityInfos = [entities.committee, entities.meeting, entities.agenda, entities.action].filter(e => e != null);
+        const entityInfos = [entities.committee, entities.meeting, entities.agenda, entities.task].filter(e => e != null);
         // Non-staff users with no memberships see no documents.
         if (entityInfos.length === 0 || (memberCommitteeIDs && memberCommitteeIDs.size === 0)) {
             this.Files = [];
@@ -269,22 +270,28 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
             committee: md.EntityByName('Committees: Committees'),
             meeting: md.EntityByName('Committees: Meetings'),
             agenda: md.EntityByName('Committees: Agenda Items'),
-            action: md.EntityByName('Committees: Action Items'),
+            task: md.EntityByName('MJ_BizApps_Tasks: Tasks'),
         };
     }
 
     private async loadLinkBatch(rv: RunView, entityIDs: string[]): Promise<LinkBatch> {
         const entityIDFilter = entityIDs.map(id => `'${id}'`).join(', ');
-        const [linksResult, categoriesResult, committeesResult, meetingsResult, agendasResult, actionItemsResult] = await rv.RunViews([
+        // Task→committee resolution comes from BizAppsTasks (all statuses — files
+        // stay visible after their task completes), concurrently with the batch.
+        const tasksPromise = new CommitteeTaskService().GetTasks({ IncludeCompleted: true });
+        const [linksResult, categoriesResult, committeesResult, meetingsResult, agendasResult] = await rv.RunViews([
             { EntityName: 'MJ: File Entity Record Links', Fields: ['FileID', 'EntityID', 'RecordID'], ExtraFilter: `EntityID IN (${entityIDFilter})`, ResultType: 'simple' },
             { EntityName: 'MJ: File Categories', Fields: ['ID', 'Name'], OrderBy: 'Name ASC', ResultType: 'simple' },
             { EntityName: 'Committees: Committees', Fields: ['ID', 'Name'], ExtraFilter: '', OrderBy: 'Name ASC', ResultType: 'simple' },
             { EntityName: 'Committees: Meetings', Fields: ['ID', 'CommitteeID'], ResultType: 'simple' },
             { EntityName: 'Committees: Agenda Items', Fields: ['ID', 'MeetingID'], ResultType: 'simple' },
-            { EntityName: 'Committees: Action Items', Fields: ['ID', 'CommitteeID'], ResultType: 'simple' },
         ]);
+        const taskCommittees = new Map<string, string>();
+        for (const t of await tasksPromise) {
+            if (t.CommitteeIDs.length > 0) taskCommittees.set(t.ID, t.CommitteeIDs[0]);
+        }
         return {
-            linksResult, categoriesResult, committeesResult, meetingsResult, agendasResult, actionItemsResult,
+            linksResult, categoriesResult, committeesResult, meetingsResult, agendasResult, taskCommittees,
         } as unknown as LinkBatch;
     }
 
@@ -304,7 +311,7 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
             : allCommittees;
     }
 
-    /** Lookup maps for resolving indirect committee links (meeting/agenda/action → committee). */
+    /** Lookup maps for resolving indirect committee links (meeting/agenda/task → committee). */
     private buildCommitteeLinkMaps(batch: LinkBatch): CommitteeLinkMaps {
         const meetingToCommittee = new Map<string, string>();
         if (batch.meetingsResult.Success) {
@@ -319,13 +326,7 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
                 if (cid) agendaToCommittee.set(a.ID, cid);
             }
         }
-        const actionToCommittee = new Map<string, string>();
-        if (batch.actionItemsResult.Success) {
-            for (const ai of batch.actionItemsResult.Results as { ID: string; CommitteeID: string }[]) {
-                if (ai.CommitteeID) actionToCommittee.set(ai.ID, ai.CommitteeID);
-            }
-        }
-        return { meetingToCommittee, agendaToCommittee, actionToCommittee };
+        return { meetingToCommittee, agendaToCommittee, taskToCommittee: batch.taskCommittees };
     }
 
     /** For each file, resolve all linked committees (direct and indirect). */
@@ -339,8 +340,8 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
                 committeeID = maps.meetingToCommittee.get(link.RecordID);
             } else if (UUIDsEqual(link.EntityID, entities.agenda?.ID ?? null)) {
                 committeeID = maps.agendaToCommittee.get(link.RecordID);
-            } else if (UUIDsEqual(link.EntityID, entities.action?.ID ?? null)) {
-                committeeID = maps.actionToCommittee.get(link.RecordID);
+            } else if (UUIDsEqual(link.EntityID, entities.task?.ID ?? null)) {
+                committeeID = maps.taskToCommittee.get(link.RecordID);
             }
             if (committeeID) {
                 let set = fileToCommittees.get(link.FileID);

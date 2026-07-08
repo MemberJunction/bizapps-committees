@@ -141,31 +141,6 @@
          RELATED ENTITY PANELS
          ======================================== -->
 
-    <!-- Action Items Section -->
-    <mj-collapsible-panel
-        SectionKey="committeesActionItems"
-        SectionName="Action Items"
-        Icon="fa fa-table"
-        Variant="related-entity"
-        [Form]="this"
-        [FormContext]="formContext"
-        [BadgeCount]="GetSectionRowCount('committeesActionItems')"
-        [DefaultExpanded]="false">
-        @if (record.IsSaved) {
-        <div>
-            <mj-explorer-entity-data-grid
-                [Params]="BuildRelationshipViewParamsByEntityName('Committees: Action Items','AgendaItemID')"
-                [NewRecordValues]="NewRecordValues('Committees: Action Items')"
-                [AllowLoad]="IsSectionExpanded('committeesActionItems')"
-                [ShowToolbar]="false"
-                (Navigate)="OnFormNavigate($event)"
-                (AfterDataLoad)="SetSectionRowCount('committeesActionItems', $event.totalRowCount)"
-                >
-            </mj-explorer-entity-data-grid>
-        </div>
-        }
-    </mj-collapsible-panel>
-
     <!-- Agenda Items Section -->
     <mj-collapsible-panel
         SectionKey="committeesAgendaItems"

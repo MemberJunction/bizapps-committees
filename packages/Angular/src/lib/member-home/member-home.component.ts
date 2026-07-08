@@ -3,12 +3,13 @@ import { Metadata, RunView } from '@memberjunction/core';
 import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
-import { BallotService, INTENT_ASK_WINDOW_DAYS, RenewalIntentValue } from '@mj-biz-apps/committees-core';
+import { BallotService, CommitteeTaskService, CommitteeTaskRow, INTENT_ASK_WINDOW_DAYS, RenewalIntentValue } from '@mj-biz-apps/committees-core';
 import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
 import {
-    mjBizAppsCommitteesAttendanceEntity, mjBizAppsCommitteesActionItemEntity,
+    mjBizAppsCommitteesAttendanceEntity,
     mjBizAppsCommitteesVoteEntity, mjBizAppsCommitteesMembershipEntity,
 } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsTasksTaskEntity } from '@mj-biz-apps/tasks-entities';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 interface TermRow { ID: string; CommitteeID: string; Committee: string; EndDate: string | null; Status: string; }
@@ -20,7 +21,6 @@ interface MeetingRow {
     LocationText: string | null; VideoJoinURL: string | null; Status: string;
 }
 interface AgendaCountRow { ID: string; MeetingID: string; ItemType: string; }
-interface ActionRow { ID: string; Name: string; Committee: string | null; DueDate: string | null; Status: string; AssignedByPerson?: string | null; }
 interface BallotRow { ID: string; CommitteeID: string; Committee: string; MotionID: string; Motion: string; ClosesAt: string; IsSealed: boolean; Status: string; }
 interface VoteRow { ID: string; MotionID: string; MembershipID: string; VoteValue: string; }
 interface MinuteRow { ID: string; MeetingID: string | null; Meeting: string | null; ApprovalStatus: string; }
@@ -55,8 +55,8 @@ export interface NeedsYouItem {
     Sealed?: boolean;
     /** minutes items open the review overlay */
     MeetingID?: string;
-    /** action items complete inline */
-    ActionItemID?: string;
+    /** tasks complete inline */
+    TaskID?: string;
 }
 
 export interface RecentDecision { When: Date; Text: string; MyVote: string; }
@@ -149,16 +149,17 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
         if (committeeIDs.length === 0) return;
         const committeeFilter = committeeIDs.join(',');
 
-        const [meetingsR, actionsR, ballotsR, minutesR, myVotesR, myAttR] = await rv.RunViews([
+        // My open tasks come from BizAppsTasks, concurrently with the batch below.
+        const myTasksPromise = new CommitteeTaskService().GetTasks({ AssignedToPersonID: personID });
+        const [meetingsR, ballotsR, minutesR, myVotesR, myAttR] = await rv.RunViews([
             { EntityName: 'Committees: Meetings', ExtraFilter: `CommitteeID IN (${committeeFilter})`, Fields: ['ID', 'CommitteeID', 'Committee', 'Name', 'StartDateTime', 'EndDateTime', 'LocationType', 'LocationText', 'VideoJoinURL', 'Status'], OrderBy: 'StartDateTime ASC', ResultType: 'simple' },
-            { EntityName: 'Committees: Action Items', ExtraFilter: `AssignedToPersonID = '${personID}' AND Status IN ('Open', 'InProgress')`, Fields: ['ID', 'Name', 'Committee', 'DueDate', 'Status'], ResultType: 'simple' },
             { EntityName: 'Committees: Ballots', ExtraFilter: `Status = 'Open' AND CommitteeID IN (${committeeFilter})`, ResultType: 'simple' },
             { EntityName: 'Committees: Minutes', ExtraFilter: "ApprovalStatus = 'PendingApproval'", Fields: ['ID', 'MeetingID', 'Meeting', 'ApprovalStatus'], ResultType: 'simple' },
             { EntityName: 'Committees: Votes', ExtraFilter: `MembershipID IN (${[...this.myMembershipIDs].map(id => `'${id}'`).join(',')})`, Fields: ['ID', 'MotionID', 'MembershipID', 'VoteValue'], ResultType: 'simple' },
             { EntityName: 'Committees: Attendances', ExtraFilter: `PersonID = '${personID}'`, Fields: ['ID', 'MeetingID', 'PersonID', 'AttendanceStatus'], ResultType: 'simple' },
         ]);
         const meetings = (meetingsR.Success ? meetingsR.Results : []) as unknown as MeetingRow[];
-        const actions = (actionsR.Success ? actionsR.Results : []) as unknown as ActionRow[];
+        const actions = await myTasksPromise;
         const ballots = (ballotsR.Success ? ballotsR.Results : []) as unknown as BallotRow[];
         const minutes = (minutesR.Success ? minutesR.Results : []) as unknown as MinuteRow[];
         const myVotes = (myVotesR.Success ? myVotesR.Results : []) as unknown as VoteRow[];
@@ -239,19 +240,19 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
     }
 
     private buildNeeds(
-        actions: ActionRow[], ballots: BallotRow[], minutes: MinuteRow[],
+        actions: CommitteeTaskRow[], ballots: BallotRow[], minutes: MinuteRow[],
         myVotes: VoteRow[], meetings: MeetingRow[], now: Date
     ): void {
         const needs: NeedsYouItem[] = [];
         for (const a of actions) {
-            const due = a.DueDate ? new Date(a.DueDate) : null;
+            const due = a.DueAt ? new Date(a.DueAt) : null;
             const overdue = due != null && due < now;
             const dueTxt = due ? (overdue
                 ? `${Math.ceil((now.getTime() - due.getTime()) / 86_400_000)} days overdue`
                 : `due ${due.toLocaleDateString([], { month: 'short', day: 'numeric', timeZone: 'UTC' })}`) : 'no due date';
             needs.push({
-                Kind: 'action', Key: `a-${a.ID}`, ActionItemID: a.ID,
-                Title: a.Name, Detail: `${a.Committee ?? 'Committee'} · ${dueTxt}`, Urgent: overdue,
+                Kind: 'action', Key: `a-${a.ID}`, TaskID: a.ID,
+                Title: a.Name, Detail: `${a.CommitteeNames[0] ?? 'Committee'} · ${dueTxt}`, Urgent: overdue,
             });
         }
         const votedMotions = new Set(myVotes.map(v => v.MotionID.toLowerCase()));
@@ -344,15 +345,16 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
     }
 
     async OnCompleteAction(item: NeedsYouItem): Promise<void> {
-        if (!item.ActionItemID || this.IsActing) return;
+        if (!item.TaskID || this.IsActing) return;
         this.IsActing = true;
         try {
             const md = new Metadata();
-            const action = await md.GetEntityObject<mjBizAppsCommitteesActionItemEntity>('Committees: Action Items');
-            if (!await action.Load(item.ActionItemID)) throw new Error('Action item not found');
-            action.Status = 'Completed';
-            action.CompletedAt = new Date();
-            if (!await action.Save()) throw new Error(action.LatestResult?.CompleteMessage ?? 'Update failed');
+            const task = await md.GetEntityObject<mjBizAppsTasksTaskEntity>('MJ_BizApps_Tasks: Tasks');
+            if (!await task.Load(item.TaskID)) throw new Error('Task not found');
+            task.Status = 'Completed';
+            task.CompletedAt = new Date();
+            task.PercentComplete = 100;
+            if (!await task.Save()) throw new Error(task.LatestResult?.CompleteMessage ?? 'Update failed');
             this.Needs = this.Needs.filter(n => n.Key !== item.Key);
         } catch (err) {
             this.ErrorMessage = err instanceof Error ? err.message : 'Failed to complete';

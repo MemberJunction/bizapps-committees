@@ -5938,23 +5938,6 @@ input CreateVersionLabelInput {
   Scope: String
 }
 
-input CreatemjBizAppsCommitteesActionItemInput {
-  AgendaItemID: String
-  AssignedByPersonID: String
-  AssignedToPersonID: String
-  CommitteeID: String
-  CompletedAt: Timestamp
-  CompletionNotes: String
-  Description: String
-  DueDate: Timestamp
-  ID: String
-  MeetingID: String
-  Name: String
-  Priority: String
-  RestoreContext___: RestoreContextInput
-  Status: String
-}
-
 input CreatemjBizAppsCommitteesAgendaItemInput {
   Description: String
   DurationMinutes: Int
@@ -24641,7 +24624,6 @@ type Mutation {
   CreateQuerySystemUser(input: CreateQuerySystemUserInput!): QueryMutationResultType!
   CreateReportFromConversationDetailID(ConversationDetailID: String!): CreateReportResultType!
   CreateVersionLabel(input: CreateVersionLabelInput!, sessionId: String): CreateLabelResultOutput!
-  CreatemjBizAppsCommitteesActionItem(input: CreatemjBizAppsCommitteesActionItemInput!): mjBizAppsCommitteesActionItem_!
   CreatemjBizAppsCommitteesAgendaItem(input: CreatemjBizAppsCommitteesAgendaItemInput!): mjBizAppsCommitteesAgendaItem_!
   CreatemjBizAppsCommitteesArtifact(input: CreatemjBizAppsCommitteesArtifactInput!): mjBizAppsCommitteesArtifact_!
   CreatemjBizAppsCommitteesArtifactType(input: CreatemjBizAppsCommitteesArtifactTypeInput!): mjBizAppsCommitteesArtifactType_!
@@ -25063,7 +25045,6 @@ type Mutation {
   DeleteMJWorkspaceItem(ID: String!, options___: DeleteOptionsInput!): MJWorkspaceItem_!
   DeleteQuerySystemResolver(ID: String!, options: DeleteOptionsInput): DeleteQueryResultType!
   DeleteStorageObject(input: DeleteStorageObjectInput!): Boolean!
-  DeletemjBizAppsCommitteesActionItem(ID: String!, options___: DeleteOptionsInput!): mjBizAppsCommitteesActionItem_!
   DeletemjBizAppsCommitteesAgendaItem(ID: String!, options___: DeleteOptionsInput!): mjBizAppsCommitteesAgendaItem_!
   DeletemjBizAppsCommitteesArtifact(ID: String!, options___: DeleteOptionsInput!): mjBizAppsCommitteesArtifact_!
   DeletemjBizAppsCommitteesArtifactType(ID: String!, options___: DeleteOptionsInput!): mjBizAppsCommitteesArtifactType_!
@@ -25671,7 +25652,6 @@ type Mutation {
   UpdateMJWorkspace(input: UpdateMJWorkspaceInput!): MJWorkspace_!
   UpdateMJWorkspaceItem(input: UpdateMJWorkspaceItemInput!): MJWorkspaceItem_!
   UpdateQuerySystemUser(input: UpdateQuerySystemUserInput!): QueryMutationResultType!
-  UpdatemjBizAppsCommitteesActionItem(input: UpdatemjBizAppsCommitteesActionItemInput!): mjBizAppsCommitteesActionItem_!
   UpdatemjBizAppsCommitteesAgendaItem(input: UpdatemjBizAppsCommitteesAgendaItemInput!): mjBizAppsCommitteesAgendaItem_!
   UpdatemjBizAppsCommitteesArtifact(input: UpdatemjBizAppsCommitteesArtifactInput!): mjBizAppsCommitteesArtifact_!
   UpdatemjBizAppsCommitteesArtifactType(input: UpdatemjBizAppsCommitteesArtifactTypeInput!): mjBizAppsCommitteesArtifactType_!
@@ -27459,9 +27439,6 @@ type Query {
   RunViews(input: [RunViewGenericInput!]!): [RunViewGenericResult!]!
   RunViewsSystemUser(input: [RunViewGenericInput!]!): [RunViewGenericResult!]!
   RunViewsWithCacheCheck(input: [RunViewWithCacheCheckInput!]!): RunViewsWithCacheCheckOutput!
-  RunmjBizAppsCommitteesActionItemDynamicView(input: RunDynamicViewInput!): RunmjBizAppsCommitteesActionItemViewResult!
-  RunmjBizAppsCommitteesActionItemViewByID(input: RunViewByIDInput!): RunmjBizAppsCommitteesActionItemViewResult!
-  RunmjBizAppsCommitteesActionItemViewByName(input: RunViewByNameInput!): RunmjBizAppsCommitteesActionItemViewResult!
   RunmjBizAppsCommitteesAgendaItemDynamicView(input: RunDynamicViewInput!): RunmjBizAppsCommitteesAgendaItemViewResult!
   RunmjBizAppsCommitteesAgendaItemViewByID(input: RunViewByIDInput!): RunmjBizAppsCommitteesAgendaItemViewResult!
   RunmjBizAppsCommitteesAgendaItemViewByName(input: RunViewByNameInput!): RunmjBizAppsCommitteesAgendaItemViewResult!
@@ -27625,7 +27602,6 @@ type Query {
   activeSqlLoggingSessions: [SqlLoggingSession!]!
   colors: [Color!]!
   debugCurrentUserEmail: String!
-  mjBizAppsCommitteesActionItem(ID: String!): mjBizAppsCommitteesActionItem_
   mjBizAppsCommitteesAgendaItem(ID: String!): mjBizAppsCommitteesAgendaItem_
   mjBizAppsCommitteesArtifact(ID: String!): mjBizAppsCommitteesArtifact_
   mjBizAppsCommitteesArtifactType(ID: String!): mjBizAppsCommitteesArtifactType_
@@ -32328,16 +32304,6 @@ type RunViewsWithCacheCheckOutput {
 
   """Whether the overall operation succeeded"""
   success: Boolean!
-}
-
-type RunmjBizAppsCommitteesActionItemViewResult {
-  ErrorMessage: String
-  ExecutionTime: Int
-  Results: [mjBizAppsCommitteesActionItem_!]!
-  RowCount: Int
-  Success: Boolean!
-  TotalRowCount: Int
-  UserViewRunID: String
 }
 
 type RunmjBizAppsCommitteesAgendaItemViewResult {
@@ -39141,24 +39107,6 @@ input UpdateQuerySystemUserInput {
   UsesTemplate: Boolean
 }
 
-input UpdatemjBizAppsCommitteesActionItemInput {
-  AgendaItemID: String
-  AssignedByPersonID: String
-  AssignedToPersonID: String
-  CommitteeID: String
-  CompletedAt: Timestamp
-  CompletionNotes: String
-  Description: String
-  DueDate: Timestamp
-  ID: String!
-  MeetingID: String
-  Name: String
-  OldValues___: [KeyValuePairInput!]
-  Priority: String
-  RestoreContext___: RestoreContextInput
-  Status: String
-}
-
 input UpdatemjBizAppsCommitteesAgendaItemInput {
   Description: String
   DurationMinutes: Int
@@ -39812,32 +39760,6 @@ type WriteRecordOutput {
   Success: Boolean!
 }
 
-"""
-Legacy action items assigned from committees or meetings (superseded by BizAppsTasks)
-"""
-type mjBizAppsCommitteesActionItem_ {
-  AgendaItem: String
-  AgendaItemID: String
-  AssignedByPerson: String
-  AssignedByPersonID: String
-  AssignedToPerson: String!
-  AssignedToPersonID: String!
-  Committee: String!
-  CommitteeID: String!
-  CompletedAt: Timestamp
-  CompletionNotes: String
-  Description: String
-  DueDate: Timestamp
-  ID: String!
-  Meeting: String
-  MeetingID: String
-  Name: String!
-  Priority: String!
-  Status: String!
-  _mj__CreatedAt: Timestamp!
-  _mj__UpdatedAt: Timestamp!
-}
-
 """Structured agenda items for meetings with hierarchy support"""
 type mjBizAppsCommitteesAgendaItem_ {
   Description: String
@@ -39858,7 +39780,6 @@ type mjBizAppsCommitteesAgendaItem_ {
   Status: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
-  mjBizAppsCommitteesCommittees_ActionItems_AgendaItemIDArray: [mjBizAppsCommitteesActionItem_!]!
   mjBizAppsCommitteesCommittees_AgendaItems_ParentAgendaItemIDArray: [mjBizAppsCommitteesAgendaItem_!]!
   mjBizAppsCommitteesCommittees_Artifacts_AgendaItemIDArray: [mjBizAppsCommitteesArtifact_!]!
   mjBizAppsCommitteesCommittees_Comments_AgendaItemIDArray: [mjBizAppsCommitteesComment_!]!
@@ -40024,7 +39945,6 @@ type mjBizAppsCommitteesCommittee_ {
   TypeID: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
-  mjBizAppsCommitteesCommittees_ActionItems_CommitteeIDArray: [mjBizAppsCommitteesActionItem_!]!
   mjBizAppsCommitteesCommittees_Artifacts_CommitteeIDArray: [mjBizAppsCommitteesArtifact_!]!
   mjBizAppsCommitteesCommittees_Ballots_CommitteeIDArray: [mjBizAppsCommitteesBallot_!]!
   mjBizAppsCommitteesCommittees_Comments_CommitteeIDArray: [mjBizAppsCommitteesComment_!]!
@@ -40056,7 +39976,6 @@ type mjBizAppsCommitteesMeeting_ {
   VideoRecordingURL: String
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
-  mjBizAppsCommitteesCommittees_ActionItems_MeetingIDArray: [mjBizAppsCommitteesActionItem_!]!
   mjBizAppsCommitteesCommittees_AgendaItems_MeetingIDArray: [mjBizAppsCommitteesAgendaItem_!]!
   mjBizAppsCommitteesCommittees_Artifacts_MeetingIDArray: [mjBizAppsCommitteesArtifact_!]!
   mjBizAppsCommitteesCommittees_Attendances_MeetingIDArray: [mjBizAppsCommitteesAttendance_!]!

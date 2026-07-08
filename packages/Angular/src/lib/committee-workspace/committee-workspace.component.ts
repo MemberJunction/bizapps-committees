@@ -5,7 +5,7 @@ import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { RunView } from '@memberjunction/core';
 import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
-import { CommitteeHealthService, TermHygiene, MotionService, MotionRegisterRow } from '@mj-biz-apps/committees-core';
+import { CommitteeHealthService, CommitteeTaskService, CommitteeTaskRow, TermHygiene, MotionService, MotionRegisterRow } from '@mj-biz-apps/committees-core';
 
 export type WorkspaceTab = 'overview' | 'roster' | 'meetings' | 'motions' | 'actions' | 'documents';
 
@@ -14,7 +14,6 @@ interface TermRow { ID: string; CommitteeID: string; Name: string; Status: strin
 interface MembershipRow { ID: string; TermID: string; PersonID: string; RoleID: string; Status: string; Role: string; Person: string; StartDate: string; }
 interface RoleRow { ID: string; Name: string; IsVotingRole: boolean; IsOfficer: boolean; }
 interface MeetingRow { ID: string; Name: string; StartDateTime: string; EndDateTime: string | null; LocationType: string | null; LocationText: string | null; Status: string; }
-interface ActionRow { ID: string; Name: string; DueDate: string | null; Priority: string | null; Status: string; AssignedToPerson: string | null; }
 interface ArtifactRow { ID: string; Name: string; Provider: string | null; URL: string | null; ArtifactType: string | null; }
 interface MotionRow { ID: string; Name: string; Result: string | null; }
 
@@ -42,7 +41,7 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
     Officers: MembershipRow[] = [];
     VotingCount = 0;
     Meetings: MeetingRow[] = [];
-    OpenActions: ActionRow[] = [];
+    OpenActions: CommitteeTaskRow[] = [];
     Artifacts: ArtifactRow[] = [];
     MotionCount = 0;
     /** Committee-scoped motion register (meetings + this committee's e-ballots). */
@@ -115,8 +114,8 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
         this.router.navigate(['/app/mjcommitteemgmt']);
     }
 
-    IsOverdue(a: ActionRow): boolean {
-        return a.DueDate !== null && new Date(a.DueDate) < new Date() && a.Status !== 'Completed';
+    IsOverdue(a: CommitteeTaskRow): boolean {
+        return a.DueAt !== null && new Date(a.DueAt) < new Date() && a.Status !== 'Completed';
     }
 
     private async reload(): Promise<void> {
@@ -136,11 +135,12 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
     private async loadWorkspaceData(id: string): Promise<void> {
         const rv = new RunView();
         await CommitteesLookupEngine.Instance.Config();
-        const [committee, terms, meetings, actions, artifacts, motions] = await rv.RunViews([
+        // Open tasks come from BizAppsTasks, concurrently with the batch below.
+        const tasksPromise = new CommitteeTaskService().GetTasks({});
+        const [committee, terms, meetings, artifacts, motions] = await rv.RunViews([
             { EntityName: 'Committees: Committees', ExtraFilter: `ID='${id}'`, Fields: ['ID', 'Name', 'Status', 'IsPublic', 'Type', 'MissionStatement', 'FormationDate', 'ParentCommittee'], ResultType: 'simple' },
             { EntityName: 'Committees: Terms', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'CommitteeID', 'Name', 'Status', 'StartDate', 'EndDate'], OrderBy: 'StartDate DESC', ResultType: 'simple' },
             { EntityName: 'Committees: Meetings', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Name', 'StartDateTime', 'EndDateTime', 'LocationType', 'LocationText', 'Status'], OrderBy: 'StartDateTime ASC', ResultType: 'simple' },
-            { EntityName: 'Committees: Action Items', ExtraFilter: `CommitteeID='${id}' AND Status IN ('Open', 'InProgress')`, Fields: ['ID', 'Name', 'DueDate', 'Priority', 'Status', 'AssignedToPerson'], OrderBy: 'DueDate ASC', ResultType: 'simple' },
             { EntityName: 'Committees: Artifacts', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Name', 'Provider', 'URL', 'ArtifactType'], ResultType: 'simple' },
             { EntityName: 'Committees: Motions', ExtraFilter: `MeetingID IN (SELECT ID FROM __mj_BizAppsCommittees.Meeting WHERE CommitteeID='${id}')`, Fields: ['ID', 'Name', 'Result'], ResultType: 'simple' },
         ]);
@@ -148,7 +148,7 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
         this.Committee = committee.Success && committee.Results.length > 0 ? committee.Results[0] as unknown as CommitteeRow : null;
         this.Terms = terms.Success ? terms.Results as unknown as TermRow[] : [];
         this.Meetings = meetings.Success ? meetings.Results as unknown as MeetingRow[] : [];
-        this.OpenActions = actions.Success ? actions.Results as unknown as ActionRow[] : [];
+        this.OpenActions = (await tasksPromise).filter(t => t.CommitteeIDs.some(cid => cid.toLowerCase() === id.toLowerCase()));
         this.Artifacts = artifacts.Success ? artifacts.Results as unknown as ArtifactRow[] : [];
         this.MotionCount = motions.Success ? (motions.Results as unknown as MotionRow[]).length : 0;
         await this.loadMotionRegister(id);

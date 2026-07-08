@@ -16,7 +16,7 @@ type MembershipFixture = PortfolioData['Memberships'][number];
 type RoleFixture = PortfolioData['Roles'][number];
 type MeetingFixture = PortfolioData['Meetings'][number];
 type MinuteFixture = PortfolioData['Minutes'][number];
-type ActionItemFixture = PortfolioData['ActionItems'][number];
+type TaskFixture = PortfolioData['Tasks'][number];
 
 /** Fixed "today" mirroring the UX mockup's world. */
 const NOW = new Date('2026-04-08T12:00:00Z');
@@ -33,7 +33,7 @@ function minute(overrides: Partial<MinuteFixture> = {}): MinuteFixture {
     return { ID: 'min-1', MeetingID: 'mtg-1', ApprovalStatus: 'Draft', __mj_CreatedAt: daysFromNow(-5), ...overrides };
 }
 
-function actionItem(overrides: Partial<ActionItemFixture> = {}): ActionItemFixture {
+function taskRow(overrides: Partial<TaskFixture> = {}): TaskFixture {
     return { ID: 'act-1', CommitteeID: 'c-1', Name: 'Do the thing', DueDate: null, Status: 'Open', AssignedToPerson: null, ...overrides };
 }
 
@@ -155,11 +155,11 @@ describe('ComputeActionAging', () => {
     });
 
     it('separates overdue, not-yet-due, and undated actions', () => {
-        const actions: ActionItemFixture[] = [
-            actionItem({ ID: 'a1', DueDate: daysFromNow(-12) }),
-            actionItem({ ID: 'a2', DueDate: daysFromNow(-3) }),
-            actionItem({ ID: 'a3', DueDate: daysFromNow(5) }),
-            actionItem({ ID: 'a4', DueDate: null }),
+        const actions: TaskFixture[] = [
+            taskRow({ ID: 'a1', DueDate: daysFromNow(-12) }),
+            taskRow({ ID: 'a2', DueDate: daysFromNow(-3) }),
+            taskRow({ ID: 'a3', DueDate: daysFromNow(5) }),
+            taskRow({ ID: 'a4', DueDate: null }),
         ];
         const result = CommitteeHealthService.ComputeActionAging(actions, NOW);
         expect(result.OpenCount).toBe(4);
@@ -257,7 +257,7 @@ describe('ComputePortfolio', () => {
         Meetings: meetings,
         Attendance: [],
         Minutes: minutes,
-        ActionItems: [],
+        Tasks: [],
         AgendaItems: [],
     };
 

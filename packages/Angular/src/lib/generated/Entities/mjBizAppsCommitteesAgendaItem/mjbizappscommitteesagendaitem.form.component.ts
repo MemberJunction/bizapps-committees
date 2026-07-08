@@ -17,7 +17,6 @@ export class mjBizAppsCommitteesAgendaItemFormComponent extends BaseFormComponen
         await super.ngOnInit();
         this.initSections([
             { sectionKey: 'details', sectionName: 'Details', isExpanded: true },
-            { sectionKey: 'committeesActionItems', sectionName: 'Action Items', isExpanded: false },
             { sectionKey: 'committeesAgendaItems', sectionName: 'Agenda Items', isExpanded: false },
             { sectionKey: 'committeesMotions', sectionName: 'Motions', isExpanded: false },
             { sectionKey: 'committeesComments', sectionName: 'Comments', isExpanded: false },

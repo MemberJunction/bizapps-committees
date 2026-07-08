@@ -15,7 +15,6 @@ import { EntityViewerModule } from '@memberjunction/ng-entity-viewer';
 import { LinkDirectivesModule } from '@memberjunction/ng-link-directives';
 
 // Import Generated Components
-import { mjBizAppsCommitteesActionItemFormComponent } from "./Entities/mjBizAppsCommitteesActionItem/mjbizappscommitteesactionitem.form.component";
 import { mjBizAppsCommitteesAgendaItemFormComponent } from "./Entities/mjBizAppsCommitteesAgendaItem/mjbizappscommitteesagendaitem.form.component";
 import { mjBizAppsCommitteesArtifactTypeFormComponent } from "./Entities/mjBizAppsCommitteesArtifactType/mjbizappscommitteesartifacttype.form.component";
 import { mjBizAppsCommitteesArtifactFormComponent } from "./Entities/mjBizAppsCommitteesArtifact/mjbizappscommitteesartifact.form.component";
@@ -36,7 +35,6 @@ import { mjBizAppsCommitteesVoteFormComponent } from "./Entities/mjBizAppsCommit
 
 @NgModule({
 declarations: [
-    mjBizAppsCommitteesActionItemFormComponent,
     mjBizAppsCommitteesAgendaItemFormComponent,
     mjBizAppsCommitteesArtifactTypeFormComponent,
     mjBizAppsCommitteesArtifactFormComponent,

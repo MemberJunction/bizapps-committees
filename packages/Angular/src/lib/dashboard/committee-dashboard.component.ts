@@ -4,6 +4,8 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { Metadata, RunView } from '@memberjunction/core';
+import { UUIDsEqual } from '@memberjunction/global';
+import { CommitteeTaskService, CommitteeTaskRow } from '@mj-biz-apps/committees-core';
 
 interface RunViewBatchResult { Success: boolean; Results: Record<string, unknown>[]; }
 
@@ -18,13 +20,13 @@ interface RunViewBatchResult { Success: boolean; Results: Record<string, unknown
 export class CommitteeDashboardComponent extends BaseResourceComponent implements OnInit {
     CommitteeCount = 0;
     ActiveMeetingCount = 0;
-    OpenActionItemCount = 0;
-    OverdueActionItemCount = 0;
+    OpenTaskCount = 0;
+    OverdueTaskCount = 0;
     DocumentCount = 0;
 
     RecentMeetings: Record<string, unknown>[] = [];
     UpcomingMeetings: Record<string, unknown>[] = [];
-    MyActionItems: Record<string, unknown>[] = [];
+    MyTasks: CommitteeTaskRow[] = [];
     RecentDocuments: Record<string, unknown>[] = [];
 
     IsLoading = true;
@@ -84,10 +86,14 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
         const today = new Date().toISOString().split('T')[0];
         const committeeEntityID = new Metadata().EntityByName('Committees: Committees')?.ID ?? null;
 
-        const [committees, upcoming, recent, actionItems, links] = await rv.RunViews(
+        // Open tasks come from BizAppsTasks, concurrently with the batch below.
+        const tasksPromise = new CommitteeTaskService().GetTasks({});
+        const [committees, upcoming, recent, links] = await rv.RunViews(
             this.buildDashboardQueries(committeeFilter, today, committeeEntityID));
 
-        this.applyDashboardResults(committees, upcoming, recent, actionItems, today);
+        const tasks = (await tasksPromise).filter(t =>
+            t.CommitteeIDs.some(cid => myCommitteeIDs.some(mine => UUIDsEqual(mine, cid))));
+        this.applyDashboardResults(committees, upcoming, recent, tasks, today);
         await this.loadRecentDocuments(rv, links);
     }
 
@@ -117,14 +123,6 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Committees: Action Items',
-                ExtraFilter: `Status IN ('Open', 'InProgress') AND CommitteeID IN (${committeeFilter})`,
-                Fields: ['ID', 'Name', 'DueDate', 'Priority', 'Status', 'Committee', 'AssignedToPerson'],
-                OrderBy: 'DueDate ASC',
-                MaxRows: 20,
-                ResultType: 'simple'
-            },
-            {
                 EntityName: 'MJ: File Entity Record Links',
                 Fields: ['FileID'],
                 ExtraFilter: committeeEntityID
@@ -137,7 +135,7 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
 
     private applyDashboardResults(
         committees: RunViewBatchResult, upcoming: RunViewBatchResult,
-        recent: RunViewBatchResult, actionItems: RunViewBatchResult, today: string
+        recent: RunViewBatchResult, tasks: CommitteeTaskRow[], today: string
     ): void {
         if (committees.Success) {
             this.CommitteeCount = committees.Results.length;
@@ -149,16 +147,9 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
         if (recent.Success) {
             this.RecentMeetings = recent.Results;
         }
-        if (actionItems.Success) {
-            this.MyActionItems = actionItems.Results;
-            this.OpenActionItemCount = actionItems.Results.length;
-            this.OverdueActionItemCount = actionItems.Results.filter(
-                (item: Record<string, unknown>) => {
-                    const dueDate = item['DueDate'] as string | null;
-                    return dueDate != null && dueDate < today;
-                }
-            ).length;
-        }
+        this.MyTasks = tasks.slice(0, 20);
+        this.OpenTaskCount = tasks.length;
+        this.OverdueTaskCount = tasks.filter(t => t.DueAt != null && t.DueAt < today).length;
     }
 
     /**

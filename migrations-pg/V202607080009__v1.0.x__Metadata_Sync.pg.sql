@@ -1,0 +1,431 @@
+-- ============================================================================
+-- MemberJunction PostgreSQL Migration
+-- Converted from SQL Server using TypeScript conversion pipeline
+-- ============================================================================
+
+-- Extensions
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- Schema
+CREATE SCHEMA IF NOT EXISTS __mj_BizAppsCommittees;
+SET search_path TO __mj_BizAppsCommittees, public;
+
+-- Ensure backslashes in string literals are treated literally (not as escape sequences)
+SET standard_conforming_strings = on;
+
+-- NOTE: Earlier converter versions made INTEGER to BOOLEAN cast implicit by
+-- modifying the system catalog so SS-style INSERT INTO bool_col VALUES (1)
+-- would work. That modification required pg_catalog write privileges, which
+-- managed PG (RDS, Aurora, Cloud SQL, Azure) does not grant. As of v5.30 all
+-- bulk INSERTs are emitted with native TRUE/FALSE values directly, so the
+-- cast modification is no longer needed. Removed to support managed-PG
+-- installs out of the box.
+
+
+-- ===================== Data (INSERT/UPDATE/DELETE) =====================
+
+-- Save Committees: Types (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_2e011c20 UUID;
+--   p_Name_2e011c20 VARCHAR(100);
+--   p_Description_2e011c20 TEXT;
+--   p_IsStandards_2e011c20 BOOLEAN;
+--   p_DefaultTermMonths_2e011c20 INTEGER;
+--   p_IconClass_2e011c20 VARCHAR(100);
+-- BEGIN
+--   p_ID_2e011c20 := 'DDAB76A3-49C0-400F-A3D2-E525E0B6801D';
+--   p_Name_2e011c20 := 'Board of Directors';
+--   p_Description_2e011c20 := 'Governing board with fiduciary responsibility';
+--   p_IsStandards_2e011c20 := FALSE;
+--   p_DefaultTermMonths_2e011c20 := 12;
+--   p_IconClass_2e011c20 := 'fa-solid fa-landmark';
+--   PERFORM __mj_BizAppsCommittees."spCreateType"(p_ID := p_ID_2e011c20, p_Name := p_Name_2e011c20, p_Description := p_Description_2e011c20, p_IsStandards := p_IsStandards_2e011c20, p_DefaultTermMonths := p_DefaultTermMonths_2e011c20, p_IconClass := p_IconClass_2e011c20);
+-- END $mj$;
+
+-- Save Committees: Types (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_10d800e6 UUID;
+--   p_Name_10d800e6 VARCHAR(100);
+--   p_Description_10d800e6 TEXT;
+--   p_IsStandards_10d800e6 BOOLEAN;
+--   p_DefaultTermMonths_10d800e6 INTEGER;
+--   p_IconClass_10d800e6 VARCHAR(100);
+-- BEGIN
+--   p_ID_10d800e6 := '1AA03C7C-27E0-44A3-B24F-681AAC0CE092';
+--   p_Name_10d800e6 := 'Standing Committee';
+--   p_Description_10d800e6 := 'Permanent committee with ongoing responsibilities';
+--   p_IsStandards_10d800e6 := FALSE;
+--   p_DefaultTermMonths_10d800e6 := 12;
+--   p_IconClass_10d800e6 := 'fa-solid fa-users';
+--   PERFORM __mj_BizAppsCommittees."spCreateType"(p_ID := p_ID_10d800e6, p_Name := p_Name_10d800e6, p_Description := p_Description_10d800e6, p_IsStandards := p_IsStandards_10d800e6, p_DefaultTermMonths := p_DefaultTermMonths_10d800e6, p_IconClass := p_IconClass_10d800e6);
+-- END $mj$;
+
+-- Save Committees: Types (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_9c5b11be UUID;
+--   p_Name_9c5b11be VARCHAR(100);
+--   p_Description_9c5b11be TEXT;
+--   p_IsStandards_9c5b11be BOOLEAN;
+--   p_DefaultTermMonths_9c5b11be INTEGER;
+--   p_IconClass_9c5b11be VARCHAR(100);
+-- BEGIN
+--   p_ID_9c5b11be := '0D118EF8-8297-4E20-A296-8425A0AB147D';
+--   p_Name_9c5b11be := 'Ad Hoc Committee';
+--   p_Description_9c5b11be := 'Temporary committee for specific purpose';
+--   p_IsStandards_9c5b11be := FALSE;
+--   p_IconClass_9c5b11be := 'fa-solid fa-clock';
+--   PERFORM __mj_BizAppsCommittees."spCreateType"(p_ID := p_ID_9c5b11be, p_Name := p_Name_9c5b11be, p_Description := p_Description_9c5b11be, p_IsStandards := p_IsStandards_9c5b11be, p_DefaultTermMonths := p_DefaultTermMonths_9c5b11be, p_DefaultTermMonths_Clear := TRUE, p_IconClass := p_IconClass_9c5b11be);
+-- END $mj$;
+
+-- Save Committees: Types (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_aea41145 UUID;
+--   p_Name_aea41145 VARCHAR(100);
+--   p_Description_aea41145 TEXT;
+--   p_IsStandards_aea41145 BOOLEAN;
+--   p_DefaultTermMonths_aea41145 INTEGER;
+--   p_IconClass_aea41145 VARCHAR(100);
+-- BEGIN
+--   p_ID_aea41145 := '15B526DA-737B-453A-96C2-FF5F3A72423B';
+--   p_Name_aea41145 := 'Workgroup';
+--   p_Description_aea41145 := 'Task-focused group with defined deliverables';
+--   p_IsStandards_aea41145 := FALSE;
+--   p_IconClass_aea41145 := 'fa-solid fa-briefcase';
+--   PERFORM __mj_BizAppsCommittees."spCreateType"(p_ID := p_ID_aea41145, p_Name := p_Name_aea41145, p_Description := p_Description_aea41145, p_IsStandards := p_IsStandards_aea41145, p_DefaultTermMonths := p_DefaultTermMonths_aea41145, p_DefaultTermMonths_Clear := TRUE, p_IconClass := p_IconClass_aea41145);
+-- END $mj$;
+
+-- Save Committees: Types (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_2672539d UUID;
+--   p_Name_2672539d VARCHAR(100);
+--   p_Description_2672539d TEXT;
+--   p_IsStandards_2672539d BOOLEAN;
+--   p_DefaultTermMonths_2672539d INTEGER;
+--   p_IconClass_2672539d VARCHAR(100);
+-- BEGIN
+--   p_ID_2672539d := 'BD2AF204-1DE5-4CEB-B5CD-65F757272FED';
+--   p_Name_2672539d := 'Standards Working Group';
+--   p_Description_2672539d := 'Committee developing standards or specifications';
+--   p_IsStandards_2672539d := TRUE;
+--   p_IconClass_2672539d := 'fa-solid fa-file-contract';
+--   PERFORM __mj_BizAppsCommittees."spCreateType"(p_ID := p_ID_2672539d, p_Name := p_Name_2672539d, p_Description := p_Description_2672539d, p_IsStandards := p_IsStandards_2672539d, p_DefaultTermMonths := p_DefaultTermMonths_2672539d, p_DefaultTermMonths_Clear := TRUE, p_IconClass := p_IconClass_2672539d);
+-- END $mj$;
+
+-- Save Committees: Roles (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_35fca4ce UUID;
+--   p_Name_35fca4ce VARCHAR(100);
+--   p_Description_35fca4ce TEXT;
+--   p_IsOfficer_35fca4ce BOOLEAN;
+--   p_IsVotingRole_35fca4ce BOOLEAN;
+--   p_DefaultPermissionsJSON_35fca4ce TEXT;
+--   p_Sequence_35fca4ce INTEGER;
+-- BEGIN
+--   p_ID_35fca4ce := '9DD3365E-F51A-4841-B3A2-F7BCB7B227A7';
+--   p_Name_35fca4ce := 'Chair';
+--   p_Description_35fca4ce := 'Leads the committee and runs meetings';
+--   p_IsOfficer_35fca4ce := TRUE;
+--   p_IsVotingRole_35fca4ce := TRUE;
+--   p_Sequence_35fca4ce := 10;
+--   PERFORM __mj_BizAppsCommittees."spCreateRole"(p_ID := p_ID_35fca4ce, p_Name := p_Name_35fca4ce, p_Description := p_Description_35fca4ce, p_IsOfficer := p_IsOfficer_35fca4ce, p_IsVotingRole := p_IsVotingRole_35fca4ce, p_DefaultPermissionsJSON := p_DefaultPermissionsJSON_35fca4ce, p_DefaultPermissionsJSON_Clear := TRUE, p_Sequence := p_Sequence_35fca4ce);
+-- END $mj$;
+
+-- Save Committees: Roles (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_1a83b86a UUID;
+--   p_Name_1a83b86a VARCHAR(100);
+--   p_Description_1a83b86a TEXT;
+--   p_IsOfficer_1a83b86a BOOLEAN;
+--   p_IsVotingRole_1a83b86a BOOLEAN;
+--   p_DefaultPermissionsJSON_1a83b86a TEXT;
+--   p_Sequence_1a83b86a INTEGER;
+-- BEGIN
+--   p_ID_1a83b86a := '84456685-A82A-4EC4-8D13-2D7C78F4BC4B';
+--   p_Name_1a83b86a := 'Vice Chair';
+--   p_Description_1a83b86a := 'Supports chair and leads in their absence';
+--   p_IsOfficer_1a83b86a := TRUE;
+--   p_IsVotingRole_1a83b86a := TRUE;
+--   p_Sequence_1a83b86a := 20;
+--   PERFORM __mj_BizAppsCommittees."spCreateRole"(p_ID := p_ID_1a83b86a, p_Name := p_Name_1a83b86a, p_Description := p_Description_1a83b86a, p_IsOfficer := p_IsOfficer_1a83b86a, p_IsVotingRole := p_IsVotingRole_1a83b86a, p_DefaultPermissionsJSON := p_DefaultPermissionsJSON_1a83b86a, p_DefaultPermissionsJSON_Clear := TRUE, p_Sequence := p_Sequence_1a83b86a);
+-- END $mj$;
+
+-- Save Committees: Roles (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_ee551426 UUID;
+--   p_Name_ee551426 VARCHAR(100);
+--   p_Description_ee551426 TEXT;
+--   p_IsOfficer_ee551426 BOOLEAN;
+--   p_IsVotingRole_ee551426 BOOLEAN;
+--   p_DefaultPermissionsJSON_ee551426 TEXT;
+--   p_Sequence_ee551426 INTEGER;
+-- BEGIN
+--   p_ID_ee551426 := '8D87B1BD-3653-462F-B99E-F639186B243A';
+--   p_Name_ee551426 := 'Secretary';
+--   p_Description_ee551426 := 'Records minutes and manages documentation';
+--   p_IsOfficer_ee551426 := TRUE;
+--   p_IsVotingRole_ee551426 := TRUE;
+--   p_Sequence_ee551426 := 30;
+--   PERFORM __mj_BizAppsCommittees."spCreateRole"(p_ID := p_ID_ee551426, p_Name := p_Name_ee551426, p_Description := p_Description_ee551426, p_IsOfficer := p_IsOfficer_ee551426, p_IsVotingRole := p_IsVotingRole_ee551426, p_DefaultPermissionsJSON := p_DefaultPermissionsJSON_ee551426, p_DefaultPermissionsJSON_Clear := TRUE, p_Sequence := p_Sequence_ee551426);
+-- END $mj$;
+
+-- Save Committees: Roles (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_ce76623e UUID;
+--   p_Name_ce76623e VARCHAR(100);
+--   p_Description_ce76623e TEXT;
+--   p_IsOfficer_ce76623e BOOLEAN;
+--   p_IsVotingRole_ce76623e BOOLEAN;
+--   p_DefaultPermissionsJSON_ce76623e TEXT;
+--   p_Sequence_ce76623e INTEGER;
+-- BEGIN
+--   p_ID_ce76623e := 'D329D503-C280-45C4-9265-DBA4AC3FF8BA';
+--   p_Name_ce76623e := 'Treasurer';
+--   p_Description_ce76623e := 'Manages committee finances and reporting';
+--   p_IsOfficer_ce76623e := TRUE;
+--   p_IsVotingRole_ce76623e := TRUE;
+--   p_Sequence_ce76623e := 40;
+--   PERFORM __mj_BizAppsCommittees."spCreateRole"(p_ID := p_ID_ce76623e, p_Name := p_Name_ce76623e, p_Description := p_Description_ce76623e, p_IsOfficer := p_IsOfficer_ce76623e, p_IsVotingRole := p_IsVotingRole_ce76623e, p_DefaultPermissionsJSON := p_DefaultPermissionsJSON_ce76623e, p_DefaultPermissionsJSON_Clear := TRUE, p_Sequence := p_Sequence_ce76623e);
+-- END $mj$;
+
+-- Save Committees: Roles (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_d0c2361b UUID;
+--   p_Name_d0c2361b VARCHAR(100);
+--   p_Description_d0c2361b TEXT;
+--   p_IsOfficer_d0c2361b BOOLEAN;
+--   p_IsVotingRole_d0c2361b BOOLEAN;
+--   p_DefaultPermissionsJSON_d0c2361b TEXT;
+--   p_Sequence_d0c2361b INTEGER;
+-- BEGIN
+--   p_ID_d0c2361b := 'D0409541-ABAA-4780-8E0A-2A07E78E15E3';
+--   p_Name_d0c2361b := 'Member';
+--   p_Description_d0c2361b := 'Voting member of the committee';
+--   p_IsOfficer_d0c2361b := FALSE;
+--   p_IsVotingRole_d0c2361b := TRUE;
+--   p_Sequence_d0c2361b := 100;
+--   PERFORM __mj_BizAppsCommittees."spCreateRole"(p_ID := p_ID_d0c2361b, p_Name := p_Name_d0c2361b, p_Description := p_Description_d0c2361b, p_IsOfficer := p_IsOfficer_d0c2361b, p_IsVotingRole := p_IsVotingRole_d0c2361b, p_DefaultPermissionsJSON := p_DefaultPermissionsJSON_d0c2361b, p_DefaultPermissionsJSON_Clear := TRUE, p_Sequence := p_Sequence_d0c2361b);
+-- END $mj$;
+
+-- Save Committees: Roles (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_57a426ca UUID;
+--   p_Name_57a426ca VARCHAR(100);
+--   p_Description_57a426ca TEXT;
+--   p_IsOfficer_57a426ca BOOLEAN;
+--   p_IsVotingRole_57a426ca BOOLEAN;
+--   p_DefaultPermissionsJSON_57a426ca TEXT;
+--   p_Sequence_57a426ca INTEGER;
+-- BEGIN
+--   p_ID_57a426ca := 'CA5CD32E-2869-4904-93F4-1E63630BF84A';
+--   p_Name_57a426ca := 'Non-Voting Member';
+--   p_Description_57a426ca := 'Participates but does not vote';
+--   p_IsOfficer_57a426ca := FALSE;
+--   p_IsVotingRole_57a426ca := FALSE;
+--   p_Sequence_57a426ca := 110;
+--   PERFORM __mj_BizAppsCommittees."spCreateRole"(p_ID := p_ID_57a426ca, p_Name := p_Name_57a426ca, p_Description := p_Description_57a426ca, p_IsOfficer := p_IsOfficer_57a426ca, p_IsVotingRole := p_IsVotingRole_57a426ca, p_DefaultPermissionsJSON := p_DefaultPermissionsJSON_57a426ca, p_DefaultPermissionsJSON_Clear := TRUE, p_Sequence := p_Sequence_57a426ca);
+-- END $mj$;
+
+-- Save Committees: Roles (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_9385ae58 UUID;
+--   p_Name_9385ae58 VARCHAR(100);
+--   p_Description_9385ae58 TEXT;
+--   p_IsOfficer_9385ae58 BOOLEAN;
+--   p_IsVotingRole_9385ae58 BOOLEAN;
+--   p_DefaultPermissionsJSON_9385ae58 TEXT;
+--   p_Sequence_9385ae58 INTEGER;
+-- BEGIN
+--   p_ID_9385ae58 := 'D1C2B6D4-9119-4D3E-A0D3-19EFBE56F2A9';
+--   p_Name_9385ae58 := 'Liaison';
+--   p_Description_9385ae58 := 'Represents another group or organization';
+--   p_IsOfficer_9385ae58 := FALSE;
+--   p_IsVotingRole_9385ae58 := FALSE;
+--   p_Sequence_9385ae58 := 120;
+--   PERFORM __mj_BizAppsCommittees."spCreateRole"(p_ID := p_ID_9385ae58, p_Name := p_Name_9385ae58, p_Description := p_Description_9385ae58, p_IsOfficer := p_IsOfficer_9385ae58, p_IsVotingRole := p_IsVotingRole_9385ae58, p_DefaultPermissionsJSON := p_DefaultPermissionsJSON_9385ae58, p_DefaultPermissionsJSON_Clear := TRUE, p_Sequence := p_Sequence_9385ae58);
+-- END $mj$;
+
+-- Save Committees: Roles (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_93cbbe92 UUID;
+--   p_Name_93cbbe92 VARCHAR(100);
+--   p_Description_93cbbe92 TEXT;
+--   p_IsOfficer_93cbbe92 BOOLEAN;
+--   p_IsVotingRole_93cbbe92 BOOLEAN;
+--   p_DefaultPermissionsJSON_93cbbe92 TEXT;
+--   p_Sequence_93cbbe92 INTEGER;
+-- BEGIN
+--   p_ID_93cbbe92 := '8764A17C-1690-4E8D-AFF1-4CC6D4CA8E54';
+--   p_Name_93cbbe92 := 'Advisor';
+--   p_Description_93cbbe92 := 'Provides expertise without membership';
+--   p_IsOfficer_93cbbe92 := FALSE;
+--   p_IsVotingRole_93cbbe92 := FALSE;
+--   p_Sequence_93cbbe92 := 130;
+--   PERFORM __mj_BizAppsCommittees."spCreateRole"(p_ID := p_ID_93cbbe92, p_Name := p_Name_93cbbe92, p_Description := p_Description_93cbbe92, p_IsOfficer := p_IsOfficer_93cbbe92, p_IsVotingRole := p_IsVotingRole_93cbbe92, p_DefaultPermissionsJSON := p_DefaultPermissionsJSON_93cbbe92, p_DefaultPermissionsJSON_Clear := TRUE, p_Sequence := p_Sequence_93cbbe92);
+-- END $mj$;
+
+-- Save Committees: Artifact Types (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_2d98802c UUID;
+--   p_Name_2d98802c VARCHAR(100);
+--   p_Description_2d98802c TEXT;
+--   p_ExtendedEntityID_2d98802c UUID;
+--   p_IconClass_2d98802c VARCHAR(100);
+-- BEGIN
+--   p_ID_2d98802c := '3C82A0CF-98B8-49C4-8E3A-7A330EC2FE99';
+--   p_Name_2d98802c := 'Document';
+--   p_Description_2d98802c := 'General document';
+--   p_IconClass_2d98802c := 'fa-solid fa-file';
+--   PERFORM __mj_BizAppsCommittees."spCreateArtifactType"(p_ID := p_ID_2d98802c, p_Name := p_Name_2d98802c, p_Description := p_Description_2d98802c, p_ExtendedEntityID := p_ExtendedEntityID_2d98802c, p_ExtendedEntityID_Clear := TRUE, p_IconClass := p_IconClass_2d98802c);
+-- END $mj$;
+
+-- Save Committees: Artifact Types (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_4ee1efa4 UUID;
+--   p_Name_4ee1efa4 VARCHAR(100);
+--   p_Description_4ee1efa4 TEXT;
+--   p_ExtendedEntityID_4ee1efa4 UUID;
+--   p_IconClass_4ee1efa4 VARCHAR(100);
+-- BEGIN
+--   p_ID_4ee1efa4 := 'EBFE95A6-A754-4BA1-904F-7A542AD8E77E';
+--   p_Name_4ee1efa4 := 'Spreadsheet';
+--   p_Description_4ee1efa4 := 'Spreadsheet or data file';
+--   p_IconClass_4ee1efa4 := 'fa-solid fa-file-excel';
+--   PERFORM __mj_BizAppsCommittees."spCreateArtifactType"(p_ID := p_ID_4ee1efa4, p_Name := p_Name_4ee1efa4, p_Description := p_Description_4ee1efa4, p_ExtendedEntityID := p_ExtendedEntityID_4ee1efa4, p_ExtendedEntityID_Clear := TRUE, p_IconClass := p_IconClass_4ee1efa4);
+-- END $mj$;
+
+-- Save Committees: Artifact Types (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_a6fb1ad8 UUID;
+--   p_Name_a6fb1ad8 VARCHAR(100);
+--   p_Description_a6fb1ad8 TEXT;
+--   p_ExtendedEntityID_a6fb1ad8 UUID;
+--   p_IconClass_a6fb1ad8 VARCHAR(100);
+-- BEGIN
+--   p_ID_a6fb1ad8 := 'B5C3AF85-51BC-4A1D-BDDB-B8FB6E689A20';
+--   p_Name_a6fb1ad8 := 'Presentation';
+--   p_Description_a6fb1ad8 := 'Slide deck or presentation';
+--   p_IconClass_a6fb1ad8 := 'fa-solid fa-file-powerpoint';
+--   PERFORM __mj_BizAppsCommittees."spCreateArtifactType"(p_ID := p_ID_a6fb1ad8, p_Name := p_Name_a6fb1ad8, p_Description := p_Description_a6fb1ad8, p_ExtendedEntityID := p_ExtendedEntityID_a6fb1ad8, p_ExtendedEntityID_Clear := TRUE, p_IconClass := p_IconClass_a6fb1ad8);
+-- END $mj$;
+
+-- Save Committees: Artifact Types (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_7fe38779 UUID;
+--   p_Name_7fe38779 VARCHAR(100);
+--   p_Description_7fe38779 TEXT;
+--   p_ExtendedEntityID_7fe38779 UUID;
+--   p_IconClass_7fe38779 VARCHAR(100);
+-- BEGIN
+--   p_ID_7fe38779 := 'D0E9FDD1-136E-4F3D-9916-37E703B29DA3';
+--   p_Name_7fe38779 := 'Minutes';
+--   p_Description_7fe38779 := 'Meeting minutes with approval tracking';
+--   p_IconClass_7fe38779 := 'fa-solid fa-clipboard-check';
+--   PERFORM __mj_BizAppsCommittees."spCreateArtifactType"(p_ID := p_ID_7fe38779, p_Name := p_Name_7fe38779, p_Description := p_Description_7fe38779, p_ExtendedEntityID := p_ExtendedEntityID_7fe38779, p_ExtendedEntityID_Clear := TRUE, p_IconClass := p_IconClass_7fe38779);
+-- END $mj$;
+
+-- Save Committees: Artifact Types (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_6a35fc60 UUID;
+--   p_Name_6a35fc60 VARCHAR(100);
+--   p_Description_6a35fc60 TEXT;
+--   p_ExtendedEntityID_6a35fc60 UUID;
+--   p_IconClass_6a35fc60 VARCHAR(100);
+-- BEGIN
+--   p_ID_6a35fc60 := 'D09E0721-0059-4A67-B13A-D4CD42584EF4';
+--   p_Name_6a35fc60 := 'Agenda';
+--   p_Description_6a35fc60 := 'Meeting agenda document';
+--   p_IconClass_6a35fc60 := 'fa-solid fa-list-check';
+--   PERFORM __mj_BizAppsCommittees."spCreateArtifactType"(p_ID := p_ID_6a35fc60, p_Name := p_Name_6a35fc60, p_Description := p_Description_6a35fc60, p_ExtendedEntityID := p_ExtendedEntityID_6a35fc60, p_ExtendedEntityID_Clear := TRUE, p_IconClass := p_IconClass_6a35fc60);
+-- END $mj$;
+
+-- Save Committees: Artifact Types (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_8287f036 UUID;
+--   p_Name_8287f036 VARCHAR(100);
+--   p_Description_8287f036 TEXT;
+--   p_ExtendedEntityID_8287f036 UUID;
+--   p_IconClass_8287f036 VARCHAR(100);
+-- BEGIN
+--   p_ID_8287f036 := '0EDC9CFE-12BE-4908-B2A4-75A1C0ABE06A';
+--   p_Name_8287f036 := 'Recording';
+--   p_Description_8287f036 := 'Audio or video recording';
+--   p_IconClass_8287f036 := 'fa-solid fa-video';
+--   PERFORM __mj_BizAppsCommittees."spCreateArtifactType"(p_ID := p_ID_8287f036, p_Name := p_Name_8287f036, p_Description := p_Description_8287f036, p_ExtendedEntityID := p_ExtendedEntityID_8287f036, p_ExtendedEntityID_Clear := TRUE, p_IconClass := p_IconClass_8287f036);
+-- END $mj$;
+
+-- Save Committees: Artifact Types (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_979e2725 UUID;
+--   p_Name_979e2725 VARCHAR(100);
+--   p_Description_979e2725 TEXT;
+--   p_ExtendedEntityID_979e2725 UUID;
+--   p_IconClass_979e2725 VARCHAR(100);
+-- BEGIN
+--   p_ID_979e2725 := 'D932148F-9A32-42AB-9D20-0F163B0FE392';
+--   p_Name_979e2725 := 'Transcript';
+--   p_Description_979e2725 := 'Meeting transcript';
+--   p_IconClass_979e2725 := 'fa-solid fa-closed-captioning';
+--   PERFORM __mj_BizAppsCommittees."spCreateArtifactType"(p_ID := p_ID_979e2725, p_Name := p_Name_979e2725, p_Description := p_Description_979e2725, p_ExtendedEntityID := p_ExtendedEntityID_979e2725, p_ExtendedEntityID_Clear := TRUE, p_IconClass := p_IconClass_979e2725);
+-- END $mj$;
+
+-- Save Committees: Artifact Types (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_1465a930 UUID;
+--   p_Name_1465a930 VARCHAR(100);
+--   p_Description_1465a930 TEXT;
+--   p_ExtendedEntityID_1465a930 UUID;
+--   p_IconClass_1465a930 VARCHAR(100);
+-- BEGIN
+--   p_ID_1465a930 := '2204BF1E-5FDE-4B69-84A1-D12AFFDAE54D';
+--   p_Name_1465a930 := 'Image';
+--   p_Description_1465a930 := 'Image or diagram';
+--   p_IconClass_1465a930 := 'fa-solid fa-image';
+--   PERFORM __mj_BizAppsCommittees."spCreateArtifactType"(p_ID := p_ID_1465a930, p_Name := p_Name_1465a930, p_Description := p_Description_1465a930, p_ExtendedEntityID := p_ExtendedEntityID_1465a930, p_ExtendedEntityID_Clear := TRUE, p_IconClass := p_IconClass_1465a930);
+-- END $mj$;
+
+-- Save Committees: Artifact Types (core SP call only)
+-- DO $mj$
+-- DECLARE
+--   p_ID_d71f04e5 UUID;
+--   p_Name_d71f04e5 VARCHAR(100);
+--   p_Description_d71f04e5 TEXT;
+--   p_ExtendedEntityID_d71f04e5 UUID;
+--   p_IconClass_d71f04e5 VARCHAR(100);
+-- BEGIN
+--   p_ID_d71f04e5 := 'A2C76DBA-657F-4CB0-B20D-E7B85D3A1881';
+--   p_Name_d71f04e5 := 'Other';
+--   p_Description_d71f04e5 := 'Other artifact type';
+--   p_IconClass_d71f04e5 := 'fa-solid fa-file-lines';
+--   PERFORM __mj_BizAppsCommittees."spCreateArtifactType"(p_ID := p_ID_d71f04e5, p_Name := p_Name_d71f04e5, p_Description := p_Description_d71f04e5, p_ExtendedEntityID := p_ExtendedEntityID_d71f04e5, p_ExtendedEntityID_Clear := TRUE, p_IconClass := p_IconClass_d71f04e5);
+-- END $mj$;
+
+
+-- ===================== Other =====================
+
+-- End of SQL Logging Session
+-- Session ID: 43b4572b-29aa-429a-81aa-a3945557e449
+-- Completed: 2026-07-08T03:20:39.514Z
+-- Duration: 835ms
+-- Total Statements: 29

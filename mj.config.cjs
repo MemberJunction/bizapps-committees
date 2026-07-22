@@ -178,9 +178,14 @@ module.exports = {
   // schemaPlaceholders drives flyway placeholder resolution at migrate time:
   //   ${flyway:defaultSchema} -> __mj_BizAppsCommittees (this repo's app schema)
   //   ${mjSchema}             -> __mj                   (MJ core schema)
-  //   ${mjBACSchema}          -> __mj_BizAppsCommon
   // Migrations must use ${mjSchema} for core MJ tables (File, Entity, etc.),
   // NOT ${flyway:defaultSchema} which points at our own schema.
+  // ONLY placeholders the migration runner itself defines may appear here —
+  // ${flyway:defaultSchema} and ${mjSchema}. Never placeholder-ize a
+  // DEPENDENCY's schema (e.g. __mj_BizAppsCommon): an installing host has no
+  // way to resolve an app-invented placeholder, so shipped migrations would
+  // not be self-contained. Dependency schemas are fixed, published names —
+  // write them literally.
   // Order matters: more-specific schemas must come first because substitution
   // runs sequentially with a greedy regex — '__mj' listed first would also match
   // the '__mj' prefix of '__mj_BizAppsCommittees'.
@@ -192,7 +197,6 @@ module.exports = {
     omitRecurringScriptsFromLog: false,
     schemaPlaceholders: [
       { schema: '__mj_BizAppsCommittees', placeholder: '${flyway:defaultSchema}' },
-      { schema: '__mj_BizAppsCommon', placeholder: '${mjBACSchema}' },
       { schema: '__mj', placeholder: '${mjSchema}' },
     ],
   },

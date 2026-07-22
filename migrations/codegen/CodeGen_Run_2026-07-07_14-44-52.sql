@@ -1,5 +1,5 @@
 /* SQL text to update existing entities from schema */
-EXEC [${mjSchema}].[spUpdateExistingEntitiesFromSchema] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},${mjBACSchema},${mjSchema}_BizAppsTasks';
+EXEC [${mjSchema}].[spUpdateExistingEntitiesFromSchema] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},__mj_BizAppsCommon,${mjSchema}_BizAppsTasks';
 
 /* SQL text to insert new entity field */
 
@@ -67,10 +67,10 @@ EXEC [${mjSchema}].[spUpdateExistingEntitiesFromSchema] @ExcludedSchemaNames='sy
       END;
 
 /* SQL text to update existing entity fields from schema */
-EXEC [${mjSchema}].[spUpdateExistingEntityFieldsFromSchema] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},${mjBACSchema},${mjSchema}_BizAppsTasks';
+EXEC [${mjSchema}].[spUpdateExistingEntityFieldsFromSchema] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},__mj_BizAppsCommon,${mjSchema}_BizAppsTasks';
 
 /* SQL text to set default column width where needed */
-EXEC [${mjSchema}].[spSetDefaultColumnWidthWhereNeeded] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},${mjBACSchema},${mjSchema}_BizAppsTasks';
+EXEC [${mjSchema}].[spSetDefaultColumnWidthWhereNeeded] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},__mj_BizAppsCommon,${mjSchema}_BizAppsTasks';
 
 /* SQL text to insert entity field value with ID f02aaadf-3b5d-4d0e-ba2e-2e92c7a7b1ae */
 INSERT INTO [${mjSchema}].[EntityFieldValue]
@@ -94,7 +94,7 @@ INSERT INTO [${mjSchema}].[EntityFieldValue]
 UPDATE [${mjSchema}].[EntityField] SET ValueListType='List' WHERE ID='0A11C5F0-25BF-45B0-A299-699162195771';
 
 /* SQL text to sync schema info from database schemas */
-EXEC [${mjSchema}].[spUpdateSchemaInfoFromDatabase] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},${mjBACSchema},${mjSchema}_BizAppsTasks';
+EXEC [${mjSchema}].[spUpdateSchemaInfoFromDatabase] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},__mj_BizAppsCommon,${mjSchema}_BizAppsTasks';
 
 /* Index for Foreign Keys for Membership */
 -----------------------------------------------------------------
@@ -162,7 +162,7 @@ SELECT
 FROM
     [${flyway:defaultSchema}].[Membership] AS m
 INNER JOIN
-    [${mjBACSchema}].[Person] AS mjBizAppsCommonPerson_PersonID
+    [__mj_BizAppsCommon].[Person] AS mjBizAppsCommonPerson_PersonID
   ON
     [m].[PersonID] = mjBizAppsCommonPerson_PersonID.[ID]
 INNER JOIN
@@ -435,11 +435,11 @@ GRANT EXECUTE ON [${flyway:defaultSchema}].[spDeleteMembership] TO [cdp_Develope
 GRANT EXECUTE ON [${flyway:defaultSchema}].[spDeleteMembership] TO [cdp_Developer], [cdp_Integration];
 
 /* SQL text to delete unneeded entity fields (1 scoped entities) */
-EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},${mjBACSchema},${mjSchema}_BizAppsTasks', @EntityIDs='F8FADBBE-A323-48FB-8395-3B543729F6E6';
+EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},__mj_BizAppsCommon,${mjSchema}_BizAppsTasks', @EntityIDs='F8FADBBE-A323-48FB-8395-3B543729F6E6';
 
 /* SQL text to update existing entity fields from schema (1 scoped entities) */
-EXEC [${mjSchema}].[spUpdateExistingEntityFieldsFromSchema] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},${mjBACSchema},${mjSchema}_BizAppsTasks', @EntityIDs='F8FADBBE-A323-48FB-8395-3B543729F6E6';
+EXEC [${mjSchema}].[spUpdateExistingEntityFieldsFromSchema] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},__mj_BizAppsCommon,${mjSchema}_BizAppsTasks', @EntityIDs='F8FADBBE-A323-48FB-8395-3B543729F6E6';
 
 /* SQL text to set default column width where needed */
-EXEC [${mjSchema}].[spSetDefaultColumnWidthWhereNeeded] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},${mjBACSchema},${mjSchema}_BizAppsTasks';
+EXEC [${mjSchema}].[spSetDefaultColumnWidthWhereNeeded] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},__mj_BizAppsCommon,${mjSchema}_BizAppsTasks';
 

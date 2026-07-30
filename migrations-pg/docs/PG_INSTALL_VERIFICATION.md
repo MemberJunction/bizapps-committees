@@ -230,6 +230,22 @@ outside this repo's control, same as the siblings.)
   `DROP DATABASE "Committees_OneShot"; CREATE DATABASE "Committees_OneShot";
   pg_restore` it (quote the mixed-case DB name).
 
+## Newer MJ core versions
+
+Also validated at **core v5.48.0** (2026-07-30): committees' 5 migrations apply
+one-shot and the functional suite passes 25/25. Caveat that is NOT ours: MJ
+core v5.48.0's consolidated `v5.46.x` PG baseline fails on a **virgin**
+PostgreSQL database with `role "cdp_Developer" does not exist` (raw GRANT, no
+CREATE ROLE) — this blocks every open-app install at that core version until
+the roles are pre-created:
+
+```sql
+CREATE ROLE "cdp_Developer" NOLOGIN; CREATE ROLE "cdp_UI" NOLOGIN; CREATE ROLE "cdp_Integration" NOLOGIN;
+```
+
+Reported upstream along with the v5.45 `spDeleteUnneededEntityFields` /
+`ExternalDataSourceID` bug.
+
 ## Things that look wrong but aren't
 
 - **`sp*` count is 48, not 51**: the baseline bakes 17 entities (51 sprocs)

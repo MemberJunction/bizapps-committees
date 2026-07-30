@@ -4,7 +4,7 @@
   "name": "mj-committees",
   "displayName": "Committees",
   "description": "Unified governance platform for managing committees, memberships, meetings, action items, and documents — with AI-powered minutes generation and health analytics",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "ISC",
   "icon": "fa-solid fa-users-rectangle",
   "publisher": {
@@ -17,12 +17,12 @@
     {
       "name": "mj-bizapps-common",
       "repository": "https://github.com/MemberJunction/bizapps-common",
-      "versionRange": ">=5.30.0 <6.0.0"
+      "versionRange": ">=5.31.3 <6.0.0"
     },
     {
       "name": "mj-bizapps-tasks",
       "repository": "https://github.com/MemberJunction/bizapps-tasks",
-      "versionRange": ">=1.1.1 <2.0.0"
+      "versionRange": ">=1.1.2 <2.0.0"
     }
   ],
   "schema": {
@@ -71,6 +71,16 @@
     "visibility": "public",
     "sourceDirectory": "packages"
   },
-  "categories": ["Business", "Governance"],
-  "tags": ["committees", "governance", "meetings", "action-items", "minutes", "voting"]
+  "categories": [
+    "Business",
+    "Governance"
+  ],
+  "tags": [
+    "committees",
+    "governance",
+    "meetings",
+    "action-items",
+    "minutes",
+    "voting"
+  ]
 }

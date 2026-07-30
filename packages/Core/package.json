@@ -1,7 +1,7 @@
 {
   "name": "@mj-biz-apps/committees-core",
   "type": "module",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Core business logic services for the Committees OpenApp",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@mj-biz-apps/common-entities": "^5.31.3",
-    "@mj-biz-apps/committees-entities": "1.0.0"
+    "@mj-biz-apps/committees-entities": "1.1.0"
   },
   "repository": {
     "type": "git",

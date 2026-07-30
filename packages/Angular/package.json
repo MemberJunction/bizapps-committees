@@ -1,6 +1,6 @@
 {
   "name": "@mj-biz-apps/committees-ng",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Angular components for the Committees OpenApp",
   "main": "./dist/public-api.js",
   "typings": "./dist/public-api.d.ts",
@@ -30,8 +30,8 @@
     "marked": "^17.0.4",
     "@mj-biz-apps/common-entities": "^5.31.3",
     "@mj-biz-apps/common-ng": "^5.31.3",
-    "@mj-biz-apps/committees-core": "1.0.0",
-    "@mj-biz-apps/committees-entities": "1.0.0",
+    "@mj-biz-apps/committees-core": "1.1.0",
+    "@mj-biz-apps/committees-entities": "1.1.0",
     "@mj-biz-apps/tasks-ng": "^1.1.2",
     "@mj-biz-apps/tasks-core": "^1.1.2",
     "@mj-biz-apps/tasks-entities": "^1.1.2",

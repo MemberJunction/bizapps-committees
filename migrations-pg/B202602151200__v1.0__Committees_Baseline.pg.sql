@@ -23263,7 +23263,11 @@ DO $$ BEGIN GRANT EXECUTE ON FUNCTION __mj_BizAppsCommittees."spDeleteVideoProvi
 -- =====================================================================
 
 /* SQL text to update existing entities from schema */
-SELECT * FROM ${mjSchema}."spUpdateExistingEntitiesFromSchema"('sys,staging,dbo,${mjSchema},${mjSchema}_BizAppsCommon,${mjSchema}_BizAppsTasks,information_schema,pg_catalog,pg_toast,pg_temp_1,pg_toast_temp_1');
+-- [stripped: core maintenance reconciliation] spUpdateExistingEntitiesFromSchema — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to drop default existing default constraints in entity ${mjSchema}_bizappscommittees.Minute */
 SET CONSTRAINTS ALL IMMEDIATE;
@@ -25994,13 +25998,25 @@ WHERE vf."IsVirtual" = true
   AND vf."AllowsNull" != fk."AllowsNull";
 
 /* SQL text to update existing entity fields from schema */
-SELECT * FROM ${mjSchema}."spUpdateExistingEntityFieldsFromSchema"('sys,staging,dbo,${mjSchema},${mjSchema}_BizAppsCommon,${mjSchema}_BizAppsTasks,information_schema,pg_catalog,pg_toast,pg_temp_1,pg_toast_temp_1');
+-- [stripped: core maintenance reconciliation] spUpdateExistingEntityFieldsFromSchema — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to set default column width where needed */
-SELECT * FROM ${mjSchema}."spSetDefaultColumnWidthWhereNeeded"('sys,staging,dbo,${mjSchema},${mjSchema}_BizAppsCommon,${mjSchema}_BizAppsTasks,information_schema,pg_catalog,pg_toast,pg_temp_1,pg_toast_temp_1');
+-- [stripped: core maintenance reconciliation] spSetDefaultColumnWidthWhereNeeded — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to sync schema info from database schemas */
-SELECT * FROM ${mjSchema}."spUpdateSchemaInfoFromDatabase"('sys,staging,dbo,${mjSchema},${mjSchema}_BizAppsCommon,${mjSchema}_BizAppsTasks,information_schema,pg_catalog,pg_toast,pg_temp_1,pg_toast_temp_1');
+-- [stripped: core maintenance reconciliation] spUpdateSchemaInfoFromDatabase — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Index for Foreign Keys for ActionItem */
 -- ============================================================
@@ -26024,19 +26040,39 @@ CREATE INDEX IF NOT EXISTS "idx_auto_mj_fkey_action_item_assigned_by_person_id"
     ON ${mjSchema}_bizappscommittees."ActionItem" ("AssignedByPersonID");
 
 /* SQL text to update entity field related entity name field map for entity field ID 59896096-ca91-45cc-8a58-f67c813336f3 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('59896096-ca91-45cc-8a58-f67c813336f3', 'Committee');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID f1822ade-fda5-4ff7-8235-350a64fc0235 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('f1822ade-fda5-4ff7-8235-350a64fc0235', 'Meeting');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID d71d1aa2-e447-455e-8c94-2676887c8e40 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('d71d1aa2-e447-455e-8c94-2676887c8e40', 'AgendaItem');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID d6daaf4f-5feb-423e-9d56-fcc6f21581ea */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('d6daaf4f-5feb-423e-9d56-fcc6f21581ea', 'AssignedToPerson');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID f9d3cc65-9d34-45f0-8eb4-733bc56fbd2f */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('f9d3cc65-9d34-45f0-8eb4-733bc56fbd2f', 'AssignedByPerson');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Base View SQL for Committees: Action Items */
 -- ============================================================
@@ -26541,13 +26577,25 @@ CREATE INDEX IF NOT EXISTS "idx_auto_mj_fkey_agenda_item_presenter_person_id"
     ON ${mjSchema}_bizappscommittees."AgendaItem" ("PresenterPersonID");
 
 /* SQL text to update entity field related entity name field map for entity field ID b41adaa9-d5b2-452e-a335-171438a6eff8 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('b41adaa9-d5b2-452e-a335-171438a6eff8', 'Meeting');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID f3793fb0-e8be-4e77-9776-8eac87e2fd8e */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('f3793fb0-e8be-4e77-9776-8eac87e2fd8e', 'ParentAgendaItem');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID a949f94a-77fa-47c7-afda-d37ffdfc4a32 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('a949f94a-77fa-47c7-afda-d37ffdfc4a32', 'PresenterPerson');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Root ID Function SQL for Committees: Agenda Items.ParentAgendaItemID */
 -- ============================================================
@@ -27082,7 +27130,11 @@ CREATE INDEX IF NOT EXISTS "idx_auto_mj_fkey_artifact_type_extended_entity_id"
     ON ${mjSchema}_bizappscommittees."ArtifactType" ("ExtendedEntityID");
 
 /* SQL text to update entity field related entity name field map for entity field ID 5421629f-b7b1-47a0-b29f-0c8be1f8d559 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('5421629f-b7b1-47a0-b29f-0c8be1f8d559', 'ExtendedEntity');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Base View SQL for Committees: Artifact Types */
 -- ============================================================
@@ -27528,22 +27580,46 @@ CREATE INDEX IF NOT EXISTS "idx_auto_mj_fkey_artifact_uploaded_by_person_id"
     ON ${mjSchema}_bizappscommittees."Artifact" ("UploadedByPersonID");
 
 /* SQL text to update entity field related entity name field map for entity field ID 66b8c65f-5eac-44c1-9a76-588836334e9f */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('66b8c65f-5eac-44c1-9a76-588836334e9f', 'Committee');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID ec872ea4-88b1-4787-90a5-144e6aabddaa */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('ec872ea4-88b1-4787-90a5-144e6aabddaa', 'Meeting');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID 2d95ff9c-71fb-4fac-a742-db537c15d7d8 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('2d95ff9c-71fb-4fac-a742-db537c15d7d8', 'AgendaItem');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID 529e01ad-5ff0-4848-b4d9-42db7f4adbd6 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('529e01ad-5ff0-4848-b4d9-42db7f4adbd6', 'Task');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID 536eebaf-5b58-4634-8dfa-252bea744994 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('536eebaf-5b58-4634-8dfa-252bea744994', 'ArtifactType');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID 8a56701e-8b90-4fab-a477-39a2e489c13e */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('8a56701e-8b90-4fab-a477-39a2e489c13e', 'UploadedByPerson');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Base View SQL for Committees: Artifacts */
 -- ============================================================
@@ -28059,10 +28135,18 @@ CREATE INDEX IF NOT EXISTS "idx_auto_mj_fkey_attendance_person_id"
     ON ${mjSchema}_bizappscommittees."Attendance" ("PersonID");
 
 /* SQL text to update entity field related entity name field map for entity field ID 32e971c8-99de-465e-a988-0ae2a5f2dfad */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('32e971c8-99de-465e-a988-0ae2a5f2dfad', 'Meeting');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID b473a850-bbbe-4b06-88b1-ec8bb70d6a32 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('b473a850-bbbe-4b06-88b1-ec8bb70d6a32', 'Person');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Base View SQL for Committees: Attendances */
 -- ============================================================
@@ -28514,10 +28598,18 @@ CREATE INDEX IF NOT EXISTS "idx_auto_mj_fkey_ballot_created_by_membership_id"
     ON ${mjSchema}_bizappscommittees."Ballot" ("CreatedByMembershipID");
 
 /* SQL text to update entity field related entity name field map for entity field ID 20f7cfb0-799b-4118-90e6-c54a6462bb40 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('20f7cfb0-799b-4118-90e6-c54a6462bb40', 'Committee');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID 9f0c32be-ae5f-49fd-9476-695204325fcf */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('9f0c32be-ae5f-49fd-9476-695204325fcf', 'Motion');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Base View SQL for Committees: Ballots */
 -- ============================================================
@@ -29001,22 +29093,46 @@ CREATE INDEX IF NOT EXISTS "idx_auto_mj_fkey_comment_person_id"
     ON ${mjSchema}_bizappscommittees."Comment" ("PersonID");
 
 /* SQL text to update entity field related entity name field map for entity field ID a67dd4b3-c305-4b0a-a7a2-b0184ad7fee8 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('a67dd4b3-c305-4b0a-a7a2-b0184ad7fee8', 'Committee');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID 51d7d037-b163-45de-aafa-673336e89905 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('51d7d037-b163-45de-aafa-673336e89905', 'Meeting');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID de3ae885-3e72-4625-8390-afd515a116d1 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('de3ae885-3e72-4625-8390-afd515a116d1', 'AgendaItem');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID 0462212d-0b87-4ec3-8bf4-6a79d1b492f0 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('0462212d-0b87-4ec3-8bf4-6a79d1b492f0', 'Task');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID 29440bef-5351-477e-a826-ecc0408ce365 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('29440bef-5351-477e-a826-ecc0408ce365', 'Artifact');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID d3c9161b-b9fa-429c-a316-2bdaa149b19b */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('d3c9161b-b9fa-429c-a316-2bdaa149b19b', 'Person');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Root ID Function SQL for Committees: Comments.ParentCommentID */
 -- ============================================================
@@ -29567,13 +29683,25 @@ CREATE INDEX IF NOT EXISTS "idx_auto_mj_fkey_committee_organization_id"
     ON ${mjSchema}_bizappscommittees."Committee" ("OrganizationID");
 
 /* SQL text to update entity field related entity name field map for entity field ID 1575a61c-8d36-4bdb-b686-08de0c9a9ea9 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('1575a61c-8d36-4bdb-b686-08de0c9a9ea9', 'Type');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID d0d9d59a-0081-4b68-ae77-cd8f6d9f92f8 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('d0d9d59a-0081-4b68-ae77-cd8f6d9f92f8', 'ParentCommittee');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID d61b64be-b5ea-46ef-a9ed-347166f8f36c */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('d61b64be-b5ea-46ef-a9ed-347166f8f36c', 'Organization');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Root ID Function SQL for Committees: Committees.ParentCommitteeID */
 -- ============================================================
@@ -30113,10 +30241,18 @@ CREATE INDEX IF NOT EXISTS "idx_auto_mj_fkey_meeting_video_provider_id"
     ON ${mjSchema}_bizappscommittees."Meeting" ("VideoProviderID");
 
 /* SQL text to update entity field related entity name field map for entity field ID 8751fe7a-1d3a-4db2-b06e-7c97cee3497f */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('8751fe7a-1d3a-4db2-b06e-7c97cee3497f', 'Committee');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID c3669be0-0e5f-4024-ba08-6e436dc94bd5 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('c3669be0-0e5f-4024-ba08-6e436dc94bd5', 'VideoProvider_Virtual');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Base View SQL for Committees: Meetings */
 -- ============================================================
@@ -30632,13 +30768,25 @@ CREATE INDEX IF NOT EXISTS "idx_auto_mj_fkey_membership_term_id"
     ON ${mjSchema}_bizappscommittees."Membership" ("TermID");
 
 /* SQL text to update entity field related entity name field map for entity field ID f60b8d57-f085-4766-a8a3-9e5e6ccbd660 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('f60b8d57-f085-4766-a8a3-9e5e6ccbd660', 'Person');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID 69965319-baa4-4c27-9e09-6c7240987300 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('69965319-baa4-4c27-9e09-6c7240987300', 'Role');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID 80f460c9-db4a-4c4a-bb37-e2379cec2418 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('80f460c9-db4a-4c4a-bb37-e2379cec2418', 'Term');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Base View SQL for Committees: Memberships */
 -- ============================================================
@@ -31105,13 +31253,25 @@ CREATE INDEX IF NOT EXISTS "idx_auto_mj_fkey_minute_approved_by_meeting_id"
     ON ${mjSchema}_bizappscommittees."Minute" ("ApprovedByMeetingID");
 
 /* SQL text to update entity field related entity name field map for entity field ID 1e5cd98f-1514-45d0-ae5b-7a1067ef73b8 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('1e5cd98f-1514-45d0-ae5b-7a1067ef73b8', 'Artifact');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID 182f76f8-27f2-4c37-9cf0-dd16f58cba1c */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('182f76f8-27f2-4c37-9cf0-dd16f58cba1c', 'Meeting');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID fa2001cb-5f3b-41b2-a9c9-303c7a025bf4 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('fa2001cb-5f3b-41b2-a9c9-303c7a025bf4', 'ApprovedByMeeting');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Base View SQL for Committees: Minutes */
 -- ============================================================
@@ -31582,10 +31742,18 @@ CREATE INDEX IF NOT EXISTS "idx_auto_mj_fkey_motion_seconded_by_membership_id"
     ON ${mjSchema}_bizappscommittees."Motion" ("SecondedByMembershipID");
 
 /* SQL text to update entity field related entity name field map for entity field ID 18e4a1b6-f158-4eda-87ef-1d12af630bb6 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('18e4a1b6-f158-4eda-87ef-1d12af630bb6', 'Meeting');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to update entity field related entity name field map for entity field ID 00099c83-c202-489f-b975-8f97fb844e68 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('00099c83-c202-489f-b975-8f97fb844e68', 'AgendaItem');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Base View SQL for Committees: Motions */
 -- ============================================================
@@ -32509,7 +32677,11 @@ CREATE INDEX IF NOT EXISTS "idx_auto_mj_fkey_term_committee_id"
     ON ${mjSchema}_bizappscommittees."Term" ("CommitteeID");
 
 /* SQL text to update entity field related entity name field map for entity field ID e3a9a5af-6660-43b8-bc3c-29c190bdd846 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('e3a9a5af-6660-43b8-bc3c-29c190bdd846', 'Committee');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Base View SQL for Committees: Terms */
 -- ============================================================
@@ -33367,7 +33539,11 @@ CREATE INDEX IF NOT EXISTS "idx_auto_mj_fkey_video_provider_credential_id"
     ON ${mjSchema}_bizappscommittees."VideoProvider" ("CredentialID");
 
 /* SQL text to update entity field related entity name field map for entity field ID a375944c-fa58-4825-add9-d3bc7f85815d */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('a375944c-fa58-4825-add9-d3bc7f85815d', 'Credential');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Base View SQL for Committees: Video Providers */
 -- ============================================================
@@ -33802,7 +33978,11 @@ CREATE INDEX IF NOT EXISTS "idx_auto_mj_fkey_vote_membership_id"
     ON ${mjSchema}_bizappscommittees."Vote" ("MembershipID");
 
 /* SQL text to update entity field related entity name field map for entity field ID 73149db6-9be2-4edf-9d02-46b78e096211 */
-SELECT * FROM ${mjSchema}."spUpdateEntityFieldRelatedEntityNameFieldMap"('73149db6-9be2-4edf-9d02-46b78e096211', 'Motion');
+-- [stripped: core maintenance reconciliation] spUpdateEntityFieldRelatedEntityNameFieldMap — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Base View SQL for Committees: Votes */
 -- ============================================================
@@ -34220,7 +34400,11 @@ GRANT EXECUTE ON FUNCTION ${mjSchema}_bizappscommittees."spDeleteVote" TO "cdp_D
 GRANT EXECUTE ON FUNCTION ${mjSchema}_bizappscommittees."spDeleteVote" TO "cdp_Integration";
 
 /* SQL text to delete unneeded entity fields (19 scoped entities) */
-SELECT * FROM ${mjSchema}."spDeleteUnneededEntityFields"('sys,staging,dbo,${mjSchema},${mjSchema}_BizAppsCommon,${mjSchema}_BizAppsTasks,information_schema,pg_catalog,pg_toast,pg_temp_1,pg_toast_temp_1', '15248f34-2837-ef11-86d4-6045bdee16e6,e0238f34-2837-ef11-86d4-6045bdee16e6,93c97937-a33b-41d2-9791-fc271e49f96f,9bedcbe8-0ef8-4f86-ab72-2063ce41a138,f11b4dc5-9850-4782-b3a1-7d2277a19837,e7d9813e-3c34-4233-afcc-4cb76cfe081c,07bb0f44-ec35-4caf-8c36-a766a545159d,94a59079-7436-4178-a31b-9b42dda822c1,194b3496-2829-4806-bc42-cf0724a1dd26,d7f80482-e5ee-4dd9-abac-1f357d8a76e8,f7deba2d-4e28-4c6e-971b-6099217fab29,272befb5-727a-4525-b235-775a56b7acbb,97337824-6d33-4814-bf26-f422a0869642,c1cef804-aa80-47a0-9750-2a4c5227b6df,f8fadbbe-a323-48fb-8395-3b543729f6e6,a5da88a1-aa21-4a3f-b1c4-42652fb440ce,aaaee71b-d7cf-4628-bed0-59d43256e46a,0ec944f9-f908-4662-87b2-e57077a873ff,87bedfa6-f149-4af2-993c-81bd01169584');
+-- [stripped: core maintenance reconciliation] spDeleteUnneededEntityFields — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL to fix virtual field nullability */
 
@@ -34245,8 +34429,16 @@ WHERE vf."IsVirtual" = true
   AND vf."AllowsNull" != fk."AllowsNull";
 
 /* SQL text to update existing entity fields from schema (19 scoped entities) */
-SELECT * FROM ${mjSchema}."spUpdateExistingEntityFieldsFromSchema"('sys,staging,dbo,${mjSchema},${mjSchema}_BizAppsCommon,${mjSchema}_BizAppsTasks,information_schema,pg_catalog,pg_toast,pg_temp_1,pg_toast_temp_1', '15248f34-2837-ef11-86d4-6045bdee16e6,e0238f34-2837-ef11-86d4-6045bdee16e6,93c97937-a33b-41d2-9791-fc271e49f96f,9bedcbe8-0ef8-4f86-ab72-2063ce41a138,f11b4dc5-9850-4782-b3a1-7d2277a19837,e7d9813e-3c34-4233-afcc-4cb76cfe081c,07bb0f44-ec35-4caf-8c36-a766a545159d,94a59079-7436-4178-a31b-9b42dda822c1,194b3496-2829-4806-bc42-cf0724a1dd26,d7f80482-e5ee-4dd9-abac-1f357d8a76e8,f7deba2d-4e28-4c6e-971b-6099217fab29,272befb5-727a-4525-b235-775a56b7acbb,97337824-6d33-4814-bf26-f422a0869642,c1cef804-aa80-47a0-9750-2a4c5227b6df,f8fadbbe-a323-48fb-8395-3b543729f6e6,a5da88a1-aa21-4a3f-b1c4-42652fb440ce,aaaee71b-d7cf-4628-bed0-59d43256e46a,0ec944f9-f908-4662-87b2-e57077a873ff,87bedfa6-f149-4af2-993c-81bd01169584');
+-- [stripped: core maintenance reconciliation] spUpdateExistingEntityFieldsFromSchema — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to set default column width where needed */
-SELECT * FROM ${mjSchema}."spSetDefaultColumnWidthWhereNeeded"('sys,staging,dbo,${mjSchema},${mjSchema}_BizAppsCommon,${mjSchema}_BizAppsTasks,information_schema,pg_catalog,pg_toast,pg_temp_1,pg_toast_temp_1');
+-- [stripped: core maintenance reconciliation] spSetDefaultColumnWidthWhereNeeded — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 

@@ -1,13 +1,16 @@
 # Verifying BizApps Committees on PostgreSQL (one-shot install, no CodeGen)
 
-> **STATUS: VALIDATED 2026-07-22** — executed end-to-end on a fresh postgres:17
-> container (MJ core v5.44.0 + bizapps-common + bizapps-tasks + committees). A
-> **migrate-only** install (no `mj codegen`) produced the full working schema
-> (48 CRUD functions, 16 base views, 16 update triggers, RenewalIntent present,
-> ActionItem dropped, 16 entities, **0 duplicate entities**), passed the
-> functional suite **25/25**, and a subsequent `mj codegen` was a **no-op**
-> (zero committees object/metadata drift). The SQL Server path is validated
-> separately on a fresh DB at core **v5.45.0** (the manifest floor — see below).
+> **STATUS: VALIDATED 2026-07-30 at MJ core v5.45.0** (first validated
+> 2026-07-22 at v5.44.0) — executed end-to-end on a fresh postgres:17 container
+> (MJ core v5.45.0 + bizapps-common + bizapps-tasks + committees), with the
+> repo's packages on `@memberjunction/*` **^5.45.0**. A **migrate-only** install
+> (no `mj codegen`) produced the full working schema (48 CRUD functions, 16 base
+> views, 16 update triggers, RenewalIntent present, ActionItem dropped,
+> 16 entities, **0 duplicate entities**), passed the functional suite **25/25**,
+> a subsequent `mj codegen` (5.45) was a **no-op** (migrate-only state
+> byte-identical to post-codegen state), and MJAPI booted and served against the
+> database. The SQL Server path is validated the same way on a fresh DB at core
+> v5.45.0 (the manifest floor — see below).
 
 This runbook simulates what `mj app install` does to a PostgreSQL database and
 verifies the app is **fully functional without ever running `mj codegen`**. It
@@ -78,13 +81,15 @@ with those credentials.
 ## 2. Platform install (the consumer's `mj migrate`)
 
 ```bash
-npx mj migrate --tag v5.44.0        # expect: 61 applied on a virgin DB
+npx mj migrate --tag v5.45.0        # expect: 69 applied on a virgin DB
 ```
 
 Do **not** run plain `npx mj migrate` — without `--tag` it uses this repo's
 local migrations directory (the app's own), not MJ core's. (The manifest floor
-is `>=5.45.0` because the **SQL Server** Metadata_Sync calls a v5.45 core sproc;
-the PG path validates on v5.44.0, which is what these files were baked against.)
+is `>=5.45.0` because the **SQL Server** Metadata_Sync calls a v5.45 core
+sproc; the PG path is validated at v5.45.0 — expect **69 applied** on a virgin
+DB. The plpgsql was baked with codegen 5.44 and verified byte-identical to
+codegen 5.45's emission.)
 
 ## 3. Install both dependencies, in manifest order
 
@@ -225,6 +230,22 @@ outside this repo's control, same as the siblings.)
   `DROP DATABASE "Committees_OneShot"; CREATE DATABASE "Committees_OneShot";
   pg_restore` it (quote the mixed-case DB name).
 
+## Newer MJ core versions
+
+Also validated at **core v5.48.0** (2026-07-30): committees' 5 migrations apply
+one-shot and the functional suite passes 25/25. Caveat that is NOT ours: MJ
+core v5.48.0's consolidated `v5.46.x` PG baseline fails on a **virgin**
+PostgreSQL database with `role "cdp_Developer" does not exist` (raw GRANT, no
+CREATE ROLE) — this blocks every open-app install at that core version until
+the roles are pre-created:
+
+```sql
+CREATE ROLE "cdp_Developer" NOLOGIN; CREATE ROLE "cdp_UI" NOLOGIN; CREATE ROLE "cdp_Integration" NOLOGIN;
+```
+
+Reported upstream along with the v5.45 `spDeleteUnneededEntityFields` /
+`ExternalDataSourceID` bug.
+
 ## Things that look wrong but aren't
 
 - **`sp*` count is 48, not 51**: the baseline bakes 17 entities (51 sprocs)
@@ -252,18 +273,30 @@ The PG set is produced by a three-part pipeline; a schema change re-runs all of 
      (for the baseline: core + deps, then migrate the baseline's hand-DDL only).
    - `mj codegen --skipfiles` — writes CodeGen's PG emission to
      `migrations/codegen/CodeGen_Run_<ts>.sql`.
-   - Append that run-log verbatim, below the baked banner, into the migration's
+   - Append that run-log, below the baked banner, into the migration's
      `.pg.sql`. (The baseline captures all entities; RenewalIntent is captured
      against a DB advanced by the RenewalIntent ADD COLUMN so Membership carries
      the new field.)
+   - **Strip the core maintenance sproc calls** from the appended run-log
+     (`SELECT * FROM ${mjSchema}."spUpdateExistingEntitiesFromSchema"(...)`,
+     `spUpdateExistingEntityFieldsFromSchema`, `spDeleteUnneededEntityFields`,
+     `spSetDefaultColumnWidthWhereNeeded`, `spUpdateEntityFieldRelatedEntityNameFieldMap`,
+     `spUpdateSchemaInfoFromDatabase`) — the siblings' baked files omit them too.
+     Every value they reconcile is already pinned (metadata INSERTs + backfill),
+     and core PG maintenance sprocs can lag core schema changes: core v5.45's
+     `spDeleteUnneededEntityFields` references `vwEntities.ExternalDataSourceID`,
+     which v5.45 dropped — keeping the call breaks the install on 5.45 hosts.
    - `V202607072300__…Replace_ActionItems_With_Tasks.pg.sql` is **hand-authored**
      (the converter mangles its DECLARE/THROW/CROSS APPLY/DELETE-JOIN and drops
      the DROP TABLE) — never delete it to reconvert; it drops ActionItem's baked
      objects, which is why the final sproc count is 48 not 51.
 3. **`.pgonly` supplement** — `V202607211300__…CodeGen_Metadata_Backfill.pgonly.sql`
    pins `__mj` metadata baking does not cover (SchemaInfo `CanonicalSchemaName`,
-   EntityField Sequence/width/name-map, the Ballots validator). Never regenerated,
-   never touched by pg-finalize.
+   EntityField Sequence/width/name-map, **EntityField.Type SS-canonical
+   vocabulary for physical columns** — codegen ≥5.45 rewrites `UUID/TEXT/INTEGER/
+   BOOLEAN/TIMESTAMPTZ` to `uniqueidentifier/nvarchar/int/bit/datetimeoffset` on
+   physical fields while keeping PG-native names on virtual view-join fields —
+   and the Ballots validator). Never regenerated, never touched by pg-finalize.
 
 The **step-7 codegen no-op check is the regression test**: if codegen changes any
 committees object or metadata row after a fresh install, a migration's baked

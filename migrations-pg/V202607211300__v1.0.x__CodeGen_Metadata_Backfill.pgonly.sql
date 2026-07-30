@@ -430,6 +430,26 @@ UPDATE __mj."EntityField" SET "Sequence" = 7, "DefaultColumnWidth" = 100 WHERE "
 UPDATE __mj."EntityField" SET "Sequence" = 8, "DefaultColumnWidth" = 150 WHERE "ID" = '9add5112-5031-4b7c-863c-4cef0f4ba8ae';  -- Motion (virtual)
 
 -- ----------------------------------------------------------------------------
+-- 3b. EntityField.Type normalization to the SS-canonical vocabulary.
+--     The converted baseline/RenewalIntent INSERTs carry PG-native type names
+--     (UUID, TEXT, INTEGER, BOOLEAN, TIMESTAMPTZ). CodeGen at MJ core v5.44
+--     left these untouched (validated no-op 2026-07-22), but v5.45 normalizes
+--     EntityField.Type to the SS-canonical names — confirmed live: a v5.45
+--     codegen run rewrote exactly these 176 rows (uniqueidentifier/int/
+--     nvarchar/bit/datetimeoffset) and NOTHING else (zero function/view/
+--     trigger drift). Pin the canonical values here so codegen stays a no-op.
+--     Scoped to PHYSICAL columns ("IsVirtual" = FALSE): v5.45 codegen keeps
+--     PG-native names (TEXT/UUID) for the view-join virtual fields while
+--     normalizing physical columns to SS-canonical — confirmed live both ways.
+--     Set-based and idempotent; 'date' columns already match and are untouched.
+-- ----------------------------------------------------------------------------
+UPDATE __mj."EntityField" ef SET "Type" = 'uniqueidentifier' FROM __mj."Entity" e WHERE ef."EntityID" = e."ID" AND e."SchemaName" = '__mj_bizappscommittees' AND ef."IsVirtual" = FALSE AND ef."Type" = 'UUID';
+UPDATE __mj."EntityField" ef SET "Type" = 'nvarchar'         FROM __mj."Entity" e WHERE ef."EntityID" = e."ID" AND e."SchemaName" = '__mj_bizappscommittees' AND ef."IsVirtual" = FALSE AND ef."Type" = 'TEXT';
+UPDATE __mj."EntityField" ef SET "Type" = 'int'              FROM __mj."Entity" e WHERE ef."EntityID" = e."ID" AND e."SchemaName" = '__mj_bizappscommittees' AND ef."IsVirtual" = FALSE AND ef."Type" = 'INTEGER';
+UPDATE __mj."EntityField" ef SET "Type" = 'bit'              FROM __mj."Entity" e WHERE ef."EntityID" = e."ID" AND e."SchemaName" = '__mj_bizappscommittees' AND ef."IsVirtual" = FALSE AND ef."Type" = 'BOOLEAN';
+UPDATE __mj."EntityField" ef SET "Type" = 'datetimeoffset'   FROM __mj."Entity" e WHERE ef."EntityID" = e."ID" AND e."SchemaName" = '__mj_bizappscommittees' AND ef."IsVirtual" = FALSE AND ef."Type" = 'TIMESTAMPTZ';
+
+-- ----------------------------------------------------------------------------
 -- 4. GeneratedCode — Ballots window validator (CK_Ballot_Window).
 --    Normalize the row the converted baseline inserted (SS Source text,
 --    uppercase LinkedRecordPrimaryKey) to the PG lookup form; insert it with a

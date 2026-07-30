@@ -360,7 +360,11 @@ DO $$ BEGIN GRANT EXECUTE ON FUNCTION __mj_BizAppsCommittees."spDeleteMembership
 -- =====================================================================
 
 /* SQL text to update existing entities from schema */
-SELECT * FROM ${mjSchema}."spUpdateExistingEntitiesFromSchema"('sys,staging,dbo,${mjSchema},${mjSchema}_BizAppsCommon,${mjSchema}_BizAppsTasks,information_schema,pg_catalog,pg_toast,pg_temp_1,pg_toast_temp_1');
+-- [stripped: core maintenance reconciliation] spUpdateExistingEntitiesFromSchema — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to drop default existing default constraints in entity ${mjSchema}_bizappscommittees.Artifact */
 SET CONSTRAINTS ALL IMMEDIATE;
@@ -2961,13 +2965,25 @@ WHERE vf."IsVirtual" = true
   AND vf."AllowsNull" != fk."AllowsNull";
 
 /* SQL text to update existing entity fields from schema */
-SELECT * FROM ${mjSchema}."spUpdateExistingEntityFieldsFromSchema"('sys,staging,dbo,${mjSchema},${mjSchema}_BizAppsCommon,${mjSchema}_BizAppsTasks,information_schema,pg_catalog,pg_toast,pg_temp_1,pg_toast_temp_1');
+-- [stripped: core maintenance reconciliation] spUpdateExistingEntityFieldsFromSchema — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to set default column width where needed */
-SELECT * FROM ${mjSchema}."spSetDefaultColumnWidthWhereNeeded"('sys,staging,dbo,${mjSchema},${mjSchema}_BizAppsCommon,${mjSchema}_BizAppsTasks,information_schema,pg_catalog,pg_toast,pg_temp_1,pg_toast_temp_1');
+-- [stripped: core maintenance reconciliation] spSetDefaultColumnWidthWhereNeeded — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to sync schema info from database schemas */
-SELECT * FROM ${mjSchema}."spUpdateSchemaInfoFromDatabase"('sys,staging,dbo,${mjSchema},${mjSchema}_BizAppsCommon,${mjSchema}_BizAppsTasks,information_schema,pg_catalog,pg_toast,pg_temp_1,pg_toast_temp_1');
+-- [stripped: core maintenance reconciliation] spUpdateSchemaInfoFromDatabase — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* Base View SQL for Committees: Action Items */
 -- ============================================================
@@ -10844,7 +10860,11 @@ GRANT EXECUTE ON FUNCTION ${mjSchema}_bizappscommittees."spDeleteVote" TO "cdp_D
 GRANT EXECUTE ON FUNCTION ${mjSchema}_bizappscommittees."spDeleteVote" TO "cdp_Integration";
 
 /* SQL text to delete unneeded entity fields (1 scoped entities) */
-SELECT * FROM ${mjSchema}."spDeleteUnneededEntityFields"('sys,staging,dbo,${mjSchema},${mjSchema}_BizAppsCommon,${mjSchema}_BizAppsTasks,information_schema,pg_catalog,pg_toast,pg_temp_1,pg_toast_temp_1', 'f8fadbbe-a323-48fb-8395-3b543729f6e6');
+-- [stripped: core maintenance reconciliation] spDeleteUnneededEntityFields — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL to fix virtual field nullability */
 
@@ -10869,8 +10889,16 @@ WHERE vf."IsVirtual" = true
   AND vf."AllowsNull" != fk."AllowsNull";
 
 /* SQL text to update existing entity fields from schema (1 scoped entities) */
-SELECT * FROM ${mjSchema}."spUpdateExistingEntityFieldsFromSchema"('sys,staging,dbo,${mjSchema},${mjSchema}_BizAppsCommon,${mjSchema}_BizAppsTasks,information_schema,pg_catalog,pg_toast,pg_temp_1,pg_toast_temp_1', 'f8fadbbe-a323-48fb-8395-3b543729f6e6');
+-- [stripped: core maintenance reconciliation] spUpdateExistingEntityFieldsFromSchema — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 
 /* SQL text to set default column width where needed */
-SELECT * FROM ${mjSchema}."spSetDefaultColumnWidthWhereNeeded"('sys,staging,dbo,${mjSchema},${mjSchema}_BizAppsCommon,${mjSchema}_BizAppsTasks,information_schema,pg_catalog,pg_toast,pg_temp_1,pg_toast_temp_1');
+-- [stripped: core maintenance reconciliation] spSetDefaultColumnWidthWhereNeeded — every value this call would
+-- compute is pinned by the metadata INSERTs and the CodeGen_Metadata_Backfill
+-- .pgonly migration (fixed point), and core PG maintenance sprocs can lag core
+-- schema changes (v5.45 spDeleteUnneededEntityFields references the dropped
+-- vwEntities.ExternalDataSourceID). The siblings' baked files omit these too.
 

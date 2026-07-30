@@ -855,10 +855,12 @@ input CreateMJAIAgentInput {
   PayloadUpstreamPaths: String
   RecordingDefault: String
   RecordingStorageProviderID: String
+  RequirePlanMode: Boolean
   RerankerConfiguration: String
   RestoreContext___: RestoreContextInput
   ScopeConfig: String
   SearchScopeAccess: String
+  SkillActivationMode: String
   StartingPayloadValidation: String
   StartingPayloadValidationMode: String
   Status: String
@@ -1037,6 +1039,7 @@ input CreateMJAIAgentRunInput {
   OverrideModelID: String
   OverrideVendorID: String
   ParentRunID: String
+  PlanMode: Boolean
   PrimaryScopeEntityID: String
   PrimaryScopeRecordID: String
   RestoreContext___: RestoreContextInput
@@ -1099,6 +1102,7 @@ input CreateMJAIAgentRunStepInput {
   PayloadAtEnd: String
   PayloadAtStart: String
   RestoreContext___: RestoreContextInput
+  Skills: String
   StartedAt: Timestamp
   Status: String
   StepName: String
@@ -1181,6 +1185,8 @@ input CreateMJAIAgentSessionInput {
   ID: String
   LastActiveAt: Timestamp
   LastSessionID: String
+  LinkedEntityID: String
+  LinkedRecordID: String
   RecordingFileID: String
   RecordingMedia: String
   RecordingStartedAt: Timestamp
@@ -1719,6 +1725,7 @@ input CreateMJAISkillActionInput {
 }
 
 input CreateMJAISkillInput {
+  ActivationMode: String
   Category: String
   Color: String
   CreatedByUserID: String
@@ -2829,6 +2836,7 @@ input CreateMJConversationInput {
   ID: String
   IsArchived: Boolean
   IsPinned: Boolean
+  LastConversationID: String
   LinkedEntityID: String
   LinkedRecordID: String
   Name: String
@@ -2839,6 +2847,28 @@ input CreateMJConversationInput {
   TestRunID: String
   Type: String
   UserID: String
+  VisitorKey: String
+}
+
+input CreateMJConversationWidgetInstanceInput {
+  AllowedOrigins: String
+  ApplicationID: String
+  AuthStrategy: String
+  EnabledChannels: String
+  GuestRoleID: String
+  HostPublicKey: String
+  ID: String
+  Modality: String
+  Name: String
+  PinnedAgentID: String
+  PublicKey: String
+  RateLimitPerMinute: Int
+  RememberReturningVisitors: Boolean
+  RestoreContext___: RestoreContextInput
+  SessionTTLMinutes: Int
+  Status: String
+  VisitorMemoryRetentionDays: Int
+  VoiceMaxSessionMinutes: Int
 }
 
 input CreateMJCountryInput {
@@ -3390,6 +3420,8 @@ input CreateMJEntityInput {
   DisplayName: String
   EntityObjectSubclassImport: String
   EntityObjectSubclassName: String
+  ExternalDataSourceID: String
+  ExternalObjectName: String
   FullTextCatalog: String
   FullTextCatalogGenerated: Boolean
   FullTextIndex: String
@@ -3605,6 +3637,38 @@ input CreateMJExplorerNavigationItemInput {
   Sequence: Int
   ShowInHomeScreen: Boolean
   ShowInNavigationDrawer: Boolean
+}
+
+input CreateMJExternalDataSourceInput {
+  ConnectionConfig: String
+  CredentialID: String
+  DefaultCacheTTLSeconds: Int
+  DefaultDatabase: String
+  DefaultSchema: String
+  Description: String
+  ID: String
+  LastConnectionTestAt: Timestamp
+  LastConnectionTestResult: String
+  Name: String
+  RestoreContext___: RestoreContextInput
+  Status: String
+  TypeID: String
+}
+
+input CreateMJExternalDataSourceTypeInput {
+  Description: String
+  DriverClass: String
+  FilterDialect: String
+  ID: String
+  MetadataIntrospectionStrategy: String
+  Name: String
+  PagingStrategy: String
+  RequiredCredentialTypeID: String
+  RestoreContext___: RestoreContextInput
+  Status: String
+  SupportsNativeQueries: Boolean
+  SupportsReadWrite: Boolean
+  SupportsSchemaIntrospection: Boolean
 }
 
 input CreateMJFileCategoryInput {
@@ -4469,6 +4533,7 @@ input CreateMJQueryInput {
   EmbeddingModelID: String
   EmbeddingVector: String
   ExecutionCostRank: Int
+  ExternalDataSourceID: String
   Feedback: String
   ID: String
   Name: String
@@ -5655,6 +5720,61 @@ input CreateMJUserRoleInput {
   RestoreContext___: RestoreContextInput
   RoleID: String
   UserID: String
+}
+
+input CreateMJUserRoutineInput {
+  ConversationID: String
+  CronExpression: String
+  Description: String
+  EndAt: Timestamp
+  EnvironmentID: String
+  ID: String
+  InitialMessage: String
+  LastResultHash: String
+  LastRunAt: Timestamp
+  LastRunStatus: String
+  Name: String
+  NextRunAt: Timestamp
+  NotificationTemplateID: String
+  NotifyCondition: String
+  NotifyViaEmail: Boolean
+  NotifyViaInApp: Boolean
+  RequestedSkillIDs: String
+  RestoreContext___: RestoreContextInput
+  RoutineType: String
+  StartAt: Timestamp
+  StartingPayload: String
+  Status: String
+  TargetID: String
+  TargetType: String
+  Timezone: String
+  UserID: String
+}
+
+input CreateMJUserRoutineRecipientInput {
+  Channel: String
+  Email: String
+  ID: String
+  RestoreContext___: RestoreContextInput
+  RoutineID: String
+  Sequence: Int
+  UserID: String
+}
+
+input CreateMJUserRoutineRunInput {
+  ActionExecutionLogID: String
+  AgentRunID: String
+  CompletedAt: Timestamp
+  ErrorMessage: String
+  ID: String
+  NotificationSent: Boolean
+  PromptRunID: String
+  RestoreContext___: RestoreContextInput
+  ResultHash: String
+  ResultSummary: String
+  RoutineID: String
+  StartedAt: Timestamp
+  Status: String
 }
 
 input CreateMJUserSettingInput {
@@ -8564,6 +8684,11 @@ type MJAIAgentRunStep_ {
   PayloadAtStart: String
   RootParentID: String
 
+  """
+  JSON array of skill-invocation records (AgentSkillInvocation[]) associating this step with the skills involved in it, or NULL when no skills are in play. Each record carries SkillID, SkillName, ActivationType (requested = user /skill mention; auto = agent self-activation), Provenance of authority (the gate values that admitted the skill: AcceptsSkills, both ActivationMode dials, and who requested it), and an optional agent-stated Reason when self-activated. Population: Skill steps record the activation(s) they performed; Prompt steps record the full set of skills in effect for that turn; Actions and Sub-Agent steps record the skill(s) through which the executed tool became available (NULL means the tool was a native grant).
+  """
+  Skills: String
+
   """Timestamp when this step began execution"""
   StartedAt: Timestamp!
 
@@ -8711,6 +8836,7 @@ type MJAIAgentRun_ {
   MJExperimentSessionIterations_AIAgentRunIDArray: [MJExperimentSessionIteration_!]!
   MJExperimentSessions_AgentRunIDArray: [MJExperimentSession_!]!
   MJProcessRunDetails_AIAgentRunIDArray: [MJProcessRunDetail_!]!
+  MJUserRoutineRuns_AgentRunIDArray: [MJUserRoutineRun_!]!
 
   """Final message from the agent to the end user at the end of a run"""
   Message: String
@@ -8732,6 +8858,11 @@ type MJAIAgentRun_ {
   Reference to the parent agent run if this is a sub-agent execution. NULL for root-level agent runs. Enables hierarchical execution tracking.
   """
   ParentRunID: String
+
+  """
+  1 when this run executed under plan mode (whether via the per-request planMode flag or the agent's RequirePlanMode setting). Drives plan-mode indicators in the run UX and supports plan-drift auditing (comparing the approved plan against the steps that actually executed).
+  """
+  PlanMode: Boolean!
   PrimaryScopeEntity: String
 
   """
@@ -9086,6 +9217,17 @@ type MJAIAgentSession_ {
   """
   LastActiveAt: Timestamp!
   LastSessionID: String
+  LinkedEntity: String
+
+  """
+  Polymorphic counterparty-identity entity. Foreign key to Entity — identifies WHICH entity this realtime session's counterparty resolved to (e.g. User, a member/contact record, BizAppsCommon Person). Paired with LinkedRecordID via the CK_AIAgentSession_LinkBinding both-or-neither check, mirroring Conversation's linked pair. NULL while the session's counterparty is anonymous/unresolved.
+  """
+  LinkedEntityID: String
+
+  """
+  Polymorphic counterparty-identity record key. The primary-key value of the record (within LinkedEntityID's entity) this session resolved to, serialized as a string so any entity type can be referenced regardless of PK shape (UUID, int, composite). NVARCHAR(500), intentionally NOT FK-constrained. Used together with LinkedEntityID — see CK_AIAgentSession_LinkBinding. NULL while the session's counterparty is anonymous/unresolved.
+  """
+  LinkedRecordID: String
   MJAIAgentRuns_AgentSessionIDArray: [MJAIAgentRun_!]!
   MJAIAgentSessionBridges_AgentSessionIDArray: [MJAIAgentSessionBridge_!]!
   MJAIAgentSessionChannels_AgentSessionIDArray: [MJAIAgentSessionChannel_!]!
@@ -9532,6 +9674,7 @@ type MJAIAgent_ {
   MJAISkillSubAgents_SubAgentIDArray: [MJAISkillSubAgent_!]!
   MJActions_CreatedByAgentIDArray: [MJAction_!]!
   MJConversationDetails_AgentIDArray: [MJConversationDetail_!]!
+  MJConversationWidgetInstances_PinnedAgentIDArray: [MJConversationWidgetInstance_!]!
   MJConversations_DefaultAgentIDArray: [MJConversation_!]!
   MJEntityDocuments_ReasoningAgentIDArray: [MJEntityDocument_!]!
   MJRecordProcesses_AgentIDArray: [MJRecordProcess_!]!
@@ -9657,6 +9800,11 @@ type MJAIAgent_ {
   RecordingStorageProviderID: String
 
   """
+  When 1, every root-level run of this agent executes in plan mode regardless of the per-request planMode flag — the agent must present a plan and receive human approval before any Actions or Sub-Agent steps execute. SupportsPlanMode is irrelevant when this is set. Use for high-consequence agents (e.g. ones with outbound-communication capabilities) where human-in-the-loop review is mandatory.
+  """
+  RequirePlanMode: Boolean!
+
+  """
   JSON configuration for optional reranking of retrieved memory items. Schema: { enabled: boolean, rerankerModelId: string, retrievalMultiplier: number (default 3), minRelevanceThreshold: number (default 0.5), rerankPromptId?: string, contextFields?: string[], fallbackOnError: boolean (default true) }. When null or disabled, vector search results are used directly without reranking.
   """
   RerankerConfiguration: String
@@ -9672,6 +9820,11 @@ type MJAIAgent_ {
   Controls the agent's search capability. All = may use any scope including Global; search action does not restrict. Assigned = may use ONLY scopes explicitly linked via AIAgentSearchScope; scoped search action enforces this. None = agent has no search capability; the scoped search action rejects all requests.
   """
   SearchScopeAccess: String!
+
+  """
+  Controls whether this agent may ever self-activate skills from its prompt catalog. Auto: the agent sees its allowed skills whose own ActivationMode is Auto (double gate) and may activate them mid-run on its own judgment. RequestedOnly (default): the agent's prompt catalog is empty and skills only enter a run via an explicit user request (/skill mention). Orthogonal to AcceptsSkills, which governs which skills are available at all; this governs who may pull the activation trigger.
+  """
+  SkillActivationMode: String!
 
   """
   Optional JSON schema validation to apply to the input payload before agent execution begins. Uses the same JSONValidator format as FinalPayloadValidation.
@@ -10720,6 +10873,7 @@ type MJAIPromptRun_ {
   MJContentItemTags_AIPromptRunIDArray: [MJContentItemTag_!]!
   MJContentProcessRunPromptRuns_AIPromptRunIDArray: [MJContentProcessRunPromptRun_!]!
   MJDuplicateRunDetailMatches_AIPromptRunIDArray: [MJDuplicateRunDetailMatch_!]!
+  MJUserRoutineRuns_PromptRunIDArray: [MJUserRoutineRun_!]!
 
   """Maximum number of retries configured on the prompt"""
   MaxRetriesConfigured: Int
@@ -11403,6 +11557,11 @@ type MJAISkillSubAgent_ {
 }
 
 type MJAISkill_ {
+  """
+  Controls whether this skill may ever be self-activated by an agent. Auto: the skill may appear in accepting agents' prompt catalogs and be activated mid-run on agent judgment — but only for agents whose own SkillActivationMode is also Auto (double gate). RequestedOnly (default): the skill is excluded from prompt catalogs entirely and can only be activated when the user explicitly requests it for the run (a /skill mention flowing through ExecuteAgentParams.requestedSkillIDs). All other activation gates (AcceptsSkills, skill Status, per-agent assignment, user Run permission) apply unchanged in both modes.
+  """
+  ActivationMode: String!
+
   """Optional grouping category."""
   Category: String
 
@@ -11921,6 +12080,7 @@ type MJActionExecutionLog_ {
   EndedAt: Timestamp
   ID: String!
   MJProcessRunDetails_ActionExecutionLogIDArray: [MJProcessRunDetail_!]!
+  MJUserRoutineRuns_ActionExecutionLogIDArray: [MJUserRoutineRun_!]!
 
   """JSON-formatted output data or response from the action execution"""
   Message: String
@@ -12308,6 +12468,7 @@ type MJApplication_ {
   MJApplicationEntities_ApplicationIDArray: [MJApplicationEntity_!]!
   MJApplicationRoles_ApplicationIDArray: [MJApplicationRole_!]!
   MJApplicationSettings_ApplicationIDArray: [MJApplicationSetting_!]!
+  MJConversationWidgetInstances_ApplicationIDArray: [MJConversationWidgetInstance_!]!
   MJConversations_ApplicationIDArray: [MJConversation_!]!
   MJDashboardUserPreferences_ApplicationIDArray: [MJDashboardUserPreference_!]!
   MJDashboards_ApplicationIDArray: [MJDashboard_!]!
@@ -14754,6 +14915,97 @@ type MJConversationDetail_ {
 }
 
 """
+Durable per-deployment configuration for one embeddable public support widget (text and/or voice). One row per site/embed. Resolves a public widget key to its application scope, pinned support agent, restricted guest role, allowed origins, modality, auth strategy, and abuse ceilings. Reuses the magic-link anonymous-embed minting path at session time; this entity holds only the configuration.
+"""
+type MJConversationWidgetInstance_ {
+  """
+  Allowed embedding origins for this widget, as a JSON array of origin strings (e.g. ["https://www.acme.com","https://acme.com"]). Enforced both at mint (POST /widget/session rejects unlisted Origin) and via CORS. NULL or empty means no origin is allowed (fail-closed).
+  """
+  AllowedOrigins: String
+  Application: String!
+
+  """
+  Foreign key to Application — the single app a guest session is scoped to. Mirrors the magic-link single-application model.
+  """
+  ApplicationID: String!
+
+  """
+  Pluggable public-auth strategy (D1): Anonymous (guest-first, default), MagicLinkUpgrade (guest may escalate to an email-verified session), or HostIdentity (an authenticated host portal posts a signed identity assertion exchanged for an MJ guest JWT). All three converge on AuthProviderFactory + buildMagicLinkSessionUser.
+  """
+  AuthStrategy: String!
+
+  """
+  Which MJ interactive channels this widget may attach when a voice session is active, as a JSON array of channel names (e.g. ["Whiteboard"]). Resolved client-side through MJGlobal.ClassFactory the same way the realtime client driver is resolved; each named channel is scoped by the existing Widget Guest RLS on AI Agent Session Channels. NULL or empty array = no channels (the backwards-compatible default). Remote Browser, given its control surface, should only be listed when a deployment explicitly opts in.
+  """
+  EnabledChannels: String
+  GuestRole: String!
+
+  """
+  Foreign key to Role — the restricted guest role assigned to the synthesized guest principal. This role's entity permissions are the real authorization boundary (read/write only the visitor's own Conversation + Conversation Details). Roles ride per-session JWT claims, not DB rows on the shared Anonymous principal.
+  """
+  GuestRoleID: String!
+
+  """
+  PEM-encoded RS256 public key for the host-identity auth strategy (D1). When AuthStrategy is HostIdentity, the host signs a short-lived identity assertion with its private key; the HostIdentityProvider verifies it against this per-instance key. Supersedes the interim config map (mj.config.cjs hostPublicKeys keyed by PublicKey). NULL when the widget does not use host identity; a HostIdentity widget with no key fails closed at mint.
+  """
+  HostPublicKey: String
+  ID: String!
+
+  """
+  Which modalities this widget exposes: Text (chat only), Voice (client-direct realtime only), or Both. Gates whether the realtime-mint path is offered to the guest.
+  """
+  Modality: String!
+
+  """
+  Human-readable name for this widget deployment (e.g. "Acme Marketing Site Support").
+  """
+  Name: String!
+  PinnedAgent: String
+
+  """
+  Foreign key to AIAgent — the support agent that is PINNED for every turn (passed as explicitAgentId). D5: pinning fixes which agent runs; combined with the restricted guest role it prevents a public visitor from reaching arbitrary agents/data. The pinned agent's own tool/handoff surface should be support-scoped.
+  """
+  PinnedAgentID: String!
+
+  """
+  Public, non-secret embed key (e.g. "pk_live_…") placed in the host page's data-widget-key attribute. Used to resolve this configuration at POST /widget/session. Unique. Not a credential — security comes from the origin allowlist, rate limits, the restricted guest role, and short-lived minted tokens.
+  """
+  PublicKey: String!
+
+  """
+  Maximum number of guest-session mints allowed per minute per source IP/origin for this widget. Reuses the magic-link rate-limit pattern.
+  """
+  RateLimitPerMinute: Int!
+
+  """
+  Returning-visitor memory opt-in (R6). When 0 (default) this widget sets no durable visitor cookie and writes no cross-session recap — fully off. When 1, the widget mints a durable VisitorKey cookie, links each new Conversation to the visitor's prior one, and writes a recap memory note on close so a returning visitor's agent opens with prior context.
+  """
+  RememberReturningVisitors: Boolean!
+
+  """
+  Time-to-live in minutes for a minted guest session JWT. Short by design (default 15) to limit replay/theft; the widget refreshes before expiry. Capped at 1440 (24h).
+  """
+  SessionTTLMinutes: Int!
+
+  """
+  Lifecycle status. Active widgets mint sessions; Disabled widgets reject all mints (used to turn off a deployment without deleting its config).
+  """
+  Status: String!
+
+  """
+  Retention window (days) for returning-visitor recap memory notes generated by this widget. NULL means use the system default. Past this window the visitor's auto-generated recap notes decay/archive via the Memory Manager. Ignored when RememberReturningVisitors = 0.
+  """
+  VisitorMemoryRetentionDays: Int
+
+  """
+  Optional hard ceiling (minutes) on a single voice session's duration for this widget. NULL means fall back to the server-wide default. Voice is the biggest cost/abuse surface; the SessionJanitor enforces this server-side (W4).
+  """
+  VoiceMaxSessionMinutes: Int
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+"""
 Tracks conversation sessions between users and AI agents or between users, including context, participants, and metadata.
 """
 type MJConversation_ {
@@ -14800,6 +15052,12 @@ type MJConversation_ {
 
   """Indicates if this conversation is pinned to the top of lists"""
   IsPinned: Boolean!
+  LastConversation: String
+
+  """
+  Conversation-altitude returning-visitor chain (R2). Self-foreign-key to the visitor's immediately prior Conversation (found by VisitorKey or the resolved LinkedEntityID/LinkedRecordID pair at mint time). History and memory are conversation-scoped, so the chain lives here — NOT on AIAgentSession.LastSessionID, which owns reconnect/resume semantics and is walked by the replay viewer. Named to mirror AIAgentSession.LastSessionID. NULL for a brand-new visitor's first conversation.
+  """
+  LastConversationID: String
   LinkedEntity: String
 
   """
@@ -14817,7 +15075,9 @@ type MJConversation_ {
   MJAIAgentSessions_ConversationIDArray: [MJAIAgentSession_!]!
   MJConversationArtifacts_ConversationIDArray: [MJConversationArtifact_!]!
   MJConversationDetails_ConversationIDArray: [MJConversationDetail_!]!
+  MJConversations_LastConversationIDArray: [MJConversation_!]!
   MJReports_ConversationIDArray: [MJReport_!]!
+  MJUserRoutines_ConversationIDArray: [MJUserRoutine_!]!
   Name: String
   Project: String
   ProjectID: String
@@ -14827,6 +15087,7 @@ type MJConversation_ {
   For a Meeting-Room conversation, the MJ: Files row holding the room-level composite recording (the LiveKit egress MP4, copied into MJStorage). NULL when the meeting was not recorded.
   """
   RecordingFileID: String
+  RootLastConversationID: String
 
   """
   Tracks the processing status of the conversation: Available, Processing
@@ -14843,6 +15104,11 @@ type MJConversation_ {
   Type: String!
   User: String!
   UserID: String!
+
+  """
+  Durable, opaque returning-visitor anchor (R3). Holds the value of a long-lived first-party cookie minted by the widget on first visit, used to find this visitor's prior conversations while they are still anonymous. Distinct from ExternalID (which stays per-session for RLS isolation). NULL for conversations that are not widget returning-visitor sessions.
+  """
+  VisitorKey: String
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
 }
@@ -14941,6 +15207,7 @@ type MJCredentialType_ {
   IconClass: String
   MJAIVendors_CredentialTypeIDArray: [MJAIVendor_!]!
   MJCredentials_CredentialTypeIDArray: [MJCredential_!]!
+  MJExternalDataSourceTypes_RequiredCredentialTypeIDArray: [MJExternalDataSourceType_!]!
   MJIntegrations_CredentialTypeIDArray: [MJIntegration_!]!
   MJMCPServers_CredentialTypeIDArray: [MJMCPServer_!]!
 
@@ -14997,6 +15264,7 @@ type MJCredential_ {
   LastValidatedAt: Timestamp
   MJAICredentialBindings_CredentialIDArray: [MJAICredentialBinding_!]!
   MJCompanyIntegrations_CredentialIDArray: [MJCompanyIntegration_!]!
+  MJExternalDataSources_CredentialIDArray: [MJExternalDataSource_!]!
   MJFileStorageAccounts_CredentialIDArray: [MJFileStorageAccount_!]!
   MJMCPServerConnections_CredentialIDArray: [MJMCPServerConnection_!]!
   MJOAuthTokens_CredentialIDArray: [MJOAuthToken_!]!
@@ -16906,6 +17174,12 @@ type MJEntity_ {
 
   """TypeScript class name for the entity subclass in the codebase."""
   EntityObjectSubclassName: String
+  ExternalDataSourceID: String
+
+  """
+  Remote object name (table / view / collection) on the external system that backs this entity. Resolved against the data source DefaultSchema/DefaultDatabase when unqualified. Only meaningful when ExternalDataSourceID is set.
+  """
+  ExternalObjectName: String
 
   """Name of the SQL Server full-text catalog if search is enabled."""
   FullTextCatalog: String
@@ -16941,6 +17215,7 @@ type MJEntity_ {
   MJAIAgentExamples_PrimaryScopeEntityIDArray: [MJAIAgentExample_!]!
   MJAIAgentNotes_PrimaryScopeEntityIDArray: [MJAIAgentNote_!]!
   MJAIAgentRuns_PrimaryScopeEntityIDArray: [MJAIAgentRun_!]!
+  MJAIAgentSessions_LinkedEntityIDArray: [MJAIAgentSession_!]!
   MJAccessControlRules_EntityIDArray: [MJAccessControlRule_!]!
   MJApplicationEntities_EntityIDArray: [MJApplicationEntity_!]!
   MJArchiveConfigurationEntities_EntityIDArray: [MJArchiveConfigurationEntity_!]!
@@ -17144,6 +17419,7 @@ type MJEnvironment_ {
   MJProjects_EnvironmentIDArray: [MJProject_!]!
   MJReports_EnvironmentIDArray: [MJReport_!]!
   MJTasks_EnvironmentIDArray: [MJTask_!]!
+  MJUserRoutines_EnvironmentIDArray: [MJUserRoutine_!]!
 
   """Display name for the environment"""
   Name: String!
@@ -17362,6 +17638,116 @@ type MJExplorerNavigationItem_ {
   Controls if the item is shown in the left navigation drawer in the MJ Explorer app or not.
   """
   ShowInNavigationDrawer: Boolean!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+type MJExternalDataSourceType_ {
+  """
+  Human-readable description of the driver type and what remote systems it targets.
+  """
+  Description: String
+
+  """
+  Driver class resolved at runtime via MJGlobal.ClassFactory.CreateInstance(BaseExternalDataSourceDriver, DriverClass). MUST match the @RegisterClass key on the concrete driver (e.g. 'SnowflakeExternalDriver').
+  """
+  DriverClass: String!
+
+  """
+  Dialect the driver expects for RunView filter pass-through: tsql, ansi, pgsql, mysql, oracle, or mongo-ast (MongoDB filter AST translated within the driver).
+  """
+  FilterDialect: String!
+  ID: String!
+  MJExternalDataSources_TypeIDArray: [MJExternalDataSource_!]!
+
+  """
+  How the metadata-introspection command hydrates Entity/EntityField rows from this driver family: InformationSchema (ANSI INFORMATION_SCHEMA), NativeCatalog (vendor catalog views), SampledDocuments (infer shape from sampled documents, e.g. MongoDB), or Manual (no automated introspection).
+  """
+  MetadataIntrospectionStrategy: String!
+
+  """
+  Display name of the external data source driver type (e.g. Snowflake, Oracle, MongoDB, PostgreSQL).
+  """
+  Name: String!
+
+  """
+  Pagination mechanism the driver uses: OffsetFetch (SQL Server OFFSET/FETCH), LimitOffset (Postgres/MySQL LIMIT/OFFSET), TopSkip, or Cursor.
+  """
+  PagingStrategy: String!
+  RequiredCredentialType: String
+  RequiredCredentialTypeID: String
+
+  """
+  Lifecycle status of the driver-type catalog entry: Active or Deprecated.
+  """
+  Status: String!
+
+  """
+  Whether the driver supports native-dialect query execution for MJ Queries that set ExternalDataSourceID.
+  """
+  SupportsNativeQueries: Boolean!
+
+  """
+  Reserved for a future write-capable phase. Always 0 in the current read-only design; external entities are read-only.
+  """
+  SupportsReadWrite: Boolean!
+
+  """
+  Whether the driver can introspect remote schema metadata to assist Entity/EntityField generation.
+  """
+  SupportsSchemaIntrospection: Boolean!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+type MJExternalDataSource_ {
+  """
+  JSON blob of NON-SECRET driver configuration (host, port, region, warehouse, replica-set name, pool sizing). All secrets flow through CredentialID -> Credential -> CredentialEngine; never store secrets here.
+  """
+  ConnectionConfig: String
+  Credential: String
+  CredentialID: String
+
+  """
+  Default server-side cache TTL (seconds) for reads against this source. External reads use time-based TTL because no event-driven invalidation is possible on remote systems. Default 300.
+  """
+  DefaultCacheTTLSeconds: Int!
+
+  """
+  Default database/catalog on the remote system (e.g. Snowflake database, MongoDB dbName). Nullable when the driver derives it from connection config.
+  """
+  DefaultDatabase: String
+
+  """
+  Default schema/namespace to resolve unqualified ExternalObjectName values against on the remote system (e.g. a SQL schema, Snowflake schema).
+  """
+  DefaultSchema: String
+
+  """
+  Human-readable description of what this data source connects to and what it is used for.
+  """
+  Description: String
+  ID: String!
+
+  """Timestamp of the most recent connection test against this source."""
+  LastConnectionTestAt: Timestamp
+
+  """
+  Result message from the most recent connection test (success detail or error text).
+  """
+  LastConnectionTestResult: String
+  MJEntities_ExternalDataSourceIDArray: [MJEntity_!]!
+  MJQueries_ExternalDataSourceIDArray: [MJQuery_!]!
+
+  """Display name of this configured external data source instance."""
+  Name: String!
+
+  """
+  Operational status of this data source: Active (usable), Disabled (RunView fails fast), or TestFailed (last connection test failed).
+  """
+  Status: String!
+  Type: String!
+  TypeID: String!
   _mj__CreatedAt: Timestamp!
   _mj__UpdatedAt: Timestamp!
 }
@@ -19943,6 +20329,8 @@ type MJQuery_ {
   Higher numbers indicate more execution overhead/time required. Useful for planning which queries to use in various scenarios.
   """
   ExecutionCostRank: Int
+  ExternalDataSource: String
+  ExternalDataSourceID: String
 
   """
   User feedback on query accuracy, performance, or suggested improvements.
@@ -20994,6 +21382,7 @@ type MJRole_ {
   MJAISkillPermissions_RoleIDArray: [MJAISkillPermission_!]!
   MJApplicationRoles_RoleIDArray: [MJApplicationRole_!]!
   MJAuthorizationRoles_RoleIDArray: [MJAuthorizationRole_!]!
+  MJConversationWidgetInstances_GuestRoleIDArray: [MJConversationWidgetInstance_!]!
   MJEmployeeRoles_RoleIDArray: [MJEmployeeRole_!]!
   MJEntityFormOverrides_RoleIDArray: [MJEntityFormOverride_!]!
   MJEntityPermissions_RoleIDArray: [MJEntityPermission_!]!
@@ -22648,6 +23037,7 @@ type MJTemplate_ {
   MJTemplateParams_TemplateIDArray: [MJTemplateParam_!]!
   MJUserNotificationTypes_EmailTemplateIDArray: [MJUserNotificationType_!]!
   MJUserNotificationTypes_SMSTemplateIDArray: [MJUserNotificationType_!]!
+  MJUserRoutines_NotificationTemplateIDArray: [MJUserRoutine_!]!
 
   """Name of the template"""
   Name: String!
@@ -23449,6 +23839,195 @@ type MJUserRole_ {
   _mj__UpdatedAt: Timestamp!
 }
 
+type MJUserRoutineRecipient_ {
+  """Delivery channel for this recipient: InApp or Email."""
+  Channel: String!
+
+  """
+  External email recipient (when notifying a non-user). Either UserID or Email is set.
+  """
+  Email: String
+  ID: String!
+  Routine: String!
+
+  """Routine this recipient belongs to."""
+  RoutineID: String!
+
+  """
+  Explicit display/notification ordering of recipients within a routine (ascending).
+  """
+  Sequence: Int!
+  User: String
+
+  """
+  Internal MJ user recipient (when notifying an existing user). Either UserID or Email is set.
+  """
+  UserID: String
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+type MJUserRoutineRun_ {
+  ActionExecutionLog: String
+
+  """
+  For Action targets, links to the MJ: Action Execution Logs record for this execution — params, results, and telemetry live there (never duplicated here).
+  """
+  ActionExecutionLogID: String
+  AgentRun: String
+
+  """Linked AI Agent Run when the routine target is an agent."""
+  AgentRunID: String
+
+  """When the run completed (null while running)."""
+  CompletedAt: Timestamp
+
+  """Error detail when Status is Failed."""
+  ErrorMessage: String
+  ID: String!
+
+  """Whether a notification was dispatched for this run."""
+  NotificationSent: Boolean!
+  PromptRun: String
+
+  """
+  For Prompt targets, links to the MJ: AI Prompt Runs record for this execution — tokens, cost, and full telemetry live there (never duplicated here).
+  """
+  PromptRunID: String
+
+  """
+  Hash of the result, compared against the routine LastResultHash for OnChange detection.
+  """
+  ResultHash: String
+
+  """Human-readable summary of the run result."""
+  ResultSummary: String
+  Routine: String!
+
+  """Routine this run belongs to."""
+  RoutineID: String!
+
+  """When the run started."""
+  StartedAt: Timestamp!
+
+  """Run outcome."""
+  Status: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
+type MJUserRoutine_ {
+  Conversation: String
+
+  """
+  The dedicated conversation this routine's Agent runs append to (created on first conversation-mode run, Application-scoped so it stays out of the default chat list). NULL when the routine has never run in conversation mode.
+  """
+  ConversationID: String
+
+  """
+  Standard cron expression evaluated by the dispatcher to determine when the routine is due.
+  """
+  CronExpression: String!
+
+  """Optional description of what the routine does."""
+  Description: String
+
+  """
+  Optional activation window end. An Active routine stops running once current time passes EndAt — automatic sunset without changing Status. NULL = no end.
+  """
+  EndAt: Timestamp
+  Environment: String
+
+  """Optional environment scope for the routine."""
+  EnvironmentID: String
+  ID: String!
+
+  """For Agent targets, the user message sent to the agent on each run."""
+  InitialMessage: String
+
+  """
+  Hash of the most recent result, used by Monitoring routines to detect change for OnChange notifications.
+  """
+  LastResultHash: String
+
+  """Timestamp of the most recent run."""
+  LastRunAt: Timestamp
+
+  """Outcome of the most recent run."""
+  LastRunStatus: String
+  MJUserRoutineRecipients_RoutineIDArray: [MJUserRoutineRecipient_!]!
+  MJUserRoutineRuns_RoutineIDArray: [MJUserRoutineRun_!]!
+
+  """User-facing routine name."""
+  Name: String!
+
+  """Next scheduled run time, computed after each run."""
+  NextRunAt: Timestamp
+  NotificationTemplate: String
+
+  """
+  Optional MJ Template used to render routine notifications from the runs output data (result summary, status, target info) via the standard MJ templating architecture. When NULL, the system default routine-notification template (seeded via metadata, resolvable per instance — not hardcoded) is used.
+  """
+  NotificationTemplateID: String
+
+  """
+  When to notify: Always, OnSuccess, OnFailure, or OnChange (result differs from prior run).
+  """
+  NotifyCondition: String!
+
+  """Deliver notifications via email."""
+  NotifyViaEmail: Boolean!
+
+  """Deliver notifications via in-app notification."""
+  NotifyViaInApp: Boolean!
+
+  """
+  Optional JSON array of MJ: AI Skills IDs to pre-activate when the routine target is an Agent — threaded as ExecuteAgentParams.requestedSkillIDs so the agent starts each scheduled run with the requested skills' instructions and tools in effect (subject to all availability gates; ActivationMode does not gate this explicit-request path). Ignored for Action/Prompt targets.
+  """
+  RequestedSkillIDs: String
+
+  """
+  Scheduled (always notify per NotifyCondition) or Monitoring (intended for OnChange detection via result hashing).
+  """
+  RoutineType: String!
+
+  """
+  Optional activation window start. An Active routine does not run before this time; once current time passes StartAt the dispatcher begins scheduling it. NULL = eligible immediately.
+  """
+  StartAt: Timestamp
+
+  """Optional JSON starting payload passed to the target on each run."""
+  StartingPayload: String
+
+  """
+  Lifecycle status: Active (eligible to run), Paused (temporarily off), Disabled (off).
+  """
+  Status: String!
+
+  """
+  Polymorphic reference resolved by TargetType (AIAgent.ID, Action.ID, or AIPrompt.ID). No FK because the target table varies.
+  """
+  TargetID: String!
+
+  """
+  What kind of target this routine runs: Agent, Action, or Prompt. Determines how TargetID is interpreted.
+  """
+  TargetType: String!
+
+  """
+  IANA timezone used when evaluating CronExpression (e.g. America/Chicago).
+  """
+  Timezone: String!
+  User: String!
+
+  """
+  Owner of the routine. Routines are private to their owner (row-level access).
+  """
+  UserID: String!
+  _mj__CreatedAt: Timestamp!
+  _mj__UpdatedAt: Timestamp!
+}
+
 """
 Generic key-value store for per-user settings. Allows any application or feature to persist user preferences.
 """
@@ -23738,6 +24317,8 @@ type MJUser_ {
   MJUserNotifications_UserIDArray: [MJUserNotification_!]!
   MJUserRecordLogs_UserIDArray: [MJUserRecordLog_!]!
   MJUserRoles_UserIDArray: [MJUserRole_!]!
+  MJUserRoutineRecipients_UserIDArray: [MJUserRoutineRecipient_!]!
+  MJUserRoutines_UserIDArray: [MJUserRoutine_!]!
   MJUserSettings_UserIDArray: [MJUserSetting_!]!
   MJUserViewCategories_UserIDArray: [MJUserViewCategory_!]!
   MJUserViewRuns_RunByUserIDArray: [MJUserViewRun_!]!
@@ -24395,6 +24976,7 @@ type Mutation {
   CreateMJConversationDetailArtifact(input: CreateMJConversationDetailArtifactInput!): MJConversationDetailArtifact_!
   CreateMJConversationDetailAttachment(input: CreateMJConversationDetailAttachmentInput!): MJConversationDetailAttachment_!
   CreateMJConversationDetailRating(input: CreateMJConversationDetailRatingInput!): MJConversationDetailRating_!
+  CreateMJConversationWidgetInstance(input: CreateMJConversationWidgetInstanceInput!): MJConversationWidgetInstance_!
   CreateMJCountry(input: CreateMJCountryInput!): MJCountry_!
   CreateMJCredential(input: CreateMJCredentialInput!): MJCredential_!
   CreateMJCredentialCategory(input: CreateMJCredentialCategoryInput!): MJCredentialCategory_!
@@ -24450,6 +25032,8 @@ type Mutation {
   CreateMJExperimentSession(input: CreateMJExperimentSessionInput!): MJExperimentSession_!
   CreateMJExperimentSessionIteration(input: CreateMJExperimentSessionIterationInput!): MJExperimentSessionIteration_!
   CreateMJExplorerNavigationItem(input: CreateMJExplorerNavigationItemInput!): MJExplorerNavigationItem_!
+  CreateMJExternalDataSource(input: CreateMJExternalDataSourceInput!): MJExternalDataSource_!
+  CreateMJExternalDataSourceType(input: CreateMJExternalDataSourceTypeInput!): MJExternalDataSourceType_!
   CreateMJFile(input: CreateMJFileInput!): MJFile_!
   CreateMJFileCategory(input: CreateMJFileCategoryInput!): MJFileCategory_!
   CreateMJFileEntityRecordLink(input: CreateMJFileEntityRecordLinkInput!): MJFileEntityRecordLink_!
@@ -24602,6 +25186,9 @@ type Mutation {
   CreateMJUserNotificationType(input: CreateMJUserNotificationTypeInput!): MJUserNotificationType_!
   CreateMJUserRecordLog(input: CreateMJUserRecordLogInput!): MJUserRecordLog_!
   CreateMJUserRole(input: CreateMJUserRoleInput!): MJUserRole_!
+  CreateMJUserRoutine(input: CreateMJUserRoutineInput!): MJUserRoutine_!
+  CreateMJUserRoutineRecipient(input: CreateMJUserRoutineRecipientInput!): MJUserRoutineRecipient_!
+  CreateMJUserRoutineRun(input: CreateMJUserRoutineRunInput!): MJUserRoutineRun_!
   CreateMJUserSetting(input: CreateMJUserSettingInput!): MJUserSetting_!
   CreateMJUserView(input: CreateMJUserViewInput!): MJUserView_!
   CreateMJUserViewCategory(input: CreateMJUserViewCategoryInput!): MJUserViewCategory_!
@@ -24621,7 +25208,7 @@ type Mutation {
   CreateMJWorkspaceItem(input: CreateMJWorkspaceItemInput!): MJWorkspaceItem_!
   CreateMediaAccessToken(fileId: String!): MediaAccessTokenResult!
   CreatePreAuthUploadUrl(input: CreatePreAuthUploadUrlInput!): CreatePreAuthUploadUrlPayload!
-  CreateQuerySystemUser(input: CreateQuerySystemUserInput!): QueryMutationResultType!
+  CreateQueryExtended(input: CreateQuerySystemUserInput!): QueryMutationResultType!
   CreateReportFromConversationDetailID(ConversationDetailID: String!): CreateReportResultType!
   CreateVersionLabel(input: CreateVersionLabelInput!, sessionId: String): CreateLabelResultOutput!
   CreatemjBizAppsCommitteesAgendaItem(input: CreatemjBizAppsCommitteesAgendaItemInput!): mjBizAppsCommitteesAgendaItem_!
@@ -24819,6 +25406,7 @@ type Mutation {
   DeleteMJConversationDetailArtifact(ID: String!, options___: DeleteOptionsInput!): MJConversationDetailArtifact_!
   DeleteMJConversationDetailAttachment(ID: String!, options___: DeleteOptionsInput!): MJConversationDetailAttachment_!
   DeleteMJConversationDetailRating(ID: String!, options___: DeleteOptionsInput!): MJConversationDetailRating_!
+  DeleteMJConversationWidgetInstance(ID: String!, options___: DeleteOptionsInput!): MJConversationWidgetInstance_!
   DeleteMJCountry(ID: String!, options___: DeleteOptionsInput!): MJCountry_!
   DeleteMJCredential(ID: String!, options___: DeleteOptionsInput!): MJCredential_!
   DeleteMJCredentialCategory(ID: String!, options___: DeleteOptionsInput!): MJCredentialCategory_!
@@ -24874,6 +25462,8 @@ type Mutation {
   DeleteMJExperimentSession(ID: String!, options___: DeleteOptionsInput!): MJExperimentSession_!
   DeleteMJExperimentSessionIteration(ID: String!, options___: DeleteOptionsInput!): MJExperimentSessionIteration_!
   DeleteMJExplorerNavigationItem(ID: String!, options___: DeleteOptionsInput!): MJExplorerNavigationItem_!
+  DeleteMJExternalDataSource(ID: String!, options___: DeleteOptionsInput!): MJExternalDataSource_!
+  DeleteMJExternalDataSourceType(ID: String!, options___: DeleteOptionsInput!): MJExternalDataSourceType_!
   DeleteMJFile(ID: String!, options___: DeleteOptionsInput!): MJFile_!
   DeleteMJFileCategory(ID: String!, options___: DeleteOptionsInput!): MJFileCategory_!
   DeleteMJFileEntityRecordLink(ID: String!, options___: DeleteOptionsInput!): MJFileEntityRecordLink_!
@@ -25026,6 +25616,9 @@ type Mutation {
   DeleteMJUserNotificationType(ID: String!, options___: DeleteOptionsInput!): MJUserNotificationType_!
   DeleteMJUserRecordLog(ID: String!, options___: DeleteOptionsInput!): MJUserRecordLog_!
   DeleteMJUserRole(ID: String!, options___: DeleteOptionsInput!): MJUserRole_!
+  DeleteMJUserRoutine(ID: String!, options___: DeleteOptionsInput!): MJUserRoutine_!
+  DeleteMJUserRoutineRecipient(ID: String!, options___: DeleteOptionsInput!): MJUserRoutineRecipient_!
+  DeleteMJUserRoutineRun(ID: String!, options___: DeleteOptionsInput!): MJUserRoutineRun_!
   DeleteMJUserSetting(ID: String!, options___: DeleteOptionsInput!): MJUserSetting_!
   DeleteMJUserView(ID: String!, options___: DeleteOptionsInput!): MJUserView_!
   DeleteMJUserViewCategory(ID: String!, options___: DeleteOptionsInput!): MJUserViewCategory_!
@@ -25043,7 +25636,7 @@ type Mutation {
   DeleteMJWorkflowRun(ID: String!, options___: DeleteOptionsInput!): MJWorkflowRun_!
   DeleteMJWorkspace(ID: String!, options___: DeleteOptionsInput!): MJWorkspace_!
   DeleteMJWorkspaceItem(ID: String!, options___: DeleteOptionsInput!): MJWorkspaceItem_!
-  DeleteQuerySystemResolver(ID: String!, options: DeleteOptionsInput): DeleteQueryResultType!
+  DeleteQueryExtended(ID: String!, options: DeleteOptionsInput): DeleteQueryResultType!
   DeleteStorageObject(input: DeleteStorageObjectInput!): Boolean!
   DeletemjBizAppsCommitteesAgendaItem(ID: String!, options___: DeleteOptionsInput!): mjBizAppsCommitteesAgendaItem_!
   DeletemjBizAppsCommitteesArtifact(ID: String!, options___: DeleteOptionsInput!): mjBizAppsCommitteesArtifact_!
@@ -25207,6 +25800,9 @@ type Mutation {
   MintLiveKitClientToken(input: MintLiveKitClientTokenInput!): LiveKitClientTokenResult!
   MoveStorageObject(input: MoveStorageObjectInput!): Boolean!
   PauseClassificationPipeline(processRunID: String!): AutotagPipelineResult!
+  PlaceRingCentralCall(agentIdentityId: String!, toNumber: String!): PlaceRingCentralCallResult!
+  PlaceTwilioCall(agentIdentityId: String!, toNumber: String!): PlaceCallResult!
+  PlaceVonageCall(agentIdentityId: String!, toNumber: String!): PlaceVonageCallResult!
 
   """Preview Runtime Schema Update without executing. Requires system user."""
   PreviewRuntimeSchemaUpdate(input: RSUPipelineInputGQL!): RSUPreviewResultGQL!
@@ -25264,6 +25860,7 @@ type Mutation {
   StartRealtimeClientSession(appContextJson: String, applicationId: String, clientToolsJson: String, coAgentId: String, configOverridesJson: String, conversationId: String, lastSessionId: String, mediaCollectionId: String, preferredModelId: String, recordingConsent: Boolean, recordingStartedAt: String, targetAgentId: String): StartRealtimeClientSessionResult!
   StartRemoteBrowserAudioStream(agentSessionID: String!): RemoteBrowserAudioStreamResult!
   StartRemoteBrowserScreencast(agentSessionID: String!): RemoteBrowserScreencastResult!
+  StartTeamsMeetingSession(agentIdentityId: String!, joinUrl: String!): StartTeamsMeetingResult!
   StopLiveKitAgentRoomSession(sessionBridgeID: String!): Boolean!
   StopLiveKitRecording(egressID: String!): LiveKitRecordingResult!
   StopRemoteBrowserAudioStream(agentSessionID: String!): Boolean!
@@ -25427,6 +26024,7 @@ type Mutation {
   UpdateMJConversationDetailArtifact(input: UpdateMJConversationDetailArtifactInput!): MJConversationDetailArtifact_!
   UpdateMJConversationDetailAttachment(input: UpdateMJConversationDetailAttachmentInput!): MJConversationDetailAttachment_!
   UpdateMJConversationDetailRating(input: UpdateMJConversationDetailRatingInput!): MJConversationDetailRating_!
+  UpdateMJConversationWidgetInstance(input: UpdateMJConversationWidgetInstanceInput!): MJConversationWidgetInstance_!
   UpdateMJCountry(input: UpdateMJCountryInput!): MJCountry_!
   UpdateMJCredential(input: UpdateMJCredentialInput!): MJCredential_!
   UpdateMJCredentialCategory(input: UpdateMJCredentialCategoryInput!): MJCredentialCategory_!
@@ -25482,6 +26080,8 @@ type Mutation {
   UpdateMJExperimentSession(input: UpdateMJExperimentSessionInput!): MJExperimentSession_!
   UpdateMJExperimentSessionIteration(input: UpdateMJExperimentSessionIterationInput!): MJExperimentSessionIteration_!
   UpdateMJExplorerNavigationItem(input: UpdateMJExplorerNavigationItemInput!): MJExplorerNavigationItem_!
+  UpdateMJExternalDataSource(input: UpdateMJExternalDataSourceInput!): MJExternalDataSource_!
+  UpdateMJExternalDataSourceType(input: UpdateMJExternalDataSourceTypeInput!): MJExternalDataSourceType_!
   UpdateMJFile(input: UpdateMJFileInput!): MJFile_!
   UpdateMJFileCategory(input: UpdateMJFileCategoryInput!): MJFileCategory_!
   UpdateMJFileEntityRecordLink(input: UpdateMJFileEntityRecordLinkInput!): MJFileEntityRecordLink_!
@@ -25634,6 +26234,9 @@ type Mutation {
   UpdateMJUserNotificationType(input: UpdateMJUserNotificationTypeInput!): MJUserNotificationType_!
   UpdateMJUserRecordLog(input: UpdateMJUserRecordLogInput!): MJUserRecordLog_!
   UpdateMJUserRole(input: UpdateMJUserRoleInput!): MJUserRole_!
+  UpdateMJUserRoutine(input: UpdateMJUserRoutineInput!): MJUserRoutine_!
+  UpdateMJUserRoutineRecipient(input: UpdateMJUserRoutineRecipientInput!): MJUserRoutineRecipient_!
+  UpdateMJUserRoutineRun(input: UpdateMJUserRoutineRunInput!): MJUserRoutineRun_!
   UpdateMJUserSetting(input: UpdateMJUserSettingInput!): MJUserSetting_!
   UpdateMJUserView(input: UpdateMJUserViewInput!): MJUserView_!
   UpdateMJUserViewCategory(input: UpdateMJUserViewCategoryInput!): MJUserViewCategory_!
@@ -25651,7 +26254,7 @@ type Mutation {
   UpdateMJWorkflowRun(input: UpdateMJWorkflowRunInput!): MJWorkflowRun_!
   UpdateMJWorkspace(input: UpdateMJWorkspaceInput!): MJWorkspace_!
   UpdateMJWorkspaceItem(input: UpdateMJWorkspaceItemInput!): MJWorkspaceItem_!
-  UpdateQuerySystemUser(input: UpdateQuerySystemUserInput!): QueryMutationResultType!
+  UpdateQueryExtended(input: UpdateQuerySystemUserInput!): QueryMutationResultType!
   UpdatemjBizAppsCommitteesAgendaItem(input: UpdatemjBizAppsCommitteesAgendaItemInput!): mjBizAppsCommitteesAgendaItem_!
   UpdatemjBizAppsCommitteesArtifact(input: UpdatemjBizAppsCommitteesArtifactInput!): mjBizAppsCommitteesArtifact_!
   UpdatemjBizAppsCommitteesArtifactType(input: UpdatemjBizAppsCommitteesArtifactTypeInput!): mjBizAppsCommitteesArtifactType_!
@@ -25738,6 +26341,24 @@ type PipelineProgressNotification {
   ProcessedItems: Float!
   Stage: String!
   TotalItems: Float!
+}
+
+type PlaceCallResult {
+  CallSid: String!
+  ErrorMessage: String
+  Success: Boolean!
+}
+
+type PlaceRingCentralCallResult {
+  ErrorMessage: String
+  SessionId: String!
+  Success: Boolean!
+}
+
+type PlaceVonageCallResult {
+  CallId: String!
+  ErrorMessage: String
+  Success: Boolean!
 }
 
 input PotentialDuplicateRequestType {
@@ -26074,6 +26695,7 @@ type Query {
   MJConversationDetailArtifact(ID: String!): MJConversationDetailArtifact_
   MJConversationDetailAttachment(ID: String!): MJConversationDetailAttachment_
   MJConversationDetailRating(ID: String!): MJConversationDetailRating_
+  MJConversationWidgetInstance(ID: String!): MJConversationWidgetInstance_
   MJCountry(ID: String!): MJCountry_
   MJCredential(ID: String!): MJCredential_
   MJCredentialCategory(ID: String!): MJCredentialCategory_
@@ -26129,6 +26751,8 @@ type Query {
   MJExperimentSession(ID: String!): MJExperimentSession_
   MJExperimentSessionIteration(ID: String!): MJExperimentSessionIteration_
   MJExplorerNavigationItem(ID: String!): MJExplorerNavigationItem_
+  MJExternalDataSource(ID: String!): MJExternalDataSource_
+  MJExternalDataSourceType(ID: String!): MJExternalDataSourceType_
   MJFile(ID: String!): MJFile_
   MJFileCategory(ID: String!): MJFileCategory_
   MJFileEntityRecordLink(ID: String!): MJFileEntityRecordLink_
@@ -26281,6 +26905,9 @@ type Query {
   MJUserNotificationType(ID: String!): MJUserNotificationType_
   MJUserRecordLog(ID: String!): MJUserRecordLog_
   MJUserRole(ID: String!): MJUserRole_
+  MJUserRoutine(ID: String!): MJUserRoutine_
+  MJUserRoutineRecipient(ID: String!): MJUserRoutineRecipient_
+  MJUserRoutineRun(ID: String!): MJUserRoutineRun_
   MJUserSetting(ID: String!): MJUserSetting_
   MJUserView(ID: String!): MJUserView_
   MJUserViewCategory(ID: String!): MJUserViewCategory_
@@ -26756,6 +27383,9 @@ type Query {
   RunMJConversationDynamicView(input: RunDynamicViewInput!): RunMJConversationViewResult!
   RunMJConversationViewByID(input: RunViewByIDInput!): RunMJConversationViewResult!
   RunMJConversationViewByName(input: RunViewByNameInput!): RunMJConversationViewResult!
+  RunMJConversationWidgetInstanceDynamicView(input: RunDynamicViewInput!): RunMJConversationWidgetInstanceViewResult!
+  RunMJConversationWidgetInstanceViewByID(input: RunViewByIDInput!): RunMJConversationWidgetInstanceViewResult!
+  RunMJConversationWidgetInstanceViewByName(input: RunViewByNameInput!): RunMJConversationWidgetInstanceViewResult!
   RunMJCountryDynamicView(input: RunDynamicViewInput!): RunMJCountryViewResult!
   RunMJCountryViewByID(input: RunViewByIDInput!): RunMJCountryViewResult!
   RunMJCountryViewByName(input: RunViewByNameInput!): RunMJCountryViewResult!
@@ -26921,6 +27551,12 @@ type Query {
   RunMJExplorerNavigationItemDynamicView(input: RunDynamicViewInput!): RunMJExplorerNavigationItemViewResult!
   RunMJExplorerNavigationItemViewByID(input: RunViewByIDInput!): RunMJExplorerNavigationItemViewResult!
   RunMJExplorerNavigationItemViewByName(input: RunViewByNameInput!): RunMJExplorerNavigationItemViewResult!
+  RunMJExternalDataSourceDynamicView(input: RunDynamicViewInput!): RunMJExternalDataSourceViewResult!
+  RunMJExternalDataSourceTypeDynamicView(input: RunDynamicViewInput!): RunMJExternalDataSourceTypeViewResult!
+  RunMJExternalDataSourceTypeViewByID(input: RunViewByIDInput!): RunMJExternalDataSourceTypeViewResult!
+  RunMJExternalDataSourceTypeViewByName(input: RunViewByNameInput!): RunMJExternalDataSourceTypeViewResult!
+  RunMJExternalDataSourceViewByID(input: RunViewByIDInput!): RunMJExternalDataSourceViewResult!
+  RunMJExternalDataSourceViewByName(input: RunViewByNameInput!): RunMJExternalDataSourceViewResult!
   RunMJFileCategoryDynamicView(input: RunDynamicViewInput!): RunMJFileCategoryViewResult!
   RunMJFileCategoryViewByID(input: RunViewByIDInput!): RunMJFileCategoryViewResult!
   RunMJFileCategoryViewByName(input: RunViewByNameInput!): RunMJFileCategoryViewResult!
@@ -27375,6 +28011,15 @@ type Query {
   RunMJUserRoleDynamicView(input: RunDynamicViewInput!): RunMJUserRoleViewResult!
   RunMJUserRoleViewByID(input: RunViewByIDInput!): RunMJUserRoleViewResult!
   RunMJUserRoleViewByName(input: RunViewByNameInput!): RunMJUserRoleViewResult!
+  RunMJUserRoutineDynamicView(input: RunDynamicViewInput!): RunMJUserRoutineViewResult!
+  RunMJUserRoutineRecipientDynamicView(input: RunDynamicViewInput!): RunMJUserRoutineRecipientViewResult!
+  RunMJUserRoutineRecipientViewByID(input: RunViewByIDInput!): RunMJUserRoutineRecipientViewResult!
+  RunMJUserRoutineRecipientViewByName(input: RunViewByNameInput!): RunMJUserRoutineRecipientViewResult!
+  RunMJUserRoutineRunDynamicView(input: RunDynamicViewInput!): RunMJUserRoutineRunViewResult!
+  RunMJUserRoutineRunViewByID(input: RunViewByIDInput!): RunMJUserRoutineRunViewResult!
+  RunMJUserRoutineRunViewByName(input: RunViewByNameInput!): RunMJUserRoutineRunViewResult!
+  RunMJUserRoutineViewByID(input: RunViewByIDInput!): RunMJUserRoutineViewResult!
+  RunMJUserRoutineViewByName(input: RunViewByNameInput!): RunMJUserRoutineViewResult!
   RunMJUserSettingDynamicView(input: RunDynamicViewInput!): RunMJUserSettingViewResult!
   RunMJUserSettingViewByID(input: RunViewByIDInput!): RunMJUserSettingViewResult!
   RunMJUserSettingViewByName(input: RunViewByNameInput!): RunMJUserSettingViewResult!
@@ -29570,6 +30215,16 @@ type RunMJConversationViewResult {
   UserViewRunID: String
 }
 
+type RunMJConversationWidgetInstanceViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJConversationWidgetInstance_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
 type RunMJCountryViewResult {
   ErrorMessage: String
   ExecutionTime: Int
@@ -30114,6 +30769,26 @@ type RunMJExplorerNavigationItemViewResult {
   ErrorMessage: String
   ExecutionTime: Int
   Results: [MJExplorerNavigationItem_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunMJExternalDataSourceTypeViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJExternalDataSourceType_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunMJExternalDataSourceViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJExternalDataSource_!]!
   RowCount: Int
   Success: Boolean!
   TotalRowCount: Int
@@ -31624,6 +32299,36 @@ type RunMJUserRoleViewResult {
   ErrorMessage: String
   ExecutionTime: Int
   Results: [MJUserRole_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunMJUserRoutineRecipientViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJUserRoutineRecipient_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunMJUserRoutineRunViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJUserRoutineRun_!]!
+  RowCount: Int
+  Success: Boolean!
+  TotalRowCount: Int
+  UserViewRunID: String
+}
+
+type RunMJUserRoutineViewResult {
+  ErrorMessage: String
+  ExecutionTime: Int
+  Results: [MJUserRoutine_!]!
   RowCount: Int
   Success: Boolean!
   TotalRowCount: Int
@@ -33154,6 +33859,12 @@ type StartSyncOutput {
   Success: Boolean!
 }
 
+type StartTeamsMeetingResult {
+  CallId: String!
+  ErrorMessage: String
+  Success: Boolean!
+}
+
 type StorageListResult {
   objects: [StorageObjectMetadata!]!
   prefixes: [String!]!
@@ -33717,10 +34428,12 @@ input UpdateMJAIAgentInput {
   PayloadUpstreamPaths: String
   RecordingDefault: String
   RecordingStorageProviderID: String
+  RequirePlanMode: Boolean
   RerankerConfiguration: String
   RestoreContext___: RestoreContextInput
   ScopeConfig: String
   SearchScopeAccess: String
+  SkillActivationMode: String
   StartingPayloadValidation: String
   StartingPayloadValidationMode: String
   Status: String
@@ -33910,6 +34623,7 @@ input UpdateMJAIAgentRunInput {
   OverrideModelID: String
   OverrideVendorID: String
   ParentRunID: String
+  PlanMode: Boolean
   PrimaryScopeEntityID: String
   PrimaryScopeRecordID: String
   RestoreContext___: RestoreContextInput
@@ -33974,6 +34688,7 @@ input UpdateMJAIAgentRunStepInput {
   PayloadAtEnd: String
   PayloadAtStart: String
   RestoreContext___: RestoreContextInput
+  Skills: String
   StartedAt: Timestamp
   Status: String
   StepName: String
@@ -34060,6 +34775,8 @@ input UpdateMJAIAgentSessionInput {
   ID: String!
   LastActiveAt: Timestamp
   LastSessionID: String
+  LinkedEntityID: String
+  LinkedRecordID: String
   OldValues___: [KeyValuePairInput!]
   RecordingFileID: String
   RecordingMedia: String
@@ -34630,6 +35347,7 @@ input UpdateMJAISkillActionInput {
 }
 
 input UpdateMJAISkillInput {
+  ActivationMode: String
   Category: String
   Color: String
   CreatedByUserID: String
@@ -35827,6 +36545,7 @@ input UpdateMJConversationInput {
   ID: String!
   IsArchived: Boolean
   IsPinned: Boolean
+  LastConversationID: String
   LinkedEntityID: String
   LinkedRecordID: String
   Name: String
@@ -35838,6 +36557,29 @@ input UpdateMJConversationInput {
   TestRunID: String
   Type: String
   UserID: String
+  VisitorKey: String
+}
+
+input UpdateMJConversationWidgetInstanceInput {
+  AllowedOrigins: String
+  ApplicationID: String
+  AuthStrategy: String
+  EnabledChannels: String
+  GuestRoleID: String
+  HostPublicKey: String
+  ID: String!
+  Modality: String
+  Name: String
+  OldValues___: [KeyValuePairInput!]
+  PinnedAgentID: String
+  PublicKey: String
+  RateLimitPerMinute: Int
+  RememberReturningVisitors: Boolean
+  RestoreContext___: RestoreContextInput
+  SessionTTLMinutes: Int
+  Status: String
+  VisitorMemoryRetentionDays: Int
+  VoiceMaxSessionMinutes: Int
 }
 
 input UpdateMJCountryInput {
@@ -36430,6 +37172,8 @@ input UpdateMJEntityInput {
   DisplayName: String
   EntityObjectSubclassImport: String
   EntityObjectSubclassName: String
+  ExternalDataSourceID: String
+  ExternalObjectName: String
   FullTextCatalog: String
   FullTextCatalogGenerated: Boolean
   FullTextIndex: String
@@ -36659,6 +37403,40 @@ input UpdateMJExplorerNavigationItemInput {
   Sequence: Int
   ShowInHomeScreen: Boolean
   ShowInNavigationDrawer: Boolean
+}
+
+input UpdateMJExternalDataSourceInput {
+  ConnectionConfig: String
+  CredentialID: String
+  DefaultCacheTTLSeconds: Int
+  DefaultDatabase: String
+  DefaultSchema: String
+  Description: String
+  ID: String!
+  LastConnectionTestAt: Timestamp
+  LastConnectionTestResult: String
+  Name: String
+  OldValues___: [KeyValuePairInput!]
+  RestoreContext___: RestoreContextInput
+  Status: String
+  TypeID: String
+}
+
+input UpdateMJExternalDataSourceTypeInput {
+  Description: String
+  DriverClass: String
+  FilterDialect: String
+  ID: String!
+  MetadataIntrospectionStrategy: String
+  Name: String
+  OldValues___: [KeyValuePairInput!]
+  PagingStrategy: String
+  RequiredCredentialTypeID: String
+  RestoreContext___: RestoreContextInput
+  Status: String
+  SupportsNativeQueries: Boolean
+  SupportsReadWrite: Boolean
+  SupportsSchemaIntrospection: Boolean
 }
 
 input UpdateMJFileCategoryInput {
@@ -37584,6 +38362,7 @@ input UpdateMJQueryInput {
   EmbeddingModelID: String
   EmbeddingVector: String
   ExecutionCostRank: Int
+  ExternalDataSourceID: String
   Feedback: String
   ID: String!
   Name: String
@@ -38861,6 +39640,64 @@ input UpdateMJUserRoleInput {
   RestoreContext___: RestoreContextInput
   RoleID: String
   UserID: String
+}
+
+input UpdateMJUserRoutineInput {
+  ConversationID: String
+  CronExpression: String
+  Description: String
+  EndAt: Timestamp
+  EnvironmentID: String
+  ID: String!
+  InitialMessage: String
+  LastResultHash: String
+  LastRunAt: Timestamp
+  LastRunStatus: String
+  Name: String
+  NextRunAt: Timestamp
+  NotificationTemplateID: String
+  NotifyCondition: String
+  NotifyViaEmail: Boolean
+  NotifyViaInApp: Boolean
+  OldValues___: [KeyValuePairInput!]
+  RequestedSkillIDs: String
+  RestoreContext___: RestoreContextInput
+  RoutineType: String
+  StartAt: Timestamp
+  StartingPayload: String
+  Status: String
+  TargetID: String
+  TargetType: String
+  Timezone: String
+  UserID: String
+}
+
+input UpdateMJUserRoutineRecipientInput {
+  Channel: String
+  Email: String
+  ID: String!
+  OldValues___: [KeyValuePairInput!]
+  RestoreContext___: RestoreContextInput
+  RoutineID: String
+  Sequence: Int
+  UserID: String
+}
+
+input UpdateMJUserRoutineRunInput {
+  ActionExecutionLogID: String
+  AgentRunID: String
+  CompletedAt: Timestamp
+  ErrorMessage: String
+  ID: String!
+  NotificationSent: Boolean
+  OldValues___: [KeyValuePairInput!]
+  PromptRunID: String
+  RestoreContext___: RestoreContextInput
+  ResultHash: String
+  ResultSummary: String
+  RoutineID: String
+  StartedAt: Timestamp
+  Status: String
 }
 
 input UpdateMJUserSettingInput {

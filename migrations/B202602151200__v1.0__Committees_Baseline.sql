@@ -1879,7 +1879,7 @@ INSERT INTO [${mjSchema}].[EntityPermission]
                                                    ('272befb5-727a-4525-b235-775a56b7acbb', 'DFAFCCEC-6A37-EF11-86D4-000D3A4E707E', 1, 1, 1, 1, GETUTCDATE(), GETUTCDATE());
 
 /* SQL text to update existing entities from schema */
-EXEC [${mjSchema}].[spUpdateExistingEntitiesFromSchema] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},${mjBACSchema},${mjSchema}_BizAppsTasks';
+EXEC [${mjSchema}].[spUpdateExistingEntitiesFromSchema] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},__mj_BizAppsCommon,${mjSchema}_BizAppsTasks';
 
 /* SQL text to add special date field __mj_CreatedAt to entity ${flyway:defaultSchema}.AgendaItem */
 ALTER TABLE [${flyway:defaultSchema}].[AgendaItem] ADD [__mj_CreatedAt] DATETIMEOFFSET NULL;
@@ -15231,10 +15231,10 @@ GO
       END;
 
 /* SQL text to update existing entity fields from schema */
-EXEC [${mjSchema}].[spUpdateExistingEntityFieldsFromSchema] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},${mjBACSchema},${mjSchema}_BizAppsTasks';
+EXEC [${mjSchema}].[spUpdateExistingEntityFieldsFromSchema] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},__mj_BizAppsCommon,${mjSchema}_BizAppsTasks';
 
 /* SQL text to set default column width where needed */
-EXEC [${mjSchema}].[spSetDefaultColumnWidthWhereNeeded] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},${mjBACSchema},${mjSchema}_BizAppsTasks';
+EXEC [${mjSchema}].[spSetDefaultColumnWidthWhereNeeded] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},__mj_BizAppsCommon,${mjSchema}_BizAppsTasks';
 
 /* SQL text to insert entity field value with ID 7b071685-8e73-473e-886a-6513759930d5 */
 INSERT INTO [${mjSchema}].[EntityFieldValue]
@@ -16128,7 +16128,7 @@ UPDATE [${mjSchema}].[EntityField] SET ValueListType='List' WHERE ID='90C79F7D-7
    END;
 
 /* SQL text to sync schema info from database schemas */
-EXEC [${mjSchema}].[spUpdateSchemaInfoFromDatabase] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},${mjBACSchema},${mjSchema}_BizAppsTasks';
+EXEC [${mjSchema}].[spUpdateSchemaInfoFromDatabase] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},__mj_BizAppsCommon,${mjSchema}_BizAppsTasks';
 
 /* Index for Foreign Keys for ActionItem */
 -----------------------------------------------------------------
@@ -16652,7 +16652,7 @@ INNER JOIN
   ON
     [a].[MeetingID] = mjBizAppsCommitteesMeeting_MeetingID.[ID]
 INNER JOIN
-    [${mjBACSchema}].[Person] AS mjBizAppsCommonPerson_PersonID
+    [__mj_BizAppsCommon].[Person] AS mjBizAppsCommonPerson_PersonID
   ON
     [a].[PersonID] = mjBizAppsCommonPerson_PersonID.[ID]
 GO
@@ -16996,7 +16996,7 @@ LEFT OUTER JOIN
   ON
     [a].[ParentAgendaItemID] = mjBizAppsCommitteesAgendaItem_ParentAgendaItemID.[ID]
 LEFT OUTER JOIN
-    [${mjBACSchema}].[Person] AS mjBizAppsCommonPerson_PresenterPersonID
+    [__mj_BizAppsCommon].[Person] AS mjBizAppsCommonPerson_PresenterPersonID
   ON
     [a].[PresenterPersonID] = mjBizAppsCommonPerson_PresenterPersonID.[ID]
 OUTER APPLY
@@ -17336,11 +17336,11 @@ LEFT OUTER JOIN
   ON
     [a].[AgendaItemID] = mjBizAppsCommitteesAgendaItem_AgendaItemID.[ID]
 INNER JOIN
-    [${mjBACSchema}].[Person] AS mjBizAppsCommonPerson_AssignedToPersonID
+    [__mj_BizAppsCommon].[Person] AS mjBizAppsCommonPerson_AssignedToPersonID
   ON
     [a].[AssignedToPersonID] = mjBizAppsCommonPerson_AssignedToPersonID.[ID]
 LEFT OUTER JOIN
-    [${mjBACSchema}].[Person] AS mjBizAppsCommonPerson_AssignedByPersonID
+    [__mj_BizAppsCommon].[Person] AS mjBizAppsCommonPerson_AssignedByPersonID
   ON
     [a].[AssignedByPersonID] = mjBizAppsCommonPerson_AssignedByPersonID.[ID]
 GO
@@ -17684,7 +17684,7 @@ INNER JOIN
   ON
     [a].[ArtifactTypeID] = mjBizAppsCommitteesArtifactType_ArtifactTypeID.[ID]
 LEFT OUTER JOIN
-    [${mjBACSchema}].[Person] AS mjBizAppsCommonPerson_UploadedByPersonID
+    [__mj_BizAppsCommon].[Person] AS mjBizAppsCommonPerson_UploadedByPersonID
   ON
     [a].[UploadedByPersonID] = mjBizAppsCommonPerson_UploadedByPersonID.[ID]
 GO
@@ -18995,7 +18995,7 @@ LEFT OUTER JOIN
   ON
     [c].[ParentCommitteeID] = mjBizAppsCommitteesCommittee_ParentCommitteeID.[ID]
 LEFT OUTER JOIN
-    [${mjBACSchema}].[Organization] AS mjBizAppsCommonOrganization_OrganizationID
+    [__mj_BizAppsCommon].[Organization] AS mjBizAppsCommonOrganization_OrganizationID
   ON
     [c].[OrganizationID] = mjBizAppsCommonOrganization_OrganizationID.[ID]
 OUTER APPLY
@@ -19311,7 +19311,7 @@ SELECT
 FROM
     [${flyway:defaultSchema}].[Membership] AS m
 INNER JOIN
-    [${mjBACSchema}].[Person] AS mjBizAppsCommonPerson_PersonID
+    [__mj_BizAppsCommon].[Person] AS mjBizAppsCommonPerson_PersonID
   ON
     [m].[PersonID] = mjBizAppsCommonPerson_PersonID.[ID]
 INNER JOIN
@@ -19695,7 +19695,7 @@ LEFT OUTER JOIN
   ON
     [c].[ArtifactID] = mjBizAppsCommitteesArtifact_ArtifactID.[ID]
 INNER JOIN
-    [${mjBACSchema}].[Person] AS mjBizAppsCommonPerson_PersonID
+    [__mj_BizAppsCommon].[Person] AS mjBizAppsCommonPerson_PersonID
   ON
     [c].[PersonID] = mjBizAppsCommonPerson_PersonID.[ID]
 OUTER APPLY
@@ -22076,7 +22076,7 @@ GRANT EXECUTE ON [${flyway:defaultSchema}].[spDeleteVideoProvider] TO [cdp_Devel
 GRANT EXECUTE ON [${flyway:defaultSchema}].[spDeleteVideoProvider] TO [cdp_Developer], [cdp_Integration];
 
 /* SQL text to delete unneeded entity fields (17 scoped entities) */
-EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},${mjBACSchema},${mjSchema}_BizAppsTasks', @EntityIDs='0EC944F9-F908-4662-87B2-E57077A873FF,AAAEE71B-D7CF-4628-BED0-59D43256E46A,94A59079-7436-4178-A31B-9B42DDA822C1,194B3496-2829-4806-BC42-CF0724A1DD26,93C97937-A33B-41D2-9791-FC271E49F96F,C1CEF804-AA80-47A0-9750-2A4C5227B6DF,A5DA88A1-AA21-4A3F-B1C4-42652FB440CE,87BEDFA6-F149-4AF2-993C-81BD01169584,9BEDCBE8-0EF8-4F86-AB72-2063CE41A138,F8FADBBE-A323-48FB-8395-3B543729F6E6,F11B4DC5-9850-4782-B3A1-7D2277A19837,F7DEBA2D-4E28-4C6E-971B-6099217FAB29,D7F80482-E5EE-4DD9-ABAC-1F357D8A76E8,E7D9813E-3C34-4233-AFCC-4CB76CFE081C,97337824-6D33-4814-BF26-F422A0869642,07BB0F44-EC35-4CAF-8C36-A766A545159D,272BEFB5-727A-4525-B235-775A56B7ACBB';
+EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},__mj_BizAppsCommon,${mjSchema}_BizAppsTasks', @EntityIDs='0EC944F9-F908-4662-87B2-E57077A873FF,AAAEE71B-D7CF-4628-BED0-59D43256E46A,94A59079-7436-4178-A31B-9B42DDA822C1,194B3496-2829-4806-BC42-CF0724A1DD26,93C97937-A33B-41D2-9791-FC271E49F96F,C1CEF804-AA80-47A0-9750-2A4C5227B6DF,A5DA88A1-AA21-4A3F-B1C4-42652FB440CE,87BEDFA6-F149-4AF2-993C-81BD01169584,9BEDCBE8-0EF8-4F86-AB72-2063CE41A138,F8FADBBE-A323-48FB-8395-3B543729F6E6,F11B4DC5-9850-4782-B3A1-7D2277A19837,F7DEBA2D-4E28-4C6E-971B-6099217FAB29,D7F80482-E5EE-4DD9-ABAC-1F357D8A76E8,E7D9813E-3C34-4233-AFCC-4CB76CFE081C,97337824-6D33-4814-BF26-F422A0869642,07BB0F44-EC35-4CAF-8C36-A766A545159D,272BEFB5-727A-4525-B235-775A56B7ACBB';
 
 /* SQL text to insert new entity field */
 
@@ -24939,10 +24939,10 @@ EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='sys,stag
       END;
 
 /* SQL text to update existing entity fields from schema (17 scoped entities) */
-EXEC [${mjSchema}].[spUpdateExistingEntityFieldsFromSchema] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},${mjBACSchema},${mjSchema}_BizAppsTasks', @EntityIDs='0EC944F9-F908-4662-87B2-E57077A873FF,AAAEE71B-D7CF-4628-BED0-59D43256E46A,94A59079-7436-4178-A31B-9B42DDA822C1,194B3496-2829-4806-BC42-CF0724A1DD26,93C97937-A33B-41D2-9791-FC271E49F96F,C1CEF804-AA80-47A0-9750-2A4C5227B6DF,A5DA88A1-AA21-4A3F-B1C4-42652FB440CE,87BEDFA6-F149-4AF2-993C-81BD01169584,9BEDCBE8-0EF8-4F86-AB72-2063CE41A138,F8FADBBE-A323-48FB-8395-3B543729F6E6,F11B4DC5-9850-4782-B3A1-7D2277A19837,F7DEBA2D-4E28-4C6E-971B-6099217FAB29,D7F80482-E5EE-4DD9-ABAC-1F357D8A76E8,E7D9813E-3C34-4233-AFCC-4CB76CFE081C,97337824-6D33-4814-BF26-F422A0869642,07BB0F44-EC35-4CAF-8C36-A766A545159D,272BEFB5-727A-4525-B235-775A56B7ACBB';
+EXEC [${mjSchema}].[spUpdateExistingEntityFieldsFromSchema] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},__mj_BizAppsCommon,${mjSchema}_BizAppsTasks', @EntityIDs='0EC944F9-F908-4662-87B2-E57077A873FF,AAAEE71B-D7CF-4628-BED0-59D43256E46A,94A59079-7436-4178-A31B-9B42DDA822C1,194B3496-2829-4806-BC42-CF0724A1DD26,93C97937-A33B-41D2-9791-FC271E49F96F,C1CEF804-AA80-47A0-9750-2A4C5227B6DF,A5DA88A1-AA21-4A3F-B1C4-42652FB440CE,87BEDFA6-F149-4AF2-993C-81BD01169584,9BEDCBE8-0EF8-4F86-AB72-2063CE41A138,F8FADBBE-A323-48FB-8395-3B543729F6E6,F11B4DC5-9850-4782-B3A1-7D2277A19837,F7DEBA2D-4E28-4C6E-971B-6099217FAB29,D7F80482-E5EE-4DD9-ABAC-1F357D8A76E8,E7D9813E-3C34-4233-AFCC-4CB76CFE081C,97337824-6D33-4814-BF26-F422A0869642,07BB0F44-EC35-4CAF-8C36-A766A545159D,272BEFB5-727A-4525-B235-775A56B7ACBB';
 
 /* SQL text to set default column width where needed */
-EXEC [${mjSchema}].[spSetDefaultColumnWidthWhereNeeded] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},${mjBACSchema},${mjSchema}_BizAppsTasks';
+EXEC [${mjSchema}].[spSetDefaultColumnWidthWhereNeeded] @ExcludedSchemaNames='sys,staging,dbo,${mjSchema},__mj_BizAppsCommon,${mjSchema}_BizAppsTasks';
 
 /* Generated Validation Functions for Committees: Ballots */
 -- CHECK constraint for Committees: Ballots @ Table Level was newly set or modified since the last generation of the validation function, the code was regenerated and updating the GeneratedCode table with the new generated validation function

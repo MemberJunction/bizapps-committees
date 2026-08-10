@@ -18,21 +18,24 @@
   "author": "MemberJunction.com",
   "license": "ISC",
   "peerDependencies": {
-    "@memberjunction/ai-agents": "^5.45.0",
-    "@memberjunction/ai-core-plus": "^5.45.0",
-    "@memberjunction/aiengine": "^5.45.0",
-    "@memberjunction/core": "^5.45.0",
-    "@memberjunction/core-entities": "^5.45.0",
-    "@memberjunction/credentials": "^5.45.0",
-    "@memberjunction/global": "^5.45.0",
-    "@memberjunction/server": "^5.45.0"
+    "@memberjunction/ai-agents": "6.1.0-edge.1",
+    "@memberjunction/ai-core-plus": "6.1.0-edge.1",
+    "@memberjunction/aiengine": "6.1.0-edge.1",
+    "@memberjunction/core": "6.1.0-edge.1",
+    "@memberjunction/core-entities": "6.1.0-edge.1",
+    "@memberjunction/credentials": "6.1.0-edge.1",
+    "@memberjunction/global": "6.1.0-edge.1",
+    "@memberjunction/server": "6.1.0-edge.1"
   },
   "dependencies": {
     "@mj-biz-apps/committees-core": "1.1.0",
     "@mj-biz-apps/committees-entities": "1.1.0",
-    "class-validator": "^0.14.3"
+    "@mj-biz-apps/common-entities": "5.33.1",
+    "class-validator": "^0.14.3",
+    "rxjs": "^7.8.2"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "typescript": "^5.9.3"
   },
   "repository": {

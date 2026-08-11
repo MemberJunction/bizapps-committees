@@ -17,7 +17,7 @@
     {
       "name": "mj-bizapps-common",
       "repository": "https://github.com/MemberJunction/bizapps-common",
-      "versionRange": ">=5.33.1 <6.0.0"
+      "versionRange": ">=5.33.2 <6.0.0"
     },
     {
       "name": "mj-bizapps-tasks",
@@ -55,6 +55,10 @@
     "shared": [
       {
         "name": "@mj-biz-apps/committees-entities",
+        "role": "library"
+      },
+      {
+        "name": "@mj-biz-apps/committees-core-entities-server",
         "role": "library"
       },
       {

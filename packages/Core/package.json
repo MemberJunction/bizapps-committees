@@ -37,7 +37,7 @@
     "@memberjunction/global": "6.1.0-edge.1"
   },
   "dependencies": {
-    "@mj-biz-apps/common-entities": "5.33.1",
+    "@mj-biz-apps/common-entities": "5.33.2",
     "@mj-biz-apps/committees-entities": "1.1.0"
   },
   "repository": {

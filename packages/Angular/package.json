@@ -32,8 +32,8 @@
   },
   "dependencies": {
     "marked": "^17.0.4",
-    "@mj-biz-apps/common-entities": "5.33.1",
-    "@mj-biz-apps/common-ng": "5.33.1",
+    "@mj-biz-apps/common-entities": "5.33.2",
+    "@mj-biz-apps/common-ng": "5.33.2",
     "@mj-biz-apps/committees-core": "1.1.0",
     "@mj-biz-apps/committees-entities": "1.1.0",
     "@mj-biz-apps/tasks-ng": "1.2.1",

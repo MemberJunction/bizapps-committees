@@ -18,14 +18,14 @@
   "author": "MemberJunction.com",
   "license": "ISC",
   "peerDependencies": {
-    "@memberjunction/ai-agents": "6.1.0-edge.1",
-    "@memberjunction/ai-core-plus": "6.1.0-edge.1",
-    "@memberjunction/aiengine": "6.1.0-edge.1",
-    "@memberjunction/core": "6.1.0-edge.1",
-    "@memberjunction/core-entities": "6.1.0-edge.1",
-    "@memberjunction/credentials": "6.1.0-edge.1",
-    "@memberjunction/global": "6.1.0-edge.1",
-    "@memberjunction/server": "6.1.0-edge.1"
+    "@memberjunction/ai-agents": "^6.1.0-edge.1",
+    "@memberjunction/ai-core-plus": "^6.1.0-edge.1",
+    "@memberjunction/aiengine": "^6.1.0-edge.1",
+    "@memberjunction/core": "^6.1.0-edge.1",
+    "@memberjunction/core-entities": "^6.1.0-edge.1",
+    "@memberjunction/credentials": "^6.1.0-edge.1",
+    "@memberjunction/global": "^6.1.0-edge.1",
+    "@memberjunction/server": "^6.1.0-edge.1"
   },
   "dependencies": {
     "@mj-biz-apps/committees-core": "1.1.0",

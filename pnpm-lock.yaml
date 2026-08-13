@@ -20,8 +20,8 @@ overrides:
   '@angular/platform-browser-dynamic': 21.1.3
   '@angular/router': 21.1.3
   '@angular/service-worker': 21.1.3
-  '@memberjunction/core': 6.1.0-edge.1
-  '@memberjunction/global': 6.1.0-edge.1
+  '@memberjunction/core': ^6.1.0-edge.1
+  '@memberjunction/global': ^6.1.0-edge.1
 
 importers:
 
@@ -31,7 +31,7 @@ importers:
         specifier: ^2.29.8
         version: 2.31.1(@types/node@20.14.2)
       '@memberjunction/cli':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1(@aws-sdk/credential-provider-node@3.972.78)(@aws-sdk/credential-providers@3.1106.0)(@modelcontextprotocol/sdk@1.30.0(zod@3.25.76))(@smithy/signature-v4@5.6.12)(@types/node@20.14.2)(chokidar@3.6.0)(encoding@0.1.13)(socks@2.8.9)(typescript@5.9.3)(ws@8.21.3)
       '@vitest/coverage-v8':
         specifier: 1.6.1
@@ -61,28 +61,28 @@ importers:
   packages/Actions:
     dependencies:
       '@memberjunction/actions':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1(debug@4.4.3)
       '@memberjunction/actions-base':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/ai':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/aiengine':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1(encoding@0.1.13)(typescript@5.9.3)
       '@memberjunction/core':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/core-entities':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/core-entities-server':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1(@aws-sdk/credential-provider-node@3.972.78)(@modelcontextprotocol/sdk@1.30.0(zod@3.25.76))(@smithy/signature-v4@5.6.12)(chokidar@3.6.0)(encoding@0.1.13)(typescript@5.9.3)(ws@8.21.3)
       '@memberjunction/global':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       zod:
         specifier: ^3.25.28
@@ -113,31 +113,31 @@ importers:
         specifier: 21.1.3
         version: 21.1.3(@angular/common@21.1.3(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2))(rxjs@7.8.2))(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2))(@angular/platform-browser@21.1.3(@angular/animations@21.1.3(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2)))(@angular/common@21.1.3(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2))(rxjs@7.8.2))(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2)))(rxjs@7.8.2)
       '@memberjunction/core':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/core-entities':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/global':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/graphql-dataprovider':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1(ws@8.21.3)
       '@memberjunction/ng-base-forms':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1(fc7d3a54e560c45addb36705a713bcf1)
       '@memberjunction/ng-entity-viewer':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1(ec52225f2410ff57d6949c929f192d33)
       '@memberjunction/ng-link-directives':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1(@angular/animations@21.1.3(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2)))(@angular/common@21.1.3(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2))(rxjs@7.8.2))(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2))(@angular/router@21.1.3(@angular/common@21.1.3(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2))(rxjs@7.8.2))(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2))(@angular/platform-browser@21.1.3(@angular/animations@21.1.3(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2)))(@angular/common@21.1.3(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2))(rxjs@7.8.2))(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2)))(rxjs@7.8.2))(rxjs@7.8.2)(ws@8.21.3)
       '@memberjunction/ng-shared':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1(@angular/animations@21.1.3(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2)))(@angular/common@21.1.3(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2))(rxjs@7.8.2))(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2))(@angular/router@21.1.3(@angular/common@21.1.3(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2))(rxjs@7.8.2))(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2))(@angular/platform-browser@21.1.3(@angular/animations@21.1.3(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2)))(@angular/common@21.1.3(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2))(rxjs@7.8.2))(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2)))(rxjs@7.8.2))(rxjs@7.8.2)(ws@8.21.3)
       '@memberjunction/ng-shared-generic':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1(@angular/common@21.1.3(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2))(rxjs@7.8.2))(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2))(@angular/platform-browser@21.1.3(@angular/animations@21.1.3(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2)))(@angular/common@21.1.3(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2))(rxjs@7.8.2))(@angular/core@21.1.3(@angular/compiler@21.1.3)(rxjs@7.8.2)(zone.js@0.16.2)))(rxjs@7.8.2)
       '@mj-biz-apps/committees-core':
         specifier: 1.1.0
@@ -180,10 +180,10 @@ importers:
   packages/Core:
     dependencies:
       '@memberjunction/core':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/global':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@mj-biz-apps/committees-entities':
         specifier: 1.1.0
@@ -205,28 +205,28 @@ importers:
   packages/CoreEntitiesServer:
     dependencies:
       '@memberjunction/ai-agents':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1(@aws-sdk/credential-provider-node@3.972.78)(@modelcontextprotocol/sdk@1.30.0(zod@3.25.76))(@smithy/signature-v4@5.6.12)(chokidar@3.6.0)(debug@4.4.3)(encoding@0.1.13)(typescript@5.9.3)(ws@8.21.3)(zod@3.25.76)
       '@memberjunction/ai-core-plus':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/aiengine':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1(encoding@0.1.13)(typescript@5.9.3)
       '@memberjunction/core':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/core-entities':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/credentials':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/global':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/server':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1(@aws-sdk/credential-provider-node@3.972.78)(@aws-sdk/credential-providers@3.1106.0)(@azure/identity@4.13.1)(@modelcontextprotocol/sdk@1.30.0(zod@3.25.76))(@smithy/signature-v4@5.6.12)(chokidar@3.6.0)(encoding@0.1.13)(socks@2.8.9)(typescript@5.9.3)
       '@mj-biz-apps/committees-core':
         specifier: 1.1.0
@@ -254,10 +254,10 @@ importers:
   packages/GeneratedEntities:
     dependencies:
       '@memberjunction/core':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/global':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       zod:
         specifier: ^3.25.28
@@ -266,16 +266,16 @@ importers:
   packages/Server:
     dependencies:
       '@memberjunction/core':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/core-entities':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/global':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1
       '@memberjunction/server':
-        specifier: 6.1.0-edge.1
+        specifier: ^6.1.0-edge.1
         version: 6.1.0-edge.1(@aws-sdk/credential-provider-node@3.972.78)(@aws-sdk/credential-providers@3.1106.0)(@azure/identity@4.13.1)(@modelcontextprotocol/sdk@1.30.0(zod@3.25.76))(@smithy/signature-v4@5.6.12)(chokidar@3.6.0)(encoding@0.1.13)(socks@2.8.9)(typescript@5.9.3)
       '@mj-biz-apps/committees-actions':
         specifier: 1.1.0
@@ -2521,8 +2521,8 @@ packages:
   '@mj-biz-apps/common-entities@5.33.2':
     resolution: {integrity: sha512-xaAlUIL4T5Fo6kXolkDLXVOjX6gCrjwKxqK/R7Oc1mPgONixW47kB5+7NyZfGCyGoYbKeEz+Xv/uFHRWOWXwXA==}
     peerDependencies:
-      '@memberjunction/core': 6.1.0-edge.1
-      '@memberjunction/global': 6.1.0-edge.1
+      '@memberjunction/core': ^6.1.0-edge.1
+      '@memberjunction/global': ^6.1.0-edge.1
 
   '@mj-biz-apps/common-ng@5.33.2':
     resolution: {integrity: sha512-GNTboWcJ1rleme9UCCPiBtHqvCxZW8EJQR/6gBhoP2kHyCawIcSM5N7GCQqQ90SeDNOlJ9dOCaD2WC3nW3+htg==}
@@ -2532,8 +2532,8 @@ packages:
       '@angular/core': 21.1.3
       '@angular/forms': 21.1.3
       '@memberjunction/actions-base': ^6.1.0-edge.0
-      '@memberjunction/core': 6.1.0-edge.1
-      '@memberjunction/global': 6.1.0-edge.1
+      '@memberjunction/core': ^6.1.0-edge.1
+      '@memberjunction/global': ^6.1.0-edge.1
       '@memberjunction/graphql-dataprovider': ^6.1.0-edge.0
       '@memberjunction/ng-base-forms': ^6.1.0-edge.0
       '@memberjunction/ng-entity-viewer': ^6.1.0-edge.0
@@ -2542,14 +2542,14 @@ packages:
   '@mj-biz-apps/tasks-core@1.2.1':
     resolution: {integrity: sha512-LMwmmQOYPsuRe8hEV/LuqmOCRHBi39Ptao7ljCsh6eCLv0yewFUMbEmvihAobOVsivDnJ+1BPKF2Hxom0wDNoQ==}
     peerDependencies:
-      '@memberjunction/core': 6.1.0-edge.1
-      '@memberjunction/global': 6.1.0-edge.1
+      '@memberjunction/core': ^6.1.0-edge.1
+      '@memberjunction/global': ^6.1.0-edge.1
 
   '@mj-biz-apps/tasks-entities@1.2.1':
     resolution: {integrity: sha512-L7LuDXyJdfLWLJCAaSYb6dPMrOp2brmOT6LRzG13AimQ40H+uZYH1tsQJ5SF+32nLzsb7HtjOlQMyvtwMtC97w==}
     peerDependencies:
-      '@memberjunction/core': 6.1.0-edge.1
-      '@memberjunction/global': 6.1.0-edge.1
+      '@memberjunction/core': ^6.1.0-edge.1
+      '@memberjunction/global': ^6.1.0-edge.1
 
   '@mj-biz-apps/tasks-ng@1.2.1':
     resolution: {integrity: sha512-zNb+AyIyh5BaUrWnUoSyy2yBe+OuWVqUO3p4iwAkdJUdAhcKO7A7b1QsBze8ZobyDGsehj5uqyGyeDnCFzslAQ==}
@@ -2558,8 +2558,8 @@ packages:
       '@angular/common': 21.1.3
       '@angular/core': 21.1.3
       '@angular/forms': 21.1.3
-      '@memberjunction/core': 6.1.0-edge.1
-      '@memberjunction/global': 6.1.0-edge.1
+      '@memberjunction/core': ^6.1.0-edge.1
+      '@memberjunction/global': ^6.1.0-edge.1
       '@memberjunction/graphql-dataprovider': 6.1.0-edge.1
       '@memberjunction/ng-base-forms': 6.1.0-edge.1
       '@memberjunction/ng-entity-viewer': 6.1.0-edge.1
@@ -3569,10 +3569,12 @@ packages:
   '@xmldom/xmldom@0.8.13':
     resolution: {integrity: sha512-KRYzxepc14G/CEpEGc3Yn+JKaAeT63smlDr+vjB8jRfgTBBI9wRj/nkQEO+ucV8p8I9bfKLWp37uHgFrbntPvw==}
     engines: {node: '>=10.0.0'}
+    deprecated: this version has critical issues, please update to the latest version
 
   '@xmldom/xmldom@0.9.10':
     resolution: {integrity: sha512-A9gOqLdi6cV4ibazAjcQufGj0B1y/vDqYrcuP6d/6x8P27gRS8643Dj9o1dEKtB6O7fwxb2FgBmJS2mX7gpvdw==}
     engines: {node: '>=14.6'}
+    deprecated: this version has critical issues, please update to the latest version
 
   a-sync-waterfall@1.0.1:
     resolution: {integrity: sha512-RYTOHHdWipFUliRFMCS4X2Yn2X8M87V/OpSqWzKKOGhzqyUxzyVmhHDH9sAvG+ZuQf/TAOFsLCpMw09I1ufUnA==}
@@ -11877,7 +11879,7 @@ snapshots:
 
   '@memberjunction/config@6.1.0-edge.1(typescript@5.9.3)':
     dependencies:
-      cosmiconfig: 9.0.0(typescript@5.9.3)
+      cosmiconfig: 9.0.2(typescript@5.9.3)
       lodash.mergewith: 4.6.2
       zod: 3.25.76
     transitivePeerDependencies:
@@ -12040,7 +12042,7 @@ snapshots:
       '@xmldom/xmldom': 0.8.13
       archiver: 7.0.1
       axios: 1.19.0(debug@4.4.3)
-      cosmiconfig: 9.0.0(typescript@5.9.3)
+      cosmiconfig: 9.0.2(typescript@5.9.3)
       cssstyle: 6.2.0
       d3-cloud: 1.2.9
       d3-force: 3.0.0
@@ -12163,7 +12165,7 @@ snapshots:
       '@xmldom/xmldom': 0.8.13
       archiver: 7.0.1
       axios: 1.19.0(debug@4.4.3)
-      cosmiconfig: 9.0.0(typescript@5.9.3)
+      cosmiconfig: 9.0.2(typescript@5.9.3)
       cssstyle: 6.2.0
       d3-cloud: 1.2.9
       d3-force: 3.0.0
@@ -12286,7 +12288,7 @@ snapshots:
       '@xmldom/xmldom': 0.8.13
       archiver: 7.0.1
       axios: 1.19.0(debug@4.4.3)
-      cosmiconfig: 9.0.0(typescript@5.9.3)
+      cosmiconfig: 9.0.2(typescript@5.9.3)
       cssstyle: 6.2.0
       d3-cloud: 1.2.9
       d3-force: 3.0.0
@@ -12654,7 +12656,7 @@ snapshots:
       '@memberjunction/core-entities': 6.1.0-edge.1
       '@memberjunction/credentials': 6.1.0-edge.1
       '@memberjunction/global': 6.1.0-edge.1
-      cosmiconfig: 9.0.0(typescript@5.9.3)
+      cosmiconfig: 9.0.2(typescript@5.9.3)
     optionalDependencies:
       '@aws-sdk/client-kms': 3.1106.0
       '@azure/identity': 4.13.1
@@ -16603,7 +16605,7 @@ snapshots:
 
   '@types/uuid@11.0.0':
     dependencies:
-      uuid: 13.0.2
+      uuid: 14.0.1
 
   '@types/validator@13.15.10': {}
 
@@ -18642,7 +18644,7 @@ snapshots:
     dependencies:
       base64-js: 1.5.1
       ecdsa-sig-formatter: 1.0.11
-      gaxios: 7.1.3
+      gaxios: 7.3.0
       gcp-metadata: 8.1.4
       google-logging-utils: 1.1.3
       gtoken: 8.0.0
@@ -18781,7 +18783,7 @@ snapshots:
 
   gtoken@8.0.0:
     dependencies:
-      gaxios: 7.1.3
+      gaxios: 7.3.0
       jws: 4.0.1
     transitivePeerDependencies:
       - supports-color

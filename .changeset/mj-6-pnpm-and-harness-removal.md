@@ -1,5 +1,5 @@
 ---
-'@mj-biz-apps/committees-entities': minor
+'@mj-biz-apps/committees-entities': patch
 ---
 
 Upgrade to MemberJunction 6.1.0-edge.1, migrate the repo to pnpm, and remove the

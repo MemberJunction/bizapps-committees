@@ -33,11 +33,11 @@
     "vitest": "1.6.1"
   },
   "peerDependencies": {
-    "@memberjunction/core": "^5.45.0",
-    "@memberjunction/global": "^5.45.0"
+    "@memberjunction/core": "^6.1.0-edge.2",
+    "@memberjunction/global": "^6.1.0-edge.2"
   },
   "dependencies": {
-    "@mj-biz-apps/common-entities": "^5.31.3",
+    "@mj-biz-apps/common-entities": "^5.34.0",
     "@mj-biz-apps/committees-entities": "1.1.0"
   },
   "repository": {

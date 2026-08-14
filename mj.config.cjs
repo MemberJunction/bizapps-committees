@@ -62,21 +62,7 @@ module.exports = {
       args: ['run', 'build'],
       when: 'after',
     },
-    {
-      workingDirectory: './apps/MJAPI',
-      command: 'npm',
-      args: ['start'],
-      timeout: 30000,
-      when: 'after',
-    },
   ],
-
-  // Open App engine workspace paths — the engine defaults to packages/MJAPI and
-  // packages/MJExplorer; our host apps live under apps/ (matches bizapps-accounting).
-  openApps: {
-    serverPackagePath: 'apps/MJAPI',
-    clientPackagePath: 'apps/MJExplorer',
-  },
 
   // ============================================================================
   // OPTIONAL OVERRIDES

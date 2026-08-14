@@ -18,19 +18,19 @@
   "author": "MemberJunction.com",
   "license": "ISC",
   "peerDependencies": {
-    "@memberjunction/ai-agents": "^6.1.0-edge.1",
-    "@memberjunction/ai-core-plus": "^6.1.0-edge.1",
-    "@memberjunction/aiengine": "^6.1.0-edge.1",
-    "@memberjunction/core": "^6.1.0-edge.1",
-    "@memberjunction/core-entities": "^6.1.0-edge.1",
-    "@memberjunction/credentials": "^6.1.0-edge.1",
-    "@memberjunction/global": "^6.1.0-edge.1",
-    "@memberjunction/server": "^6.1.0-edge.1"
+    "@memberjunction/ai-agents": "^6.1.0-edge.2",
+    "@memberjunction/ai-core-plus": "^6.1.0-edge.2",
+    "@memberjunction/aiengine": "^6.1.0-edge.2",
+    "@memberjunction/core": "^6.1.0-edge.2",
+    "@memberjunction/core-entities": "^6.1.0-edge.2",
+    "@memberjunction/credentials": "^6.1.0-edge.2",
+    "@memberjunction/global": "^6.1.0-edge.2",
+    "@memberjunction/server": "^6.1.0-edge.2"
   },
   "dependencies": {
     "@mj-biz-apps/committees-core": "1.1.0",
     "@mj-biz-apps/committees-entities": "1.1.0",
-    "@mj-biz-apps/common-entities": "^5.33.2",
+    "@mj-biz-apps/common-entities": "^5.34.0",
     "class-validator": "^0.14.3",
     "rxjs": "^7.8.2"
   },

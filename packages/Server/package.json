@@ -18,10 +18,10 @@
   "author": "MemberJunction.com",
   "license": "ISC",
   "peerDependencies": {
-    "@memberjunction/core": "^6.1.0-edge.1",
-    "@memberjunction/core-entities": "^6.1.0-edge.1",
-    "@memberjunction/global": "^6.1.0-edge.1",
-    "@memberjunction/server": "^6.1.0-edge.1"
+    "@memberjunction/core": "^6.1.0-edge.2",
+    "@memberjunction/core-entities": "^6.1.0-edge.2",
+    "@memberjunction/global": "^6.1.0-edge.2",
+    "@memberjunction/server": "^6.1.0-edge.2"
   },
   "dependencies": {
     "rxjs": "^7.8.1",

@@ -1,5 +1,7 @@
 # @mj-biz-apps/committees-actions
 
+## 1.1.1
+
 ## 1.1.0
 
 ### Minor Changes

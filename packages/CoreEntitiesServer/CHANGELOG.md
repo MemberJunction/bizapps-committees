@@ -1,5 +1,13 @@
 # @mj-biz-apps/committees-core-entities-server
 
+## 1.1.1
+
+### Patch Changes
+
+- Updated dependencies [11cdbfd]
+  - @mj-biz-apps/committees-entities@1.1.1
+  - @mj-biz-apps/committees-core@1.1.1
+
 ## 1.1.0
 
 ### Minor Changes

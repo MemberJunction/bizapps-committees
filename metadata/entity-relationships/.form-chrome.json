@@ -1,0 +1,244 @@
+[
+  {
+    "_comments": [
+      "Person form: committee seats they hold stay first-class."
+    ],
+    "fields": {
+      "DisplayName": "Memberships",
+      "Configuration": {
+        "UI": {
+          "inclusion": "Primary"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=MJ_BizApps_Common: People&RelatedEntity=Committees: Memberships&RelatedEntityJoinField=PersonID"
+    }
+  },
+  {
+    "_comments": [
+      "Person form: meeting attendance history sits in More."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "More"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=MJ_BizApps_Common: People&RelatedEntity=Committees: Attendances&RelatedEntityJoinField=PersonID"
+    }
+  },
+  {
+    "_comments": [
+      "Person form: committee comments are not a Person-form surface."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "None"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=MJ_BizApps_Common: People&RelatedEntity=Committees: Comments&RelatedEntityJoinField=PersonID"
+    }
+  },
+  {
+    "_comments": [
+      "Person form: votes are not a Person-form surface."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "None"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=MJ_BizApps_Common: People&RelatedEntity=Committees: Votes&RelatedEntityJoinField=PersonID"
+    }
+  },
+  {
+    "_comments": [
+      "Person form: agenda presenter is not a Person-form surface."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "None"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=MJ_BizApps_Common: People&RelatedEntity=Committees: Agenda Items&RelatedEntityJoinField=PresenterPersonID"
+    }
+  },
+  {
+    "_comments": [
+      "Person form: artifact uploader is not a Person-form surface."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "None"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=MJ_BizApps_Common: People&RelatedEntity=Committees: Artifacts&RelatedEntityJoinField=UploadedByPersonID"
+    }
+  },
+  {
+    "_comments": [
+      "Organization form: committees this org sponsors stay first-class."
+    ],
+    "fields": {
+      "DisplayName": "Committees",
+      "Configuration": {
+        "UI": {
+          "inclusion": "Primary"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=MJ_BizApps_Common: Organizations&RelatedEntity=Committees: Committees&RelatedEntityJoinField=OrganizationID"
+    }
+  },
+  {
+    "_comments": [
+      "Committee form: terms (the seat periods memberships hang off) stay first-class."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "Primary"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Committees&RelatedEntity=Committees: Terms&RelatedEntityJoinField=CommitteeID"
+    }
+  },
+  {
+    "_comments": [
+      "Committee form: meetings stay first-class."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "Primary"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Committees&RelatedEntity=Committees: Meetings&RelatedEntityJoinField=CommitteeID"
+    }
+  },
+  {
+    "_comments": [
+      "Committee form: child committees stay first-class."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "Primary"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Committees&RelatedEntity=Committees: Committees&RelatedEntityJoinField=ParentCommitteeID"
+    }
+  },
+  {
+    "_comments": [
+      "Committee form: artifacts sit in More."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "More"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Committees&RelatedEntity=Committees: Artifacts&RelatedEntityJoinField=CommitteeID"
+    }
+  },
+  {
+    "_comments": [
+      "Meeting form: agenda items stay first-class."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "Primary"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Meetings&RelatedEntity=Committees: Agenda Items&RelatedEntityJoinField=MeetingID"
+    }
+  },
+  {
+    "_comments": [
+      "Meeting form: attendances stay first-class."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "Primary"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Meetings&RelatedEntity=Committees: Attendances&RelatedEntityJoinField=MeetingID"
+    }
+  },
+  {
+    "_comments": [
+      "Meeting form: minutes stay first-class."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "Primary"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Meetings&RelatedEntity=Committees: Minutes&RelatedEntityJoinField=MeetingID"
+    }
+  },
+  {
+    "_comments": [
+      "Meeting form: motions sit in More."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "More"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Meetings&RelatedEntity=Committees: Motions&RelatedEntityJoinField=MeetingID"
+    }
+  },
+  {
+    "_comments": [
+      "Meeting form: artifacts sit in More."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "More"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Meetings&RelatedEntity=Committees: Artifacts&RelatedEntityJoinField=MeetingID"
+    }
+  }
+]

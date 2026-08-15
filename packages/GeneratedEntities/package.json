@@ -15,7 +15,7 @@
     "build": "tsc && tsc-alias -f"
   },
   "author": "MemberJunction.com",
-  "license": "ISC",
+  "license": "BUSL-1.1",
   "peerDependencies": {
     "@memberjunction/core": "^6.1.0-edge.2",
     "@memberjunction/global": "^6.1.0-edge.2"

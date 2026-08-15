@@ -1,6 +1,6 @@
 import {
     Component, EventEmitter, Input, Output, OnInit,
-    ChangeDetectionStrategy, ChangeDetectorRef, inject
+    ChangeDetectionStrategy, ChangeDetectorRef, inject, SecurityContext
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Metadata } from '@memberjunction/core';
@@ -63,7 +63,10 @@ export class GenerateMinutesPanelComponent implements OnInit {
 
     get RenderedContent(): SafeHtml {
         const html = marked.parse(this.GeneratedContent) as string;
-        return this.sanitizer.bypassSecurityTrustHtml(html);
+        // marked does NOT sanitize — run the output through Angular's sanitizer
+        // before trusting it to strip any XSS injected via the generated content.
+        const safe = this.sanitizer.sanitize(SecurityContext.HTML, html) ?? '';
+        return this.sanitizer.bypassSecurityTrustHtml(safe);
     }
 
     async OnGenerate(): Promise<void> {

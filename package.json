@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "scripts": {
-    "prebuild": "node -e \"try { require.resolve('turbo') } catch (e) { console.error('\\n\u274c Dependencies not installed. Run: pnpm install\\n'); process.exit(1); }\"",
+    "prebuild": "node -e \"try { require.resolve('turbo') } catch (e) { console.error('\\n❌ Dependencies not installed. Run: pnpm install\\n'); process.exit(1); }\" && pnpm run check:pg-parity",
     "postinstall": "echo 'MemberJunction installation complete. Please configure your environment using install.config.json or mj.config.cjs before proceeding.'",
     "build": "pnpm run build:stream",
     "build:stream": "turbo --log-order=stream build --filter=\"@mj-biz-apps/*\"",
@@ -29,7 +29,8 @@
     "test:harness": "pnpm run test:harness:metadata && pnpm run test:harness:governance && pnpm run test:harness:ballot",
     "test:harness:metadata": "tsx test-harnesses/server/metadata-integrity.mts",
     "test:harness:governance": "tsx test-harnesses/server/governance-loop-runtime.mts",
-    "test:harness:ballot": "tsx test-harnesses/server/ballot-runtime.mts"
+    "test:harness:ballot": "tsx test-harnesses/server/ballot-runtime.mts",
+    "check:pg-parity": "node scripts/check-pg-parity.mjs"
   },
   "repository": {
     "type": "git",

@@ -38,6 +38,15 @@ Committee operations are fragmented across disconnected tools — spreadsheets f
 | **Member Engagement Profiles** | Cross-committee search with engagement scores, skills, and committee history |
 | **Onboarding Workflows** | Automated welcome sequences with document packages for new committee members |
 
+## Form chrome
+
+Committee, Meeting, Term, and Motion forms use MJ's **left-nav** layout. First-class sections:
+
+- **Committee** — Terms, Meetings, child Committees. Artifacts and comments sit in More. Ballots are None (they belong on the Motion).
+- **Meeting** — Agenda, Attendance, Minutes. Motions, artifacts, and comments sit in More. Minutes approved *by* this meeting (`ApprovedByMeetingID`) are None — that is the other end of the Minutes join.
+- **Term** — Memberships.
+- **Motion** — Votes and Ballots.
+
 ## Schema Overview
 
 All tables live in the `Committees` SQL schema (14 tables):

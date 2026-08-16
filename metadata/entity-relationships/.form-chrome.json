@@ -198,9 +198,11 @@
   },
   {
     "_comments": [
-      "Meeting form: minutes stay first-class."
+      "Meeting form: minutes of this meeting stay first-class.",
+      "DisplayName drops the generated '(Meeting ID)' once the Approved-By grid is hidden."
     ],
     "fields": {
+      "DisplayName": "Minutes",
       "Configuration": {
         "UI": {
           "inclusion": "Primary"
@@ -239,6 +241,112 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Meetings&RelatedEntity=Committees: Artifacts&RelatedEntityJoinField=MeetingID"
+    }
+  },
+  {
+    "_comments": [
+      "Committee form: comments sit in More."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "More"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Committees&RelatedEntity=Committees: Comments&RelatedEntityJoinField=CommitteeID"
+    }
+  },
+  {
+    "_comments": [
+      "Committee form: ballots belong on the Motion, not the Committee."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "None"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Committees&RelatedEntity=Committees: Ballots&RelatedEntityJoinField=CommitteeID"
+    }
+  },
+  {
+    "_comments": [
+      "Meeting form: comments sit in More."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "More"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Meetings&RelatedEntity=Committees: Comments&RelatedEntityJoinField=MeetingID"
+    }
+  },
+  {
+    "_comments": [
+      "Meeting form: minutes this meeting approved are the other end of the Minutes join.",
+      "Not a candidate — the MeetingID grid is the minutes of this meeting."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "None"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Meetings&RelatedEntity=Committees: Minutes&RelatedEntityJoinField=ApprovedByMeetingID"
+    }
+  },
+  {
+    "_comments": [
+      "Term form: memberships (the seats on this term) stay first-class."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "Primary"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Terms&RelatedEntity=Committees: Memberships&RelatedEntityJoinField=TermID"
+    }
+  },
+  {
+    "_comments": [
+      "Motion form: votes stay first-class."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "Primary"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Motions&RelatedEntity=Committees: Votes&RelatedEntityJoinField=MotionID"
+    }
+  },
+  {
+    "_comments": [
+      "Motion form: ballots stay first-class."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "inclusion": "Primary"
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Motions&RelatedEntity=Committees: Ballots&RelatedEntityJoinField=MotionID"
     }
   }
 ]

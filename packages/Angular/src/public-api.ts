@@ -6,6 +6,14 @@ import '@mj-biz-apps/committees-entities';
 // Re-exported so consumers can import GeneratedFormsModule from this package.
 export * from './lib/generated/generated-forms.module';
 
+// Custom form panels (triggers @RegisterClassEx for header and overview panels)
+import './lib/custom/custom-forms.module';
+export * from './lib/custom/custom-forms.module';
+export { CommitteeHeaderPanel } from './lib/custom/form-panels/committee-header.panel';
+export { CommitteeOverviewPanel } from './lib/custom/form-panels/committee-overview.panel';
+export { MeetingHeaderPanel } from './lib/custom/form-panels/meeting-header.panel';
+export { MeetingOverviewPanel } from './lib/custom/form-panels/meeting-overview.panel';
+
 export * from './lib/module';
 export * from './lib/dashboard/committee-dashboard.component';
 export * from './lib/committee-list/committee-list.component';

@@ -33,6 +33,7 @@
   },
   "dependencies": {
     "@memberjunction/ng-hierarchy-tree": "6.1.0-edge.2",
+    "dompurify": "^3.2.4",
     "marked": "^17.0.4",
     "@mj-biz-apps/common-entities": "^5.34.0",
     "@mj-biz-apps/common-ng": "^5.34.0",

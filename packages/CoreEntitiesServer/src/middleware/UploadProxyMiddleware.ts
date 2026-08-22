@@ -1,8 +1,24 @@
 import type { Application, Request, Response } from 'express';
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
+import type { LookupFunction } from 'node:net';
+import { request as httpsRequest } from 'node:https';
+import type { IncomingMessage } from 'node:http';
 import { RegisterClass } from '@memberjunction/global';
 import { BaseServerMiddleware } from '@memberjunction/server';
+
+/** A DNS-resolved, SSRF-validated upload target pinned to a single IP address. */
+interface VettedTarget {
+    url: URL;
+    address: string;
+    family: 4 | 6;
+}
+
+/** Outcome of a pinned upload to the storage provider. */
+interface PinnedUploadResult {
+    status: number;
+    body: string;
+}
 
 /**
  * Upload proxy middleware for storage providers that don't support CORS.
@@ -67,8 +83,9 @@ export class UploadProxyMiddleware extends BaseServerMiddleware {
         // back to the caller. Restrict it to public HTTPS storage endpoints and reject any host that
         // resolves to a private/loopback/link-local address (blocks cloud metadata, localhost, and
         // internal services). Without this the endpoint is an authenticated read-SSRF / open proxy.
+        let target: VettedTarget;
         try {
-            await this.assertPublicHttpsTarget(targetUrl);
+            target = await this.resolveVettedTarget(targetUrl);
         } catch (err: unknown) {
             res.status(403).json({ error: err instanceof Error ? err.message : 'Blocked upload target' });
             return;
@@ -78,16 +95,11 @@ export class UploadProxyMiddleware extends BaseServerMiddleware {
             const body = await this.readRequestBody(req);
             console.log(`[upload-proxy] ${method} ${targetUrl.substring(0, 80)}... (${body.length} bytes)`);
 
-            const response = await fetch(targetUrl, {
-                method,
-                headers: { 'Content-Type': 'application/octet-stream' },
-                body,
-                // SECURITY: do not follow redirects — a redirect to an internal address would
-                // otherwise slip past the pre-flight SSRF check above.
-                redirect: 'error',
-            });
-
-            await this.relayProviderResponse(response, res);
+            // The connection is pinned to the exact IP validated above (no second DNS
+            // resolution), so a DNS-rebind between validation and connect cannot redirect
+            // us to an internal address. Redirects are rejected, never followed.
+            const result = await this.performPinnedUpload(target, method, body);
+            this.relayProviderResponse(result, res);
         } catch (err: unknown) {
             const message = err instanceof Error ? err.message : String(err);
             console.error(`[upload-proxy] Error: ${message}`);
@@ -96,10 +108,13 @@ export class UploadProxyMiddleware extends BaseServerMiddleware {
     }
 
     /**
-     * SSRF guard: ensures a client-supplied upload target is a public HTTPS endpoint and does not
-     * resolve to a private/loopback/link-local/metadata address. Throws if the target is disallowed.
+     * SSRF guard: ensures a client-supplied upload target is a public HTTPS endpoint and resolves it
+     * to a single vetted, non-private/loopback/link-local/metadata IP. Returns the URL together with
+     * the pinned address so the connection can be made to that exact IP (closing the DNS-rebinding
+     * TOCTOU where a second resolution at connect time could point at an internal host). Throws if
+     * the target is disallowed.
      */
-    private async assertPublicHttpsTarget(rawUrl: string): Promise<void> {
+    private async resolveVettedTarget(rawUrl: string): Promise<VettedTarget> {
         let url: URL;
         try {
             url = new URL(rawUrl);
@@ -116,11 +131,77 @@ export class UploadProxyMiddleware extends BaseServerMiddleware {
         if (addresses.length === 0) {
             throw new Error('x-upload-url host did not resolve');
         }
+        // Reject if ANY resolved address is disallowed — do not cherry-pick a public one from a
+        // set that also contains an internal address.
         for (const ip of addresses) {
             if (this.isPrivateAddress(ip)) {
                 throw new Error('x-upload-url resolves to a disallowed address');
             }
         }
+        const address = addresses[0];
+        const family: 4 | 6 = isIP(address) === 6 ? 6 : 4;
+        return { url, address, family };
+    }
+
+    /**
+     * Performs the upload over a connection pinned to the already-vetted IP. Uses a custom DNS
+     * `lookup` that always returns the validated address, so Node never re-resolves the hostname —
+     * the Host header and TLS SNI still carry the original hostname for the storage provider.
+     * A redirect response is treated as an error rather than followed.
+     */
+    private performPinnedUpload(
+        target: VettedTarget,
+        method: 'POST' | 'PUT',
+        body: Uint8Array
+    ): Promise<PinnedUploadResult> {
+        const { url } = target;
+        return new Promise<PinnedUploadResult>((resolve, reject) => {
+            const req = httpsRequest({
+                protocol: url.protocol,
+                hostname: url.hostname,
+                port: url.port || 443,
+                path: `${url.pathname}${url.search}`,
+                method,
+                headers: { 'Content-Type': 'application/octet-stream' },
+                servername: url.hostname, // explicit SNI — preserved despite IP pinning
+                lookup: this.makePinnedLookup(target),
+            }, (providerResponse: IncomingMessage) => {
+                this.collectPinnedResponse(providerResponse, resolve, reject);
+            });
+            req.on('error', reject);
+            req.write(Buffer.from(body));
+            req.end();
+        });
+    }
+
+    /** Builds a DNS lookup that resolves only to the pre-vetted IP, defeating rebinding. */
+    private makePinnedLookup(target: VettedTarget): LookupFunction {
+        const { address, family } = target;
+        return (_hostname, options, callback) => {
+            if (options && options.all) {
+                callback(null, [{ address, family }]);
+            } else {
+                callback(null, address, family);
+            }
+        };
+    }
+
+    /** Buffers a provider response, rejecting redirects (which must never be followed). */
+    private collectPinnedResponse(
+        providerResponse: IncomingMessage,
+        resolve: (result: PinnedUploadResult) => void,
+        reject: (err: Error) => void
+    ): void {
+        const status = providerResponse.statusCode ?? 0;
+        if (status >= 300 && status < 400) {
+            providerResponse.resume();
+            reject(new Error(`Upload target returned a redirect (${status}), which is not allowed`));
+            return;
+        }
+        const chunks: Buffer[] = [];
+        providerResponse.on('data', (chunk: Buffer) => chunks.push(chunk));
+        providerResponse.on('end', () => resolve({ status, body: Buffer.concat(chunks).toString('utf8') }));
+        providerResponse.on('error', reject);
     }
 
     /**
@@ -162,15 +243,14 @@ export class UploadProxyMiddleware extends BaseServerMiddleware {
     /**
      * Relays the storage provider's response back to the client.
      */
-    private async relayProviderResponse(providerResponse: globalThis.Response, res: Response): Promise<void> {
-        if (providerResponse.ok) {
-            const text = await providerResponse.text();
-            console.log(`[upload-proxy] Success: ${providerResponse.status}`);
-            res.status(200).json({ success: true, response: text });
+    private relayProviderResponse(providerResponse: PinnedUploadResult, res: Response): void {
+        const { status, body } = providerResponse;
+        if (status >= 200 && status < 300) {
+            console.log(`[upload-proxy] Success: ${status}`);
+            res.status(200).json({ success: true, response: body });
         } else {
-            const errorText = await providerResponse.text();
-            console.error(`[upload-proxy] Failed: ${providerResponse.status} ${errorText}`);
-            res.status(providerResponse.status).json({ error: errorText });
+            console.error(`[upload-proxy] Failed: ${status} ${body}`);
+            res.status(status || 502).json({ error: body });
         }
     }
 }

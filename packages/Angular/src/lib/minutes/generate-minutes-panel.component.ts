@@ -6,6 +6,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { Metadata } from '@memberjunction/core';
 import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 
 export type MinutesPanelState = 'input' | 'generating' | 'preview' | 'editing';
 
@@ -62,8 +63,12 @@ export class GenerateMinutesPanelComponent implements OnInit {
     }
 
     get RenderedContent(): SafeHtml {
+        // GeneratedContent is AI-authored Markdown. Sanitize the rendered HTML with
+        // DOMPurify before trusting it — never bypass Angular's sanitizer on raw
+        // marked output (stored XSS).
         const html = marked.parse(this.GeneratedContent) as string;
-        return this.sanitizer.bypassSecurityTrustHtml(html);
+        const clean = DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+        return this.sanitizer.bypassSecurityTrustHtml(clean);
     }
 
     async OnGenerate(): Promise<void> {

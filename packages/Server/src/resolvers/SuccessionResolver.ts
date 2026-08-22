@@ -1,6 +1,7 @@
 import { Arg, Ctx, Field, InputType, Mutation, ObjectType, Resolver, Float, Int } from '@memberjunction/server';
 import { AppContext, ResolverBase } from '@memberjunction/server';
 import { SuccessionSuggestionService } from '@mj-biz-apps/committees-core-entities-server';
+import { CommitteeAuthorization } from '../authorization/CommitteeAuthorization.js';
 
 @ObjectType()
 export class SuccessorSuggestionType {
@@ -41,6 +42,9 @@ export class SuccessionResolver extends ResolverBase {
         const contextUser = this.GetUserFromPayload(userPayload);
         if (!contextUser) {
             return { Success: false, ErrorMessage: 'Unauthorized: could not resolve user from session', Suggestions: [] };
+        }
+        if (!await CommitteeAuthorization.CanActOnCommittee(input.CommitteeID, contextUser)) {
+            return { Success: false, ErrorMessage: 'Forbidden: you are not authorized to manage this committee', Suggestions: [] };
         }
         const service = new SuccessionSuggestionService();
         const result = await service.GetSuggestions(input.CommitteeID, contextUser);

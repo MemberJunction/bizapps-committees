@@ -6,6 +6,7 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RunView, Metadata, UserInfo } from '@memberjunction/core';
 import { mjBizAppsCommitteesMeetingEntity } from '@mj-biz-apps/committees-entities';
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 interface MeetingRow {
@@ -110,8 +111,12 @@ export class MeetingDetailViewComponent implements OnInit {
 
     get RenderedMinutes(): SafeHtml {
         if (!this.Minute?.Content) return '';
+        // Minute.Content is user/AI-authored persisted Markdown. Sanitize the rendered
+        // HTML with DOMPurify before trusting it — never bypass Angular's sanitizer on
+        // raw marked output (stored XSS).
         const html = marked.parse(this.Minute.Content) as string;
-        return this.sanitizer.bypassSecurityTrustHtml(html);
+        const clean = DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+        return this.sanitizer.bypassSecurityTrustHtml(clean);
     }
 
     get FormattedDate(): string {

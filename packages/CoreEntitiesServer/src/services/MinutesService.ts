@@ -1,6 +1,7 @@
 import { Metadata, RunView, UserInfo, LogError } from '@memberjunction/core';
 import { AIEngine } from '@memberjunction/aiengine';
 import { CompletionWithFallback } from './aiModel.js';
+import { assertPublicHttpTarget } from './ssrf-guard.js';
 import {
     mjBizAppsCommitteesMeetingEntity,
     mjBizAppsCommitteesMinuteEntity,
@@ -208,7 +209,12 @@ export class MinutesService {
     private async fetchTranscript(url: string | null): Promise<string | null> {
         if (!url) return null;
         try {
-            const response = await fetch(url);
+            // SSRF guard: TranscriptURL is client-influenced (a caller can pass it as an override to
+            // GenerateMeetingMinutes). Reject targets that resolve to private/loopback/link-local/
+            // metadata addresses before fetching, and refuse redirects so an allowed host can't
+            // bounce to an internal one.
+            await assertPublicHttpTarget(url);
+            const response = await fetch(url, { redirect: 'error' });
             if (!response.ok) {
                 LogError(`[MinutesService] Failed to fetch transcript from ${url}: HTTP ${response.status}`);
                 return null;

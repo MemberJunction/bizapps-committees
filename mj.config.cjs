@@ -29,6 +29,10 @@ module.exports = {
    */
   entityPackageName: '@mj-biz-apps/committees-entities',
 
+  testing: {
+    checkModules: ['@mj-biz-apps/committees-integration-tests'],
+  },
+
   output: [
     { type: 'SQL', directory: './SQL Scripts/generated', appendOutputCode: true },
     {

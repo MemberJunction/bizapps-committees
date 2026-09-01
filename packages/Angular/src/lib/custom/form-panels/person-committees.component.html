@@ -1,0 +1,61 @@
+<div class="com-seats">
+    @if (Loading) {
+        <div class="com-loading">Loading committees…</div>
+    } @else if (ErrorMessage) {
+        <div class="com-error">{{ ErrorMessage }}</div>
+    } @else if (Cards.length === 0) {
+        <div class="com-empty">Not seated on any committee.</div>
+    } @else {
+        <div class="com-seats-kpis">
+            <div class="com-kpi">
+                <div class="com-kpi-val">{{ Cards.length }}</div>
+                <div class="com-kpi-label">{{ Cards.length === 1 ? 'Committee' : 'Committees' }}</div>
+            </div>
+            <div class="com-kpi">
+                <div class="com-kpi-val">{{ ActiveCount }}</div>
+                <div class="com-kpi-label">Active seats</div>
+            </div>
+            <div class="com-kpi">
+                <div class="com-kpi-val">{{ OfficerCount }}</div>
+                <div class="com-kpi-label">Officer roles</div>
+            </div>
+        </div>
+
+        <div class="com-grid">
+            @for (card of Cards; track card.CommitteeID) {
+                <button type="button" class="com-card" (click)="OpenCommittee(card, $event)">
+                    <div class="com-card-head">
+                        <div class="com-avatar" [class.officer]="PrimaryRole(card)?.IsOfficer">
+                            <i class="fa-solid fa-landmark"></i>
+                        </div>
+                        <div class="com-card-id">
+                            <div class="com-card-name">{{ card.CommitteeName }}</div>
+                            <div class="com-card-meta">
+                                {{ card.Terms.length === 1 ? '1 term' : card.Terms.length + ' terms' }}
+                            </div>
+                        </div>
+                        <div class="com-pills">
+                            @if (PrimaryRole(card); as seat) {
+                                <span class="com-pill" [class.officer]="seat.IsOfficer" [class.role]="!seat.IsOfficer">
+                                    {{ seat.Role }}
+                                </span>
+                                <span class="com-pill" [ngClass]="PillClass(seat)">
+                                    {{ seat.MembershipStatus === 'Active' ? 'Active' : seat.MembershipStatus }}
+                                </span>
+                            }
+                        </div>
+                    </div>
+                    <div class="com-terms">
+                        @for (term of card.Terms; track term.MembershipID) {
+                            <div class="com-term">
+                                <span class="com-term-name">{{ term.TermName }}</span>
+                                <span class="com-term-role">{{ term.Role }}</span>
+                                <span class="com-term-dates">{{ TermHint(term) }}</span>
+                            </div>
+                        }
+                    </div>
+                </button>
+            }
+        </div>
+    }
+</div>

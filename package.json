@@ -29,7 +29,8 @@
     "test:harness": "pnpm run test:harness:metadata && pnpm run test:harness:governance && pnpm run test:harness:ballot",
     "test:harness:metadata": "tsx test-harnesses/server/metadata-integrity.mts",
     "test:harness:governance": "tsx test-harnesses/server/governance-loop-runtime.mts",
-    "test:harness:ballot": "tsx test-harnesses/server/ballot-runtime.mts"
+    "test:harness:ballot": "tsx test-harnesses/server/ballot-runtime.mts",
+    "test:integration": "pnpm exec node test-harnesses/integration.mjs"
   },
   "repository": {
     "type": "git",
@@ -46,7 +47,14 @@
     "turbo": "^2.9.3",
     "typescript": "^5.9.3",
     "vitest": "1.6.1",
-    "tsx": "^4.19.2"
+    "tsx": "^4.19.2",
+    "dotenv": "^17.2.4",
+    "mssql": "^11.0.1",
+    "@memberjunction/sqlserver-dataprovider": "^6.1.0-edge.4",
+    "@memberjunction/testing-integration": "^6.1.0-edge.4",
+    "@mj-biz-apps/committees-integration-tests": "workspace:*",
+    "@mj-biz-apps/committees-entities": "workspace:*",
+    "@mj-biz-apps/committees-server": "workspace:*"
   },
   "engines": {
     "node": ">=18.0.0",

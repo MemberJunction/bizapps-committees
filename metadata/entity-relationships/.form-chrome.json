@@ -1,10 +1,11 @@
 [
   {
     "_comments": [
-      "Person form: committee seats they hold stay first-class."
+      "Person form: committee seats they hold stay first-class.",
+      "DisplayName is Committees — the custom PersonCommitteesPanel (relatedEntity Memberships) is the surface."
     ],
     "fields": {
-      "DisplayName": "Memberships",
+      "DisplayName": "Committees",
       "Configuration": {
         "UI": {
           "inclusion": "Primary"

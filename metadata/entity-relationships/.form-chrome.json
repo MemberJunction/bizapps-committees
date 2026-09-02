@@ -48,21 +48,6 @@
   },
   {
     "_comments": [
-      "Person form: votes are not a Person-form surface."
-    ],
-    "fields": {
-      "Configuration": {
-        "UI": {
-          "inclusion": "None"
-        }
-      }
-    },
-    "primaryKey": {
-      "ID": "@lookup:MJ: Entity Relationships.Entity=MJ_BizApps_Common: People&RelatedEntity=Committees: Votes&RelatedEntityJoinField=PersonID"
-    }
-  },
-  {
-    "_comments": [
       "Person form: agenda presenter is not a Person-form surface."
     ],
     "fields": {

@@ -38,6 +38,9 @@
 .tbl tbody tr:hover {
     background: var(--mj-bg-surface-hover);
 }
+.tbl tbody tr.clickable {
+    cursor: pointer;
+}
 .tbl tbody tr:last-child td {
     border-bottom: none;
 }

@@ -13,6 +13,9 @@ export { CommitteeHeaderPanel } from './lib/custom/form-panels/committee-header.
 export { CommitteeOverviewPanel } from './lib/custom/form-panels/committee-overview.panel';
 export { CommitteeGovernanceTreePanel } from './lib/custom/form-panels/committee-governance-tree.panel';
 export { CommitteeRosterPanel } from './lib/custom/form-panels/committee-roster.panel';
+export { PersonCommitteesPanel } from './lib/custom/form-panels/person-committees.panel';
+export { PersonCommitteesComponent } from './lib/custom/form-panels/person-committees.component';
+export { CommitteeMembersComponent } from './lib/custom/form-panels/committee-members.component';
 export { CommitteeRosterComponent } from './lib/membership/committee-roster.component';
 export { MeetingHeaderPanel } from './lib/custom/form-panels/meeting-header.panel';
 export { MeetingOverviewPanel } from './lib/custom/form-panels/meeting-overview.panel';

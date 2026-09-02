@@ -1,53 +1,46 @@
-import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RegisterClassEx } from '@memberjunction/global';
 import { BaseFormPanel, BaseFormsModule } from '@memberjunction/ng-base-forms';
-import { CommitteeRosterComponent } from '../../membership/committee-roster.component';
 import { mjBizAppsCommitteesCommitteeEntity } from '@mj-biz-apps/committees-entities';
+import { CommitteeMembersComponent } from './committee-members.component';
 
 /**
- * Committee Roster & Term Tracker Form Panel.
- *
- * Attaches to `Committees: Committees` and provides real-time term tracking,
- * leadership officer segregation, and meeting attendance statistics.
+ * Members of this committee, walked through Terms (membership has no CommitteeID).
+ * contributionKey must equal SectionKey.
  */
 @RegisterClassEx(BaseFormPanel, {
-    key: 'form-panel:Committees:rosterTracker',
+    key: 'form-panel:Committees:members',
     metadata: {
         entity: 'Committees: Committees',
-        slot: 'after-related',
-        sortKey: 30,
-        relatedEntity: 'Committees: Committee Memberships'
-    }
+        slot: 'after-fields',
+        sortKey: 90,
+        contributionKey: 'members',
+        inclusion: 'Primary',
+    },
 })
 @Component({
     selector: 'bizapps-committee-roster-panel',
     standalone: true,
-    imports: [CommonModule, BaseFormsModule, CommitteeRosterComponent],
+    imports: [CommonModule, BaseFormsModule, CommitteeMembersComponent],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <mj-collapsible-panel
-            SectionKey="committeeRoster"
-            SectionName="Committee Roster & Term Tracker"
+            SectionKey="members"
+            SectionName="Members"
             Icon="fa-solid fa-users"
             Variant="related-entity"
             [Form]="FormComponent"
             [FormContext]="FormContext"
             [DefaultExpanded]="true">
             @if (Record.IsSaved) {
-                <bizapps-committee-roster
+                <bizapps-committee-members
                     [CommitteeID]="Record.ID"
+                    [Provider]="FormComponent.ProviderToUse"
                     (Navigate)="FormComponent.OnFormNavigate($event)">
-                </bizapps-committee-roster>
+                </bizapps-committee-members>
             }
         </mj-collapsible-panel>
     `,
-    styles: [`
-        :host {
-            display: block;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-    `]
 })
 export class CommitteeRosterPanel extends BaseFormPanel<mjBizAppsCommitteesCommitteeEntity> {}

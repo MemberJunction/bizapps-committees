@@ -5,7 +5,7 @@
   "displayName": "Committees",
   "description": "Unified governance platform for managing committees, memberships, meetings, action items, and documents — with AI-powered minutes generation and health analytics",
   "version": "1.1.1",
-  "license": "ISC",
+  "license": "BUSL-1.1",
   "icon": "fa-solid fa-users-rectangle",
   "publisher": {
     "name": "MemberJunction",

@@ -71,16 +71,18 @@ export class TaskTrackerComponent extends BaseResourceComponent implements OnIni
         return false;
     }
 
-    /** ExtraFilter for "My Tasks" */
-    get MyTasksFilter(): string | null {
-        if (!this.CurrentPersonID) return null;
-        return `ID IN (SELECT TaskID FROM __mj_BizAppsTasks.TaskAssignment WHERE AssigneeRecordID = '${this.CurrentPersonID}')`;
-    }
+    /** ExtraFilter for "My Tasks" — resolved TaskIDs, never a subquery (GraphQL rejects SELECT). */
+    MyTaskIDsFilter: string | null = null;
 
     /** Limits the assignee picker to members of the selected committee */
+    AssigneePersonIDsFilter: string | null = null;
+
+    get MyTasksFilter(): string | null {
+        return this.MyTaskIDsFilter;
+    }
+
     get AssigneeScope(): string | null {
-        if (!this.SelectedCommitteeID) return null;
-        return `ID IN (SELECT m.PersonID FROM __mj_BizAppsCommittees.Membership m JOIN __mj_BizAppsCommittees.Term t ON m.TermID = t.ID WHERE t.CommitteeID = '${this.SelectedCommitteeID}' AND m.Status = 'Active')`;
+        return this.AssigneePersonIDsFilter;
     }
 
     private cdr = inject(ChangeDetectorRef);
@@ -113,7 +115,7 @@ export class TaskTrackerComponent extends BaseResourceComponent implements OnIni
         // Destroy and recreate the task panel so it reloads with new filters
         this.PanelVisible = false;
         this.cdr.detectChanges();
-        void Promise.resolve().then(() => {
+        void this.resolveTaskFilters().then(() => {
             this.PanelVisible = true;
             this.cdr.detectChanges();
         });
@@ -156,6 +158,48 @@ export class TaskTrackerComponent extends BaseResourceComponent implements OnIni
         // If only one committee, auto-select it
         if (this.Committees.length === 1) {
             this.SelectedCommitteeID = this.Committees[0].CommitteeID;
+        }
+
+        await this.resolveTaskFilters();
+    }
+
+    /** Resolve ExtraFilters as ID IN (...) lists — client ExtraFilter cannot contain SELECT. */
+    private async resolveTaskFilters(): Promise<void> {
+        const rv = new RunView();
+        this.MyTaskIDsFilter = null;
+        this.AssigneePersonIDsFilter = null;
+        if (this.CurrentPersonID) {
+            const assignments = await rv.RunView<{ TaskID: string }>({
+                EntityName: 'MJ_BizApps_Tasks: Task Assignments',
+                ExtraFilter: `AssigneeRecordID = '${this.CurrentPersonID}'`,
+                Fields: ['TaskID'],
+                ResultType: 'simple',
+            });
+            const ids = assignments.Success ? assignments.Results.map(a => a.TaskID) : [];
+            this.MyTaskIDsFilter = ids.length === 0 ? '1 = 0' : `ID IN (${ids.map(id => `'${id}'`).join(',')})`;
+        }
+        if (this.SelectedCommitteeID) {
+            const terms = await rv.RunView<{ ID: string }>({
+                EntityName: 'Committees: Terms',
+                ExtraFilter: `CommitteeID = '${this.SelectedCommitteeID}'`,
+                Fields: ['ID'],
+                ResultType: 'simple',
+            });
+            const termIDs = terms.Success ? terms.Results.map(t => t.ID) : [];
+            if (termIDs.length > 0) {
+                const memberships = await rv.RunView<{ PersonID: string }>({
+                    EntityName: 'Committees: Memberships',
+                    ExtraFilter: `Status = 'Active' AND TermID IN (${termIDs.map(id => `'${id}'`).join(',')})`,
+                    Fields: ['PersonID'],
+                    ResultType: 'simple',
+                });
+                const personIDs = [...new Set((memberships.Success ? memberships.Results : []).map(m => m.PersonID))];
+                this.AssigneePersonIDsFilter = personIDs.length === 0
+                    ? '1 = 0'
+                    : `ID IN (${personIDs.map(id => `'${id}'`).join(',')})`;
+            } else {
+                this.AssigneePersonIDsFilter = '1 = 0';
+            }
         }
     }
 

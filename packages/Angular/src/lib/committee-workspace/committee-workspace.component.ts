@@ -137,12 +137,11 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
         await CommitteesLookupEngine.Instance.Config();
         // Open tasks come from BizAppsTasks, concurrently with the batch below.
         const tasksPromise = new CommitteeTaskService().GetTasks({});
-        const [committee, terms, meetings, artifacts, motions] = await rv.RunViews([
+        const [committee, terms, meetings, artifacts] = await rv.RunViews([
             { EntityName: 'Committees: Committees', ExtraFilter: `ID='${id}'`, Fields: ['ID', 'Name', 'Status', 'IsPublic', 'Type', 'MissionStatement', 'FormationDate', 'ParentCommittee'], ResultType: 'simple' },
             { EntityName: 'Committees: Terms', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'CommitteeID', 'Name', 'Status', 'StartDate', 'EndDate'], OrderBy: 'StartDate DESC', ResultType: 'simple' },
             { EntityName: 'Committees: Meetings', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Name', 'StartDateTime', 'EndDateTime', 'LocationType', 'LocationText', 'Status'], OrderBy: 'StartDateTime ASC', ResultType: 'simple' },
             { EntityName: 'Committees: Artifacts', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Name', 'Provider', 'URL', 'ArtifactType'], ResultType: 'simple' },
-            { EntityName: 'Committees: Motions', ExtraFilter: `MeetingID IN (SELECT ID FROM __mj_BizAppsCommittees.Meeting WHERE CommitteeID='${id}')`, Fields: ['ID', 'Name', 'Result'], ResultType: 'simple' },
         ]);
 
         this.Committee = committee.Success && committee.Results.length > 0 ? committee.Results[0] as unknown as CommitteeRow : null;
@@ -150,7 +149,16 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
         this.Meetings = meetings.Success ? meetings.Results as unknown as MeetingRow[] : [];
         this.OpenActions = (await tasksPromise).filter(t => t.CommitteeIDs.some(cid => cid.toLowerCase() === id.toLowerCase()));
         this.Artifacts = artifacts.Success ? artifacts.Results as unknown as ArtifactRow[] : [];
-        this.MotionCount = motions.Success ? (motions.Results as unknown as MotionRow[]).length : 0;
+        this.MotionCount = 0;
+        if (this.Meetings.length > 0) {
+            const motions = await rv.RunView({
+                EntityName: 'Committees: Motions',
+                ExtraFilter: `MeetingID IN (${this.Meetings.map(m => `'${m.ID}'`).join(',')})`,
+                Fields: ['ID', 'Name', 'Result'],
+                ResultType: 'simple',
+            });
+            this.MotionCount = motions.Success ? (motions.Results as unknown as MotionRow[]).length : 0;
+        }
         await this.loadMotionRegister(id);
         this.Term = CommitteeHealthService.ComputeTermHygiene(
             this.Terms.map(t => ({ ID: t.ID, CommitteeID: t.CommitteeID, Status: t.Status, StartDate: t.StartDate, EndDate: t.EndDate })),

@@ -145,11 +145,12 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
             const rv = new RunView();
             const id = this._meetingID;
             await CommitteesLookupEngine.Instance.Config();
-            const [meeting, agenda, attendance, motions, terms, memberships, minutes] = await rv.RunViews([
+            const [meeting, agenda, attendance, motions, votesRes, terms, memberships, minutes] = await rv.RunViews([
                 { EntityName: 'Committees: Meetings', ExtraFilter: `ID = '${id}'`, ResultType: 'simple' },
                 { EntityName: 'Committees: Agenda Items', ExtraFilter: `MeetingID = '${id}'`, OrderBy: 'Sequence ASC', ResultType: 'simple' },
                 { EntityName: 'Committees: Attendances', ExtraFilter: `MeetingID = '${id}'`, ResultType: 'simple' },
                 { EntityName: 'Committees: Motions', ExtraFilter: `MeetingID = '${id}'`, OrderBy: 'Sequence ASC', ResultType: 'simple' },
+                { EntityName: 'Committees: Votes', ExtraFilter: `MotionID IN (SELECT ID FROM [__mj_BizAppsCommittees].[vwMotions] WHERE MeetingID = '${id}')`, ResultType: 'simple' },
                 { EntityName: 'Committees: Terms', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'CommitteeID', 'Status'], ResultType: 'simple' },
                 { EntityName: 'Committees: Memberships', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'PersonID', 'Person', 'Role', 'RoleID', 'TermID'], ResultType: 'simple' },
                 { EntityName: 'Committees: Minutes', ExtraFilter: `MeetingID = '${id}'`, ResultType: 'simple' },
@@ -157,15 +158,7 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
             this.Meeting = ((meeting.Success ? meeting.Results : []) as unknown as MeetingRow[])[0] ?? null;
             this.Agenda = (agenda.Success ? agenda.Results : []) as unknown as AgendaRow[];
             this.allMotions = (motions.Success ? motions.Results : []) as unknown as MotionRowLocal[];
-            this.allVotes = [];
-            if (this.allMotions.length > 0) {
-                const votesRes = await rv.RunView({
-                    EntityName: 'Committees: Votes',
-                    ExtraFilter: `MotionID IN (${this.allMotions.map(m => `'${m.ID}'`).join(',')})`,
-                    ResultType: 'simple',
-                });
-                this.allVotes = (votesRes.Success ? votesRes.Results : []) as unknown as VoteRowLocal[];
-            }
+            this.allVotes = (votesRes.Success ? votesRes.Results : []) as unknown as VoteRowLocal[];
             this.indexAttendance((attendance.Success ? attendance.Results : []) as unknown as AttendanceRow[]);
             this.buildRollCall(
                 (terms.Success ? terms.Results : []) as unknown as TermRow[],

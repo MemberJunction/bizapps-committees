@@ -42,74 +42,38 @@ const OPEN_STATUS_FILTER = "Status IN ('Open', 'InProgress')";
  * query set (plus one follow-up for assignee names). Replaces the legacy
  * 'Committees: Action Items' view queries after the BizAppsTasks migration.
  */
-/** ExtraFilter `Field IN ('id',...)` — never a subquery. GraphQL rejects SELECT in client ExtraFilter. */
-function idInList(field: string, ids: string[]): string {
-    if (ids.length === 0) return '1 = 0';
-    return `${field} IN (${ids.map(id => `'${id}'`).join(',')})`;
-}
-
 export class CommitteeTaskService {
     public async GetTasks(scope: CommitteeTaskScope = {}, contextUser?: UserInfo): Promise<CommitteeTaskRow[]> {
         const committeesEntityID = new Metadata().EntityByName('Committees: Committees')?.ID;
         if (!committeesEntityID) throw new Error("Entity 'Committees: Committees' not found in metadata");
 
         const statusFilter = scope.IncludeCompleted ? '' : OPEN_STATUS_FILTER;
-        const rv = new RunView();
+        const taskFilter = this.buildTaskFilter(statusFilter, scope.AssignedToPersonID);
 
-        const [linksR, committeesR] = await rv.RunViews([
+        const rv = new RunView();
+        const [tasksR, linksR, committeesR, assignmentsR] = await rv.RunViews([
+            { EntityName: 'MJ_BizApps_Tasks: Tasks', ExtraFilter: taskFilter, Fields: ['ID', 'Name', 'Status', 'Priority', 'DueAt', 'Category'], OrderBy: 'DueAt ASC', ResultType: 'simple' },
             { EntityName: 'MJ_BizApps_Tasks: Task Links', ExtraFilter: `EntityID = '${committeesEntityID}'`, Fields: ['TaskID', 'RecordID'], ResultType: 'simple' },
             { EntityName: 'Committees: Committees', Fields: ['ID', 'Name'], ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Task Assignments', ExtraFilter: taskFilter ? `TaskID IN (SELECT ID FROM [__mj_BizAppsTasks].[vwTasks] WHERE ${taskFilter})` : '', Fields: ['TaskID', 'AssigneeRecordID'], ResultType: 'simple' },
         ], contextUser);
 
-        let tasks: TaskQueryRow[] = [];
-        let assignments: AssignmentRow[] = [];
-
-        if (scope.AssignedToPersonID) {
-            // Person-scoped: assignments first, then those task IDs. No subquery.
-            const assignmentsR = await rv.RunView({
-                EntityName: 'MJ_BizApps_Tasks: Task Assignments',
-                ExtraFilter: `AssigneeRecordID = '${scope.AssignedToPersonID}'`,
-                Fields: ['TaskID', 'AssigneeRecordID'],
-                ResultType: 'simple',
-            }, contextUser);
-            assignments = (assignmentsR?.Success ? assignmentsR.Results : []) as unknown as AssignmentRow[];
-            const taskIDs = [...new Set(assignments.map(a => a.TaskID))];
-            if (taskIDs.length > 0) {
-                const taskFilter = [statusFilter, idInList('ID', taskIDs)].filter(Boolean).join(' AND ');
-                const tasksR = await rv.RunView({
-                    EntityName: 'MJ_BizApps_Tasks: Tasks',
-                    ExtraFilter: taskFilter,
-                    Fields: ['ID', 'Name', 'Status', 'Priority', 'DueAt', 'Category'],
-                    OrderBy: 'DueAt ASC',
-                    ResultType: 'simple',
-                }, contextUser);
-                tasks = (tasksR?.Success ? tasksR.Results : []) as unknown as TaskQueryRow[];
-            }
-        } else {
-            const tasksR = await rv.RunView({
-                EntityName: 'MJ_BizApps_Tasks: Tasks',
-                ExtraFilter: statusFilter,
-                Fields: ['ID', 'Name', 'Status', 'Priority', 'DueAt', 'Category'],
-                OrderBy: 'DueAt ASC',
-                ResultType: 'simple',
-            }, contextUser);
-            tasks = (tasksR?.Success ? tasksR.Results : []) as unknown as TaskQueryRow[];
-            if (tasks.length > 0) {
-                const assignmentsR = await rv.RunView({
-                    EntityName: 'MJ_BizApps_Tasks: Task Assignments',
-                    ExtraFilter: idInList('TaskID', tasks.map(t => t.ID)),
-                    Fields: ['TaskID', 'AssigneeRecordID'],
-                    ResultType: 'simple',
-                }, contextUser);
-                assignments = (assignmentsR?.Success ? assignmentsR.Results : []) as unknown as AssignmentRow[];
-            }
-        }
-
+        const tasks = (tasksR?.Success ? tasksR.Results : []) as unknown as TaskQueryRow[];
         const links = (linksR?.Success ? linksR.Results : []) as unknown as LinkRow[];
         const committees = (committeesR?.Success ? committeesR.Results : []) as unknown as CommitteeNameRow[];
+        const assignments = (assignmentsR?.Success ? assignmentsR.Results : []) as unknown as AssignmentRow[];
         const people = await this.loadAssigneeNames(rv, assignments, contextUser);
 
         return CommitteeTaskService.BuildRows(tasks, links, committees, assignments, people);
+    }
+
+    private buildTaskFilter(statusFilter: string, assignedToPersonID?: string): string {
+        const parts: string[] = [];
+        if (statusFilter) parts.push(statusFilter);
+        if (assignedToPersonID) {
+            parts.push(`ID IN (SELECT TaskID FROM [__mj_BizAppsTasks].[vwTaskAssignments] WHERE AssigneeRecordID = '${assignedToPersonID}')`);
+        }
+        return parts.join(' AND ');
     }
 
     private async loadAssigneeNames(rv: RunView, assignments: AssignmentRow[], contextUser?: UserInfo): Promise<PersonRow[]> {

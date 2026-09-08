@@ -14,14 +14,18 @@
     "test": "vitest run"
   },
   "license": "BUSL-1.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/MemberJunction/bizapps-committees"
+  },
   "dependencies": {
     "@mj-biz-apps/committees-entities": "1.1.1",
     "@mj-biz-apps/committees-server": "1.1.1"
   },
   "peerDependencies": {
-    "@memberjunction/core": "^6.1.0-edge.4",
-    "@memberjunction/global": "^6.1.0-edge.4",
-    "@memberjunction/testing-integration": "^6.1.0-edge.4"
+    "@memberjunction/core": "^6.1.0-edge.5",
+    "@memberjunction/global": "^6.1.0-edge.5",
+    "@memberjunction/testing-integration": "^6.1.0-edge.5"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",

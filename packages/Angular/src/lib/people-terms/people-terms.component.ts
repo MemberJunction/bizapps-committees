@@ -1,7 +1,7 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, OnInit, inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { RegisterClass , UUIDsEqual } from '@memberjunction/global';
-import { BaseResourceComponent } from '@memberjunction/ng-shared';
+import { CompositeKey } from '@memberjunction/core';
+import { BaseResourceComponent, NavigationService } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import {
     SuccessionService, TermClock, LensChip, PipelineSeat, GanttRow,
@@ -33,7 +33,7 @@ export class PeopleTermsComponent extends BaseResourceComponent implements OnIni
     readonly ExpiringWindowDays = EXPIRING_WINDOW_DAYS;
 
     private cdr = inject(ChangeDetectorRef);
-    private router = inject(Router);
+    private navigation = inject(NavigationService);
     private service = new SuccessionService();
 
     async GetResourceDisplayName(_data: ResourceData): Promise<string> { return 'People & Terms'; }
@@ -135,7 +135,10 @@ export class PeopleTermsComponent extends BaseResourceComponent implements OnIni
     }
 
     OpenCommittee(committeeID: string): void {
-        this.router.navigate(['/app/mjcommitteemgmt', 'Committees'], { queryParams: { committeeId: committeeID } });
+        this.navigation.OpenEntityRecord(
+            'Committees: Committees',
+            CompositeKey.FromID(committeeID),
+        );
     }
 
     // ── Term-renewal wizard ─────────────────────────────────────

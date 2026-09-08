@@ -7,7 +7,8 @@ import { mjBizAppsCommitteesMeetingEntity } from '@mj-biz-apps/committees-entiti
 
 interface AgendaItemRow {
     ID: string;
-    Title: string;
+    Name: string;
+    Title?: string;
     Sequence: number;
     DurationMinutes: number;
 }
@@ -39,7 +40,7 @@ interface AgendaItemRow {
                     } @else {
                         @for (item of AgendaItems; track item.ID) {
                             <div class="mj-metric-row">
-                                <span class="mj-metric-label">{{ item.Sequence }}. {{ item.Title }}</span>
+                                <span class="mj-metric-label" [title]="item.Name || item.Title || ''">{{ item.Sequence }}. {{ item.Name || item.Title }}</span>
                                 <span class="mj-pill mj-pill-blue">{{ item.DurationMinutes || 15 }}m</span>
                             </div>
                         }
@@ -120,10 +121,18 @@ interface AgendaItemRow {
             align-items: center;
             justify-content: space-between;
             font-size: 12px;
+            gap: 12px;
         }
-        .mj-metric-label { color: var(--mj-text-secondary, #94a3b8); }
+        .mj-metric-label {
+            color: var(--mj-text-secondary, #94a3b8);
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
         .mj-metric-val { font-weight: 600; color: var(--mj-text-primary, #f8fafc); font-family: monospace; }
-        .mj-pill { font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+        .mj-pill { font-size: 10.5px; font-weight: 700; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
         .mj-pill-green { background: rgba(16, 185, 129, 0.15); color: #10b981; }
         .mj-pill-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
     `]
@@ -147,7 +156,7 @@ export class MeetingOverviewPanel extends BaseFormPanel<mjBizAppsCommitteesMeeti
             const res = await rv.RunView<AgendaItemRow>({
                 EntityName: 'Committees: Agenda Items',
                 ExtraFilter: `MeetingID = '${this.Record.ID}'`,
-                Fields: ['ID', 'Title', 'Sequence', 'DurationMinutes'],
+                Fields: ['ID', 'Name', 'Sequence', 'DurationMinutes'],
                 OrderBy: 'Sequence ASC',
                 MaxRows: 20,
                 ResultType: 'simple'

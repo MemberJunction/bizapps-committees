@@ -105,10 +105,33 @@ export class DocumentPreviewPanelComponent implements OnInit {
         this.File = result.Results[0];
 
         const url = this.FileURL;
-        if (url) {
-            this.SafeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
-        } else {
+        if (!url) {
             this.PreviewError = 'No URL available for this file.';
+            return;
+        }
+
+        const safeUrl = this.buildSafeResourceUrl(url);
+        if (safeUrl) {
+            this.SafeUrl = safeUrl;
+        } else {
+            this.PreviewError = 'This file has an unsupported or unsafe URL and cannot be previewed.';
+        }
+    }
+
+    /**
+     * Only trust the URL for iframe embedding when it is an absolute https: URL.
+     * ProviderKey is user-set for external-URL file records, so an unvalidated
+     * value (e.g. `data:text/html,<script>…`) could execute in the iframe.
+     */
+    private buildSafeResourceUrl(url: string): SafeResourceUrl | null {
+        try {
+            const parsed = new URL(url);
+            if (parsed.protocol !== 'https:') {
+                return null;
+            }
+            return this.sanitizer.bypassSecurityTrustResourceUrl(url);
+        } catch {
+            return null;
         }
     }
 }

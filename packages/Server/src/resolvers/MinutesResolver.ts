@@ -1,6 +1,8 @@
 import { Arg, Ctx, Mutation, Resolver, Field, ObjectType, InputType } from '@memberjunction/server';
 import { AppContext, ResolverBase } from '@memberjunction/server';
 import { MinutesService } from '@mj-biz-apps/committees-core-entities-server';
+import { UserInfo } from '@memberjunction/core';
+import { CommitteeAuthorization } from '../authorization/CommitteeAuthorization.js';
 
 @ObjectType()
 export class MinutesSaveDraftResponse {
@@ -58,6 +60,15 @@ export class MinutesResolver extends ResolverBase {
             };
         }
 
+        if (!await this.canManageMeeting(input.MeetingID, contextUser)) {
+            return {
+                Success: false,
+                ErrorMessage: 'Forbidden: you are not authorized to manage this meeting',
+                MeetingID: input.MeetingID,
+                Content: '',
+            };
+        }
+
         const service = new MinutesService();
         const result = await service.GenerateDraftMinutes(
             input.MeetingID,
@@ -85,8 +96,22 @@ export class MinutesResolver extends ResolverBase {
             return { Success: false, ErrorMessage: 'Unauthorized: could not resolve user from session', MinuteID: '' };
         }
 
+        if (!await this.canManageMeeting(meetingID, contextUser)) {
+            return { Success: false, ErrorMessage: 'Forbidden: you are not authorized to manage this meeting', MinuteID: '' };
+        }
+
         const service = new MinutesService();
         const result = await service.SaveDraftMinutes(meetingID, content, contextUser);
         return { Success: result.Success, ErrorMessage: result.ErrorMessage, MinuteID: result.MinuteID };
+    }
+
+    /**
+     * Authorizes a minutes operation: the caller must be staff or an active officer
+     * of the committee that owns the meeting. Fails closed if the meeting (and thus
+     * its committee) cannot be resolved.
+     */
+    private async canManageMeeting(meetingID: string, contextUser: UserInfo): Promise<boolean> {
+        const committeeID = await CommitteeAuthorization.GetMeetingCommitteeID(meetingID, contextUser);
+        return CommitteeAuthorization.CanActOnCommittee(committeeID, contextUser);
     }
 }

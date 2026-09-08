@@ -1,6 +1,7 @@
 import { Arg, Ctx, Mutation, Resolver, Field, ObjectType } from '@memberjunction/server';
 import { AppContext, ResolverBase } from '@memberjunction/server';
 import { VideoProviderService } from '@mj-biz-apps/committees-core-entities-server';
+import { CommitteeAuthorization } from '../authorization/CommitteeAuthorization.js';
 
 @ObjectType()
 export class ProvisionVideoMeetingResponse {
@@ -34,6 +35,11 @@ export class VideoProviderResolver extends ResolverBase {
         const contextUser = this.GetUserFromPayload(userPayload);
         if (!contextUser) {
             return { Success: false, ErrorMessage: 'Unauthorized: could not resolve user from session' };
+        }
+
+        const committeeID = await CommitteeAuthorization.GetMeetingCommitteeID(meetingID, contextUser);
+        if (!await CommitteeAuthorization.CanActOnCommittee(committeeID, contextUser)) {
+            return { Success: false, ErrorMessage: 'Forbidden: you are not authorized to manage this meeting' };
         }
 
         const service = new VideoProviderService();

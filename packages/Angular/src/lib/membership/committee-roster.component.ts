@@ -83,24 +83,23 @@ export class CommitteeRosterComponent implements OnInit, OnChanges {
         try {
             const rv = new RunView();
 
-            const membershipResult = await rv.RunView({
-                EntityName: 'Committees: Committee Memberships',
-                ExtraFilter: `CommitteeID='${this.CommitteeID}'`,
-                OrderBy: 'Role ASC, Person ASC',
-                ResultType: 'simple'
-            });
-            const meetings = await rv.RunView({
-                EntityName: 'Committees: Meetings',
-                ExtraFilter: `CommitteeID='${this.CommitteeID}'`,
-                Fields: ['ID'],
-                ResultType: 'simple'
-            });
-            const meetingIDs = (meetings.Success ? meetings.Results : []) as { ID: string }[];
-            const attendanceResult = meetingIDs.length === 0 ? null : await rv.RunView({
-                EntityName: 'Committees: Meeting Attendance',
-                ExtraFilter: `Meeting IN (${meetingIDs.map(m => `'${m.ID}'`).join(',')})`,
-                ResultType: 'simple'
-            });
+            // Run views in parallel for memberships and meeting attendance
+            const results = await rv.RunViews([
+                {
+                    EntityName: 'Committees: Committee Memberships',
+                    ExtraFilter: `CommitteeID='${this.CommitteeID}'`,
+                    OrderBy: 'Role ASC, Person ASC',
+                    ResultType: 'simple'
+                },
+                {
+                    EntityName: 'Committees: Meeting Attendance',
+                    ExtraFilter: `Meeting IN (SELECT ID FROM [__mj_BizAppsCommittees].[vwMeetings] WHERE CommitteeID='${this.CommitteeID}')`,
+                    ResultType: 'simple'
+                }
+            ]);
+
+            const membershipResult = results[0];
+            const attendanceResult = results[1];
 
             if (!membershipResult?.Success) {
                 this.ErrorMessage = membershipResult?.ErrorMessage || 'Failed to load committee memberships.';

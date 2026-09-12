@@ -2,6 +2,9 @@ import { BaseEntity, IRunViewProvider, ValidationResult, ValidationErrorInfo, Va
 import { RegisterClass } from '@memberjunction/global';
 import { mjBizAppsCommitteesMembershipEntity } from '../generated/entity_subclasses';
 
+/** GUID shape check — same pattern as CommitteeAuthorization's UUID_RE. */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Custom Membership entity with business rule validation:
  * - No duplicate active memberships (same person + same term)
@@ -83,6 +86,14 @@ export class MembershipEntityCustom extends mjBizAppsCommitteesMembershipEntity 
             return;
         }
 
+        // SECURITY (SQL injection): PersonID/TermID/ID are interpolated into the
+        // ExtraFilter below, and that query runs server-side BEFORE the parameterized
+        // sproc or any FK/type check could reject a malformed GUID. Validate the shape
+        // here and fail validation without running the query.
+        if (!this.validateFilterIdentifiers(result)) {
+            return;
+        }
+
         // This entity owns a provider — route the query through it and carry the
         // entity's user context (MJ rule: never reach for the global provider here).
         // The concrete provider implements both interfaces; the cast bridges the
@@ -102,6 +113,36 @@ export class MembershipEntityCustom extends mjBizAppsCommitteesMembershipEntity 
                 ValidationErrorType.Failure
             ));
         }
+    }
+
+    /**
+     * SECURITY: ensures every identifier interpolated into the duplicate-check
+     * ExtraFilter is a well-formed GUID. Pushes a validation error and returns
+     * false for any malformed value so the caller can skip the query entirely.
+     * ID is only checked when set — new records have no primary key yet.
+     */
+    private validateFilterIdentifiers(result: ValidationResult): boolean {
+        const identifiers: ReadonlyArray<[string, string]> = [
+            ['PersonID', this.PersonID],
+            ['TermID', this.TermID],
+            ['ID', this.ID],
+        ];
+        let valid = true;
+        for (const [fieldName, value] of identifiers) {
+            if (fieldName === 'ID' && !value) {
+                continue;
+            }
+            if (!value || !UUID_RE.test(value)) {
+                result.Errors.push(new ValidationErrorInfo(
+                    fieldName,
+                    'Invalid identifier.',
+                    value,
+                    ValidationErrorType.Failure
+                ));
+                valid = false;
+            }
+        }
+        return valid;
     }
 }
 

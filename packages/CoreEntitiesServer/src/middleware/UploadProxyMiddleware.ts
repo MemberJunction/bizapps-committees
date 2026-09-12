@@ -1,7 +1,9 @@
-import type { Application, Request, Response } from 'express';
+import type { Application, NextFunction, Request, RequestHandler, Response } from 'express';
 import { RegisterClass } from '@memberjunction/global';
 import { BaseServerMiddleware } from '@memberjunction/server';
 import { assertPublicHttpsTarget } from '../security/ssrf-guard.js';
+
+const UPLOAD_PROXY_PATH = '/api/upload-proxy';
 
 /**
  * Upload proxy middleware for storage providers that don't support CORS.
@@ -10,6 +12,11 @@ import { assertPublicHttpsTarget } from '../security/ssrf-guard.js';
  * pre-signed URLs don't allow cross-origin requests from arbitrary domains.
  * Clients POST/PUT to /api/upload-proxy with x-upload-url and x-upload-method
  * headers; the server forwards the body to the target URL.
+ *
+ * SECURITY: the POST/PUT handler is registered via GetPostAuthMiddleware so it
+ * mounts AFTER MJServer's unified auth middleware — routes registered through
+ * ConfigureExpressApp match before that middleware and would run with no
+ * authentication at all. Only the credential-less CORS preflight stays pre-auth.
  */
 @RegisterClass(BaseServerMiddleware, 'mjcommittees:uploadProxy')
 export class UploadProxyMiddleware extends BaseServerMiddleware {
@@ -18,13 +25,22 @@ export class UploadProxyMiddleware extends BaseServerMiddleware {
     }
 
     ConfigureExpressApp(app: Application): void {
-        console.log('[upload-proxy] Registering /api/upload-proxy routes');
-
+        console.log('[upload-proxy] Registering /api/upload-proxy preflight route');
         this.registerPreflightRoute(app);
+    }
 
-        const uploadHandler = (req: Request, res: Response) => this.handleUpload(req, res);
-        app.put('/api/upload-proxy', uploadHandler);
-        app.post('/api/upload-proxy', uploadHandler);
+    /**
+     * Registers the POST/PUT upload handler in the post-auth pipeline stage, where
+     * the unified auth middleware has already resolved (or 401-rejected) the caller.
+     */
+    override GetPostAuthMiddleware(): RequestHandler[] {
+        return [(req: Request, res: Response, next: NextFunction): void => {
+            if (req.path === UPLOAD_PROXY_PATH && (req.method === 'POST' || req.method === 'PUT')) {
+                void this.handleUpload(req, res);
+                return;
+            }
+            next();
+        }];
     }
 
     /**
@@ -51,6 +67,14 @@ export class UploadProxyMiddleware extends BaseServerMiddleware {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Headers': 'Authorization, Content-Type, x-upload-url, x-upload-method',
         });
+        // SECURITY (defense-in-depth): this handler mounts post-auth, so the unified auth
+        // middleware has already attached req.userPayload (with the resolved MJ UserInfo in
+        // userRecord). Verify the artifacts anyway — if a refactor ever moves this registration
+        // back ahead of the auth middleware, requests would otherwise flow through unauthenticated.
+        if (!req.userPayload?.userRecord) {
+            res.status(401).json({ error: 'Authentication required' });
+            return;
+        }
         const targetUrl = req.headers['x-upload-url'] as string;
         const method = ((req.headers['x-upload-method'] as string) || 'POST').toUpperCase();
         if (!targetUrl) {

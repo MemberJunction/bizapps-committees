@@ -74,13 +74,13 @@ export class TaskTrackerComponent extends BaseResourceComponent implements OnIni
     /** ExtraFilter for "My Tasks" */
     get MyTasksFilter(): string | null {
         if (!this.CurrentPersonID) return null;
-        return `ID IN (SELECT TaskID FROM __mj_BizAppsTasks.TaskAssignment WHERE AssigneeRecordID = '${this.CurrentPersonID}')`;
+        return `ID IN (SELECT TaskID FROM [__mj_BizAppsTasks].[vwTaskAssignments] WHERE AssigneeRecordID = '${this.CurrentPersonID}')`;
     }
 
     /** Limits the assignee picker to members of the selected committee */
     get AssigneeScope(): string | null {
         if (!this.SelectedCommitteeID) return null;
-        return `ID IN (SELECT m.PersonID FROM __mj_BizAppsCommittees.Membership m JOIN __mj_BizAppsCommittees.Term t ON m.TermID = t.ID WHERE t.CommitteeID = '${this.SelectedCommitteeID}' AND m.Status = 'Active')`;
+        return `ID IN (SELECT m.PersonID FROM [__mj_BizAppsCommittees].[vwMemberships] m JOIN [__mj_BizAppsCommittees].[vwTerms] t ON m.TermID = t.ID WHERE t.CommitteeID = '${this.SelectedCommitteeID}' AND m.Status = 'Active')`;
     }
 
     private cdr = inject(ChangeDetectorRef);

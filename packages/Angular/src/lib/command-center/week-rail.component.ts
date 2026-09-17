@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, Input } from '@angular/core';
+import { Component, ChangeDetectionStrategy, EventEmitter, Input, Output } from '@angular/core';
 import { UpcomingMeetingForecast } from '@mj-biz-apps/committees-core';
 import { StatusBadge } from './status-badge';
 
@@ -15,6 +15,7 @@ import { StatusBadge } from './status-badge';
 })
 export class WeekRailComponent {
     @Input({ required: true }) Meetings!: UpcomingMeetingForecast[];
+    @Output() MeetingSelected = new EventEmitter<string>();
 
     PlatformLabel(meeting: UpcomingMeetingForecast): string {
         if (meeting.VideoProviderName) return meeting.VideoProviderName;

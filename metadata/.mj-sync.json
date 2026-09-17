@@ -20,7 +20,9 @@
     "artifact-types",
     "file-storage-providers",
     "prompts",
-    "agents"
+    "agents",
+    "entity-fields",
+    "entity-relationships"
   ],
   "emitSyncNotes": false
 }

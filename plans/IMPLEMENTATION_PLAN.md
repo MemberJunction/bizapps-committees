@@ -233,7 +233,7 @@ Create `mj-app.json` at repo root:
   "version": "1.0.0",
   "description": "Committee governance platform for managing memberships, meetings, agendas, voting, action items, and documents.",
   "author": "MemberJunction",
-  "license": "ISC",
+  "license": "BUSL-1.1",
   "dependencies": {
     "bizapps-common": ">=1.0.0"
   },

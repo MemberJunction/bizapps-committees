@@ -1,7 +1,8 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { RegisterClass } from '@memberjunction/global';
-import { BaseResourceComponent } from '@memberjunction/ng-shared';
+import { CompositeKey } from '@memberjunction/core';
+import { BaseResourceComponent, NavigationService } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import {
     CommitteeHealthService,
@@ -40,6 +41,7 @@ export class CommandCenterComponent extends BaseResourceComponent implements OnI
 
     private cdr = inject(ChangeDetectorRef);
     private router = inject(Router);
+    private navigation = inject(NavigationService);
 
     async ngOnInit(): Promise<void> {
         this.NotifyLoadStarted();
@@ -76,21 +78,36 @@ export class CommandCenterComponent extends BaseResourceComponent implements OnI
         this.router.navigate(['/app/mjcommitteemgmt', tabName]);
     }
 
-    /** Opens the Committee Workspace for a specific committee. */
+    /** Staff: full Explorer record, not the in-app workspace slide-in. */
     OpenCommittee(committeeID: string): void {
-        // Route segment must match the nav item Label exactly (case-sensitive)
-        this.router.navigate(
-            ['/app/mjcommitteemgmt', 'Committees'],
-            { queryParams: { committeeId: committeeID } }
+        this.navigation.OpenEntityRecord(
+            'Committees: Committees',
+            CompositeKey.FromID(committeeID),
         );
     }
 
+    OpenMeeting(meetingID: string): void {
+        this.navigation.OpenEntityRecord(
+            'Committees: Meetings',
+            CompositeKey.FromID(meetingID),
+        );
+    }
+
+    OnNewCommittee(): void {
+        this.navigation.OpenNewEntityRecord('Committees: Committees');
+    }
+
     OnRowSelected(row: CommitteeHealthRow): void {
+        if (row.IsLocked) return;
         this.OpenCommittee(row.CommitteeID);
     }
 
     OnAttentionSelected(item: AttentionItem): void {
         this.OpenCommittee(item.CommitteeID);
+    }
+
+    OnMeetingSelected(meetingID: string): void {
+        this.OpenMeeting(meetingID);
     }
 
     get HasCommittees(): boolean {

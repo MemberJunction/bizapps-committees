@@ -139,7 +139,7 @@ export class TermRenewalWizardComponent {
     // ── Step 2 actions ──────────────────────────────────────────
 
     async OnSearch(): Promise<void> {
-        const term = this.SearchTerm.trim().replace(/'/g, "''");
+        const term = this.escapeSqlLike(this.SearchTerm.trim());
         if (term.length < 2 || this.IsSearching) return;
         this.IsSearching = true;
         this.cdr.detectChanges();
@@ -227,7 +227,7 @@ export class TermRenewalWizardComponent {
     private async findOrCreateTerm(): Promise<string> {
         const md = new Metadata();
         const rv = new RunView();
-        const name = this.TermName.trim().replace(/'/g, "''");
+        const name = this.escapeSqlString(this.TermName.trim());
         const existing = await rv.RunView<mjBizAppsCommitteesTermEntity>({
             EntityName: 'Committees: Terms',
             ExtraFilter: `CommitteeID = '${this._committeeID}' AND Name = '${name}'`,
@@ -326,5 +326,26 @@ export class TermRenewalWizardComponent {
 
     private toDateStr(d: Date): string {
         return d.toISOString().slice(0, 10);
+    }
+
+    // ── SQL filter escaping ─────────────────────────────────────
+
+    /** Escapes user text for safe inclusion in a single-quoted ExtraFilter literal. */
+    private escapeSqlString(value: string): string {
+        return value.replace(/'/g, "''");
+    }
+
+    /**
+     * Escapes user text for a LIKE pattern: SQL Server wildcards (%, _, [) are
+     * bracket-escaped so they match literally, then quotes are doubled.
+     * '[' must be escaped first, before bracket escapes are introduced.
+     */
+    private escapeSqlLike(value: string): string {
+        return this.escapeSqlString(
+            value
+                .replace(/\[/g, '[[]')
+                .replace(/%/g, '[%]')
+                .replace(/_/g, '[_]')
+        );
     }
 }

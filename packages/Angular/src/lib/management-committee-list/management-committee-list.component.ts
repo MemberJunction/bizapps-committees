@@ -1,9 +1,9 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { RegisterClass , UUIDsEqual } from '@memberjunction/global';
-import { BaseResourceComponent } from '@memberjunction/ng-shared';
+import { RegisterClass } from '@memberjunction/global';
+import { CompositeKey, RunView } from '@memberjunction/core';
+import { BaseResourceComponent, NavigationService } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
-import { RunView } from '@memberjunction/core';
 import { CommitteeDialogResult } from '../committee-list/committee-edit-dialog.component';
 
 @RegisterClass(BaseResourceComponent, 'ManagementCommitteeListComponent')
@@ -36,6 +36,7 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
 
     private cdr = inject(ChangeDetectorRef);
     private route = inject(ActivatedRoute);
+    private navigation = inject(NavigationService);
 
     async ngOnInit(): Promise<void> {
         this.NotifyLoadStarted();
@@ -73,20 +74,21 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
     }
 
     OnCreateCommittee(): void {
-        this.EditingCommitteeID = null;
-        this.ShowEditDialog = true;
-        this.cdr.markForCheck();
+        this.navigation.OpenNewEntityRecord('Committees: Committees');
     }
 
     OnEditCommittee(committeeID: string): void {
-        this.EditingCommitteeID = committeeID;
-        this.ShowEditDialog = true;
-        this.cdr.markForCheck();
+        this.navigation.OpenEntityRecord(
+            'Committees: Committees',
+            CompositeKey.FromID(committeeID),
+        );
     }
 
     OnToggleExpand(committeeID: string): void {
-        this.ExpandedCommitteeID = UUIDsEqual(this.ExpandedCommitteeID, committeeID) ? null : committeeID;
-        this.cdr.markForCheck();
+        this.navigation.OpenEntityRecord(
+            'Committees: Committees',
+            CompositeKey.FromID(committeeID),
+        );
     }
 
     async OnDialogClosed(result: CommitteeDialogResult): Promise<void> {

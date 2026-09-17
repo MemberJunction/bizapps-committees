@@ -57,14 +57,19 @@
                             @let term = TermBadge(row);
                             @let minutes = MinutesBadge(row);
                             @let actions = ActionsBadge(row);
-                            <tr [class.dim]="row.Health === 'Dissolved'">
+                            <tr
+                                class="clickable"
+                                [class.dim]="row.Health === 'Dissolved'"
+                                (click)="RowSelected.emit(row)"
+                                (keydown.enter)="RowSelected.emit(row)"
+                                tabindex="0"
+                                role="link"
+                                [attr.aria-label]="'Open ' + row.Name">
                                 <td>
                                     <div class="health-name">
                                         <span class="cicon"><i [class]="CommitteeIcon(row)"></i></span>
                                         <div>
-                                            <button type="button" class="name-link" (click)="RowSelected.emit(row)">
-                                                {{ row.Name }}
-                                            </button>
+                                            <span class="name-link">{{ row.Name }}</span>
                                             <small>{{ row.TypeName }} &middot; {{ row.ChairName ?? 'No chair' }}</small>
                                         </div>
                                     </div>

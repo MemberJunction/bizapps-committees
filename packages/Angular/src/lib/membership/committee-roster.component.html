@@ -1,0 +1,195 @@
+<div class="mj-roster-container">
+    <!-- Header KPI Ribbon -->
+    <div class="mj-kpi-ribbon">
+        <div class="mj-kpi-card">
+            <div class="mj-kpi-icon"><i class="fa-solid fa-users" style="color: #38bdf8;"></i></div>
+            <div class="mj-kpi-content">
+                <div class="mj-kpi-value">{{ TotalActiveCount }}</div>
+                <div class="mj-kpi-label">Active Members</div>
+            </div>
+        </div>
+
+        <div class="mj-kpi-card">
+            <div class="mj-kpi-icon"><i class="fa-solid fa-crown" style="color: #818cf8;"></i></div>
+            <div class="mj-kpi-content">
+                <div class="mj-kpi-value">{{ OfficerCount }}</div>
+                <div class="mj-kpi-label">Leadership Officers</div>
+            </div>
+        </div>
+
+        <div class="mj-kpi-card" [class.alert]="ExpiringCount > 0">
+            <div class="mj-kpi-icon"><i class="fa-solid fa-clock-rotate-left" style="color: #f59e0b;"></i></div>
+            <div class="mj-kpi-content">
+                <div class="mj-kpi-value">{{ ExpiringCount }}</div>
+                <div class="mj-kpi-label">Expiring in &lt; 60 Days</div>
+            </div>
+        </div>
+
+        <div class="mj-kpi-card">
+            <div class="mj-kpi-icon"><i class="fa-solid fa-clipboard-user" style="color: #10b981;"></i></div>
+            <div class="mj-kpi-content">
+                <div class="mj-kpi-value">{{ AvgAttendanceRate }}%</div>
+                <div class="mj-kpi-label">Avg Attendance</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Bar & Search -->
+    <div class="mj-roster-controls">
+        <div class="mj-filter-tabs">
+            <button
+                type="button"
+                class="mj-tab-btn"
+                [class.active]="ActiveFilter === 'active'"
+                (click)="setFilter('active')">
+                Active Terms
+            </button>
+            <button
+                type="button"
+                class="mj-tab-btn"
+                [class.active]="ActiveFilter === 'officers'"
+                (click)="setFilter('officers')">
+                Officers ({{ OfficerCount }})
+            </button>
+            <button
+                type="button"
+                class="mj-tab-btn"
+                [class.active]="ActiveFilter === 'expiring'"
+                (click)="setFilter('expiring')">
+                Expiring Soon
+                @if (ExpiringCount > 0) {
+                    <span class="mj-alert-dot"></span>
+                }
+            </button>
+            <button
+                type="button"
+                class="mj-tab-btn"
+                [class.active]="ActiveFilter === 'expired'"
+                (click)="setFilter('expired')">
+                Former / Expired
+            </button>
+            <button
+                type="button"
+                class="mj-tab-btn"
+                [class.active]="ActiveFilter === 'all'"
+                (click)="setFilter('all')">
+                All ({{ AllMembers.length }})
+            </button>
+        </div>
+
+        <div class="mj-roster-search">
+            <i class="fa-solid fa-magnifying-glass mj-search-icon"></i>
+            <input
+                type="text"
+                class="mj-search-input"
+                placeholder="Filter roster..."
+                [(ngModel)]="SearchQuery"
+                (input)="onSearchChange()"
+            />
+        </div>
+    </div>
+
+    <!-- Main Content State -->
+    @if (Loading) {
+        <div class="mj-state-box">
+            <i class="fa-solid fa-spinner fa-spin mj-spin-icon"></i>
+            <span>Loading committee roster & attendance metrics...</span>
+        </div>
+    } @else if (ErrorMessage) {
+        <div class="mj-state-box mj-error-state">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>{{ ErrorMessage }}</span>
+            <button type="button" class="mj-retry-btn" (click)="loadRosterData()">Retry</button>
+        </div>
+    } @else if (FilteredMembers.length === 0) {
+        <div class="mj-state-box mj-empty-state">
+            <i class="fa-solid fa-users-slash"></i>
+            <span>No committee members matching the current filter.</span>
+        </div>
+    } @else {
+        <!-- Roster Grid -->
+        <div class="mj-roster-grid">
+            @for (m of FilteredMembers; track m.ID) {
+                <div class="mj-member-card" [class.officer]="m.RoleCategory === 'officer'">
+                    <!-- Member Card Header -->
+                    <div class="mj-card-top">
+                        <div class="mj-member-avatar" [class.officer-avatar]="m.RoleCategory === 'officer'">
+                            <i class="fa-solid" [class.fa-user-tie]="m.RoleCategory === 'officer'" [class.fa-user]="m.RoleCategory !== 'officer'"></i>
+                        </div>
+                        <div class="mj-member-info">
+                            <div class="mj-member-name" (click)="navigateToPerson(m, $event)" title="View Person record">
+                                {{ m.PersonName }}
+                                <i class="fa-solid fa-arrow-up-right-from-square mj-link-hint"></i>
+                            </div>
+                            <div class="mj-member-badges">
+                                <span class="mj-role-badge" [class.officer-role]="m.RoleCategory === 'officer'">
+                                    {{ m.Role }}
+                                </span>
+                                <span class="mj-voting-badge" [class.non-voting]="!m.IsVoting">
+                                    {{ m.IsVoting ? 'Voting' : 'Non-Voting' }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="mj-member-actions">
+                            <button
+                                type="button"
+                                class="mj-action-icon-btn"
+                                (click)="navigateToMembership(m, $event)"
+                                title="Edit Committee Membership">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Term Timeline & Countdown -->
+                    <div class="mj-term-row">
+                        <div class="mj-term-info">
+                            <span class="mj-term-title"><i class="fa-regular fa-calendar"></i> {{ m.TermName || 'Term' }}</span>
+                            <span class="mj-term-dates">
+                                {{ m.StartDate ? (m.StartDate | date:'MMM yyyy') : '—' }} – {{ m.EndDate ? (m.EndDate | date:'MMM yyyy') : 'Indefinite' }}
+                            </span>
+                        </div>
+                        <div class="mj-term-badge-wrapper">
+                            @if (m.Status === 'Active') {
+                                <span class="mj-status-pill pill-active">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                    {{ m.DaysRemaining != null ? m.DaysRemaining + 'd left' : 'Active' }}
+                                </span>
+                            } @else if (m.Status === 'Expiring Soon') {
+                                <span class="mj-status-pill pill-expiring" title="Term expiring in less than 60 days">
+                                    <i class="fa-solid fa-triangle-exclamation"></i>
+                                    {{ m.DaysRemaining }}d left
+                                </span>
+                            } @else if (m.Status === 'Upcoming') {
+                                <span class="mj-status-pill pill-upcoming">
+                                    <i class="fa-solid fa-clock"></i> Upcoming
+                                </span>
+                            } @else {
+                                <span class="mj-status-pill pill-expired">
+                                    <i class="fa-solid fa-circle-xmark"></i> Expired
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Attendance Track Record -->
+                    <div class="mj-attendance-box">
+                        <div class="mj-att-header">
+                            <span class="mj-att-label">Meeting Attendance</span>
+                            <span class="mj-att-fraction">{{ m.AttendedMeetings }} / {{ m.TotalMeetings }} ({{ m.AttendanceRate }}%)</span>
+                        </div>
+                        <div class="mj-progress-track">
+                            <div
+                                class="mj-progress-bar"
+                                [style.width.%]="m.AttendanceRate"
+                                [class.low]="m.AttendanceRate < 60"
+                                [class.medium]="m.AttendanceRate >= 60 && m.AttendanceRate < 80"
+                                [class.high]="m.AttendanceRate >= 80"
+                            ></div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

@@ -16,12 +16,12 @@
     "test": "echo \"No tests configured yet\""
   },
   "author": "MemberJunction.com",
-  "license": "ISC",
+  "license": "BUSL-1.1",
   "peerDependencies": {
-    "@memberjunction/core": "^6.1.0-edge.2",
-    "@memberjunction/core-entities": "^6.1.0-edge.2",
-    "@memberjunction/global": "^6.1.0-edge.2",
-    "@memberjunction/server": "^6.1.0-edge.2"
+    "@memberjunction/core": "^6.1.0-edge.5",
+    "@memberjunction/core-entities": "^6.1.0-edge.5",
+    "@memberjunction/global": "^6.1.0-edge.5",
+    "@memberjunction/server": "^6.1.0-edge.5"
   },
   "dependencies": {
     "rxjs": "^7.8.1",

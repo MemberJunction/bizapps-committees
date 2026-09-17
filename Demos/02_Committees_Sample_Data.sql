@@ -1,6 +1,10 @@
 -- ============================================================================
 -- Committees Sample Data
 -- ============================================================================
+-- THROWAWAY. Predates the integration-test method. Does not go through BaseEntity.
+-- Sample data for Explorer is committed by packages/IntegrationTests (COM-WORLD)
+-- via GetEntityObject + Save — same path as Orders ORD-WORLD. Do not run this.
+--
 -- This script populates the Committees schema with rich sample data.
 --
 -- PREREQUISITES:

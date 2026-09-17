@@ -1,0 +1,78 @@
+[
+  {
+    "_comments": [
+      "Committee form uses left-nav. Terms, meetings, and child committees stay first-class."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "Form": {
+            "Layout": "left-nav",
+            "RelatedRolePolicy": "smart",
+            "PrimaryRelatedBudget": 6
+          }
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entities.Name=Committees: Committees"
+    }
+  },
+  {
+    "_comments": [
+      "Meeting form uses left-nav. Agenda, attendance, and minutes stay first-class."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "Form": {
+            "Layout": "left-nav",
+            "RelatedRolePolicy": "smart",
+            "PrimaryRelatedBudget": 6
+          }
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entities.Name=Committees: Meetings"
+    }
+  },
+  {
+    "_comments": [
+      "Term form uses left-nav. Memberships are the document body."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "Form": {
+            "Layout": "left-nav",
+            "RelatedRolePolicy": "smart",
+            "PrimaryRelatedBudget": 6
+          }
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entities.Name=Committees: Terms"
+    }
+  },
+  {
+    "_comments": [
+      "Motion form uses left-nav. Votes and ballots stay first-class."
+    ],
+    "fields": {
+      "Configuration": {
+        "UI": {
+          "Form": {
+            "Layout": "left-nav",
+            "RelatedRolePolicy": "smart",
+            "PrimaryRelatedBudget": 6
+          }
+        }
+      }
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entities.Name=Committees: Motions"
+    }
+  }
+]

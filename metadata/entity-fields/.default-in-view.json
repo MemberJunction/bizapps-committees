@@ -1,0 +1,583 @@
+[
+  {
+    "_comments": [
+      "CodeGen only stamps DefaultInView on the Name field (or nothing when there is no name field).",
+      "Related-entity grids (Meetings tab on Committee, Memberships, etc.) use these columns.",
+      "Lookups are MJ: Entity Fields.Entity + Name — never hardcoded field UUIDs."
+    ],
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Meetings&Name=StartDateTime"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:20.994Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Meetings&Name=EndDateTime"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.023Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Meetings&Name=Status"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.048Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Meetings&Name=LocationType"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.076Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Committees&Name=Status"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.101Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Committees&Name=Type"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.125Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Committees&Name=Organization"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.154Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Terms&Name=Committee"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.179Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Terms&Name=StartDate"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.205Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Terms&Name=EndDate"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.224Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Terms&Name=Status"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.278Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Memberships&Name=Person"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.306Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Memberships&Name=Role"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.333Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Memberships&Name=Term"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.359Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Memberships&Name=Status"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.386Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Memberships&Name=StartDate"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.411Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Memberships&Name=EndDate"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.436Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Memberships&Name=RenewalIntent"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.464Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Agenda Items&Name=Sequence"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.489Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Agenda Items&Name=ItemType"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.509Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Agenda Items&Name=Status"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.560Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Agenda Items&Name=DurationMinutes"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.613Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Agenda Items&Name=PresenterPerson"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.586Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Attendances&Name=Person"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.691Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Attendances&Name=AttendanceStatus"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.638Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Attendances&Name=Meeting"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.664Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Motions&Name=Result"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.717Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Motions&Name=Meeting"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.744Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Motions&Name=YesCount"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.769Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Motions&Name=NoCount"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.789Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Motions&Name=AbstainCount"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.866Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Ballots&Name=Motion"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.916Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Ballots&Name=Status"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.893Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Ballots&Name=OpensAt"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.942Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Ballots&Name=ClosesAt"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.969Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Ballots&Name=ThresholdType"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:21.994Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Votes&Name=Motion"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:22.019Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Votes&Name=VoteValue"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:22.043Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Minutes&Name=Meeting"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:22.068Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Minutes&Name=ApprovalStatus"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:22.088Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Minutes&Name=ApprovedAt"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:22.141Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Roles&Name=IsOfficer"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:22.194Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Roles&Name=IsVotingRole"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:22.168Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Types&Name=IsStandards"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:22.217Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Comments&Name=Person"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:22.292Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Comments&Name=IsResolved"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:22.243Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Artifacts&Name=ArtifactType"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:22.268Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  },
+  {
+    "fields": {
+      "DefaultInView": true
+    },
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Fields.Entity=Committees: Artifacts&Name=UploadedByPerson"
+    },
+    "sync": {
+      "lastModified": "2026-09-02T01:02:22.313Z",
+      "checksum": "3980a054b5d6fcb2805ae6a0b030e114ef8da0fb49036cc2ea1cd1b3823228cd"
+    }
+  }
+]

@@ -26,7 +26,7 @@
                 <button type="button" class="btn ghost" (click)="Refresh()">
                     <i class="fa-solid fa-rotate"></i> Refresh
                 </button>
-                <button type="button" class="btn primary" (click)="NavigateToTab('Committees')">
+                <button type="button" class="btn primary" (click)="OnNewCommittee()">
                     <i class="fa-solid fa-plus"></i> New Committee
                 </button>
             </div>
@@ -94,7 +94,7 @@
                     <span class="eicon"><i class="fa-solid fa-users"></i></span>
                     <b>No committees yet</b>
                     <p>Create your first committee to start tracking governance health, meetings, and action items.</p>
-                    <button type="button" class="btn primary" (click)="NavigateToTab('Committees')">
+                    <button type="button" class="btn primary" (click)="OnNewCommittee()">
                         <i class="fa-solid fa-plus"></i> New Committee
                     </button>
                 </div>
@@ -110,7 +110,10 @@
                 </health-grid>
 
                 <div class="right-col">
-                    <week-rail [Meetings]="Portfolio.ThisWeek"></week-rail>
+                    <week-rail
+                        [Meetings]="Portfolio.ThisWeek"
+                        (MeetingSelected)="OnMeetingSelected($event)">
+                    </week-rail>
                     <attention-rail
                         [Items]="Portfolio.Attention"
                         (ItemSelected)="OnAttentionSelected($event)">

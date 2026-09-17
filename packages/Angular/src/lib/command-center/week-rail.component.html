@@ -12,7 +12,7 @@
         }
         @for (meeting of Meetings; track meeting.MeetingID) {
             @let forecast = ForecastBadge(meeting);
-            <div class="upc">
+            <button type="button" class="upc clickable" (click)="MeetingSelected.emit(meeting.MeetingID)">
                 <div class="date">
                     <b>{{ meeting.StartDateTime | date:'d' }}</b>
                     <small>{{ meeting.StartDateTime | date:'MMM' }}</small>
@@ -28,7 +28,7 @@
                         <span [class]="'badge ' + forecast.Tone">{{ forecast.Label }}</span>
                     </div>
                 </div>
-            </div>
+            </button>
         }
     </div>
 </section>

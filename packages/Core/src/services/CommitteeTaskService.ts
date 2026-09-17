@@ -55,7 +55,7 @@ export class CommitteeTaskService {
             { EntityName: 'MJ_BizApps_Tasks: Tasks', ExtraFilter: taskFilter, Fields: ['ID', 'Name', 'Status', 'Priority', 'DueAt', 'Category'], OrderBy: 'DueAt ASC', ResultType: 'simple' },
             { EntityName: 'MJ_BizApps_Tasks: Task Links', ExtraFilter: `EntityID = '${committeesEntityID}'`, Fields: ['TaskID', 'RecordID'], ResultType: 'simple' },
             { EntityName: 'Committees: Committees', Fields: ['ID', 'Name'], ResultType: 'simple' },
-            { EntityName: 'MJ_BizApps_Tasks: Task Assignments', ExtraFilter: taskFilter ? `TaskID IN (SELECT ID FROM __mj_BizAppsTasks.Task WHERE ${taskFilter})` : '', Fields: ['TaskID', 'AssigneeRecordID'], ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Task Assignments', ExtraFilter: taskFilter ? `TaskID IN (SELECT ID FROM [__mj_BizAppsTasks].[vwTasks] WHERE ${taskFilter})` : '', Fields: ['TaskID', 'AssigneeRecordID'], ResultType: 'simple' },
         ], contextUser);
 
         const tasks = (tasksR?.Success ? tasksR.Results : []) as unknown as TaskQueryRow[];
@@ -71,7 +71,7 @@ export class CommitteeTaskService {
         const parts: string[] = [];
         if (statusFilter) parts.push(statusFilter);
         if (assignedToPersonID) {
-            parts.push(`ID IN (SELECT TaskID FROM __mj_BizAppsTasks.TaskAssignment WHERE AssigneeRecordID = '${assignedToPersonID}')`);
+            parts.push(`ID IN (SELECT TaskID FROM [__mj_BizAppsTasks].[vwTaskAssignments] WHERE AssigneeRecordID = '${assignedToPersonID}')`);
         }
         return parts.join(' AND ');
     }

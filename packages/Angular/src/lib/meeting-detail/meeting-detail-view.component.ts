@@ -1,6 +1,6 @@
 import {
     Component, Input, Output, EventEmitter, OnInit,
-    ChangeDetectionStrategy, ChangeDetectorRef, inject
+    ChangeDetectionStrategy, ChangeDetectorRef, inject, SecurityContext
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RunView, Metadata, UserInfo } from '@memberjunction/core';
@@ -111,7 +111,10 @@ export class MeetingDetailViewComponent implements OnInit {
     get RenderedMinutes(): SafeHtml {
         if (!this.Minute?.Content) return '';
         const html = marked.parse(this.Minute.Content) as string;
-        return this.sanitizer.bypassSecurityTrustHtml(html);
+        // marked does NOT sanitize — run the output through Angular's sanitizer
+        // before trusting it to strip any XSS injected via the stored content.
+        const safe = this.sanitizer.sanitize(SecurityContext.HTML, html) ?? '';
+        return this.sanitizer.bypassSecurityTrustHtml(safe);
     }
 
     get FormattedDate(): string {

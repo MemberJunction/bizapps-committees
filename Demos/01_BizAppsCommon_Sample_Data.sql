@@ -4,6 +4,10 @@
   Schema: __mj_BizAppsCommon
 ================================================================================
 
+  THROWAWAY. Predates the integration-test method. Does not go through BaseEntity.
+  Sample data is committed by packages/IntegrationTests via GetEntityObject + Save
+  (same path as Orders ORD-WORLD). Do not run this.
+
   PURPOSE:
     Populates the __mj_BizAppsCommon schema with rich, realistic sample data
     for demonstration and development purposes.

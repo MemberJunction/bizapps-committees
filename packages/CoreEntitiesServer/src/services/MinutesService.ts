@@ -1,6 +1,7 @@
 import { Metadata, RunView, UserInfo, LogError } from '@memberjunction/core';
 import { AIEngine } from '@memberjunction/aiengine';
 import { CompletionWithFallback } from './aiModel.js';
+import { assertPublicHttpsTarget } from '../security/ssrf-guard.js';
 import {
     mjBizAppsCommitteesMeetingEntity,
     mjBizAppsCommitteesMinuteEntity,
@@ -16,6 +17,9 @@ export interface MinutesDraftResult {
     MeetingID: string;
     Content: string;
 }
+
+/** Guards IDs that are interpolated into RunView ExtraFilter strings. */
+const GUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** Result returned by SaveDraftMinutes. */
 export interface MinutesSaveResult {
@@ -84,6 +88,9 @@ export class MinutesService {
         transcriptURLOverride: string | null = null
     ): Promise<MinutesDraftResult> {
         try {
+            if (!GUID_PATTERN.test(meetingID)) {
+                return { Success: false, ErrorMessage: 'Invalid meeting ID', MeetingID: meetingID, Content: '' };
+            }
             const bundle = await this.loadMeetingBundle(meetingID, contextUser);
             if (!bundle) {
                 return {
@@ -118,7 +125,7 @@ export class MinutesService {
         contextUser: UserInfo
     ): Promise<MinutesSaveResult> {
         try {
-            if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(meetingID)) {
+            if (!GUID_PATTERN.test(meetingID)) {
                 return { Success: false, ErrorMessage: 'Invalid meeting ID', MinuteID: '' };
             }
             const minute = await this.findOrCreateMinute(meetingID, contextUser);
@@ -204,11 +211,20 @@ export class MinutesService {
         return loaded ? meeting : null;
     }
 
-    /** Fetches transcript text from a URL, returning null on failure. */
+    /**
+     * Fetches transcript text from a URL, returning null on fetch failure.
+     * SECURITY (SSRF): the URL is caller-supplied (TranscriptURL override or the
+     * Meeting.TranscriptURL column), so it is validated against the shared SSRF
+     * guard first — a disallowed target (non-https, private/loopback/metadata
+     * address) throws a descriptive error rather than being fetched. Redirects
+     * are refused so a redirect to an internal address cannot slip past the
+     * pre-flight check.
+     */
     private async fetchTranscript(url: string | null): Promise<string | null> {
         if (!url) return null;
+        await assertPublicHttpsTarget(url, 'transcript URL');
         try {
-            const response = await fetch(url);
+            const response = await fetch(url, { redirect: 'error' });
             if (!response.ok) {
                 LogError(`[MinutesService] Failed to fetch transcript from ${url}: HTTP ${response.status}`);
                 return null;

@@ -150,7 +150,7 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
                 { EntityName: 'Committees: Agenda Items', ExtraFilter: `MeetingID = '${id}'`, OrderBy: 'Sequence ASC', ResultType: 'simple' },
                 { EntityName: 'Committees: Attendances', ExtraFilter: `MeetingID = '${id}'`, ResultType: 'simple' },
                 { EntityName: 'Committees: Motions', ExtraFilter: `MeetingID = '${id}'`, OrderBy: 'Sequence ASC', ResultType: 'simple' },
-                { EntityName: 'Committees: Votes', ExtraFilter: `MotionID IN (SELECT ID FROM __mj_BizAppsCommittees.vwMotions WHERE MeetingID = '${id}')`, ResultType: 'simple' },
+                { EntityName: 'Committees: Votes', ExtraFilter: `MotionID IN (SELECT ID FROM [__mj_BizAppsCommittees].[vwMotions] WHERE MeetingID = '${id}')`, ResultType: 'simple' },
                 { EntityName: 'Committees: Terms', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'CommitteeID', 'Status'], ResultType: 'simple' },
                 { EntityName: 'Committees: Memberships', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'PersonID', 'Person', 'Role', 'RoleID', 'TermID'], ResultType: 'simple' },
                 { EntityName: 'Committees: Minutes', ExtraFilter: `MeetingID = '${id}'`, ResultType: 'simple' },

@@ -1,5 +1,25 @@
 # @mj-biz-apps/committees-entities
 
+## 1.2.0
+
+### Minor Changes
+
+- 9b25f7f: Person and Organization committee chrome: Memberships and sponsored Committees are Primary; attendance is More; comments, votes, presenter, and uploader are None.
+- 0c121a3: Committee, Meeting, Term, and Motion forms use left-nav. Dual-FK Minutes.ApprovedByMeetingID and Committee-level Ballots are None. Meeting comments sit in More; Term memberships and Motion votes/ballots stay Primary.
+
+### Patch Changes
+
+- af1c6e6: License declarations now agree on BUSL-1.1 everywhere.
+
+  The Open App manifest (`mj-app.json`) still declared `"license": "ISC"` while `LICENSE` and
+  every `package.json` declared BUSL-1.1 — the manifest is what an MJ deployment reads when it
+  installs the app, so it was the one declaration that shipped the wrong answer. The scaffold
+  snippet in `plans/IMPLEMENTATION_PLAN.md` carried the same `ISC`, which is how the wrong
+  value gets copied into the next repo; it is corrected too.
+
+- 39a6718: Remove stale Metadata_Sync Flyway. It calls core SPs with a snapshot of argument lists from July 2026 and fails on current MJ (spCreateFileStorageProvider arity). Metadata lives in metadata/ and is applied with mj sync push.
+- 5ca3bf8: Drop the Person→Votes form-chrome overlay. Vote has MembershipID, not PersonID, so that EntityRelationship never exists and mj sync push fails looking it up.
+
 ## 1.1.1
 
 ### Patch Changes

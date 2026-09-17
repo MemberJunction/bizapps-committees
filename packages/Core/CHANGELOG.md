@@ -1,5 +1,24 @@
 # @mj-biz-apps/committees-core
 
+## 1.2.0
+
+### Patch Changes
+
+- af1c6e6: License declarations now agree on BUSL-1.1 everywhere.
+
+  The Open App manifest (`mj-app.json`) still declared `"license": "ISC"` while `LICENSE` and
+  every `package.json` declared BUSL-1.1 — the manifest is what an MJ deployment reads when it
+  installs the app, so it was the one declaration that shipped the wrong answer. The scaffold
+  snippet in `plans/IMPLEMENTATION_PLAN.md` carried the same `ISC`, which is how the wrong
+  value gets copied into the next repo; it is corrected too.
+
+- Updated dependencies [af1c6e6]
+- Updated dependencies [39a6718]
+- Updated dependencies [5ca3bf8]
+- Updated dependencies [9b25f7f]
+- Updated dependencies [0c121a3]
+  - @mj-biz-apps/committees-entities@1.2.0
+
 ## 1.1.1
 
 ### Patch Changes

@@ -14,6 +14,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=MJ_BizApps_Common: People&RelatedEntity=Committees: Memberships&RelatedEntityJoinField=PersonID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.459Z",
+      "checksum": "96b5ebaae1b7c2460455a8c3e82e6df1c136aa67b8a950224c74d3af04e7fbf7"
     }
   },
   {
@@ -29,6 +33,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=MJ_BizApps_Common: People&RelatedEntity=Committees: Attendances&RelatedEntityJoinField=PersonID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.473Z",
+      "checksum": "58975efd1d9187857b888d0129194c7b3c6f8248bca208c86585ea58e2517426"
     }
   },
   {
@@ -44,6 +52,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=MJ_BizApps_Common: People&RelatedEntity=Committees: Comments&RelatedEntityJoinField=PersonID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.524Z",
+      "checksum": "9cefa22b1ba112e419ae4bb1b3a7c0523ed4d83203e6d34e454e6ae81d2a1f62"
     }
   },
   {
@@ -59,6 +71,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=MJ_BizApps_Common: People&RelatedEntity=Committees: Agenda Items&RelatedEntityJoinField=PresenterPersonID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.488Z",
+      "checksum": "9cefa22b1ba112e419ae4bb1b3a7c0523ed4d83203e6d34e454e6ae81d2a1f62"
     }
   },
   {
@@ -74,6 +90,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=MJ_BizApps_Common: People&RelatedEntity=Committees: Artifacts&RelatedEntityJoinField=UploadedByPersonID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.501Z",
+      "checksum": "9cefa22b1ba112e419ae4bb1b3a7c0523ed4d83203e6d34e454e6ae81d2a1f62"
     }
   },
   {
@@ -90,6 +110,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=MJ_BizApps_Common: Organizations&RelatedEntity=Committees: Committees&RelatedEntityJoinField=OrganizationID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.540Z",
+      "checksum": "96b5ebaae1b7c2460455a8c3e82e6df1c136aa67b8a950224c74d3af04e7fbf7"
     }
   },
   {
@@ -105,6 +129,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Committees&RelatedEntity=Committees: Terms&RelatedEntityJoinField=CommitteeID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.553Z",
+      "checksum": "ffcadf6a38dea7ba00c49040ba5c94475c9266e21b9bc382278ef1da715e8086"
     }
   },
   {
@@ -120,6 +148,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Committees&RelatedEntity=Committees: Meetings&RelatedEntityJoinField=CommitteeID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.565Z",
+      "checksum": "ffcadf6a38dea7ba00c49040ba5c94475c9266e21b9bc382278ef1da715e8086"
     }
   },
   {
@@ -135,6 +167,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Committees&RelatedEntity=Committees: Committees&RelatedEntityJoinField=ParentCommitteeID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.577Z",
+      "checksum": "ffcadf6a38dea7ba00c49040ba5c94475c9266e21b9bc382278ef1da715e8086"
     }
   },
   {
@@ -150,6 +186,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Committees&RelatedEntity=Committees: Artifacts&RelatedEntityJoinField=CommitteeID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.587Z",
+      "checksum": "58975efd1d9187857b888d0129194c7b3c6f8248bca208c86585ea58e2517426"
     }
   },
   {
@@ -165,6 +205,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Meetings&RelatedEntity=Committees: Agenda Items&RelatedEntityJoinField=MeetingID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.611Z",
+      "checksum": "ffcadf6a38dea7ba00c49040ba5c94475c9266e21b9bc382278ef1da715e8086"
     }
   },
   {
@@ -180,6 +224,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Meetings&RelatedEntity=Committees: Attendances&RelatedEntityJoinField=MeetingID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.639Z",
+      "checksum": "ffcadf6a38dea7ba00c49040ba5c94475c9266e21b9bc382278ef1da715e8086"
     }
   },
   {
@@ -197,6 +245,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Meetings&RelatedEntity=Committees: Minutes&RelatedEntityJoinField=MeetingID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.624Z",
+      "checksum": "d5140d21e3165c650726422a4d60275a59d9f11c694fbdf5d8a0f146c4c3b2a4"
     }
   },
   {
@@ -212,6 +264,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Meetings&RelatedEntity=Committees: Motions&RelatedEntityJoinField=MeetingID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.665Z",
+      "checksum": "58975efd1d9187857b888d0129194c7b3c6f8248bca208c86585ea58e2517426"
     }
   },
   {
@@ -227,6 +283,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Meetings&RelatedEntity=Committees: Artifacts&RelatedEntityJoinField=MeetingID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.652Z",
+      "checksum": "58975efd1d9187857b888d0129194c7b3c6f8248bca208c86585ea58e2517426"
     }
   },
   {
@@ -242,6 +302,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Committees&RelatedEntity=Committees: Comments&RelatedEntityJoinField=CommitteeID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.680Z",
+      "checksum": "58975efd1d9187857b888d0129194c7b3c6f8248bca208c86585ea58e2517426"
     }
   },
   {
@@ -257,6 +321,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Committees&RelatedEntity=Committees: Ballots&RelatedEntityJoinField=CommitteeID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.693Z",
+      "checksum": "9cefa22b1ba112e419ae4bb1b3a7c0523ed4d83203e6d34e454e6ae81d2a1f62"
     }
   },
   {
@@ -272,6 +340,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Meetings&RelatedEntity=Committees: Comments&RelatedEntityJoinField=MeetingID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.706Z",
+      "checksum": "58975efd1d9187857b888d0129194c7b3c6f8248bca208c86585ea58e2517426"
     }
   },
   {
@@ -288,6 +360,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Meetings&RelatedEntity=Committees: Minutes&RelatedEntityJoinField=ApprovedByMeetingID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.718Z",
+      "checksum": "9cefa22b1ba112e419ae4bb1b3a7c0523ed4d83203e6d34e454e6ae81d2a1f62"
     }
   },
   {
@@ -303,6 +379,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Terms&RelatedEntity=Committees: Memberships&RelatedEntityJoinField=TermID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.729Z",
+      "checksum": "ffcadf6a38dea7ba00c49040ba5c94475c9266e21b9bc382278ef1da715e8086"
     }
   },
   {
@@ -318,6 +398,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Motions&RelatedEntity=Committees: Votes&RelatedEntityJoinField=MotionID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.874Z",
+      "checksum": "ffcadf6a38dea7ba00c49040ba5c94475c9266e21b9bc382278ef1da715e8086"
     }
   },
   {
@@ -333,6 +417,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entity Relationships.Entity=Committees: Motions&RelatedEntity=Committees: Ballots&RelatedEntityJoinField=MotionID"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:03.862Z",
+      "checksum": "ffcadf6a38dea7ba00c49040ba5c94475c9266e21b9bc382278ef1da715e8086"
     }
   }
 ]

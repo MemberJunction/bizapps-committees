@@ -147,9 +147,17 @@ jobs:
           MJ_DEP=$(jq -r '.dependencies["@memberjunction/core"] // .peerDependencies["@memberjunction/core"] // empty' packages/GeneratedEntities/package.json)
           if [ -n "$MJ_DEP" ]; then
             MJ_MIN=$(echo "$MJ_DEP" | sed 's/^[^0-9]*//')
-            EXISTING_MIN=$(jq -r '.mjVersionRange // empty' mj-app.json | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' | head -1)
-            if [ -n "$EXISTING_MIN" ] && [ "$(printf '%s\n%s\n' "$MJ_MIN" "$EXISTING_MIN" | sort -V | tail -1)" = "$EXISTING_MIN" ]; then
-              MJ_MIN="$EXISTING_MIN"
+            # Keep the prerelease suffix: a hand-set floor like 6.1.0-edge.6 must not be read as
+            # 6.1.0 and then lose to the dependency's 6.1.0-edge.5.
+            EXISTING_MIN=$(jq -r '.mjVersionRange // empty' mj-app.json | grep -oE '[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?' | head -1)
+            if [ -n "$EXISTING_MIN" ]; then
+              if [ "${MJ_MIN%%-*}" = "${EXISTING_MIN%%-*}" ] && { [ "$MJ_MIN" = "${MJ_MIN%%-*}" ] || [ "$EXISTING_MIN" = "${EXISTING_MIN%%-*}" ]; }; then
+                # Same x.y.z, one side is a full release: semver ranks the release above any
+                # prerelease, the opposite of sort -V.
+                if [ "$EXISTING_MIN" = "${EXISTING_MIN%%-*}" ]; then MJ_MIN="$EXISTING_MIN"; fi
+              elif [ "$(printf '%s\n%s\n' "$MJ_MIN" "$EXISTING_MIN" | sort -V | tail -1)" = "$EXISTING_MIN" ]; then
+                MJ_MIN="$EXISTING_MIN"
+              fi
             fi
             MJ_NEXT_MAJOR="$(( $(echo "$MJ_MIN" | cut -d. -f1) + 1 )).0.0"
             MJ_RANGE=">=${MJ_MIN} <${MJ_NEXT_MAJOR}"

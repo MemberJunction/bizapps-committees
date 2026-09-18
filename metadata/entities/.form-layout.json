@@ -16,6 +16,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entities.Name=Committees: Committees"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:04.148Z",
+      "checksum": "1db0b7d0ba262af59d8cff9d6e4eca10d35fb489db8f864df5993e25a46d4b65"
     }
   },
   {
@@ -35,6 +39,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entities.Name=Committees: Meetings"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:04.171Z",
+      "checksum": "1db0b7d0ba262af59d8cff9d6e4eca10d35fb489db8f864df5993e25a46d4b65"
     }
   },
   {
@@ -54,6 +62,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entities.Name=Committees: Terms"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:04.195Z",
+      "checksum": "1db0b7d0ba262af59d8cff9d6e4eca10d35fb489db8f864df5993e25a46d4b65"
     }
   },
   {
@@ -73,6 +85,10 @@
     },
     "primaryKey": {
       "ID": "@lookup:MJ: Entities.Name=Committees: Motions"
+    },
+    "sync": {
+      "lastModified": "2026-09-18T16:55:04.211Z",
+      "checksum": "1db0b7d0ba262af59d8cff9d6e4eca10d35fb489db8f864df5993e25a46d4b65"
     }
   }
 ]

@@ -4,7 +4,7 @@
   "name": "mj-committees",
   "displayName": "Committees",
   "description": "Unified governance platform for managing committees, memberships, meetings, action items, and documents — with AI-powered minutes generation and health analytics",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "license": "BUSL-1.1",
   "icon": "fa-solid fa-users-rectangle",
   "publisher": {

@@ -1,5 +1,7 @@
 # @mj-biz-apps/committees-actions
 
+## 1.3.0
+
 ## 1.2.0
 
 ### Patch Changes

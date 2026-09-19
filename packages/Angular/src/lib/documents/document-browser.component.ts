@@ -123,7 +123,9 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
 
     OnOpenDocument(url: string, event: MouseEvent): void {
         event.stopPropagation();
-        window.open(url, '_blank');
+        // 'noopener' prevents the (user-editable) document URL's page from
+        // reaching back into this app via window.opener (reverse tabnabbing).
+        window.open(url, '_blank', 'noopener');
     }
 
     /** Card click → open the inline preview panel (anyone can view). */

@@ -11,6 +11,8 @@ import { mjBizAppsCommitteesMembershipEntity } from '../generated/entity_subclas
  *
  * Registered with priority 1 to override the generated class.
  */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 @RegisterClass(BaseEntity, 'Memberships', 1)
 export class MembershipEntityCustom extends mjBizAppsCommitteesMembershipEntity {
 
@@ -80,6 +82,15 @@ export class MembershipEntityCustom extends mjBizAppsCommitteesMembershipEntity 
      */
     private async ValidateNoDuplicateActiveMembership(result: ValidationResult): Promise<void> {
         if (this.Status !== 'Active' || !this.PersonID || !this.TermID) {
+            return;
+        }
+
+        // SECURITY (SQL injection): PersonID, TermID, and ID are client-supplied
+        // strings interpolated into the ExtraFilter below, and this validation runs
+        // server-side during Save — before the database's uniqueidentifier
+        // conversion would reject a malformed value. A non-UUID value can never be
+        // a real duplicate, so skip the query rather than interpolate it.
+        if (!UUID_RE.test(this.PersonID) || !UUID_RE.test(this.TermID) || (this.ID && !UUID_RE.test(this.ID))) {
             return;
         }
 

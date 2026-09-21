@@ -1,0 +1,15 @@
+[
+  {
+    "fields": {
+      "MLModelID": "C1A02E75-4C6E-49B0-96F3-79D1A8E26011",
+      "RecordProcessID": "C1A02E75-4C6E-49B0-96F3-79D1A8E26050",
+      "TargetEntityID": "F7DEBA2D-4E28-4C6E-971B-6099217FAB29",
+      "TargetColumn": "PredictedQuorumRiskProbability",
+      "Mode": "Scheduled",
+      "SkipEmbeddings": false
+    },
+    "primaryKey": {
+      "ID": "C1A02E75-4C6E-49B0-96F3-79D1A8E26060"
+    }
+  }
+]

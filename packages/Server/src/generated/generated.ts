@@ -1935,6 +1935,16 @@ export class mjBizAppsCommitteesMeeting_ {
     @MaxLength(100)
     VideoProvider_Virtual?: string;
         
+    @Field(() => Float, {nullable: true, description: `Predicted probability (0.0000 to 1.0000) that this committee meeting will fail to achieve a quorum of voting members.`}) 
+    PredictedQuorumRiskProbability?: number;
+        
+    @Field({nullable: true, description: `Operational quorum risk band classifying quorum risk: Low (<40%), Medium (40-70%), High (>70%), or Critical.`}) 
+    @MaxLength(20)
+    PredictedQuorumRiskBand?: string;
+        
+    @Field({nullable: true, description: `Timestamp when this meeting was last scored by the predictive quorum risk model.`}) 
+    PredictedQuorumRiskScoredAt?: Date;
+        
     @Field(() => [mjBizAppsCommitteesArtifact_])
     mjBizAppsCommitteesCommittees_Artifacts_MeetingIDArray: mjBizAppsCommitteesArtifact_[]; // Link to mjBizAppsCommitteesCommittees_Artifacts
     
@@ -2014,6 +2024,16 @@ export class CreatemjBizAppsCommitteesMeetingInput {
     @Field({ nullable: true })
     CalendarEventID: string | null;
 
+    @Field(() => Float, { nullable: true })
+    PredictedQuorumRiskProbability?: number | null;
+
+    @Field({ nullable: true })
+    @MaxLength(20)
+    PredictedQuorumRiskBand?: string | null;
+
+    @Field({ nullable: true })
+    PredictedQuorumRiskScoredAt?: Date | null;
+
     @Field(() => RestoreContextInput, { nullable: true })
     RestoreContext___?: RestoreContextInput;
 }
@@ -2074,6 +2094,16 @@ export class UpdatemjBizAppsCommitteesMeetingInput {
 
     @Field({ nullable: true })
     CalendarEventID?: string | null;
+
+    @Field(() => Float, { nullable: true })
+    PredictedQuorumRiskProbability?: number | null;
+
+    @Field({ nullable: true })
+    @MaxLength(20)
+    PredictedQuorumRiskBand?: string | null;
+
+    @Field({ nullable: true })
+    PredictedQuorumRiskScoredAt?: Date | null;
 
     @Field(() => [KeyValuePairInput], { nullable: true })
     OldValues___?: KeyValuePairInput[];

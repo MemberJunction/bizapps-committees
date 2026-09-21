@@ -1,0 +1,24 @@
+[
+  {
+    "fields": {
+      "Name": "Predict Meeting Quorum Risk",
+      "Description": "Forecasts whether upcoming committee meetings will fail to achieve a quorum of voting members, based on scheduling, location type, roster size, and historical attendance patterns.",
+      "Version": 1,
+      "Status": "Draft",
+      "TargetEntityID": "F7DEBA2D-4E28-4C6E-971B-6099217FAB29",
+      "TargetVariable": "QuorumRiskOutcome",
+      "ProblemType": "classification",
+      "AlgorithmID": "25E83BF9-C5EE-4BDF-A891-D36D871B73E3",
+      "Hyperparameters": "{}",
+      "SourceBindings": "[{\"Kind\":\"Entity\",\"Ref\":\"Committees: Meetings\"}]",
+      "FeatureSteps": "{\"Steps\":[{\"Id\":\"select-features\",\"Kind\":\"select\",\"Columns\":[\"MeetingDurationMinutes\",\"DaysUntilMeeting\",\"IsVirtualFlag\",\"IsHybridFlag\",\"IsInPersonFlag\",\"HasVideoLink\",\"AgendaItemCount\",\"TotalAttendees\",\"ExpectedAttendees\",\"LocationType\"]},{\"Id\":\"onehot-LocationType\",\"Kind\":\"onehot\",\"Column\":\"LocationType\"},{\"Id\":\"standardize-numerics\",\"Kind\":\"standardize\",\"Columns\":[\"MeetingDurationMinutes\",\"DaysUntilMeeting\",\"AgendaItemCount\",\"TotalAttendees\",\"ExpectedAttendees\"]}]}",
+      "AsOfStrategy": "{\"Mode\":\"none\"}",
+      "LeakageGuard": "{\"DenyFields\":[\"PresentAttendees\",\"AbsentAttendees\",\"Status\",\"QuorumRiskOutcome\"],\"SingleFeatureDominanceThreshold\":0.85}",
+      "ValidationStrategy": "{\"Strategy\":\"train_test_split\",\"TestSize\":0.2,\"LockedHoldoutFraction\":0.15}",
+      "SkipEmbeddings": false
+    },
+    "primaryKey": {
+      "ID": "C1A02E75-4C6E-49B0-96F3-79D1A8E26001"
+    }
+  }
+]

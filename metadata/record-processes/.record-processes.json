@@ -1,0 +1,27 @@
+[
+  {
+    "fields": {
+      "Name": "Score Committees: Meetings with model C1A02E75-4C6E-49B0-96F3-79D1A8E26011 (Weekly)",
+      "Description": "Scores upcoming committee meetings for Quorum Risk",
+      "EntityID": "F7DEBA2D-4E28-4C6E-971B-6099217FAB29",
+      "Status": "Active",
+      "WorkType": "ML Model",
+      "ScopeType": "Filter",
+      "ScopeFilter": "QuorumRiskOutcome IS NULL AND StartDateTime >= GETUTCDATE()",
+      "OnChangeEnabled": false,
+      "ScheduleEnabled": true,
+      "CronExpression": "0 6 * * 1",
+      "Timezone": "UTC",
+      "OnDemandEnabled": true,
+      "OutputMapping": "{\"PredictedQuorumRiskProbability\":\"$.score\",\"PredictedQuorumRiskBand\":\"$.band\",\"PredictedQuorumRiskScoredAt\":\"$.scoredAt\"}",
+      "SkipUnchanged": true,
+      "BatchSize": 100,
+      "MaxConcurrency": 1,
+      "Configuration": "{\"modelId\":\"C1A02E75-4C6E-49B0-96F3-79D1A8E26011\",\"primaryKeyField\":\"ID\"}",
+      "SkipEmbeddings": false
+    },
+    "primaryKey": {
+      "ID": "C1A02E75-4C6E-49B0-96F3-79D1A8E26050"
+    }
+  }
+]

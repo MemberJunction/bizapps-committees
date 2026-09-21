@@ -732,6 +732,24 @@ export const mjBizAppsCommitteesMeetingSchema = z.object({
         * * Field Name: VideoProvider_Virtual
         * * Display Name: Video Provider Virtual
         * * SQL Data Type: nvarchar(100)`),
+    PredictedQuorumRiskProbability: z.number().nullable().describe(`
+        * * Field Name: PredictedQuorumRiskProbability
+        * * Display Name: Predicted Quorum Risk Probability
+        * * SQL Data Type: decimal(5,4)`),
+    PredictedQuorumRiskBand: z.union([z.literal('Low'), z.literal('Medium'), z.literal('High'), z.literal('Critical')]).nullable().describe(`
+        * * Field Name: PredictedQuorumRiskBand
+        * * Display Name: Predicted Quorum Risk Band
+        * * SQL Data Type: nvarchar(20)
+        * * Value List Type: List
+        * * Possible Values 
+        *   * Low
+        *   * Medium
+        *   * High
+        *   * Critical`),
+    PredictedQuorumRiskScoredAt: z.date().nullable().describe(`
+        * * Field Name: PredictedQuorumRiskScoredAt
+        * * Display Name: Predicted Quorum Risk Scored At
+        * * SQL Data Type: datetimeoffset`),
 });
 
 export type mjBizAppsCommitteesMeetingEntityType = z.infer<typeof mjBizAppsCommitteesMeetingSchema>;
@@ -3125,6 +3143,48 @@ export class mjBizAppsCommitteesMeetingEntity extends BaseEntity<mjBizAppsCommit
     */
     get VideoProvider_Virtual(): string | null {
         return this.Get('VideoProvider_Virtual');
+    }
+
+    /**
+    * * Field Name: PredictedQuorumRiskProbability
+    * * Display Name: Predicted Quorum Risk Probability
+    * * SQL Data Type: decimal(5,4)
+    */
+    get PredictedQuorumRiskProbability(): number | null {
+        return this.Get('PredictedQuorumRiskProbability');
+    }
+    set PredictedQuorumRiskProbability(value: number | null) {
+        this.Set('PredictedQuorumRiskProbability', value);
+    }
+
+    /**
+    * * Field Name: PredictedQuorumRiskBand
+    * * Display Name: Predicted Quorum Risk Band
+    * * SQL Data Type: nvarchar(20)
+    * * Value List Type: List
+    * * Possible Values 
+    *   * Low
+    *   * Medium
+    *   * High
+    *   * Critical
+    */
+    get PredictedQuorumRiskBand(): 'Low' | 'Medium' | 'High' | 'Critical' | null {
+        return this.Get('PredictedQuorumRiskBand');
+    }
+    set PredictedQuorumRiskBand(value: 'Low' | 'Medium' | 'High' | 'Critical' | null) {
+        this.Set('PredictedQuorumRiskBand', value);
+    }
+
+    /**
+    * * Field Name: PredictedQuorumRiskScoredAt
+    * * Display Name: Predicted Quorum Risk Scored At
+    * * SQL Data Type: datetimeoffset
+    */
+    get PredictedQuorumRiskScoredAt(): Date | null {
+        return this.Get('PredictedQuorumRiskScoredAt');
+    }
+    set PredictedQuorumRiskScoredAt(value: Date | null) {
+        this.Set('PredictedQuorumRiskScoredAt', value);
     }
 }
 

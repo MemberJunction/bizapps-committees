@@ -1,0 +1,74 @@
+[
+  {
+    "fields": {
+      "PipelineID": "C1A02E75-4C6E-49B0-96F3-79D1A8E26001",
+      "Version": 1,
+      "AlgorithmID": "25E83BF9-C5EE-4BDF-A891-D36D871B73E3",
+      "ArtifactFileID": null,
+      "FittedPreprocessing": "{\"ops\":[{\"op\":\"onehot\",\"col\":\"LocationType\",\"vocabulary\":[\"Hybrid\",\"InPerson\",\"Virtual\"]},{\"op\":\"standardize\",\"cols\":[\"MeetingDurationMinutes\",\"DaysUntilMeeting\",\"AgendaItemCount\",\"TotalAttendees\",\"ExpectedAttendees\"],\"stats\":{\"MeetingDurationMinutes\":{\"mean\":60.0,\"std\":30.0},\"DaysUntilMeeting\":{\"mean\":7.0,\"std\":5.0},\"AgendaItemCount\":{\"mean\":4.0,\"std\":2.5},\"TotalAttendees\":{\"mean\":8.0,\"std\":3.0},\"ExpectedAttendees\":{\"mean\":7.0,\"std\":2.8}}}],\"output_columns\":[\"LocationType=Hybrid\",\"LocationType=InPerson\",\"LocationType=Virtual\",\"MeetingDurationMinutes\",\"DaysUntilMeeting\",\"IsVirtualFlag\",\"IsHybridFlag\",\"IsInPersonFlag\",\"HasVideoLink\",\"AgendaItemCount\",\"TotalAttendees\",\"ExpectedAttendees\"]}",
+      "FeatureSchema": "[{\"Name\":\"MeetingDurationMinutes\",\"Kind\":\"numeric\"},{\"Name\":\"DaysUntilMeeting\",\"Kind\":\"numeric\"},{\"Name\":\"IsVirtualFlag\",\"Kind\":\"numeric\"},{\"Name\":\"IsHybridFlag\",\"Kind\":\"numeric\"},{\"Name\":\"IsInPersonFlag\",\"Kind\":\"numeric\"},{\"Name\":\"HasVideoLink\",\"Kind\":\"numeric\"},{\"Name\":\"AgendaItemCount\",\"Kind\":\"numeric\"},{\"Name\":\"TotalAttendees\",\"Kind\":\"numeric\"},{\"Name\":\"ExpectedAttendees\",\"Kind\":\"numeric\"},{\"Name\":\"LocationType\",\"Kind\":\"categorical\"}]",
+      "TargetVariable": "QuorumRiskOutcome",
+      "ProblemType": "classification",
+      "Metrics": null,
+      "HoldoutMetrics": null,
+      "FeatureImportance": "{\"LocationType=Hybrid\":0.02,\"LocationType=InPerson\":0.08,\"LocationType=Virtual\":0.01,\"MeetingDurationMinutes\":0.05,\"DaysUntilMeeting\":0.12,\"IsVirtualFlag\":0.01,\"IsHybridFlag\":0.02,\"IsInPersonFlag\":0.07,\"HasVideoLink\":0.03,\"AgendaItemCount\":0.09,\"TotalAttendees\":0.25,\"ExpectedAttendees\":0.25}",
+      "Lineage": "{\"pipelineId\":\"c1a02e75-4c6e-49b0-96f3-79d1a8e26001\",\"pipelineVersion\":1,\"targetEntityName\":\"Committees: Meetings\",\"sourceBindings\":[{\"Kind\":\"Entity\",\"Ref\":\"Committees: Meetings\"}],\"featureSteps\":{\"Steps\":[{\"Id\":\"select-features\",\"Kind\":\"select\",\"Columns\":[\"MeetingDurationMinutes\",\"DaysUntilMeeting\",\"IsVirtualFlag\",\"IsHybridFlag\",\"IsInPersonFlag\",\"HasVideoLink\",\"AgendaItemCount\",\"TotalAttendees\",\"ExpectedAttendees\",\"LocationType\"]},{\"Id\":\"onehot-LocationType\",\"Kind\":\"onehot\",\"Column\":\"LocationType\"},{\"Id\":\"standardize-numerics\",\"Kind\":\"standardize\",\"Columns\":[\"MeetingDurationMinutes\",\"DaysUntilMeeting\",\"AgendaItemCount\",\"TotalAttendees\",\"ExpectedAttendees\"]}]},\"asOfStrategy\":{\"Mode\":\"none\"},\"Tournament\":\"Meeting Quorum Risk Tournament Wave 1\",\"Algorithm\":\"XGBoost\",\"TrainedAt\":\"2026-09-20T21:00:00.000Z\",\"TrainingRows\":250,\"outcomeConfig\":{\"ScoreLabel\":\"Quorum Risk Probability\",\"StatusLabel\":\"Quorum Risk\",\"Polarity\":\"adverse\",\"Bands\":[{\"Key\":\"high\",\"Label\":\"High Risk\",\"Min\":0.7,\"Max\":1.0,\"MinScore\":0.7,\"MaxScore\":1.0,\"BadgeColor\":\"red\",\"Icon\":\"fa-circle-exclamation\"},{\"Key\":\"medium\",\"Label\":\"Med Risk\",\"Min\":0.4,\"Max\":0.7,\"MinScore\":0.4,\"MaxScore\":0.7,\"BadgeColor\":\"amber\",\"Icon\":\"fa-triangle-exclamation\"},{\"Key\":\"low\",\"Label\":\"Low Risk\",\"Min\":0.0,\"Max\":0.4,\"MinScore\":0.0,\"MaxScore\":0.4,\"BadgeColor\":\"green\",\"Icon\":\"fa-circle-check\"}],\"OutcomeStyles\":{\"QuorumLacked\":{\"BadgeColor\":\"red\",\"Icon\":\"fa-circle-exclamation\"},\"QuorumMet\":{\"BadgeColor\":\"green\",\"Icon\":\"fa-check\"},\"True\":{\"BadgeColor\":\"red\",\"Icon\":\"fa-circle-exclamation\"},\"False\":{\"BadgeColor\":\"green\",\"Icon\":\"fa-check\"}}}}",
+      "TrainedAt": "2026-09-20T21:00:00.000Z",
+      "TrainingDurationSec": 0,
+      "TrainingRowCount": 0,
+      "Status": "Draft",
+      "SkipEmbeddings": false
+    },
+    "primaryKey": {
+      "ID": "C1A02E75-4C6E-49B0-96F3-79D1A8E26011"
+    }
+  },
+  {
+    "fields": {
+      "PipelineID": "C1A02E75-4C6E-49B0-96F3-79D1A8E26001",
+      "Version": 2,
+      "AlgorithmID": "B2FD5E4A-75D4-401A-A1DA-F223A5234FDA",
+      "ArtifactFileID": null,
+      "FittedPreprocessing": "{\"ops\":[{\"op\":\"onehot\",\"col\":\"LocationType\",\"vocabulary\":[\"Hybrid\",\"InPerson\",\"Virtual\"]},{\"op\":\"standardize\",\"cols\":[\"MeetingDurationMinutes\",\"DaysUntilMeeting\",\"AgendaItemCount\",\"TotalAttendees\",\"ExpectedAttendees\"],\"stats\":{\"MeetingDurationMinutes\":{\"mean\":60.0,\"std\":30.0},\"DaysUntilMeeting\":{\"mean\":7.0,\"std\":5.0},\"AgendaItemCount\":{\"mean\":4.0,\"std\":2.5},\"TotalAttendees\":{\"mean\":8.0,\"std\":3.0},\"ExpectedAttendees\":{\"mean\":7.0,\"std\":2.8}}}],\"output_columns\":[\"LocationType=Hybrid\",\"LocationType=InPerson\",\"LocationType=Virtual\",\"MeetingDurationMinutes\",\"DaysUntilMeeting\",\"IsVirtualFlag\",\"IsHybridFlag\",\"IsInPersonFlag\",\"HasVideoLink\",\"AgendaItemCount\",\"TotalAttendees\",\"ExpectedAttendees\"]}",
+      "FeatureSchema": "[{\"Name\":\"MeetingDurationMinutes\",\"Kind\":\"numeric\"},{\"Name\":\"DaysUntilMeeting\",\"Kind\":\"numeric\"},{\"Name\":\"IsVirtualFlag\",\"Kind\":\"numeric\"},{\"Name\":\"IsHybridFlag\",\"Kind\":\"numeric\"},{\"Name\":\"IsInPersonFlag\",\"Kind\":\"numeric\"},{\"Name\":\"HasVideoLink\",\"Kind\":\"numeric\"},{\"Name\":\"AgendaItemCount\",\"Kind\":\"numeric\"},{\"Name\":\"TotalAttendees\",\"Kind\":\"numeric\"},{\"Name\":\"ExpectedAttendees\",\"Kind\":\"numeric\"},{\"Name\":\"LocationType\",\"Kind\":\"categorical\"}]",
+      "TargetVariable": "QuorumRiskOutcome",
+      "ProblemType": "classification",
+      "Metrics": null,
+      "HoldoutMetrics": null,
+      "FeatureImportance": "{\"LocationType=Hybrid\":12,\"LocationType=InPerson\":35,\"LocationType=Virtual\":8,\"MeetingDurationMinutes\":45,\"DaysUntilMeeting\":80,\"IsVirtualFlag\":5,\"IsHybridFlag\":10,\"IsInPersonFlag\":30,\"HasVideoLink\":15,\"AgendaItemCount\":60,\"TotalAttendees\":150,\"ExpectedAttendees\":145}",
+      "Lineage": "{\"pipelineId\":\"c1a02e75-4c6e-49b0-96f3-79d1a8e26001\",\"pipelineVersion\":1,\"targetEntityName\":\"Committees: Meetings\",\"sourceBindings\":[{\"Kind\":\"Entity\",\"Ref\":\"Committees: Meetings\"}],\"featureSteps\":{\"Steps\":[{\"Id\":\"select-features\",\"Kind\":\"select\",\"Columns\":[\"MeetingDurationMinutes\",\"DaysUntilMeeting\",\"IsVirtualFlag\",\"IsHybridFlag\",\"IsInPersonFlag\",\"HasVideoLink\",\"AgendaItemCount\",\"TotalAttendees\",\"ExpectedAttendees\",\"LocationType\"]},{\"Id\":\"onehot-LocationType\",\"Kind\":\"onehot\",\"Column\":\"LocationType\"},{\"Id\":\"standardize-numerics\",\"Kind\":\"standardize\",\"Columns\":[\"MeetingDurationMinutes\",\"DaysUntilMeeting\",\"AgendaItemCount\",\"TotalAttendees\",\"ExpectedAttendees\"]}]},\"asOfStrategy\":{\"Mode\":\"none\"},\"Tournament\":\"Meeting Quorum Risk Tournament Wave 1\",\"Algorithm\":\"LightGBM\",\"TrainedAt\":\"2026-09-20T21:00:00.000Z\",\"TrainingRows\":250,\"outcomeConfig\":{\"ScoreLabel\":\"Quorum Risk Probability\",\"StatusLabel\":\"Quorum Risk\",\"Polarity\":\"adverse\",\"Bands\":[{\"Key\":\"high\",\"Label\":\"High Risk\",\"Min\":0.7,\"Max\":1.0,\"MinScore\":0.7,\"MaxScore\":1.0,\"BadgeColor\":\"red\",\"Icon\":\"fa-circle-exclamation\"},{\"Key\":\"medium\",\"Label\":\"Med Risk\",\"Min\":0.4,\"Max\":0.7,\"MinScore\":0.4,\"MaxScore\":0.7,\"BadgeColor\":\"amber\",\"Icon\":\"fa-triangle-exclamation\"},{\"Key\":\"low\",\"Label\":\"Low Risk\",\"Min\":0.0,\"Max\":0.4,\"MinScore\":0.0,\"MaxScore\":0.4,\"BadgeColor\":\"green\",\"Icon\":\"fa-circle-check\"}],\"OutcomeStyles\":{\"QuorumLacked\":{\"BadgeColor\":\"red\",\"Icon\":\"fa-circle-exclamation\"},\"QuorumMet\":{\"BadgeColor\":\"green\",\"Icon\":\"fa-check\"},\"True\":{\"BadgeColor\":\"red\",\"Icon\":\"fa-circle-exclamation\"},\"False\":{\"BadgeColor\":\"green\",\"Icon\":\"fa-check\"}}}}",
+      "TrainedAt": "2026-09-20T21:00:00.000Z",
+      "TrainingDurationSec": 0,
+      "TrainingRowCount": 0,
+      "Status": "Draft",
+      "SkipEmbeddings": false
+    },
+    "primaryKey": {
+      "ID": "C1A02E75-4C6E-49B0-96F3-79D1A8E26012"
+    }
+  },
+  {
+    "fields": {
+      "PipelineID": "C1A02E75-4C6E-49B0-96F3-79D1A8E26001",
+      "Version": 3,
+      "AlgorithmID": "F966965D-3A87-4DD6-91E0-4F9D1AF17796",
+      "ArtifactFileID": null,
+      "FittedPreprocessing": "{\"ops\":[{\"op\":\"onehot\",\"col\":\"LocationType\",\"vocabulary\":[\"Hybrid\",\"InPerson\",\"Virtual\"]},{\"op\":\"standardize\",\"cols\":[\"MeetingDurationMinutes\",\"DaysUntilMeeting\",\"AgendaItemCount\",\"TotalAttendees\",\"ExpectedAttendees\"],\"stats\":{\"MeetingDurationMinutes\":{\"mean\":60.0,\"std\":30.0},\"DaysUntilMeeting\":{\"mean\":7.0,\"std\":5.0},\"AgendaItemCount\":{\"mean\":4.0,\"std\":2.5},\"TotalAttendees\":{\"mean\":8.0,\"std\":3.0},\"ExpectedAttendees\":{\"mean\":7.0,\"std\":2.8}}}],\"output_columns\":[\"LocationType=Hybrid\",\"LocationType=InPerson\",\"LocationType=Virtual\",\"MeetingDurationMinutes\",\"DaysUntilMeeting\",\"IsVirtualFlag\",\"IsHybridFlag\",\"IsInPersonFlag\",\"HasVideoLink\",\"AgendaItemCount\",\"TotalAttendees\",\"ExpectedAttendees\"]}",
+      "FeatureSchema": "[{\"Name\":\"MeetingDurationMinutes\",\"Kind\":\"numeric\"},{\"Name\":\"DaysUntilMeeting\",\"Kind\":\"numeric\"},{\"Name\":\"IsVirtualFlag\",\"Kind\":\"numeric\"},{\"Name\":\"IsHybridFlag\",\"Kind\":\"numeric\"},{\"Name\":\"IsInPersonFlag\",\"Kind\":\"numeric\"},{\"Name\":\"HasVideoLink\",\"Kind\":\"numeric\"},{\"Name\":\"AgendaItemCount\",\"Kind\":\"numeric\"},{\"Name\":\"TotalAttendees\",\"Kind\":\"numeric\"},{\"Name\":\"ExpectedAttendees\",\"Kind\":\"numeric\"},{\"Name\":\"LocationType\",\"Kind\":\"categorical\"}]",
+      "TargetVariable": "QuorumRiskOutcome",
+      "ProblemType": "classification",
+      "Metrics": null,
+      "HoldoutMetrics": null,
+      "FeatureImportance": "{\"LocationType=Hybrid\":0.03,\"LocationType=InPerson\":0.07,\"LocationType=Virtual\":0.02,\"MeetingDurationMinutes\":0.06,\"DaysUntilMeeting\":0.14,\"IsVirtualFlag\":0.01,\"IsHybridFlag\":0.02,\"IsInPersonFlag\":0.08,\"HasVideoLink\":0.04,\"AgendaItemCount\":0.08,\"TotalAttendees\":0.23,\"ExpectedAttendees\":0.22}",
+      "Lineage": "{\"pipelineId\":\"c1a02e75-4c6e-49b0-96f3-79d1a8e26001\",\"pipelineVersion\":1,\"targetEntityName\":\"Committees: Meetings\",\"sourceBindings\":[{\"Kind\":\"Entity\",\"Ref\":\"Committees: Meetings\"}],\"featureSteps\":{\"Steps\":[{\"Id\":\"select-features\",\"Kind\":\"select\",\"Columns\":[\"MeetingDurationMinutes\",\"DaysUntilMeeting\",\"IsVirtualFlag\",\"IsHybridFlag\",\"IsInPersonFlag\",\"HasVideoLink\",\"AgendaItemCount\",\"TotalAttendees\",\"ExpectedAttendees\",\"LocationType\"]},{\"Id\":\"onehot-LocationType\",\"Kind\":\"onehot\",\"Column\":\"LocationType\"},{\"Id\":\"standardize-numerics\",\"Kind\":\"standardize\",\"Columns\":[\"MeetingDurationMinutes\",\"DaysUntilMeeting\",\"AgendaItemCount\",\"TotalAttendees\",\"ExpectedAttendees\"]}]},\"asOfStrategy\":{\"Mode\":\"none\"},\"Tournament\":\"Meeting Quorum Risk Tournament Wave 1\",\"Algorithm\":\"Random Forest\",\"TrainedAt\":\"2026-09-20T21:00:00.000Z\",\"TrainingRows\":250,\"outcomeConfig\":{\"ScoreLabel\":\"Quorum Risk Probability\",\"StatusLabel\":\"Quorum Risk\",\"Polarity\":\"adverse\",\"Bands\":[{\"Key\":\"high\",\"Label\":\"High Risk\",\"Min\":0.7,\"Max\":1.0,\"MinScore\":0.7,\"MaxScore\":1.0,\"BadgeColor\":\"red\",\"Icon\":\"fa-circle-exclamation\"},{\"Key\":\"medium\",\"Label\":\"Med Risk\",\"Min\":0.4,\"Max\":0.7,\"MinScore\":0.4,\"MaxScore\":0.7,\"BadgeColor\":\"amber\",\"Icon\":\"fa-triangle-exclamation\"},{\"Key\":\"low\",\"Label\":\"Low Risk\",\"Min\":0.0,\"Max\":0.4,\"MinScore\":0.0,\"MaxScore\":0.4,\"BadgeColor\":\"green\",\"Icon\":\"fa-circle-check\"}],\"OutcomeStyles\":{\"QuorumLacked\":{\"BadgeColor\":\"red\",\"Icon\":\"fa-circle-exclamation\"},\"QuorumMet\":{\"BadgeColor\":\"green\",\"Icon\":\"fa-check\"},\"True\":{\"BadgeColor\":\"red\",\"Icon\":\"fa-circle-exclamation\"},\"False\":{\"BadgeColor\":\"green\",\"Icon\":\"fa-check\"}}}}",
+      "TrainedAt": "2026-09-20T21:00:00.000Z",
+      "TrainingDurationSec": 0,
+      "TrainingRowCount": 0,
+      "Status": "Draft",
+      "SkipEmbeddings": false
+    },
+    "primaryKey": {
+      "ID": "C1A02E75-4C6E-49B0-96F3-79D1A8E26013"
+    }
+  }
+]

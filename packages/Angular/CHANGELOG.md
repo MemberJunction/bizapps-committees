@@ -1,5 +1,21 @@
 # @mj-biz-apps/committees-ng
 
+## 1.4.0
+
+### Minor Changes
+
+- 476e117: Add predictive meeting quorum risk outcome columns, layered base views (vwMeetingsGenerated and vwMeetings), and scoring binding write-back.
+
+  - Materializes `PredictedQuorumRiskProbability`, `PredictedQuorumRiskBand`, and `PredictedQuorumRiskScoredAt` on `Meeting`.
+  - Updates layered base view `vwMeetings` to compute engineered quorum features (`QuorumRiskOutcome`, `MeetingDurationMinutes`, `DaysUntilMeeting`, `IsVirtualFlag`, `IsHybridFlag`, `IsInPersonFlag`, `HasVideoLink`, `AgendaItemCount`, `TotalAttendees`, `ExpectedAttendees`, `PresentAttendees`, `AbsentAttendees`).
+  - Configures ML training pipeline, model candidates (XGBoost, LightGBM, Random Forest), and scheduled scoring binding targeting `PredictedQuorumRiskProbability`.
+
+### Patch Changes
+
+- Updated dependencies [476e117]
+  - @mj-biz-apps/committees-entities@1.4.0
+  - @mj-biz-apps/committees-core@1.4.0
+
 ## 1.3.0
 
 ### Patch Changes

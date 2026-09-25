@@ -1,5 +1,12 @@
 # @mj-biz-apps/committees-core
 
+## 1.4.0
+
+### Patch Changes
+
+- Updated dependencies [476e117]
+  - @mj-biz-apps/committees-entities@1.4.0
+
 ## 1.3.0
 
 ### Patch Changes

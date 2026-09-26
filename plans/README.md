@@ -1,10 +1,21 @@
 # Committees Application: Planning Documents
 
-**Last Updated:** February 15, 2026
+**Last Updated:** September 26, 2026
 
 ---
 
 ## Document Index
+
+### 🧩 [COLLABORATION_REBUILD_PLAN.md](./COLLABORATION_REBUILD_PLAN.md)
+**Committees on Collaboration** - How Committees becomes a plug-in on bizapps-collaboration:
+- Committee and Term extend Collaboration's Space through IsA
+- Seats synced from memberships; sub-committees keep their own membership
+- The space types, drivers, contributions and tests Committees ships
+- The data migration, and why it's Committees 2.0.0
+
+**Status:** 📝 Planned - starts after bizapps-collaboration is done
+
+---
 
 ### 📘 [COMPREHENSIVE_DESIGN.md](./COMPREHENSIVE_DESIGN.md)
 **The primary design document** - Contains everything you need to build the Committees application:

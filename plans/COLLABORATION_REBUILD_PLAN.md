@@ -115,7 +115,7 @@ Moving columns into `Space` removes columns from published tables. Under the pub
 
 - **Integration checks** for:
   - the seat sync;
-  - the refused manual invite;
+  - a hand-made seat refused for someone with a membership;
   - the one-open-term rule;
   - the sealed ballot;
   - a sub-committee's own membership;

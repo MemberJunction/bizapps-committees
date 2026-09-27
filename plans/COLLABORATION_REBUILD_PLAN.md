@@ -68,7 +68,10 @@ Every existing `CommitteeID` foreign key already holds the space's ID, because a
 | `VideoProvider`, and its drivers | `MJ_BizApps_Tasks: Video Providers`, with the drivers |
 
 - **Committees drops these four tables,** and the code that serves only them, in its major version. Backward compatibility isn't a concern: no rows are copied, and no compatibility layer is kept.
-- **The governance points at Tasks' meetings instead:** `Minute` (both `MeetingID` and `ApprovedByMeetingID`) and `Motion` at `MJ_BizApps_Tasks: Meetings`, and `Motion` at `MJ_BizApps_Tasks: Meeting Agenda Items`. Votes and ballots follow through their motion.
+- **The governance points at Tasks' meetings instead,** `MJ_BizApps_Tasks: Meetings` and `MJ_BizApps_Tasks: Meeting Agenda Items`:
+  - the keys to a meeting, from `Minute` (both `MeetingID` and `ApprovedByMeetingID`), `Motion`, `Artifact` and `Comment`;
+  - the keys to an agenda item, from `Motion`, `Artifact` and `Comment`. Votes and ballots follow through their motion;
+  - existing values are cleared first, since no meetings are copied. The rows keep everything else, and every one of these keys allows NULL today.
 - **Quorum** stays with the governance. It's computed in code today, as a majority of the voting members; `Meeting.PredictedQuorumRisk…`, the only stored quorum data, goes with the table.
 
 **Moves to Collaboration's concepts:**

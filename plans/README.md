@@ -10,10 +10,11 @@
 **Committees on Collaboration** - How Committees becomes a plug-in on bizapps-collaboration:
 - Committee and Term extend Collaboration's Space through IsA
 - Seats synced from memberships; sub-committees keep their own membership
+- Meetings, agendas, attendance and video providers move to bizapps-tasks; Committees drops its own
 - The space types, drivers, contributions and tests Committees ships
 - The data migration, and why it's Committees 2.0.0
 
-**Status:** 📝 Planned - starts after bizapps-collaboration is done
+**Status:** 📝 Planned - C4 in bizapps-collaboration's plan; starts after its PR #8 and bizapps-tasks' meetings
 
 ---
 

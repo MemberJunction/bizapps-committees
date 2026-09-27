@@ -1,8 +1,10 @@
 # Rebuilding Committees on Collaboration
 
-**Status:** planned, not started. The work happens on this branch after bizapps-collaboration is 100% done: its PR #3, and [the extensibility plan](https://github.com/MemberJunction/bizapps-collaboration/pull/6), which lands as `docs/EXTENSIBILITY_PLAN.md` there.
+**Status:** planned, not started. It's C4 in Collaboration's plan (`plans/plan.md` § 8, v0.5, in [bizapps-collaboration#8](https://github.com/MemberJunction/bizapps-collaboration/pull/8) until it merges): Committees is rebuilt in one major version, after Collaboration's PR #8 and bizapps-tasks' meetings (that plan's workstream T). Where C4 and this plan differ, C4 holds.
 
-This plan builds on that plan's contracts and doesn't restate them. Read it first.
+**Updated 2026-09-27:** meetings, agenda items, attendance and video providers move to bizapps-tasks, and Committees strips its own out (Collaboration's D33 and C4). Backward compatibility isn't a concern for them (Amith).
+
+This plan builds on [the extensibility plan](https://github.com/MemberJunction/bizapps-collaboration/blob/next/docs/EXTENSIBILITY_PLAN.md)'s contracts and doesn't restate them. Read it first.
 
 ## Why
 
@@ -13,7 +15,8 @@ Committees becomes a plug-in for Collaboration rather than a workspace of its ow
   - the Assistant, bounded to what everyone in a chat can see;
   - invites for people from outside;
   - Collaboration's new UI.
-- **Committees adds governance:** terms, roles and voting rights, meetings and agendas, attendance, motions, votes and ballots, and minutes.
+- **Committees adds governance:** terms, roles and voting rights, motions, votes and ballots, quorum, and minutes.
+- **Meetings come from bizapps-tasks,** which every app shares: meetings, agendas, attendance, video providers and meeting notes. Committees' governance points at them.
 - **Collaboration knows nothing about Committees.** Committees ships a space type, a subtype table, two plug-in classes and a few contributions. Collaboration finds them through its extension points.
 
 ## The mapping
@@ -52,12 +55,28 @@ Every existing `CommitteeID` foreign key already holds the space's ID, because a
 **Sub-committees keep their own membership.** A sub-committee is a committee space under its parent with `InheritsMembership` off, so a compensation sub-committee isn't open to the whole board. Terms keep it on. The committee's server driver sets both when the child space is created.
 
 **Stays in Committees, filtered through Collaboration:**
-- Tables: `Meeting`, `AgendaItem`, `Attendance`, `Motion`, `Vote`, `Ballot`, `Minute`, `VideoProvider` and the lookup tables.
+- Tables: `Motion`, `Vote`, `Ballot`, `Minute` and the lookup tables.
 - Each gets a read filter through Collaboration's `fnCollaborationAccess`, as metadata. Space Participant gets entity permissions, as metadata.
+
+**Moves to bizapps-tasks, and is stripped out of Committees:**
+
+| Committees today | In bizapps-tasks |
+|---|---|
+| `Meeting` | `MJ_BizApps_Tasks: Meetings`, with no committee column: a `MJ_BizApps_Tasks: Meeting Links` row ties a meeting to its committee |
+| `AgendaItem` | `MJ_BizApps_Tasks: Meeting Agenda Items`. Its type is a lookup, `MJ_BizApps_Tasks: Meeting Agenda Item Types`, and Committees adds *Vote* to it, as metadata |
+| `Attendance` | `MJ_BizApps_Tasks: Meeting Attendees`, with an RSVP and an attendance status |
+| `VideoProvider`, and its drivers | `MJ_BizApps_Tasks: Video Providers`, with the drivers |
+
+- **Committees drops these four tables,** and the code that serves only them, in its major version. Backward compatibility isn't a concern: no rows are copied, and no compatibility layer is kept.
+- **The governance points at Tasks' meetings instead,** `MJ_BizApps_Tasks: Meetings` and `MJ_BizApps_Tasks: Meeting Agenda Items`:
+  - the keys to a meeting, from `Minute` (both `MeetingID` and `ApprovedByMeetingID`), `Motion`, `Artifact` and `Comment`;
+  - the keys to an agenda item, from `Motion`, `Artifact` and `Comment`. Votes and ballots follow through their motion;
+  - existing values are cleared first, since no meetings are copied. The rows keep everything else, and every one of these keys allows NULL today.
+- **Quorum** stays with the governance. It's computed in code today, as a majority of the voting members; `Meeting.PredictedQuorumRisk…`, the only stored quorum data, goes with the table.
 
 **Moves to Collaboration's concepts:**
 - **Documents** become space items (MJ Files) in the committee's library. Drafts sit on the Team side and approved papers on the Shared side, so approving minutes is a promotion.
-- **Comments** become chats about a record: a meeting, an agenda item or a motion.
+- **Comments** become chats about a record: a Tasks meeting or agenda item, or a motion.
 - **Action items,** already bizapps-tasks tasks, are filed in the committee's or the term's space.
 
 ## What Committees ships
@@ -77,13 +96,13 @@ Every existing `CommitteeID` foreign key already holds the space's ID, because a
 - refuse a hand-made seat for someone with a membership, since their seat comes from it. Other invites, such as a staff liaison or a guest presenter, work as in any space;
 - allow one open term per committee;
 - close a term's space when the term ends;
-- give the Assistant a committee's roster, roles and next meeting (`BuildAgentContext`);
+- give the Assistant a committee's roster, roles and next meeting (`BuildAgentContext`), the meeting read from Tasks through its link to the committee;
 - enforce sealed ballots on the server. Today only the browser enforces them.
 
 **The UI driver and contributions:**
-- tabs: Meetings, Motions and a roster with roles;
+- tabs: Meetings (bizapps-tasks' meeting components, showing the committee's meetings), Motions and a roster with roles;
 - overview cards: the next meeting and open votes;
-- header chips: the term and the quorum risk;
+- header chips: the term, and the quorum risk if its scoring moves to Tasks' meetings (below);
 - a settings section for the charter and mission;
 - a new-committee step that shows Committees' own form through Collaboration's form host.
 
@@ -91,7 +110,8 @@ Every existing `CommitteeID` foreign key already holds the space's ID, because a
 
 ## Data migration and the version
 
-Moving columns into `Space` removes columns from published tables. Under the publish-then-no-breaking-changes policy that makes this Committees 2.0.0.
+Moving columns into `Space` removes columns from published tables, and the meeting tables go. Under the publish-then-no-breaking-changes policy that makes this Committees 2.0.0.
+- **Meetings, agenda items, attendance and video providers aren't migrated.** Their tables are dropped with their rows. The ML pipeline, models and weekly scoring job that target `Committees: Meetings` move to Tasks' meetings or are dropped. Any `TaskLink` rows that point at a Committees meeting would point at nothing, so the upgrade removes them.
 - **Existing committees and terms** get `Space` rows with the same IDs before the IsA declaration applies. Choose one while building, and record why:
   - a guarded data migration;
   - an upgrade action the installer runs.
@@ -102,12 +122,13 @@ Moving columns into `Space` removes columns from published tables. Under the pub
 ## Dependencies
 
 - `mj-app.json` adds `mj-bizapps-collaboration`, at the release that carries the extensibility work.
-- The bizapps-common floor rises to 5.46.0, and the bizapps-tasks floor to 1.5.0, Collaboration's floors.
+- The bizapps-common floor rises to 5.46.0, Collaboration's floor.
+- The bizapps-tasks floor rises to the release that adds meetings (Collaboration's workstream T).
 - The MJ floor rises to Collaboration's, which includes the `ng-conversations` and IsA pull requests (the extensibility plan's § 9).
 
 ## Fixes to carry along
 
-- **The custom validation classes never bind.** They register under `'Meetings'` and `'Memberships'`, but the entities are named `'Committees: Meetings'` and `'Committees: Memberships'`.
+- **The custom validation classes never bind.** They register under `'Meetings'` and `'Memberships'`, but the entities are named `'Committees: Meetings'` and `'Committees: Memberships'`. Collaboration's C0 fixes both first; the meetings class then goes with its table.
 - **Staff means two things today:** Collaboration's staff roles, and access to the Committee Management app. The committee type's admin role names settle it.
 - **New metadata goes in `metadata/` JSON.** Earlier migrations hand-wrote metadata; they've shipped, so they stay as they are.
 
@@ -119,6 +140,7 @@ Moving columns into `Space` removes columns from published tables. Under the pub
   - the one-open-term rule;
   - the sealed ballot;
   - a sub-committee's own membership;
+  - the governance on Tasks' meetings: a motion on a meeting's agenda item, minutes approved at a later meeting, and the *Vote* agenda item type;
   - the read filters on every committee table through `fnCollaborationAccess`, and the subtype permissions Collaboration checks.
 - **Playwright specs** for the committee space: its tabs, cards and chips, and a live screenshot of Collaboration's frame 08 drawn by the real plug-in, in light and dark.
 

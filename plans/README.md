@@ -12,7 +12,7 @@
 - Seats synced from memberships; sub-committees keep their own membership
 - Meetings, agendas, attendance and video providers move to bizapps-tasks; Committees drops its own
 - The space types, drivers, contributions and tests Committees ships
-- The data migration, and why it's Committees 2.0.0
+- No data migration (no production users yet), and why it's still Committees 2.0.0
 
 **Status:** 📝 Planned - C4 in bizapps-collaboration's plan; starts after its PR #8 and bizapps-tasks' meetings
 

@@ -2,7 +2,7 @@
 
 **Status:** planned, not started. It's C4 in Collaboration's plan (`plans/plan.md` § 8, v0.5, in [bizapps-collaboration#8](https://github.com/MemberJunction/bizapps-collaboration/pull/8) until it merges): Committees is rebuilt in one major version, after Collaboration's PR #8 and bizapps-tasks' meetings (that plan's workstream T). Where C4 and this plan differ, C4 holds.
 
-**Updated 2026-09-27:** meetings, agenda items, attendance and video providers move to bizapps-tasks, and Committees strips its own out (Collaboration's D33 and C4). Backward compatibility isn't a concern for them (Amith).
+**Updated 2026-09-27:** meetings, agenda items, attendance and video providers move to bizapps-tasks, and Committees strips its own out (Collaboration's D33 and C4). No existing data is carried over: Committees has no production users and isn't released to customers yet, so backward compatibility isn't a concern (Amith).
 
 This plan builds on [the extensibility plan](https://github.com/MemberJunction/bizapps-collaboration/blob/next/docs/EXTENSIBILITY_PLAN.md)'s contracts and doesn't restate them. Read it first.
 
@@ -70,8 +70,7 @@ Every existing `CommitteeID` foreign key already holds the space's ID, because a
 - **Committees drops these four tables,** and the code that serves only them, in its major version. Backward compatibility isn't a concern: no rows are copied, and no compatibility layer is kept.
 - **The governance points at Tasks' meetings instead,** `MJ_BizApps_Tasks: Meetings` and `MJ_BizApps_Tasks: Meeting Agenda Items`:
   - the keys to a meeting, from `Minute` (both `MeetingID` and `ApprovedByMeetingID`), `Motion`, `Artifact` and `Comment`;
-  - the keys to an agenda item, from `Motion`, `Artifact` and `Comment`. Votes and ballots follow through their motion;
-  - existing values are cleared first, since no meetings are copied. The rows keep everything else, and every one of these keys allows NULL today.
+  - the keys to an agenda item, from `Motion`, `Artifact` and `Comment`. Votes and ballots follow through their motion.
 - **Quorum** stays with the governance. It's computed in code today, as a majority of the voting members; `Meeting.PredictedQuorumRisk…`, the only stored quorum data, goes with the table.
 
 **Moves to Collaboration's concepts:**
@@ -108,16 +107,16 @@ Every existing `CommitteeID` foreign key already holds the space's ID, because a
 
 **Agents:** any committee agent, such as a minutes agent, goes on the committee type's allowed-agent list, as metadata. Until MJ core bounds every agent by everyone in a chat, only agents whose data access is bounded belong on it (the extensibility plan's § 8).
 
-## Data migration and the version
+## No data migration, and the version
 
-Moving columns into `Space` removes columns from published tables, and the meeting tables go. Under the publish-then-no-breaking-changes policy that makes this Committees 2.0.0.
-- **Meetings, agenda items, attendance and video providers aren't migrated.** Their tables are dropped with their rows. The ML pipeline, models and weekly scoring job that target `Committees: Meetings` move to Tasks' meetings or are dropped. Any `TaskLink` rows that point at a Committees meeting would point at nothing, so the upgrade removes them.
-- **Existing committees and terms** get `Space` rows with the same IDs before the IsA declaration applies. Choose one while building, and record why:
-  - a guarded data migration;
-  - an upgrade action the installer runs.
-- **Existing memberships** become seats through the first sync. People without MJ users get email invites.
-- **Artifacts and file links** become space items.
-- **Old comments** stay readable, or move into chats about their records.
+**No existing data is carried over** (Amith, 09-27). Committees has no production users and isn't released to customers yet, so the rebuild has no data migration and no upgrade action:
+- the migration deletes the existing committees and terms, and the rows that depend on them, rather than backfilling `Space` rows before `Committee` and `Term` become subtypes of `Space`;
+- the meeting tables are dropped with their rows;
+- nothing is moved into seats, space items or chats.
+
+**The ML metadata still moves or goes.** The pipeline, models and weekly scoring job that target `Committees: Meetings` ship in Committees' `metadata/`, so they move to Tasks' meetings or are removed.
+
+**It's still Committees 2.0.0.** Versions 1.1.0 to 1.4.0 are published, and moving columns into `Space` and dropping the meeting tables removes published schema. The publish-then-no-breaking-changes policy makes that a major version, whether or not anyone has data to move (Collaboration's D35).
 
 ## Dependencies
 
@@ -146,6 +145,5 @@ Moving columns into `Space` removes columns from published tables, and the meeti
 
 ## Questions to settle while building
 
-- **The owner of a migrated space.** `Space.OwnerID` must be an MJ user: the chair's user when there is one, otherwise a service user.
 - **`Committee.Status`:** Dissolved maps to `ClosedAt`. Decide what Inactive and Pending mean for the space.
 - **`IsPublic`:** whether it becomes a space-level override of the type's discoverability.

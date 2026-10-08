@@ -25,16 +25,25 @@
     "@memberjunction/core-entities": "^6.1.0-edge.5",
     "@memberjunction/credentials": "^6.1.0-edge.5",
     "@memberjunction/global": "^6.1.0-edge.5",
-    "@memberjunction/server": "^6.1.0-edge.5"
+    "@memberjunction/server": "^6.1.0-edge.5",
+    "@mj-biz-apps/common-entities": "^5.34.0"
   },
   "dependencies": {
     "@mj-biz-apps/committees-core": "1.4.0",
     "@mj-biz-apps/committees-entities": "1.4.0",
-    "@mj-biz-apps/common-entities": "^5.34.0",
     "class-validator": "^0.14.3",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
+    "@memberjunction/ai-agents": "6.1.0-edge.5",
+    "@memberjunction/ai-core-plus": "6.1.0-edge.5",
+    "@memberjunction/aiengine": "6.1.0-edge.5",
+    "@memberjunction/core": "6.1.0-edge.5",
+    "@memberjunction/core-entities": "6.1.0-edge.5",
+    "@memberjunction/credentials": "6.1.0-edge.5",
+    "@memberjunction/global": "6.1.0-edge.5",
+    "@memberjunction/server": "6.1.0-edge.5",
+    "@mj-biz-apps/common-entities": "5.34.0",
     "@types/express": "^5.0.6",
     "typescript": "^5.9.3"
   },

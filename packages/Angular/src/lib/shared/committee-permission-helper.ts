@@ -1,5 +1,6 @@
 import { UUIDsEqual } from '@memberjunction/global';
-import { Metadata, RunView } from '@memberjunction/core';
+import { LogError, Metadata, RunView } from '@memberjunction/core';
+import { ResolvePersonIDForUser } from '@mj-biz-apps/committees-core';
 import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
 
 /**
@@ -27,7 +28,7 @@ const NO_PERMISSIONS: CommitteePermissions = {
 
 /**
  * Client-side permission helper for committee role-based access control.
- * Resolves: User → Person (LinkedUserID) → Membership (active) → Term → Committee → Role
+ * Resolves: User → Person (the user's People link, else LinkedUserID) → Membership (active) → Term → Committee → Role
  *
  * Caches results per user session to avoid redundant queries.
  */
@@ -38,7 +39,7 @@ export class CommitteePermissionHelper {
     private static staffCache: boolean | undefined = undefined;
 
     /**
-     * Returns the current user's PersonID, resolved via LinkedUserID.
+     * Returns the current user's PersonID, resolved through the user's People link (see ResolvePersonIDForUser).
      * Cached after first call.
      */
     static async GetCurrentPersonID(): Promise<string | null> {
@@ -57,18 +58,12 @@ export class CommitteePermissionHelper {
             return null;
         }
 
-        const rv = new RunView();
-        const result = await rv.RunView<{ ID: string }>({
-            EntityName: 'MJ_BizApps_Common: People',
-            ExtraFilter: `LinkedUserID = '${userID}'`,
-            Fields: ['ID'],
-            MaxRows: 1,
-            ResultType: 'simple'
-        });
-
-        this.personID = result.Success && result.Results && result.Results.length > 0
-            ? result.Results[0].ID
-            : null;
+        try {
+            this.personID = await ResolvePersonIDForUser(md.CurrentUser, Metadata.Provider);
+        } catch (error) {
+            LogError(`Committee permissions: ${error instanceof Error ? error.message : String(error)}`);
+            this.personID = null;
+        }
 
         return this.personID;
     }

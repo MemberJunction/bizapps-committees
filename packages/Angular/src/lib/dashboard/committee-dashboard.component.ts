@@ -6,6 +6,7 @@ import { ResourceData } from '@memberjunction/core-entities';
 import { Metadata, RunView } from '@memberjunction/core';
 import { UUIDsEqual } from '@memberjunction/global';
 import { CommitteeTaskService, CommitteeTaskRow } from '@mj-biz-apps/committees-core';
+import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 interface RunViewBatchResult { Success: boolean; Results: Record<string, unknown>[]; }
 
@@ -154,26 +155,14 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
 
     /**
      * Resolves the current user's committee IDs through:
-     * User → Person (LinkedUserID) → Membership (active) → Term → Committee
+     * User → Person (the user's People link, else LinkedUserID) → Membership (active) → Term → Committee
      */
     private async resolveUserCommitteeIDs(): Promise<string[]> {
-        const md = new Metadata();
-        const userID = md.CurrentUser?.ID;
-        if (!userID) return [];
-
         const rv = new RunView();
 
         // User → Person
-        const personResult = await rv.RunView<{ ID: string }>({
-            EntityName: 'MJ_BizApps_Common: People',
-            ExtraFilter: `LinkedUserID = '${userID}'`,
-            Fields: ['ID'],
-            MaxRows: 1,
-            ResultType: 'simple'
-        });
-        if (!personResult.Success || !personResult.Results || personResult.Results.length === 0) return [];
-
-        const personID = personResult.Results[0].ID;
+        const personID = await CommitteePermissionHelper.GetCurrentPersonID();
+        if (!personID) return [];
 
         // Person → Active Memberships
         const memberResult = await rv.RunView<{ TermID: string }>({

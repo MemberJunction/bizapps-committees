@@ -1,4 +1,5 @@
-import { RunView, UserInfo, LogError } from '@memberjunction/core';
+import { Metadata, RunView, UserInfo, LogError } from '@memberjunction/core';
+import { ResolvePersonIDForUser } from '@mj-biz-apps/committees-core';
 
 /** Read-only shape for a single-column ID lookup. */
 interface IdRow {
@@ -35,7 +36,7 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
  * missing record, or an unresolved person yields "not authorized".
  *
  * The officer path mirrors the client-side CommitteePermissionHelper:
- * User -> Person (LinkedUserID) -> active Membership -> Term -> Committee, with
+ * User -> Person (the user's People link, else LinkedUserID) -> active Membership -> Term -> Committee, with
  * the membership Role's IsOfficer flag granting officer authority.
  */
 export class CommitteeAuthorization {
@@ -110,20 +111,14 @@ export class CommitteeAuthorization {
         return this.anyRoleIsOfficer(roleIDs, contextUser);
     }
 
-    /** Resolves the Person linked to the current user via LinkedUserID, or null. */
+    /** Resolves the Person linked to the current user (the user's People link, else LinkedUserID), or null. */
     private static async resolvePersonID(contextUser: UserInfo): Promise<string | null> {
-        const rv = new RunView();
-        const result = await rv.RunView<IdRow>({
-            EntityName: 'MJ_BizApps_Common: People',
-            ExtraFilter: `LinkedUserID = '${contextUser.ID}'`,
-            Fields: ['ID'],
-            MaxRows: 1,
-            ResultType: 'simple',
-        }, contextUser);
-        if (result.Success && result.Results && result.Results.length > 0) {
-            return result.Results[0].ID;
+        try {
+            return await ResolvePersonIDForUser(contextUser, Metadata.Provider, contextUser);
+        } catch (error) {
+            LogError(`Committee authorization: ${error instanceof Error ? error.message : String(error)}`);
+            return null;
         }
-        return null;
     }
 
     /** Returns all Term IDs that belong to the given committee. */

@@ -43,15 +43,20 @@ const WORLD_EMAIL = 'com-world.test';
 type SeatRole = 'chair' | 'vice' | 'secretary' | 'member';
 
 /**
- * The personas who can sign in: an MJ user with the UI role, linked to the persona's Person. Fixed IDs so a reload finds
- * them. Marcus chairs Governance; Priya and Alex sit on it (Priya has voted on its open ballot, Alex has not); Ruth sits
- * on no committee Marcus does. The ballot-sealing bundle reads as them.
+ * The personas who can sign in: an MJ user with the UI role, bound to the persona's Person. Fixed IDs so a reload finds
+ * them. Marcus chairs Governance; Priya, Alex and Jamie sit on it (Priya has voted on its open ballot, Alex and Jamie have
+ * not); Ruth sits on no committee Marcus does. The ballot-sealing bundle reads as them.
+ *
+ * Two bindings, because platforms differ: `linked-user-id` sets the Person's deprecated LinkedUserID (what this app's code
+ * still reads), `user-link` sets the user's own People link (LinkedEntityID = People, LinkedEntityRecordID = the Person;
+ * what BC does, with LinkedUserID empty). Jamie is bound the second way so the Votes row filter proves both.
  */
-export const WORLD_USERS: ReadonlyArray<{ key: string; id: string; mjRole: string }> = [
-    { key: 'marcus', id: 'C0000001-0000-4000-8000-000000000001', mjRole: 'UI' },
-    { key: 'priya', id: 'C0000001-0000-4000-8000-000000000002', mjRole: 'UI' },
-    { key: 'alex', id: 'C0000001-0000-4000-8000-000000000003', mjRole: 'UI' },
-    { key: 'ruth', id: 'C0000001-0000-4000-8000-000000000004', mjRole: 'UI' },
+export const WORLD_USERS: ReadonlyArray<{ key: string; id: string; mjRole: string; bind: 'linked-user-id' | 'user-link' }> = [
+    { key: 'marcus', id: 'C0000001-0000-4000-8000-000000000001', mjRole: 'UI', bind: 'linked-user-id' },
+    { key: 'priya', id: 'C0000001-0000-4000-8000-000000000002', mjRole: 'UI', bind: 'linked-user-id' },
+    { key: 'alex', id: 'C0000001-0000-4000-8000-000000000003', mjRole: 'UI', bind: 'linked-user-id' },
+    { key: 'ruth', id: 'C0000001-0000-4000-8000-000000000004', mjRole: 'UI', bind: 'linked-user-id' },
+    { key: 'jamie', id: 'C0000001-0000-4000-8000-000000000005', mjRole: 'UI', bind: 'user-link' },
 ];
 
 export function WorldUserEmail(key: string): string {
@@ -488,10 +493,15 @@ async function upsertUsers(ctx: IntegrationCheckContext, people: Record<string, 
         user.Set('FirstName', persona!.first);
         user.Set('LastName', persona!.last);
         user.Set('IsActive', true);
+        if (spec.bind === 'user-link') {
+            user.Set('LinkedRecordType', 'Other');
+            user.Set('LinkedEntityID', await peopleEntityID(ctx));
+            user.Set('LinkedEntityRecordID', people[spec.key]);
+        }
         await RequireSave(user, `user ${spec.key}`);
         const userID = String(user.Get('ID'));
         await grantRole(ctx, userID, spec.mjRole);
-        await linkPerson(ctx, people[spec.key], userID);
+        await linkPerson(ctx, people[spec.key], spec.bind === 'linked-user-id' ? userID : null);
         ids[spec.key] = userID;
     }
     return ids;
@@ -508,12 +518,20 @@ async function grantRole(ctx: IntegrationCheckContext, userID: string, roleName:
     await RequireSave(link, `role ${roleName} for ${userID}`);
 }
 
-async function linkPerson(ctx: IntegrationCheckContext, personID: string, userID: string): Promise<void> {
+/** Sets (or clears) the Person's deprecated LinkedUserID. */
+async function linkPerson(ctx: IntegrationCheckContext, personID: string, userID: string | null): Promise<void> {
     const person = await EntityOf(ctx, E_PERSON);
     Assert(await LoadExisting(person, personID), `load person ${personID}`);
-    if (String(person.Get('LinkedUserID') ?? '').toLowerCase() === userID.toLowerCase()) return;
+    const current = String(person.Get('LinkedUserID') ?? '').toLowerCase();
+    if (current === (userID ?? '').toLowerCase()) return;
     person.Set('LinkedUserID', userID);
     await RequireSave(person, `link person ${personID}`);
+}
+
+async function peopleEntityID(ctx: IntegrationCheckContext): Promise<string> {
+    const id = await FindId(ctx, 'MJ: Entities', `Name = '${Quote(E_PERSON)}'`);
+    Assert(!!id, 'the People entity is in the metadata');
+    return id;
 }
 
 async function loadTypes(ctx: IntegrationCheckContext): Promise<Record<string, string>> {

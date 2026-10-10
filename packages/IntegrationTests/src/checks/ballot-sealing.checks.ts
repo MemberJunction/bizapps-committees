@@ -4,7 +4,7 @@
  * Reads run as the personas' UserInfo (UI role only), the way MJAPI runs them, so "Committees: Visible Votes" applies:
  * a member sees their own vote, every vote on a motion without a ballot, and every vote on a closed or cancelled
  * ballot that is not sealed. The close and cancel go through BallotCloseService after CommitteeAuthorization, in the
- * order BallotCloseResolver applies them. BS5–BS6 create their own motions and ballots in Governance and remove them.
+ * order BallotCloseResolver applies them. BS3, BS5, BS6 and BS8 create their own motions and ballots in Governance and remove them.
  */
 import {
     Assert,
@@ -22,7 +22,9 @@ import {
     E_MEETING,
     E_MEMBERSHIP,
     E_MOTION,
+    E_PERSON,
     E_ROLE,
+    E_USER,
     E_VOTE,
     EntityOf,
     FindRows,
@@ -267,6 +269,27 @@ export const BallotSealingChecks: NamedCheck[] = [
             } finally {
                 await remove(ctx, open);
                 await remove(ctx, cancelled);
+            }
+        },
+    },
+    {
+        Id: 'ballot-sealing.BS8',
+        Name: 'BS8 — a member whose user binds to their Person through the user\'s own People link (LinkedEntityID + LinkedEntityRecordID, People.LinkedUserID empty) reads their own vote on a sealed ballot; the others still read none',
+        RequiresMutation: true,
+        Fn: async (ctx: IntegrationCheckContext) => {
+            const world = World();
+            const [jamie] = await FindRows<{ ID: string; LinkedUserID: string | null }>(ctx, E_PERSON, `ID = '${world.People.jamie}'`, ['ID', 'LinkedUserID']);
+            Assert(!jamie.LinkedUserID, 'Jamie\'s Person carries no LinkedUserID: the world binds her through the user record');
+            const [user] = await FindRows<{ LinkedEntityID: string | null; LinkedEntityRecordID: string | null }>(ctx, E_USER, `ID = '${world.Users.jamie}'`, ['LinkedEntityID', 'LinkedEntityRecordID']);
+            Assert(user.LinkedEntityRecordID?.toLowerCase() === jamie.ID.toLowerCase(), 'her user names her Person as its linked record');
+            let created: Created | null = null;
+            try {
+                created = await openGovernanceBallot(ctx, 'BS8 user link', true, [['jamie', 'Yes'], ['priya', 'No']]);
+                const asJamie = await votesAs(ctx, await persona(ctx, 'jamie'), created.motionID);
+                Assert(asJamie.length === 1 && asJamie[0].MembershipID.toLowerCase() === (await governanceSeat(ctx, 'jamie')).toLowerCase(), `Jamie reads her own vote through the user link (${asJamie.length})`);
+                Assert((await votesAs(ctx, await persona(ctx, 'alex'), created.motionID)).length === 0, 'Alex, who has not voted on it, reads none');
+            } finally {
+                await remove(ctx, created);
             }
         },
     },

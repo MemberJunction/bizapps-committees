@@ -5,7 +5,7 @@
  *
  * BUNDLES
  *   committees-world   CW1–CW6   commit COM-WORLD (people, committees, terms, meetings, ballot, sign-in personas)
- *   ballot-sealing     BS1–BS7   the Votes row filter, CloseBallot/BallotProgress as the personas, the entity registrations
+ *   ballot-sealing     BS1–BS8   the Votes row filter, CloseBallot/BallotProgress as the personas, the entity registrations
  *
  * COM-WORLD COMMITS. Re-run to refresh relative dates. ballot-sealing creates its own motions and ballots and removes them.
  */

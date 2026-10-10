@@ -1,4 +1,5 @@
-import { LogError, Metadata, RunView, UserInfo, WellKnownUserSource } from '@memberjunction/core';
+import { LogError, Metadata, RunView, UserInfo } from '@memberjunction/core';
+import { UserCache } from '@memberjunction/generic-database-provider';
 import { BallotService, CommitteesLookupEngine, type VoteTally } from '@mj-biz-apps/committees-core';
 import type { mjBizAppsCommitteesBallotEntity, mjBizAppsCommitteesMotionEntity } from '@mj-biz-apps/committees-entities';
 
@@ -225,8 +226,9 @@ export class BallotCloseService {
         return result.Results ?? [];
     }
 
+    /** The MJ system user from the process-wide user cache (every server host refreshes it at startup); null when the host has none. */
     private async systemUser(): Promise<UserInfo | null> {
-        return (await WellKnownUserSource.Instance.GetSystemUser(Metadata.Provider)) ?? null;
+        return UserCache.Instance.GetSystemUser() ?? null;
     }
 
     // ── Shapes ──────────────────────────────────────────────────

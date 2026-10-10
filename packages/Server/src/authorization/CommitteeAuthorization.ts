@@ -69,6 +69,21 @@ export class CommitteeAuthorization {
         }
     }
 
+    /**
+     * True if the user may look at the committee's ballots: staff, or an active member (any role) of that committee.
+     * Participation on a ballot is visible to the whole committee; the choices never are. Fails closed.
+     */
+    public static async CanViewCommittee(committeeID: string | null, contextUser: UserInfo): Promise<boolean> {
+        if (!committeeID || !UUID_RE.test(committeeID)) return false;
+        try {
+            if (await this.IsStaffUser(contextUser)) return true;
+            return await this.isActiveMember(committeeID, contextUser);
+        } catch (error) {
+            LogError(`[CommitteeAuthorization] CanViewCommittee failed for committee ${committeeID}: ${errorMessage(error)}`);
+            return false;
+        }
+    }
+
     /** Resolves the owning CommitteeID for a meeting, or null if not found. */
     public static async GetMeetingCommitteeID(meetingID: string, contextUser: UserInfo): Promise<string | null> {
         return this.lookupCommitteeID('Committees: Meetings', meetingID, contextUser);
@@ -108,6 +123,15 @@ export class CommitteeAuthorization {
         if (roleIDs.length === 0) return false;
 
         return this.anyRoleIsOfficer(roleIDs, contextUser);
+    }
+
+    /** True if the user holds an active membership, in any role, in one of the committee's terms. */
+    private static async isActiveMember(committeeID: string, contextUser: UserInfo): Promise<boolean> {
+        const personID = await this.resolvePersonID(contextUser);
+        if (!personID) return false;
+        const termIDs = await this.committeeTermIDs(committeeID, contextUser);
+        if (termIDs.length === 0) return false;
+        return (await this.activeMembershipRoleIDs(personID, termIDs, contextUser)).length > 0;
     }
 
     /** Resolves the Person linked to the current user via LinkedUserID, or null. */

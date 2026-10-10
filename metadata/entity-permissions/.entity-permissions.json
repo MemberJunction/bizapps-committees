@@ -1,0 +1,17 @@
+[
+  {
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Permissions.EntityID=@lookup:MJ: Entities.Name=Committees: Votes&RoleID=@lookup:MJ: Roles.Name=UI&Type=Allow?create"
+    },
+    "fields": {
+      "EntityID": "@lookup:MJ: Entities.Name=Committees: Votes",
+      "RoleID": "@lookup:MJ: Roles.Name=UI",
+      "Type": "Allow",
+      "CanCreate": 0,
+      "CanRead": 1,
+      "CanUpdate": 0,
+      "CanDelete": 0,
+      "ReadRLSFilterID": "@lookup:MJ: Row Level Security Filters.Name=Committees: Visible Votes"
+    }
+  }
+]

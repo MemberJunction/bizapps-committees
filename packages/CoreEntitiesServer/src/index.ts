@@ -29,6 +29,8 @@ export type {
 export { MinutesService } from './services/MinutesService.js';
 export { SuccessionSuggestionService } from './services/SuccessionSuggestionService.js';
 export { BallotReminderService } from './services/BallotReminderService.js';
+export { BallotCloseService } from './services/BallotCloseService.js';
+export type { BallotCloseMode, BallotCloseOutcome, BallotCloseResult, BallotProgressResult, BallotVoterProgress } from './services/BallotCloseService.js';
 export type { RemindResult } from './services/BallotReminderService.js';
 export type { SuccessorSuggestion, SuggestSuccessorsResult } from './services/SuccessionSuggestionService.js';
 export type { MinutesDraftResult, MinutesSaveResult } from './services/MinutesService.js';

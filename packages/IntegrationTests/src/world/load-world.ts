@@ -18,8 +18,11 @@ import {
     E_ORGANIZATION,
     E_PERSON,
     E_ROLE,
+    E_MJ_ROLE,
     E_TERM,
     E_TYPE,
+    E_USER,
+    E_USER_ROLE,
     E_VOTE,
     EntityOf,
     FindId,
@@ -38,6 +41,29 @@ import { SetWorld, type WorldIds } from './world.js';
 const WORLD_EMAIL = 'com-world.test';
 
 type SeatRole = 'chair' | 'vice' | 'secretary' | 'member';
+
+/**
+ * The personas who can sign in: an MJ user with the UI role, bound to the persona's Person. Fixed IDs so a reload finds
+ * them. Marcus chairs Governance; Priya, Alex and Jamie sit on it (Priya has voted on its open ballot, Alex and Jamie have
+ * not); Ruth sits on no committee Marcus does. The ballot-sealing bundle reads as them.
+ *
+ * Two bindings, because platforms differ: `linked-user-id` sets the Person's deprecated LinkedUserID (what this app's code
+ * still reads), `user-link` sets the user's own People link (LinkedEntityID = People, LinkedEntityRecordID = the Person;
+ * what BC does, with LinkedUserID empty). Jamie is bound the second way so the Votes row filter proves both.
+ */
+export const WORLD_USERS: ReadonlyArray<{ key: string; id: string; mjRole: string; bind: 'linked-user-id' | 'user-link' }> = [
+    { key: 'marcus', id: 'C0000001-0000-4000-8000-000000000001', mjRole: 'UI', bind: 'linked-user-id' },
+    { key: 'priya', id: 'C0000001-0000-4000-8000-000000000002', mjRole: 'UI', bind: 'linked-user-id' },
+    { key: 'alex', id: 'C0000001-0000-4000-8000-000000000003', mjRole: 'UI', bind: 'linked-user-id' },
+    { key: 'ruth', id: 'C0000001-0000-4000-8000-000000000004', mjRole: 'UI', bind: 'linked-user-id' },
+    { key: 'jamie', id: 'C0000001-0000-4000-8000-000000000005', mjRole: 'UI', bind: 'user-link' },
+];
+
+export function WorldUserEmail(key: string): string {
+    const person = PEOPLE.find((p) => p.key === key);
+    if (!person) throw new Error(`No COM-WORLD persona "${key}".`);
+    return person.email;
+}
 
 const PEOPLE: ReadonlyArray<{ key: string; first: string; last: string; title: string; email: string }> = [
     { key: 'priya', first: 'Priya', last: 'Shah', title: 'CFO', email: `priya.shah@${WORLD_EMAIL}` },
@@ -152,6 +178,7 @@ function BoardDates(startYear: number): { start: Date; end: Date } {
 export async function LoadWorld(ctx: IntegrationCheckContext): Promise<WorldIds> {
     const orgID = await upsertOrg(ctx);
     const people = await upsertPeople(ctx);
+    const users = await upsertUsers(ctx, people);
     const types = await loadTypes(ctx);
     const roles = await loadRoles(ctx);
 
@@ -379,6 +406,7 @@ export async function LoadWorld(ctx: IntegrationCheckContext): Promise<WorldIds>
     const world: WorldIds = {
         OrganizationID: orgID,
         People: people,
+        Users: users,
         Roles: roles,
         Types: types,
         Committees: {
@@ -443,6 +471,67 @@ async function upsertPeople(ctx: IntegrationCheckContext): Promise<Record<string
         ids[p.key] = String(person.Get('ID'));
     }
     return ids;
+}
+
+/** MJ users for the sign-in personas, each with their MJ role and linked to their Person. Re-runs find them by ID. */
+async function upsertUsers(ctx: IntegrationCheckContext, people: Record<string, string>): Promise<Record<string, string>> {
+    const ids: Record<string, string> = {};
+    for (const spec of WORLD_USERS) {
+        const persona = PEOPLE.find((p) => p.key === spec.key);
+        Assert(!!persona, `persona ${spec.key}`);
+        const user = await EntityOf(ctx, E_USER);
+        const existing = (await FindId(ctx, E_USER, `ID = '${spec.id}'`)) ?? (await FindId(ctx, E_USER, `Email = '${Quote(persona!.email)}'`));
+        if (existing) {
+            Assert(await LoadExisting(user, existing), `load user ${spec.key}`);
+        } else {
+            user.NewRecord();
+            user.Set('ID', spec.id);
+            user.Set('Email', persona!.email);
+            user.Set('Type', 'User');
+        }
+        user.Set('Name', `${persona!.first} ${persona!.last}`);
+        user.Set('FirstName', persona!.first);
+        user.Set('LastName', persona!.last);
+        user.Set('IsActive', true);
+        if (spec.bind === 'user-link') {
+            user.Set('LinkedRecordType', 'Other');
+            user.Set('LinkedEntityID', await peopleEntityID(ctx));
+            user.Set('LinkedEntityRecordID', people[spec.key]);
+        }
+        await RequireSave(user, `user ${spec.key}`);
+        const userID = String(user.Get('ID'));
+        await grantRole(ctx, userID, spec.mjRole);
+        await linkPerson(ctx, people[spec.key], spec.bind === 'linked-user-id' ? userID : null);
+        ids[spec.key] = userID;
+    }
+    return ids;
+}
+
+async function grantRole(ctx: IntegrationCheckContext, userID: string, roleName: string): Promise<void> {
+    const roleID = await FindId(ctx, E_MJ_ROLE, `Name = '${Quote(roleName)}'`);
+    Assert(!!roleID, `MemberJunction role ${roleName}`);
+    if (await FindId(ctx, E_USER_ROLE, `UserID = '${userID}' AND RoleID = '${roleID}'`)) return;
+    const link = await EntityOf(ctx, E_USER_ROLE);
+    link.NewRecord();
+    link.Set('UserID', userID);
+    link.Set('RoleID', roleID);
+    await RequireSave(link, `role ${roleName} for ${userID}`);
+}
+
+/** Sets (or clears) the Person's deprecated LinkedUserID. */
+async function linkPerson(ctx: IntegrationCheckContext, personID: string, userID: string | null): Promise<void> {
+    const person = await EntityOf(ctx, E_PERSON);
+    Assert(await LoadExisting(person, personID), `load person ${personID}`);
+    const current = String(person.Get('LinkedUserID') ?? '').toLowerCase();
+    if (current === (userID ?? '').toLowerCase()) return;
+    person.Set('LinkedUserID', userID);
+    await RequireSave(person, `link person ${personID}`);
+}
+
+async function peopleEntityID(ctx: IntegrationCheckContext): Promise<string> {
+    const id = await FindId(ctx, 'MJ: Entities', `Name = '${Quote(E_PERSON)}'`);
+    Assert(!!id, 'the People entity is in the metadata');
+    return id;
 }
 
 async function loadTypes(ctx: IntegrationCheckContext): Promise<Record<string, string>> {

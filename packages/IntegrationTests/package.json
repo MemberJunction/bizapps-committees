@@ -19,6 +19,7 @@
     "url": "https://github.com/MemberJunction/bizapps-committees"
   },
   "dependencies": {
+    "@mj-biz-apps/committees-core-entities-server": "1.4.0",
     "@mj-biz-apps/committees-entities": "1.4.0",
     "@mj-biz-apps/committees-server": "1.4.0"
   },

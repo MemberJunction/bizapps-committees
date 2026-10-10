@@ -14,7 +14,7 @@ import { PersonCommitteesComponent } from './person-committees.component';
     key: 'form-panel:People:committees',
     metadata: {
         entity: 'MJ_BizApps_Common: People',
-        slot: 'after-fields',
+        slot: 'after-related', // its own rail tab — after-fields would fold it into Details (MJ #4311 slot default)
         sortKey: 80,
         contributionKey: 'committees',
         relatedEntity: 'Committees: Memberships',

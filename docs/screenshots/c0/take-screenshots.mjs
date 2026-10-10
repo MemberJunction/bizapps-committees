@@ -135,7 +135,7 @@ async function main() {
                     await shot.run(page);
                     await page.waitForTimeout(400);
                     await page.screenshot({ path: join(here, `${shot.name}-${theme}.png`) });
-                    console.log(`ok   ${shot.name}-${theme}.png${errors.length ? `  page errors: ${errors.length}` : ''}`);
+                    console.log(`ok   ${shot.name}-${theme}.png${errors.length ? `  page errors: ${errors.length}\n      ${errors.map((e) => e.split('\n')[0]).join('\n      ')}` : ''}`);
                 } catch (error) {
                     await page.screenshot({ path: join(here, `${shot.name}-${theme}-FAILED.png`) }).catch(() => undefined);
                     failures.push(`${shot.name}-${theme}: ${error instanceof Error ? error.message : String(error)}`);

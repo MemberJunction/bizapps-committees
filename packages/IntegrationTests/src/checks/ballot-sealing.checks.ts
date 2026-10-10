@@ -22,6 +22,7 @@ import {
     E_MEETING,
     E_MEMBERSHIP,
     E_MOTION,
+    E_ROLE,
     E_VOTE,
     EntityOf,
     FindRows,
@@ -51,6 +52,17 @@ async function motionID(ctx: IntegrationCheckContext, name: string): Promise<str
     Assert(!!row, `motion "${name}" is in COM-WORLD`);
     return row.ID;
 }
+
+/** How many active Governance seats vote: the world's eight, plus any seat a host account was given on this database. */
+async function governanceVotingCount(ctx: IntegrationCheckContext): Promise<number> {
+    const world = World();
+    const seats = await FindRows<{ RoleID: string }>(ctx, E_MEMBERSHIP, `TermID = '${world.Terms.governance}' AND Status = 'Active'`, ['RoleID']);
+    const voting = new Set((await FindRows<{ ID: string }>(ctx, E_ROLE, 'IsVotingRole = 1', ['ID'])).map((role) => role.ID.toLowerCase()));
+    return seats.filter((seat) => voting.has(seat.RoleID.toLowerCase())).length;
+}
+
+/** Yes votes a simple majority of `count` needs: strictly more than half (BallotService.RequiredYes, pinned by Core's tests). */
+const simpleMajority = (count: number): number => Math.floor(count / 2) + 1;
 
 /** The persona's active Governance membership. */
 async function governanceSeat(ctx: IntegrationCheckContext, key: string): Promise<string> {
@@ -178,9 +190,10 @@ export const BallotSealingChecks: NamedCheck[] = [
             Assert(!(await CommitteeAuthorization.CanViewCommittee(governance, ruth)), 'Ruth may not');
 
             const [ballot] = await FindRows<{ ID: string }>(ctx, E_BALLOT, `MotionID = '${await motionID(ctx, GOVERNANCE_BALLOT_MOTION)}'`, ['ID']);
+            const roster = await governanceVotingCount(ctx);
             const progress = await new BallotCloseService().Progress(ballot.ID, priya);
             Assert(progress.Success, `progress as Priya: ${progress.ErrorMessage ?? ''}`);
-            Assert(progress.Cast === 2 && progress.VotingMemberCount === 8 && progress.Outstanding === 6, `2 of 8 voting members have cast (${progress.Cast}/${progress.VotingMemberCount}, ${progress.Outstanding} outstanding)`);
+            Assert(progress.Cast === 2 && progress.VotingMemberCount === roster && progress.Outstanding === roster - 2, `2 of ${roster} voting members have cast (${progress.Cast}/${progress.VotingMemberCount}, ${progress.Outstanding} outstanding)`);
             const voted = progress.Voted.map((v) => v.MembershipID.toLowerCase()).sort();
             const expected = [await governanceSeat(ctx, 'marcus'), await governanceSeat(ctx, 'priya')].map((id) => id.toLowerCase()).sort();
             Assert(JSON.stringify(voted) === JSON.stringify(expected), 'the two voters are named, with no choice');
@@ -197,13 +210,14 @@ export const BallotSealingChecks: NamedCheck[] = [
                 created = await openGovernanceBallot(ctx, 'BS5 sealed', true, [['marcus', 'Yes'], ['priya', 'Yes'], ['alex', 'No']]);
                 const marcus = await persona(ctx, 'marcus');
                 const priya = await persona(ctx, 'priya');
+                const roster = await governanceVotingCount(ctx);
                 Assert((await votesAs(ctx, priya, created.motionID)).length === 1, 'before the close Priya reads her vote only');
 
                 const result = await new BallotCloseService().CloseBallot(created.ballotID, null, marcus);
                 Assert(result.Success, `the chair closes the ballot: ${result.ErrorMessage ?? ''}`);
-                Assert(result.Result === 'Failed' && result.Yes === 2 && result.No === 1 && result.Abstain === 0 && result.Cast === 3, `2-1-0 of 3 cast fails a simple majority of 8 (${result.Result} ${result.Yes}-${result.No}-${result.Abstain})`);
-                Assert(result.VotingMemberCount === 8 && result.RequiredYes === 5, `8 voting members, 5 Yes needed (${result.VotingMemberCount}, ${result.RequiredYes})`);
-                Assert(result.ResultNotes === 'E-ballot failed 2-1-0 (simple majority, 3 of 8 voting members cast)', `the summary is stamped when no notes are given: ${result.ResultNotes}`);
+                Assert(result.Result === 'Failed' && result.Yes === 2 && result.No === 1 && result.Abstain === 0 && result.Cast === 3, `2-1-0 of 3 cast fails a simple majority of ${roster} (${result.Result} ${result.Yes}-${result.No}-${result.Abstain})`);
+                Assert(result.VotingMemberCount === roster && result.RequiredYes === simpleMajority(roster), `${roster} voting members, ${simpleMajority(roster)} Yes needed (${result.VotingMemberCount}, ${result.RequiredYes})`);
+                Assert(result.ResultNotes === `E-ballot failed 2-1-0 (simple majority, 3 of ${roster} voting members cast)`, `the summary is stamped when no notes are given: ${result.ResultNotes}`);
 
                 const [motion] = await FindRows<{ Result: string; YesCount: number; NoCount: number; AbstainCount: number; ResultSummary: string }>(ctx, E_MOTION, `ID = '${created.motionID}'`, ['Result', 'YesCount', 'NoCount', 'AbstainCount', 'ResultSummary']);
                 Assert(motion.Result === 'Failed' && motion.YesCount === 2 && motion.NoCount === 1 && motion.AbstainCount === 0, `the motion is stamped (${motion.Result} ${motion.YesCount}-${motion.NoCount}-${motion.AbstainCount})`);

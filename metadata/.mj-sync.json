@@ -22,7 +22,9 @@
     "prompts",
     "agents",
     "entity-fields",
-    "entity-relationships"
+    "entity-relationships",
+    "row-level-security-filters",
+    "entity-permissions"
   ],
   "emitSyncNotes": false
 }

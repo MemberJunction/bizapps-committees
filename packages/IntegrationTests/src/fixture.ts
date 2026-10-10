@@ -2,9 +2,9 @@
  * Shared helpers. Every write goes through BaseEntity on the check's provider —
  * the same path Explorer uses. No raw INSERT, no Demos/*.sql.
  */
-import { CompositeKey, RunView, type IMetadataProvider } from '@memberjunction/core';
+import { BaseEntity, CompositeKey, RunView, UserInfo, type IMetadataProvider } from '@memberjunction/core';
 import { Assert, type IntegrationCheckContext } from '@memberjunction/testing-integration/registry';
-import { WORLD_MARK } from './entity-names.js';
+import { E_USER, E_USER_ROLE, WORLD_MARK } from './entity-names.js';
 
 export * from './entity-names.js';
 
@@ -113,4 +113,44 @@ export async function LoadExisting(row: MutableRecord, id: string): Promise<bool
 
 export async function EntityOf(ctx: IntegrationCheckContext, entityName: string): Promise<MutableRecord> {
     return (await ProviderOf(ctx).GetEntityObject(entityName, ctx.User)) as unknown as MutableRecord;
+}
+
+interface UserRow { ID: string; Name: string; FirstName: string; LastName: string; Email: string; Type: string; IsActive: boolean }
+interface UserRoleRow { RoleID: string; Role: string }
+
+/**
+ * A persona as MJAPI would see them: a UserInfo with their MJ roles, so a RunView run as them applies the row filters
+ * their roles carry. The harness's own user (the owner) sees everything; the personas see what a member sees.
+ */
+export async function PersonaUser(ctx: IntegrationCheckContext, email: string): Promise<UserInfo> {
+    const [row] = await FindRows<UserRow>(ctx, E_USER, `Email = '${Quote(email)}'`, ['ID', 'Name', 'FirstName', 'LastName', 'Email', 'Type', 'IsActive']);
+    Assert(!!row, `MJ user ${email} exists (the committees-world bundle creates the persona users)`);
+    const roles = await FindRows<UserRoleRow>(ctx, E_USER_ROLE, `UserID = '${row.ID}'`, ['RoleID', 'Role']);
+    Assert(roles.length > 0, `${email} holds at least one MJ role`);
+    return new UserInfo(ProviderOf(ctx), {
+        ID: row.ID,
+        Name: row.Name,
+        FirstName: row.FirstName,
+        LastName: row.LastName,
+        Email: row.Email,
+        Type: row.Type,
+        IsActive: row.IsActive,
+        UserRoles: roles.map((r) => ({ UserID: row.ID, RoleID: r.RoleID, Role: r.Role })),
+    });
+}
+
+/** Rows read as a persona: the same view the owner's FindRows uses, run as the persona (their row filters apply). */
+export async function FindRowsAs<T extends object>(ctx: IntegrationCheckContext, user: UserInfo, entityName: string, extraFilter: string, fields: string[]): Promise<T[]> {
+    const result = await View(ctx).RunView<T>({ EntityName: entityName, ExtraFilter: extraFilter || undefined, Fields: fields, ResultType: 'simple' }, user);
+    Assert(result.Success, `RunView ${entityName} as ${user.Email} failed — ${result.ErrorMessage ?? 'unknown error'}`);
+    return result.Results ?? [];
+}
+
+/** Deletes one row through BaseEntity as the harness's user; a missing row is not an error (teardown is idempotent). */
+export async function DeleteRow(ctx: IntegrationCheckContext, entityName: string, id: string): Promise<void> {
+    const entity = (await ProviderOf(ctx).GetEntityObject(entityName, ctx.User)) as BaseEntity;
+    const key = new CompositeKey();
+    key.KeyValuePairs.push({ FieldName: 'ID', Value: id });
+    if (!(await entity.InnerLoad(key))) return;
+    Assert(await entity.Delete(), `delete ${entityName} ${id}: ${entity.LatestResult?.CompleteMessage ?? 'failed'}`);
 }

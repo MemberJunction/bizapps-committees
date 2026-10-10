@@ -5,7 +5,7 @@ import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import {
     BallotService, MotionService, MotionRegisterData, MotionRegisterRow,
-    MembershipRefRow, VoteRow, VoteTally, OutcomeForecast, BallotCountdown,
+    MembershipRefRow, VoteTally, OutcomeForecast, BallotCountdown,
     BallotThresholdType, RollCallEntry,
 } from '@mj-biz-apps/committees-core';
 import { mjBizAppsCommitteesBallotEntity, mjBizAppsCommitteesMotionEntity, mjBizAppsCommitteesVoteEntity } from '@mj-biz-apps/committees-entities';
@@ -34,6 +34,22 @@ interface RoleRow { ID: string; IsVotingRole: boolean; }
 interface MembershipFullRow extends MembershipRefRow { RoleID: string; TermID: string; Status: string; }
 interface CommitteeRefRow { ID: string; Name: string; }
 
+/** The BallotProgress query's payload: who has voted on a ballot, never how (committees-server BallotCloseResolver). */
+interface BallotProgressPayload {
+    Success: boolean;
+    ErrorMessage?: string | null;
+    Cast: number;
+    VotingMemberCount: number;
+    Outstanding: number;
+    Voted: Array<{ MembershipID: string; VotedAt: string | null }>;
+}
+
+const BALLOT_PROGRESS = `query BallotProgress($BallotID: String!) {
+    BallotProgress(BallotID: $BallotID) {
+        Success ErrorMessage Cast VotingMemberCount Outstanding Voted { MembershipID VotedAt }
+    }
+}`;
+
 /** One voter line on the ballot hero. */
 export interface BallotVoterChip {
     MembershipID: string;
@@ -51,7 +67,11 @@ export interface BallotAuditEvent {
     IsScheduled: boolean;
 }
 
-/** Fully assembled view model for one ballot hero. */
+/**
+ * Fully assembled view model for one ballot hero. While a ballot is open the Votes row filter shows the browser only
+ * the caller's own vote, so an open ballot's Tally carries participation only (Cast and Outstanding from the server's
+ * BallotProgress; Yes, No and Abstain stay 0 until the ballot closes and the server reveals them).
+ */
 export interface BallotView {
     Ballot: BallotRow;
     MotionTitle: string;
@@ -133,6 +153,7 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
             ]);
             const ballots = (ballotsResult.Success ? ballotsResult.Results : []) as unknown as BallotRow[];
             const [terms, memberships] = extras;
+            const progress = await this.loadProgress(ballots.filter(b => b.Status === 'Open').map(b => b.ID));
             // Roles come from the process-wide lookup engine — no per-load query.
             const roles: RoleRow[] = CommitteesLookupEngine.Instance.Roles
                 .map(r => ({ ID: r.ID, IsVotingRole: r.IsVotingRole }));
@@ -142,6 +163,7 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
                 (terms.Success ? terms.Results : []) as unknown as TermRow[],
                 (memberships.Success ? memberships.Results : []) as unknown as MembershipFullRow[],
                 roles,
+                progress,
             );
         } catch (err) {
             this.ErrorMessage = err instanceof Error ? err.message : 'Failed to load motions and ballots';
@@ -150,9 +172,30 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
         this.cdr.detectChanges();
     }
 
+    /**
+     * Participation for each open ballot, from the server: it reads the votes as the system user, so the counts are
+     * whole even though this browser sees only its own vote. A ballot whose progress cannot be read falls back to the
+     * votes the browser can see (its own), and says nothing about the others.
+     */
+    private async loadProgress(ballotIDs: string[]): Promise<Map<string, BallotProgressPayload>> {
+        const progress = new Map<string, BallotProgressPayload>();
+        await Promise.all(ballotIDs.map(async (ballotID) => {
+            try {
+                const result = await GraphQLDataProvider.Instance.ExecuteGQL(BALLOT_PROGRESS, { BallotID: ballotID });
+                const payload = (result as { BallotProgress?: BallotProgressPayload } | null)?.BallotProgress;
+                if (payload?.Success) progress.set(ballotID.toLowerCase(), payload);
+                else console.warn(`BallotProgress refused for ${ballotID}: ${payload?.ErrorMessage ?? 'no answer'}`);
+            } catch (err) {
+                console.warn(`BallotProgress failed for ${ballotID}`, err);
+            }
+        }));
+        return progress;
+    }
+
     private async assemble(
         register: MotionRegisterData, ballots: BallotRow[],
-        terms: TermRow[], memberships: MembershipFullRow[], roles: RoleRow[]
+        terms: TermRow[], memberships: MembershipFullRow[], roles: RoleRow[],
+        progress: Map<string, BallotProgressPayload>,
     ): Promise<void> {
         this.Register = register;
         const votingRoleIDs = new Set(roles.filter(r => r.IsVotingRole).map(r => r.ID.toLowerCase()));
@@ -174,7 +217,7 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
             this.sealedByMotion.set(b.MotionID.toLowerCase(), BallotService.AreChoicesSealed(b));
             if (b.Status === 'Closed') { closed++; continue; }
             if (b.Status !== 'Open') continue;
-            open.push(this.buildBallotView(b, register, activeTermsByCommittee, memberships, votingRoleIDs, myPersonID));
+            open.push(this.buildBallotView(b, register, activeTermsByCommittee, memberships, votingRoleIDs, myPersonID, progress.get(b.ID.toLowerCase()) ?? null));
         }
         this.OpenBallots = open;
         this.ClosedBallotCount = closed;
@@ -185,32 +228,34 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
         b: BallotRow, register: MotionRegisterData,
         activeTermsByCommittee: Map<string, Set<string>>,
         memberships: MembershipFullRow[], votingRoleIDs: Set<string>,
-        myPersonID: string | null
+        myPersonID: string | null, progress: BallotProgressPayload | null
     ): BallotView {
         const termIDs = activeTermsByCommittee.get(b.CommitteeID.toLowerCase()) ?? new Set<string>();
         const committeeMembers = memberships.filter(m => termIDs.has(m.TermID.toLowerCase()));
         const votingMembers = committeeMembers.filter(m => votingRoleIDs.has(m.RoleID.toLowerCase()));
         const votes = register.VotesByMotion.get(b.MotionID.toLowerCase()) ?? [];
-        const votesByMembership = new Map(votes.map(v => [v.MembershipID.toLowerCase(), v]));
-        const tally = BallotService.ComputeTally(votes, votingMembers.length);
+        // Who has voted: the server's participation when it answered, else the votes this browser can see (its own)
+        const votedAt = new Map<string, Date | null>(progress
+            ? progress.Voted.map(v => [v.MembershipID.toLowerCase(), v.VotedAt ? new Date(v.VotedAt) : null])
+            : votes.map(v => [v.MembershipID.toLowerCase(), v.__mj_CreatedAt ? new Date(v.__mj_CreatedAt) : null]));
+        const tally: VoteTally = progress
+            ? { Yes: 0, No: 0, Abstain: 0, Cast: progress.Cast, Outstanding: progress.Outstanding }
+            : BallotService.ComputeTally(votes, votingMembers.length);
         const motionRow = register.Rows.find(r => r.MotionID.toLowerCase() === b.MotionID.toLowerCase());
         const sealed = BallotService.AreChoicesSealed(b);
         const now = new Date();
 
-        const voters: BallotVoterChip[] = committeeMembers.map(m => {
-            const vote = votesByMembership.get(m.ID.toLowerCase());
-            return {
-                MembershipID: m.ID,
-                PersonName: m.Person,
-                RoleName: m.Role,
-                IsVoting: votingRoleIDs.has(m.RoleID.toLowerCase()),
-                HasVoted: !!vote,
-                VotedAt: vote?.__mj_CreatedAt ? new Date(vote.__mj_CreatedAt) : null,
-            };
-        }).sort((a, b2) => Number(b2.IsVoting) - Number(a.IsVoting));
+        const voters: BallotVoterChip[] = committeeMembers.map(m => ({
+            MembershipID: m.ID,
+            PersonName: m.Person,
+            RoleName: m.Role,
+            IsVoting: votingRoleIDs.has(m.RoleID.toLowerCase()),
+            HasVoted: votedAt.has(m.ID.toLowerCase()),
+            VotedAt: votedAt.get(m.ID.toLowerCase()) ?? null,
+        })).sort((a, b2) => Number(b2.IsVoting) - Number(a.IsVoting));
 
         const mine = myPersonID
-            ? votingMembers.find(m => m.PersonID.toLowerCase() === myPersonID && !votesByMembership.has(m.ID.toLowerCase()))
+            ? votingMembers.find(m => m.PersonID.toLowerCase() === myPersonID && !votedAt.has(m.ID.toLowerCase()))
             : undefined;
 
         return {
@@ -226,12 +271,12 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
             Countdown: BallotService.ComputeCountdown(new Date(b.ClosesAt), 'Open', now),
             Sealed: sealed,
             Voters: voters,
-            Audit: this.buildAudit(b, votes, register),
+            Audit: this.buildAudit(b, votedAt, register),
             MyVotableMembershipID: mine?.ID ?? null,
         };
     }
 
-    private buildAudit(b: BallotRow, votes: VoteRow[], register: MotionRegisterData): BallotAuditEvent[] {
+    private buildAudit(b: BallotRow, votedAt: Map<string, Date | null>, register: MotionRegisterData): BallotAuditEvent[] {
         const events: BallotAuditEvent[] = [];
         const opener = b.CreatedByMembershipID
             ? register.MembershipsByID.get(b.CreatedByMembershipID.toLowerCase())?.Person ?? 'member'
@@ -241,13 +286,10 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
             Kind: 'system', IsScheduled: false, When: new Date(b.__mj_CreatedAt),
             Text: `Ballot created by ${opener} · threshold ${thresholdLabel} · closes ${new Date(b.ClosesAt).toLocaleString()}`,
         });
-        for (const v of votes) {
-            const who = register.MembershipsByID.get(v.MembershipID.toLowerCase())?.Person ?? 'member';
-            events.push({
-                Kind: 'vote', IsScheduled: false,
-                When: v.__mj_CreatedAt ? new Date(v.__mj_CreatedAt) : null,
-                Text: BallotService.AreChoicesSealed(b) ? `${who} voted — choice sealed` : `${who} voted ${v.VoteValue}`,
-            });
+        // While the ballot is open no choice is visible to anyone but its voter, sealed or not: the trail records participation
+        for (const [membershipID, when] of votedAt) {
+            const who = register.MembershipsByID.get(membershipID)?.Person ?? 'member';
+            events.push({ Kind: 'vote', IsScheduled: false, When: when, Text: `${who} voted` });
         }
         events.sort((a, b2) => (a.When?.getTime() ?? 0) - (b2.When?.getTime() ?? 0));
         if (b.Status === 'Open') {

@@ -1,0 +1,13 @@
+{
+  "entity": "MJ: Entity Permissions",
+  "filePattern": "**/.*.json",
+  "pull": {
+    "createNewFileIfNotFound": true,
+    "newFileName": ".entity-permissions.json",
+    "appendRecordsToExistingFile": true,
+    "updateExistingRecords": true,
+    "filter": "RoleID = 'E0AFCCEC-6A37-EF11-86D4-000D3A4E707E' AND EntityID = '94A59079-7436-4178-A31B-9B42DDA822C1'",
+    "ignoreNullFields": true,
+    "ignoreVirtualFields": true
+  }
+}

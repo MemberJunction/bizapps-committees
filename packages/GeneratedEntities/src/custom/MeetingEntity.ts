@@ -13,7 +13,7 @@ import { mjBizAppsCommitteesMeetingEntity } from '../generated/entity_subclasses
  * server-side by VideoProviderService / ProvisionVideoMeeting GraphQL mutation,
  * not in this client-safe entity class.
  */
-@RegisterClass(BaseEntity, 'Meetings', 1)
+@RegisterClass(BaseEntity, 'Committees: Meetings', 1)
 export class MeetingEntityCustom extends mjBizAppsCommitteesMeetingEntity {
 
     public override Validate(): ValidationResult {

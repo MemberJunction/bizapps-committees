@@ -116,8 +116,16 @@ jobs:
 
       - name: Update version
         if: steps.changeset_check.outputs.pending != '0'
+        # SECURITY: pass the dispatch input and the computed version through env vars
+        # instead of interpolating `${{ ... }}` into the script body. Inline
+        # interpolation of workflow_dispatch input splices attacker-chosen text into
+        # the shell before it runs (classic GitHub Actions script injection); as an
+        # env var it is inert data.
+        env:
+          TARGET_VERSION: ${{ github.event.inputs.targetVersion }}
+          COMPUTED_NEXT_VERSION: ${{ steps.version_check.outputs.EXPECTED_NEXT_VERSION }}
         run: |
-          EXPECTED_NEXT_VERSION="${{ github.event.inputs.targetVersion || steps.version_check.outputs.EXPECTED_NEXT_VERSION }}"
+          EXPECTED_NEXT_VERSION="${TARGET_VERSION:-$COMPUTED_NEXT_VERSION}"
           echo "Expected next version: $EXPECTED_NEXT_VERSION"
 
           pnpm run version

@@ -13,6 +13,12 @@ on:
       - 'pnpm-lock.yaml'
       - 'packages/**'
 
+# Build/validation only — this workflow never writes to the repo, so the job
+# token gets read-only contents and nothing else (least privilege; without
+# this the token inherits the org/repo default, which may be read-write).
+permissions:
+  contents: read
+
 concurrency:
   group: build-${{ github.ref }}
   cancel-in-progress: true

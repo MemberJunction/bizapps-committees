@@ -1,0 +1,12 @@
+[
+  {
+    "primaryKey": {
+      "ID": "6C0B4F2A-9D3E-4B7A-8E51-2F7D9A1C3B64"
+    },
+    "fields": {
+      "Name": "Committees: Visible Votes",
+      "Description": "A vote the caller cast (their Person holds the membership), every vote on a motion that has no ballot (roll calls taken in a meeting), and every vote on a ballot that is Closed or Cancelled and not sealed. A sealed ballot never shows another member's choice, in any status. The caller's Person is the user's own People link (LinkedEntityRecordID, when LinkedEntityID is People or a subtype of it), else the Person whose deprecated LinkedUserID names the user. Parenthesised so it ANDs onto any other filter the caller holds.",
+      "FilterText": "(MembershipID IN (SELECT m.ID FROM [__mj_BizAppsCommittees].[vwMemberships] m WHERE m.PersonID IN (SELECT TRY_CAST(u.LinkedEntityRecordID AS UNIQUEIDENTIFIER) FROM [__mj].[vwUsers] u WHERE u.ID = TRY_CAST('{{UserID}}' AS UNIQUEIDENTIFIER) AND u.LinkedEntityID IN (SELECT e.ID FROM [__mj].[vwEntities] e WHERE e.Name = N'MJ_BizApps_Common: People' OR e.ParentID IN (SELECT pe.ID FROM [__mj].[vwEntities] pe WHERE pe.Name = N'MJ_BizApps_Common: People')))) OR MembershipID IN (SELECT m.ID FROM [__mj_BizAppsCommittees].[vwMemberships] m INNER JOIN [__mj_BizAppsCommon].[vwPeople] p ON p.ID = m.PersonID WHERE p.LinkedUserID = TRY_CAST('{{UserID}}' AS UNIQUEIDENTIFIER)) OR MotionID NOT IN (SELECT b.MotionID FROM [__mj_BizAppsCommittees].[vwBallots] b WHERE b.MotionID IS NOT NULL) OR MotionID IN (SELECT b.MotionID FROM [__mj_BizAppsCommittees].[vwBallots] b WHERE b.Status IN (N'Closed', N'Cancelled') AND b.IsSealed = 0))"
+    }
+  }
+]

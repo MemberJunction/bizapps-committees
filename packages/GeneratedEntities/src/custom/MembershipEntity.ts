@@ -3,6 +3,15 @@ import { RegisterClass } from '@memberjunction/global';
 import { mjBizAppsCommitteesMembershipEntity } from '../generated/entity_subclasses';
 
 /**
+ * SECURITY: PersonID/TermID/ID arrive from the client through the generated save
+ * mutation as plain strings (the Zod schema types them as z.string(), not a UUID), and
+ * this validation runs a server-privileged RunView before the DB's uniqueidentifier
+ * typing would reject a malformed value. Guard them against this shape before they are
+ * interpolated into the ExtraFilter — mirrors CommitteeAuthorization's UUID_RE.
+ */
+const MEMBERSHIP_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
  * Custom Membership entity with business rule validation:
  * - No duplicate active memberships (same person + same term)
  * - End date must be after start date
@@ -80,6 +89,18 @@ export class MembershipEntityCustom extends mjBizAppsCommitteesMembershipEntity 
      */
     private async ValidateNoDuplicateActiveMembership(result: ValidationResult): Promise<void> {
         if (this.Status !== 'Active' || !this.PersonID || !this.TermID) {
+            return;
+        }
+
+        // Refuse malformed IDs before they reach the server-privileged filter below.
+        if (!MEMBERSHIP_UUID_RE.test(this.PersonID) || !MEMBERSHIP_UUID_RE.test(this.TermID) ||
+            (this.ID && !MEMBERSHIP_UUID_RE.test(this.ID))) {
+            result.Errors.push(new ValidationErrorInfo(
+                'PersonID',
+                'Membership PersonID, TermID and ID must be valid identifiers.',
+                this.PersonID,
+                ValidationErrorType.Failure,
+            ));
             return;
         }
 

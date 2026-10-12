@@ -10,9 +10,16 @@ import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 
 /**
- * SSRF guard: ensures a client-supplied target is a public HTTPS endpoint and does not
- * resolve to a private/loopback/link-local/metadata address. Throws a descriptive error
- * if the target is disallowed. `label` names the offending input in error messages.
+ * SSRF guard: ensures a client-supplied target is a public HTTPS endpoint on the default
+ * port (443) and does not resolve to a private/loopback/link-local/metadata address.
+ * Throws a descriptive error if the target is disallowed. `label` names the offending
+ * input in error messages.
+ *
+ * Known limitation (TOCTOU / DNS rebinding): the hostname is resolved HERE, before the
+ * caller's fetch performs its own resolution — a DNS record that changes between this
+ * check and the connection can still point the request at an internal address. Fully
+ * closing that gap requires pinning the resolved IP on the socket/agent the fetch uses,
+ * which is deliberately not implemented yet.
  */
 export async function assertPublicHttpsTarget(rawUrl: string, label: string = 'URL'): Promise<void> {
     let url: URL;
@@ -23,6 +30,12 @@ export async function assertPublicHttpsTarget(rawUrl: string, label: string = 'U
     }
     if (url.protocol !== 'https:') {
         throw new Error(`${label} must use https`);
+    }
+    // Pin the target to the default HTTPS port. Legitimate storage providers serve
+    // pre-signed URLs on 443; a caller-chosen port would let the proxy reach arbitrary
+    // services on otherwise-allowed hosts.
+    if (url.port !== '' && url.port !== '443') {
+        throw new Error(`${label} must use the default https port (443)`);
     }
     const host = url.hostname.replace(/^\[|\]$/g, ''); // strip IPv6 [brackets]
     const addresses: string[] = isIP(host)

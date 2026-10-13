@@ -13,7 +13,7 @@ committees/
     MJAPI/         - GraphQL API server (port 4101)
     MJExplorer/    - Angular UI application (port 4301)
   packages/
-    GeneratedEntities/  - CodeGen-generated entity subclasses
+    Entities/           - CodeGen-generated entity subclasses
     GeneratedActions/   - CodeGen-generated action subclasses
 ```
 
@@ -293,7 +293,7 @@ get myInput(): string | null { return this._myInput; }
 ## CodeGen
 
 This repo uses MemberJunction's CodeGen system to generate entity and action subclasses. The generated code lives in:
-- `packages/GeneratedEntities/` - Entity TypeScript classes with Zod schemas
+- `packages/Entities/` - Entity TypeScript classes with Zod schemas
 - `packages/GeneratedActions/` - Action TypeScript classes
 
 **Key rules:**
@@ -318,7 +318,7 @@ This repo uses MemberJunction's CodeGen system to generate entity and action sub
 - **Full Stack**: Compound configuration running both MJAPI + MJExplorer
 
 ### Source Map Scoping
-Source maps are scoped to local packages only (`apps/MJAPI/**`, `packages/GeneratedEntities/**`, `packages/GeneratedActions/**`). Third-party packages and node_modules are excluded to avoid noise.
+Source maps are scoped to local packages only (`apps/MJAPI/**`, `packages/Entities/**`, `packages/GeneratedActions/**`). Third-party packages and node_modules are excluded to avoid noise.
 
 ---
 

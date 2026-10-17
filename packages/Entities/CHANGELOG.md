@@ -1,5 +1,16 @@
 # @mj-biz-apps/committees-entities
 
+## 1.4.1
+
+### Patch Changes
+
+- 22be655: Ballot sealing is enforced on the server (C0). The UI role reads Votes through the new "Committees: Visible Votes" row filter: a member sees their own vote, roll-call votes on meeting motions, and every vote on a closed or cancelled ballot that is not sealed. Closing a ballot moves to the `CloseBallot` mutation, which tallies as the system user and stamps the motion; `BallotProgress` gives open ballots their participation counts. The custom Membership and Meeting entity classes now register under their entity names ("Committees: Memberships", "Committees: Meetings"), so their validation rules run.
+- 5296dc1: `mj-app.json` now lists `@mj-biz-apps/committees-core-entities-server`, `@mj-biz-apps/committees-actions` under `server` instead of `shared`. They use server-only code (Node built-ins, or MemberJunction's actions, AI engine, storage or server packages), and `shared` installs a package into MJExplorer too. The Open App client bootstrap imports every `shared` package, so Explorer's browser build failed on a host with this app installed (`Could not resolve "node:crypto"`, `"node:net"`, `"stream"`). The server still loads them exactly as before.
+- 670f58a: `mj sync push --dir metadata` now succeeds on a fresh database.
+
+  - `metadata/.mj-sync.json` lists every metadata folder in `directoryOrder`, ending with `record-processes`, `ml-training-pipelines`, `ml-models` and `ml-model-scoring-bindings`. Folders left out of the list are pushed afterwards in alphabetical order, so `ml-model-scoring-bindings` was pushed before the model and record process it references and the push rolled back on `FK_MLModelScoringBinding_MLModel`.
+  - The shipped ML models no longer carry `"ArtifactFileID": null`. Push sets nulls too, so every push cleared the trained artifact link on the host that trained the models. A fresh database still gets null; a trained host keeps its value.
+
 ## 1.4.0
 
 ### Minor Changes

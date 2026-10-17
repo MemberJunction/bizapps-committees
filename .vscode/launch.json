@@ -17,13 +17,13 @@
       "sourceMaps": true,
       "resolveSourceMapLocations": [
         "${workspaceFolder}/apps/MJAPI/**",
-        "${workspaceFolder}/packages/GeneratedEntities/**",
+        "${workspaceFolder}/packages/Entities/**",
         "${workspaceFolder}/packages/GeneratedActions/**",
         "!**/node_modules/**"
       ],
       "outFiles": [
         "${workspaceFolder}/apps/MJAPI/dist/**/*.js",
-        "${workspaceFolder}/packages/GeneratedEntities/dist/**/*.js",
+        "${workspaceFolder}/packages/Entities/dist/**/*.js",
         "${workspaceFolder}/packages/GeneratedActions/dist/**/*.js"
       ],
       "skipFiles": [

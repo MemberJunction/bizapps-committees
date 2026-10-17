@@ -1,17 +1,41 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
-import { Metadata } from '@memberjunction/core';
-import { BallotService } from '@mj-biz-apps/committees-core';
-import {
-    mjBizAppsCommitteesBallotEntity, mjBizAppsCommitteesMotionEntity,
-} from '@mj-biz-apps/committees-entities';
+import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
+import { VoteTally } from '@mj-biz-apps/committees-core';
 import { BallotView, BallotVoterChip } from './motions-ballots.component';
 
+/** The CloseBallot mutation's payload (committees-server BallotCloseResolver). */
+interface CloseBallotPayload {
+    Success: boolean;
+    ErrorMessage?: string | null;
+    Result: 'Passed' | 'Failed' | 'Cancelled' | null;
+    Yes: number;
+    No: number;
+    Abstain: number;
+    Cast: number;
+    VotingMemberCount: number;
+    RequiredYes: number;
+    ResultNotes: string | null;
+}
+
+/** What the server revealed when it closed the ballot. */
+export interface RevealedTally {
+    Tally: VoteTally;
+    RequiredYes: number;
+    VotingMemberCount: number;
+}
+
+const CLOSE_BALLOT = `mutation CloseBallot($input: CloseBallotInput!) {
+    CloseBallot(input: $input) {
+        Success ErrorMessage Result Yes No Abstain Cast VotingMemberCount RequiredYes ResultNotes
+    }
+}`;
+
 /**
- * Ballot-close ceremony (Phase 4 feature 2). Closing a ballot is the
- * governance act — this dialog shows participation, the threshold math, and
- * the outcome about to be stamped BEFORE the chair commits, then reveals the
- * final tally. Sealed ballots reveal the tally only; individual choices stay
- * sealed permanently. Also carries the cancel path (withdrawn motions).
+ * Ballot-close ceremony (Phase 4 feature 2, server-side since C0). Closing a ballot is the governance act: this
+ * dialog shows participation and the threshold BEFORE the chair commits, then reveals the tally the server computed.
+ * The browser never sees other members' choices while a ballot is open (the Votes row filter), so the tally, the
+ * outcome and the Motion stamp come from the CloseBallot mutation, which reads the votes as the system user. Sealed
+ * ballots reveal the tally only; individual choices stay sealed permanently. Also carries the cancel path.
  */
 @Component({
     standalone: false,
@@ -31,11 +55,13 @@ export class BallotCloseDialogComponent implements OnInit {
     IsSaving = false;
     ErrorMessage = '';
     FinalResult: 'Passed' | 'Failed' | 'Cancelled' = 'Failed';
+    /** Filled from the mutation's response; null until the ballot is closed. */
+    Revealed: RevealedTally | null = null;
 
     private cdr = inject(ChangeDetectorRef);
 
     ngOnInit(): void {
-        this.Notes = this.stampSummary();
+        this.Notes = '';
     }
 
     // ── Evidence ────────────────────────────────────────────────
@@ -48,25 +74,20 @@ export class BallotCloseDialogComponent implements OnInit {
         return !this.View.Countdown.IsOverdue;
     }
 
-    /** Early + outstanding votes could still flip the result → loud warning. */
+    /** Early + outstanding votes: the result the server computes could still change if the chair waited. */
     get IsRisky(): boolean {
-        return this.IsEarly && !this.View.Forecast.IsDecided;
-    }
-
-    get ProjectedResult(): 'Passed' | 'Failed' {
-        const outcome = BallotService.ForecastOutcome(
-            { ...this.View.Tally, Outstanding: 0 },
-            this.View.Ballot.ThresholdType, 'VotingMembers', this.View.VotingMemberCount);
-        return outcome.Outcome === 'Passed' ? 'Passed' : 'Failed';
+        return this.IsEarly && this.View.Tally.Outstanding > 0;
     }
 
     get YesPct(): number {
-        const cast = Math.max(this.View.Tally.Cast, 1);
-        return (this.View.Tally.Yes / cast) * 100;
+        const tally = this.Revealed?.Tally;
+        if (!tally) return 0;
+        return (tally.Yes / Math.max(tally.Cast, 1)) * 100;
     }
     get NoPct(): number {
-        const cast = Math.max(this.View.Tally.Cast, 1);
-        return (this.View.Tally.No / cast) * 100;
+        const tally = this.Revealed?.Tally;
+        if (!tally) return 0;
+        return (tally.No / Math.max(tally.Cast, 1)) * 100;
     }
 
     ThresholdLabel(): string {
@@ -77,15 +98,9 @@ export class BallotCloseDialogComponent implements OnInit {
         }
     }
 
-    private stampSummary(): string {
-        const t = this.View.Tally;
-        return `E-ballot ${this.ProjectedResult.toLowerCase()} ${t.Yes}-${t.No}-${t.Abstain}`
-            + ` (${this.ThresholdLabel()}, ${t.Cast} of ${this.View.VotingMemberCount} voting members cast)`;
-    }
-
     SetMode(mode: 'close' | 'cancel'): void {
         this.Mode = mode;
-        this.Notes = mode === 'close' ? this.stampSummary() : '';
+        this.Notes = '';
         this.ErrorMessage = '';
         this.cdr.markForCheck();
     }
@@ -102,14 +117,14 @@ export class BallotCloseDialogComponent implements OnInit {
         this.ErrorMessage = '';
         this.cdr.detectChanges();
         try {
-            if (this.Mode === 'close') {
-                await this.stampMotion();
-                await this.writeBallot('Closed');
-                this.FinalResult = this.ProjectedResult;
-            } else {
-                await this.writeBallot('Cancelled');
-                this.FinalResult = 'Cancelled';
-            }
+            const payload = await this.closeOnServer(this.Mode === 'close' ? 'Close' : 'Cancel');
+            this.FinalResult = payload.Result ?? 'Failed';
+            this.Revealed = {
+                Tally: { Yes: payload.Yes, No: payload.No, Abstain: payload.Abstain, Cast: payload.Cast, Outstanding: Math.max(0, payload.VotingMemberCount - payload.Cast) },
+                RequiredYes: payload.RequiredYes,
+                VotingMemberCount: payload.VotingMemberCount,
+            };
+            this.Notes = payload.ResultNotes ?? this.Notes;
             this.Phase = 'reveal';
         } catch (err) {
             this.ErrorMessage = err instanceof Error ? err.message : 'Failed to close ballot';
@@ -118,26 +133,13 @@ export class BallotCloseDialogComponent implements OnInit {
         this.cdr.detectChanges();
     }
 
-    private async stampMotion(): Promise<void> {
-        const md = new Metadata();
-        const motion = await md.GetEntityObject<mjBizAppsCommitteesMotionEntity>('Committees: Motions');
-        if (!await motion.Load(this.View.Ballot.MotionID)) throw new Error('Motion not found');
-        motion.Result = this.ProjectedResult;
-        motion.ResultSummary = this.Notes.trim() || this.stampSummary();
-        motion.YesCount = this.View.Tally.Yes;
-        motion.NoCount = this.View.Tally.No;
-        motion.AbstainCount = this.View.Tally.Abstain;
-        if (!await motion.Save()) throw new Error(motion.LatestResult?.CompleteMessage ?? 'Motion stamp failed');
-    }
-
-    private async writeBallot(status: 'Closed' | 'Cancelled'): Promise<void> {
-        const md = new Metadata();
-        const ballot = await md.GetEntityObject<mjBizAppsCommitteesBallotEntity>('Committees: Ballots');
-        if (!await ballot.Load(this.View.Ballot.ID)) throw new Error('Ballot not found');
-        ballot.Status = status;
-        ballot.ClosedAt = new Date();
-        ballot.ResultNotes = this.Notes.trim() || null;
-        if (!await ballot.Save()) throw new Error(ballot.LatestResult?.CompleteMessage ?? 'Ballot save failed');
+    private async closeOnServer(mode: 'Close' | 'Cancel'): Promise<CloseBallotPayload> {
+        const input = { BallotID: this.View.Ballot.ID, Mode: mode, Notes: this.Notes.trim() || null };
+        const result = await GraphQLDataProvider.Instance.ExecuteGQL(CLOSE_BALLOT, { input });
+        const payload = (result as { CloseBallot?: CloseBallotPayload } | null)?.CloseBallot;
+        if (!payload) throw new Error('The server returned no answer to CloseBallot');
+        if (!payload.Success) throw new Error(payload.ErrorMessage ?? 'Failed to close ballot');
+        return payload;
     }
 
     // ── Exit ────────────────────────────────────────────────────

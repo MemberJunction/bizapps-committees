@@ -21,8 +21,15 @@
     "file-storage-providers",
     "prompts",
     "agents",
+    "entities",
     "entity-fields",
-    "entity-relationships"
+    "entity-relationships",
+    "row-level-security-filters",
+    "entity-permissions",
+    "record-processes",
+    "ml-training-pipelines",
+    "ml-models",
+    "ml-model-scoring-bindings"
   ],
   "emitSyncNotes": false
 }

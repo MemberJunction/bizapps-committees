@@ -117,7 +117,16 @@
                             <i class="fa-solid" [class.fa-user-tie]="m.RoleCategory === 'officer'" [class.fa-user]="m.RoleCategory !== 'officer'"></i>
                         </div>
                         <div class="mj-member-info">
-                            <div class="mj-member-name" (click)="navigateToPerson(m, $event)" title="View Person record">
+                            <div
+                                class="mj-member-name"
+                                mjRecordLink
+                                [EntityName]="'MJ_BizApps_Common: People'"
+                                [RecordID]="m.PersonID"
+                                [DisplayName]="m.PersonName"
+                                [HandleClick]="false"
+                                (Navigate)="Navigate.emit($event)"
+                                (click)="navigateToPerson(m, $event)"
+                                title="View Person record">
                                 {{ m.PersonName }}
                                 <i class="fa-solid fa-arrow-up-right-from-square mj-link-hint"></i>
                             </div>
@@ -134,6 +143,12 @@
                             <button
                                 type="button"
                                 class="mj-action-icon-btn"
+                                mjRecordLink
+                                [EntityName]="'Committees: Committee Memberships'"
+                                [RecordID]="m.ID"
+                                [DisplayName]="m.PersonName + ' - ' + m.Role"
+                                [HandleClick]="false"
+                                (Navigate)="Navigate.emit($event)"
                                 (click)="navigateToMembership(m, $event)"
                                 title="Edit Committee Membership">
                                 <i class="fa-solid fa-pen-to-square"></i>

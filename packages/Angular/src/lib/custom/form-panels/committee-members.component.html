@@ -32,7 +32,17 @@
         } @else {
             <div class="com-grid">
                 @for (card of Visible; track card.PersonID) {
-                    <button type="button" class="com-card" (click)="OpenPerson(card, $event)">
+                    <button
+                        type="button"
+                        class="com-card"
+                        mjRecordLink
+                        [EntityName]="'MJ_BizApps_Common: People'"
+                        [RecordID]="card.PersonID"
+                        [DisplayName]="card.PersonName"
+                        [Provider]="Provider"
+                        [HandleClick]="false"
+                        (Navigate)="Navigate.emit($event)"
+                        (click)="OpenPerson(card, $event)">
                         <div class="com-card-head">
                             <div class="com-avatar" [class.officer]="PrimaryRole(card)?.IsOfficer" [class.has-photo]="ShowPhoto(card)">
                                 @if (ShowPhoto(card)) {
@@ -63,8 +73,22 @@
                         <div class="com-terms">
                             @for (term of card.Terms; track term.MembershipID) {
                                 <div class="com-term">
-                                    <span class="com-term-name">{{ term.TermName }}</span>
-                                    <span class="com-term-role">{{ term.Role }}</span>
+                                    <span
+                                        class="com-term-name"
+                                        mjRecordLink
+                                        [EntityName]="'Committees: Terms'"
+                                        [RecordID]="term.TermID"
+                                        [DisplayName]="term.TermName"
+                                        [Provider]="Provider"
+                                        (Navigate)="Navigate.emit($event)">{{ term.TermName }}</span>
+                                    <span
+                                        class="com-term-role"
+                                        mjRecordLink
+                                        [EntityName]="'Committees: Roles'"
+                                        [RecordID]="term.RoleID"
+                                        [DisplayName]="term.Role"
+                                        [Provider]="Provider"
+                                        (Navigate)="Navigate.emit($event)">{{ term.Role }}</span>
                                     <span class="com-term-dates">{{ TermHint(term) }}</span>
                                 </div>
                             }

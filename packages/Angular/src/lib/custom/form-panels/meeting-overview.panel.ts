@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, OnInit, inject, ChangeDetectorRef }
 import { CommonModule } from '@angular/common';
 import { RunView } from '@memberjunction/core';
 import { RegisterClassEx } from '@memberjunction/global';
-import { BaseFormPanel } from '@memberjunction/ng-base-forms';
+import { BaseFormPanel, BaseFormsModule } from '@memberjunction/ng-base-forms';
 import { mjBizAppsCommitteesMeetingEntity } from '@mj-biz-apps/committees-entities';
 
 interface AgendaItemRow {
@@ -24,7 +24,7 @@ interface AgendaItemRow {
 @Component({
     selector: 'bizapps-meeting-overview-panel',
     standalone: true,
-    imports: [CommonModule],
+    imports: [CommonModule, BaseFormsModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <div class="mj-meeting-overview-grid">
@@ -39,7 +39,13 @@ interface AgendaItemRow {
                         <span style="font-size: 12px; color: var(--mj-text-muted);">No agenda items published for this meeting.</span>
                     } @else {
                         @for (item of AgendaItems; track item.ID) {
-                            <div class="mj-metric-row">
+                            <div
+                                class="mj-metric-row"
+                                mjRecordLink
+                                [EntityName]="'Committees: Agenda Items'"
+                                [RecordID]="item.ID"
+                                [DisplayName]="item.Name || item.Title || ''"
+                                (Navigate)="FormComponent.OnFormNavigate($event)">
                                 <span class="mj-metric-label" [title]="item.Name || item.Title || ''">{{ item.Sequence }}. {{ item.Name || item.Title }}</span>
                                 <span class="mj-pill mj-pill-blue">{{ item.DurationMinutes || 15 }}m</span>
                             </div>

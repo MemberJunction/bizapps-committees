@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChange
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RunView, CompositeKey } from '@memberjunction/core';
-import { BaseFormsModule, FormNavigationEvent, RecordNavigationEvent } from '@memberjunction/ng-base-forms';
+import { FormNavigationEvent, RecordNavigationEvent } from '@memberjunction/ng-base-forms';
 import { UUIDsEqual } from '@memberjunction/global';
 
 export interface RosterMemberItem {
@@ -33,7 +33,7 @@ export interface RosterMemberItem {
 @Component({
     selector: 'bizapps-committee-roster',
     standalone: true,
-    imports: [CommonModule, FormsModule, BaseFormsModule],
+    imports: [CommonModule, FormsModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './committee-roster.component.html',
     styleUrls: ['./committee-roster.component.css']

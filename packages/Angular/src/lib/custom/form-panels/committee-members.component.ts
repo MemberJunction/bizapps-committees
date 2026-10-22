@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CompositeKey, type IMetadataProvider } from '@memberjunction/core';
-import { BaseFormsModule, type FormNavigationEvent, type RecordNavigationEvent } from '@memberjunction/ng-base-forms';
+import type { FormNavigationEvent, RecordNavigationEvent } from '@memberjunction/ng-base-forms';
 import {
     ActiveSeat,
     DaysLeft,
@@ -15,7 +15,7 @@ import {
 @Component({
     selector: 'bizapps-committee-members',
     standalone: true,
-    imports: [CommonModule, BaseFormsModule],
+    imports: [CommonModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
     templateUrl: './committee-members.component.html',
     styleUrls: ['./committee-seats.css'],

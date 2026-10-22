@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, OnInit, inject, ChangeDetectorRef }
 import { CommonModule } from '@angular/common';
 import { RunView } from '@memberjunction/core';
 import { RegisterClassEx } from '@memberjunction/global';
-import { BaseFormPanel, BaseFormsModule } from '@memberjunction/ng-base-forms';
+import { BaseFormPanel } from '@memberjunction/ng-base-forms';
 import { mjBizAppsCommitteesCommitteeEntity } from '@mj-biz-apps/committees-entities';
 
 interface MeetingRow {
@@ -23,7 +23,7 @@ interface MeetingRow {
 @Component({
     selector: 'bizapps-committee-overview-panel',
     standalone: true,
-    imports: [CommonModule, BaseFormsModule],
+    imports: [CommonModule],
     changeDetection: ChangeDetectionStrategy.OnPush,
     template: `
         <div class="mj-committee-overview-grid">
@@ -38,13 +38,7 @@ interface MeetingRow {
                         <span style="font-size: 12px; color: var(--mj-text-muted);">No upcoming meetings scheduled.</span>
                     } @else {
                         @for (m of Meetings; track m.ID) {
-                            <div
-                                class="mj-metric-row"
-                                mjRecordLink
-                                [EntityName]="'Committees: Meetings'"
-                                [RecordID]="m.ID"
-                                [DisplayName]="m.Name"
-                                (Navigate)="FormComponent.OnFormNavigate($event)">
+                            <div class="mj-metric-row">
                                 <span class="mj-metric-label">{{ m.Name }}</span>
                                 <span class="mj-pill mj-pill-blue">{{ m.LocationType || 'Hybrid' }}</span>
                             </div>

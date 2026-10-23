@@ -1,5 +1,19 @@
 # @mj-biz-apps/committees-ng
 
+## 1.5.0
+
+### Patch Changes
+
+- 22be655: Ballot sealing is enforced on the server (C0). The UI role reads Votes through the new "Committees: Visible Votes" row filter: a member sees their own vote, roll-call votes on meeting motions, and every vote on a closed or cancelled ballot that is not sealed. Closing a ballot moves to the `CloseBallot` mutation, which tallies as the system user and stamps the motion; `BallotProgress` gives open ballots their participation counts. The custom Membership and Meeting entity classes now register under their entity names ("Committees: Memberships", "Committees: Meetings"), so their validation rules run.
+- bd8961d: The Person form's Committees section now renders as its own left-nav tab again. Since MJ #4311 a contribution at `after-fields` is filed into the Details tab; it now mounts at `after-related`, which MJ treats as a tab of its own.
+- 6d4e23b: Document upload now resolves the server's upload proxy against the GraphQL URL's origin, so it reaches `/api/upload-proxy` when GraphQL is served under a path such as `/api/graphql` instead of requesting `/api/api/upload-proxy`.
+- Updated dependencies [22be655]
+- Updated dependencies [b8218d6]
+- Updated dependencies [5296dc1]
+- Updated dependencies [670f58a]
+  - @mj-biz-apps/committees-core@1.5.0
+  - @mj-biz-apps/committees-entities@1.5.0
+
 ## 1.4.0
 
 ### Minor Changes

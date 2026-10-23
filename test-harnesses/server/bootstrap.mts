@@ -45,8 +45,8 @@ export async function bootstrap(): Promise<HarnessCtx> {
         options: { encrypt: false, trustServerCertificate: true },
     }).connect();
 
-    await setupSQLServerClient(new SQLServerProviderConfigData(pool, coreSchema));
-    await UserCache.Instance.Refresh(pool);
+    const provider = await setupSQLServerClient(new SQLServerProviderConfigData(pool, coreSchema));
+    await UserCache.Instance.Refresh(provider); // MJ 6.2: the cache refreshes through the provider, not the pool
     const ctxUser = UserCache.Users.find(u => u?.Type?.trim().toLowerCase() === 'owner') ?? UserCache.Users[0];
     if (!ctxUser) throw new Error('No context user found in UserCache.');
     return { pool, user: ctxUser };

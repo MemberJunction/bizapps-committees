@@ -37,6 +37,15 @@ interface PersonRow { ID: string; DisplayName: string | null; }
 
 const OPEN_STATUS_FILTER = "Status IN ('Open', 'InProgress')";
 
+/** Shape guard for caller-supplied IDs that reach ExtraFilter SQL text. */
+const UUID_SHAPE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+/** A quoted UUID literal safe for a filter, or an error: every id here reaches SQL text. */
+function guidLiteral(id: string, label: string): string {
+    if (!UUID_SHAPE.test(id)) throw new Error(`${label} '${id}' is not a valid ID.`);
+    return `'${id}'`;
+}
+
 /**
  * Loads BizAppsTasks tasks with committee scope resolved, in one batched
  * query set (plus one follow-up for assignee names). Replaces the legacy
@@ -71,7 +80,7 @@ export class CommitteeTaskService {
         const parts: string[] = [];
         if (statusFilter) parts.push(statusFilter);
         if (assignedToPersonID) {
-            parts.push(`ID IN (SELECT TaskID FROM [__mj_BizAppsTasks].[vwTaskAssignments] WHERE AssigneeRecordID = '${assignedToPersonID}')`);
+            parts.push(`ID IN (SELECT TaskID FROM [__mj_BizAppsTasks].[vwTaskAssignments] WHERE AssigneeRecordID = ${guidLiteral(assignedToPersonID, 'AssignedToPersonID')})`);
         }
         return parts.join(' AND ');
     }

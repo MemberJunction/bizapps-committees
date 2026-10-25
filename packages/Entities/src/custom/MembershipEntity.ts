@@ -3,6 +3,12 @@ import { RegisterClass } from '@memberjunction/global';
 import { mjBizAppsCommitteesMembershipEntity } from '../generated/entity_subclasses';
 
 /**
+ * Shape guard for client-settable IDs that reach ExtraFilter SQL text below.
+ * Anything that is not UUID-shaped is refused before a filter is built.
+ */
+const UUID_SHAPE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+/**
  * Custom Membership entity with business rule validation:
  * - No duplicate active memberships (same person + same term)
  * - End date must be after start date
@@ -83,6 +89,31 @@ export class MembershipEntityCustom extends mjBizAppsCommitteesMembershipEntity 
             return;
         }
 
+        // PersonID and TermID are client-settable and are interpolated into the
+        // filter below — refuse anything that is not UUID-shaped, surfaced as a
+        // normal validation failure like the other rules in this class.
+        let idsValid = true;
+        for (const [field, value] of [['PersonID', this.PersonID], ['TermID', this.TermID]] as const) {
+            if (!UUID_SHAPE.test(value)) {
+                result.Errors.push(new ValidationErrorInfo(
+                    field,
+                    `${field} is not a valid identifier.`,
+                    value,
+                    ValidationErrorType.Failure
+                ));
+                idsValid = false;
+            }
+        }
+        if (!idsValid) {
+            return;
+        }
+
+        // ID is empty on a new record, so include the self-exclusion clause only
+        // when it is a real UUID-shaped saved ID. An empty or malformed ID can't
+        // equal any stored UUID, so omitting the clause is behaviorally identical
+        // and keeps non-UUID text out of the SQL.
+        const selfClause = this.ID && UUID_SHAPE.test(this.ID) ? ` AND ID<>'${this.ID}'` : '';
+
         // This entity owns a provider — route the query through it and carry the
         // entity's user context (MJ rule: never reach for the global provider here).
         // The concrete provider implements both interfaces; the cast bridges the
@@ -90,7 +121,7 @@ export class MembershipEntityCustom extends mjBizAppsCommitteesMembershipEntity 
         const rv = new RunView(this.ProviderToUse as unknown as IRunViewProvider);
         const dupeCheck = await rv.RunView<mjBizAppsCommitteesMembershipEntity>({
             EntityName: 'Committees: Memberships',
-            ExtraFilter: `PersonID='${this.PersonID}' AND TermID='${this.TermID}' AND Status='Active' AND ID<>'${this.ID}'`,
+            ExtraFilter: `PersonID='${this.PersonID}' AND TermID='${this.TermID}' AND Status='Active'${selfClause}`,
             ResultType: 'simple',
         }, this.ContextCurrentUser);
 

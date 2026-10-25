@@ -25,10 +25,29 @@
 -- THIS REPLACES V202607080009 RATHER THAN BUILDING ON IT. It is a full capture
 -- against a database that never ran that file, and it re-creates the same 27
 -- record IDs (Types, Roles, Artifact Types, Credential Type, File Storage
--- Provider, AI Prompt, AI Agent, AI Agent Prompt). That is safe only because no
--- SQL Server install of v1.0.0–v1.1.1 exists outside development; a database
--- that DID apply V202607080009 will hit primary-key violations here and must be
--- rebuilt. Do not restore V202607080009 alongside this file.
+-- Provider, AI Prompt, AI Agent, AI Agent Prompt). Do not restore V202607080009
+-- alongside this file.
+--
+-- IDEMPOTENT SEED CREATES. This file originally assumed no SQL Server install of
+-- v1.0.0–v1.1.1 existed outside development, and stated that a database which DID
+-- apply V202607080009 would hit primary-key violations here and had to be rebuilt.
+-- That assumption was wrong: such installs exist, and on one of them this migration
+-- aborted at batch 1/112 with
+--
+--     Violation of PRIMARY KEY constraint 'PK__Credenti__3214EC27D685D4A7'.
+--     Cannot insert duplicate key in object '__mj.CredentialType'.
+--     The duplicate key value is (daa02013-510d-41f4-bfaa-9250c7bc7d37).
+--
+-- taking the whole upgrade with it. Rebuilding a live schema is not an available
+-- remedy, so every one of the 29 spCreate* calls below is now guarded by an
+-- IF NOT EXISTS on its own primary key. On a fresh database all 29 create as
+-- before; on a database that already ran V202607080009 the 27 shared IDs are
+-- skipped and only the genuinely new Template and TemplateContent are created.
+-- The 82 spUpdate* calls need no guard — spUpdate* already no-ops on an absent ID.
+--
+-- The guards do NOT converge an existing row's CONTENT to this capture. They make
+-- the migration survivable, not authoritative; a host that wants the newer field
+-- values for those 27 records should re-run `mj sync push` against metadata/.
 --
 -- WHAT THIS CARRIES — the delta between metadata/ (source of truth) and a
 -- database built purely from migrations:
@@ -108,7 +127,10 @@ SET
 SET
   @Category_8f2c0e6c = N'Integration'
 SET
-  @FieldSchema_8f2c0e6c = N'{"type":"object","properties":{"client_id":{"type":"string","title":"Client ID / Service Account Email"},"client_secret":{"type":"string","title":"Client Secret / Private Key PEM"},"account_id":{"type":"string","title":"Account ID (Zoom) / Tenant ID (Teams) / Impersonated User (Google)"},"organizer_user_id":{"type":"string","title":"Organizer User ID (Teams only) — AAD Object ID or UPN"}},"required":["client_id","client_secret","account_id"]}' EXEC [${mjSchema}].spCreateCredentialType @ID = @ID_8f2c0e6c,
+  @FieldSchema_8f2c0e6c = N'{"type":"object","properties":{"client_id":{"type":"string","title":"Client ID / Service Account Email"},"client_secret":{"type":"string","title":"Client Secret / Private Key PEM"},"account_id":{"type":"string","title":"Account ID (Zoom) / Tenant ID (Teams) / Impersonated User (Google)"},"organizer_user_id":{"type":"string","title":"Organizer User ID (Teams only) — AAD Object ID or UPN"}},"required":["client_id","client_secret","account_id"]}'
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[CredentialType] WHERE [ID] = @ID_8f2c0e6c)
+EXEC [${mjSchema}].spCreateCredentialType @ID = @ID_8f2c0e6c,
   @Name = @Name_8f2c0e6c,
   @Description = @Description_8f2c0e6c,
   @Category = @Category_8f2c0e6c,
@@ -138,7 +160,10 @@ SET
 SET
   @DefaultTermMonths_8d61885a = 12
 SET
-  @IconClass_8d61885a = N'fa-solid fa-landmark' EXEC [${flyway:defaultSchema}].spCreateType @ID = @ID_8d61885a,
+  @IconClass_8d61885a = N'fa-solid fa-landmark'
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[Type] WHERE [ID] = @ID_8d61885a)
+EXEC [${flyway:defaultSchema}].spCreateType @ID = @ID_8d61885a,
   @Name = @Name_8d61885a,
   @Description = @Description_8d61885a,
   @IsStandards = @IsStandards_8d61885a,
@@ -165,7 +190,10 @@ SET
 SET
   @DefaultTermMonths_9fd8e12d = 12
 SET
-  @IconClass_9fd8e12d = N'fa-solid fa-users' EXEC [${flyway:defaultSchema}].spCreateType @ID = @ID_9fd8e12d,
+  @IconClass_9fd8e12d = N'fa-solid fa-users'
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[Type] WHERE [ID] = @ID_9fd8e12d)
+EXEC [${flyway:defaultSchema}].spCreateType @ID = @ID_9fd8e12d,
   @Name = @Name_9fd8e12d,
   @Description = @Description_9fd8e12d,
   @IsStandards = @IsStandards_9fd8e12d,
@@ -190,7 +218,10 @@ SET
 SET
   @IsStandards_5f134596 = 0
 SET
-  @IconClass_5f134596 = N'fa-solid fa-clock' EXEC [${flyway:defaultSchema}].spCreateType @ID = @ID_5f134596,
+  @IconClass_5f134596 = N'fa-solid fa-clock'
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[Type] WHERE [ID] = @ID_5f134596)
+EXEC [${flyway:defaultSchema}].spCreateType @ID = @ID_5f134596,
   @Name = @Name_5f134596,
   @Description = @Description_5f134596,
   @IsStandards = @IsStandards_5f134596,
@@ -216,7 +247,10 @@ SET
 SET
   @IsStandards_cd568fc5 = 0
 SET
-  @IconClass_cd568fc5 = N'fa-solid fa-briefcase' EXEC [${flyway:defaultSchema}].spCreateType @ID = @ID_cd568fc5,
+  @IconClass_cd568fc5 = N'fa-solid fa-briefcase'
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[Type] WHERE [ID] = @ID_cd568fc5)
+EXEC [${flyway:defaultSchema}].spCreateType @ID = @ID_cd568fc5,
   @Name = @Name_cd568fc5,
   @Description = @Description_cd568fc5,
   @IsStandards = @IsStandards_cd568fc5,
@@ -242,7 +276,10 @@ SET
 SET
   @IsStandards_5a75bafe = 1
 SET
-  @IconClass_5a75bafe = N'fa-solid fa-file-contract' EXEC [${flyway:defaultSchema}].spCreateType @ID = @ID_5a75bafe,
+  @IconClass_5a75bafe = N'fa-solid fa-file-contract'
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[Type] WHERE [ID] = @ID_5a75bafe)
+EXEC [${flyway:defaultSchema}].spCreateType @ID = @ID_5a75bafe,
   @Name = @Name_5a75bafe,
   @Description = @Description_5a75bafe,
   @IsStandards = @IsStandards_5a75bafe,
@@ -272,6 +309,8 @@ SET
   @IsVotingRole_1c569bd0 = 1
 SET
   @Sequence_1c569bd0 = 10
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[Role] WHERE [ID] = @ID_1c569bd0)
 EXEC [${flyway:defaultSchema}].spCreateRole @ID = @ID_1c569bd0,
   @Name = @Name_1c569bd0,
   @Description = @Description_1c569bd0,
@@ -303,6 +342,8 @@ SET
   @IsVotingRole_f799603b = 1
 SET
   @Sequence_f799603b = 20
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[Role] WHERE [ID] = @ID_f799603b)
 EXEC [${flyway:defaultSchema}].spCreateRole @ID = @ID_f799603b,
   @Name = @Name_f799603b,
   @Description = @Description_f799603b,
@@ -334,6 +375,8 @@ SET
   @IsVotingRole_640e6682 = 1
 SET
   @Sequence_640e6682 = 30
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[Role] WHERE [ID] = @ID_640e6682)
 EXEC [${flyway:defaultSchema}].spCreateRole @ID = @ID_640e6682,
   @Name = @Name_640e6682,
   @Description = @Description_640e6682,
@@ -365,6 +408,8 @@ SET
   @IsVotingRole_0b757154 = 1
 SET
   @Sequence_0b757154 = 40
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[Role] WHERE [ID] = @ID_0b757154)
 EXEC [${flyway:defaultSchema}].spCreateRole @ID = @ID_0b757154,
   @Name = @Name_0b757154,
   @Description = @Description_0b757154,
@@ -396,6 +441,8 @@ SET
   @IsVotingRole_3fe0f37f = 1
 SET
   @Sequence_3fe0f37f = 100
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[Role] WHERE [ID] = @ID_3fe0f37f)
 EXEC [${flyway:defaultSchema}].spCreateRole @ID = @ID_3fe0f37f,
   @Name = @Name_3fe0f37f,
   @Description = @Description_3fe0f37f,
@@ -427,6 +474,8 @@ SET
   @IsVotingRole_4e80264e = 0
 SET
   @Sequence_4e80264e = 110
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[Role] WHERE [ID] = @ID_4e80264e)
 EXEC [${flyway:defaultSchema}].spCreateRole @ID = @ID_4e80264e,
   @Name = @Name_4e80264e,
   @Description = @Description_4e80264e,
@@ -458,6 +507,8 @@ SET
   @IsVotingRole_a6df3686 = 0
 SET
   @Sequence_a6df3686 = 120
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[Role] WHERE [ID] = @ID_a6df3686)
 EXEC [${flyway:defaultSchema}].spCreateRole @ID = @ID_a6df3686,
   @Name = @Name_a6df3686,
   @Description = @Description_a6df3686,
@@ -489,6 +540,8 @@ SET
   @IsVotingRole_b1c9a5ff = 0
 SET
   @Sequence_b1c9a5ff = 130
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[Role] WHERE [ID] = @ID_b1c9a5ff)
 EXEC [${flyway:defaultSchema}].spCreateRole @ID = @ID_b1c9a5ff,
   @Name = @Name_b1c9a5ff,
   @Description = @Description_b1c9a5ff,
@@ -513,7 +566,10 @@ SET
 SET
   @Description_88139d91 = N'General document'
 SET
-  @IconClass_88139d91 = N'fa-solid fa-file' EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_88139d91,
+  @IconClass_88139d91 = N'fa-solid fa-file'
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[ArtifactType] WHERE [ID] = @ID_88139d91)
+EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_88139d91,
   @Name = @Name_88139d91,
   @Description = @Description_88139d91,
   @ExtendedEntityID = @ExtendedEntityID_88139d91,
@@ -535,7 +591,10 @@ SET
 SET
   @Description_521aef5c = N'Spreadsheet or data file'
 SET
-  @IconClass_521aef5c = N'fa-solid fa-file-excel' EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_521aef5c,
+  @IconClass_521aef5c = N'fa-solid fa-file-excel'
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[ArtifactType] WHERE [ID] = @ID_521aef5c)
+EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_521aef5c,
   @Name = @Name_521aef5c,
   @Description = @Description_521aef5c,
   @ExtendedEntityID = @ExtendedEntityID_521aef5c,
@@ -557,7 +616,10 @@ SET
 SET
   @Description_78825565 = N'Slide deck or presentation'
 SET
-  @IconClass_78825565 = N'fa-solid fa-file-powerpoint' EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_78825565,
+  @IconClass_78825565 = N'fa-solid fa-file-powerpoint'
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[ArtifactType] WHERE [ID] = @ID_78825565)
+EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_78825565,
   @Name = @Name_78825565,
   @Description = @Description_78825565,
   @ExtendedEntityID = @ExtendedEntityID_78825565,
@@ -579,7 +641,10 @@ SET
 SET
   @Description_04000613 = N'Meeting minutes with approval tracking'
 SET
-  @IconClass_04000613 = N'fa-solid fa-clipboard-check' EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_04000613,
+  @IconClass_04000613 = N'fa-solid fa-clipboard-check'
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[ArtifactType] WHERE [ID] = @ID_04000613)
+EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_04000613,
   @Name = @Name_04000613,
   @Description = @Description_04000613,
   @ExtendedEntityID = @ExtendedEntityID_04000613,
@@ -601,7 +666,10 @@ SET
 SET
   @Description_d230100f = N'Meeting agenda document'
 SET
-  @IconClass_d230100f = N'fa-solid fa-list-check' EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_d230100f,
+  @IconClass_d230100f = N'fa-solid fa-list-check'
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[ArtifactType] WHERE [ID] = @ID_d230100f)
+EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_d230100f,
   @Name = @Name_d230100f,
   @Description = @Description_d230100f,
   @ExtendedEntityID = @ExtendedEntityID_d230100f,
@@ -623,7 +691,10 @@ SET
 SET
   @Description_15524fc9 = N'Audio or video recording'
 SET
-  @IconClass_15524fc9 = N'fa-solid fa-video' EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_15524fc9,
+  @IconClass_15524fc9 = N'fa-solid fa-video'
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[ArtifactType] WHERE [ID] = @ID_15524fc9)
+EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_15524fc9,
   @Name = @Name_15524fc9,
   @Description = @Description_15524fc9,
   @ExtendedEntityID = @ExtendedEntityID_15524fc9,
@@ -645,7 +716,10 @@ SET
 SET
   @Description_2757cc30 = N'Meeting transcript'
 SET
-  @IconClass_2757cc30 = N'fa-solid fa-closed-captioning' EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_2757cc30,
+  @IconClass_2757cc30 = N'fa-solid fa-closed-captioning'
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[ArtifactType] WHERE [ID] = @ID_2757cc30)
+EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_2757cc30,
   @Name = @Name_2757cc30,
   @Description = @Description_2757cc30,
   @ExtendedEntityID = @ExtendedEntityID_2757cc30,
@@ -667,7 +741,10 @@ SET
 SET
   @Description_a0724e8c = N'Image or diagram'
 SET
-  @IconClass_a0724e8c = N'fa-solid fa-image' EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_a0724e8c,
+  @IconClass_a0724e8c = N'fa-solid fa-image'
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[ArtifactType] WHERE [ID] = @ID_a0724e8c)
+EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_a0724e8c,
   @Name = @Name_a0724e8c,
   @Description = @Description_a0724e8c,
   @ExtendedEntityID = @ExtendedEntityID_a0724e8c,
@@ -689,7 +766,10 @@ SET
 SET
   @Description_43d83712 = N'Other artifact type'
 SET
-  @IconClass_43d83712 = N'fa-solid fa-file-lines' EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_43d83712,
+  @IconClass_43d83712 = N'fa-solid fa-file-lines'
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${flyway:defaultSchema}].[ArtifactType] WHERE [ID] = @ID_43d83712)
+EXEC [${flyway:defaultSchema}].spCreateArtifactType @ID = @ID_43d83712,
   @Name = @Name_43d83712,
   @Description = @Description_43d83712,
   @ExtendedEntityID = @ExtendedEntityID_43d83712,
@@ -727,6 +807,8 @@ SET
   @SupportsSearch_cd0600f3 = 0
 SET
   @RequiresOAuth_cd0600f3 = 0
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[FileStorageProvider] WHERE [ID] = @ID_cd0600f3)
 EXEC [${mjSchema}].spCreateFileStorageProvider @ID = @ID_cd0600f3,
   @Name = @Name_cd0600f3,
   @Description = @Description_cd0600f3,
@@ -763,6 +845,8 @@ SET
   @UserID_ecff91a6 = 'ECAFCCEC-6A37-EF11-86D4-000D3A4E707E'
 SET
   @IsActive_ecff91a6 = 1
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[Template] WHERE [ID] = @ID_ecff91a6)
 EXEC [${mjSchema}].spCreateTemplate @ID = @ID_ecff91a6,
   @Name = @Name_ecff91a6,
   @Description = @Description_ecff91a6,
@@ -872,6 +956,8 @@ SET
   @Priority_8e0d5e7f = 1
 SET
   @IsActive_8e0d5e7f = 1
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[TemplateContent] WHERE [ID] = @ID_8e0d5e7f)
 EXEC [${mjSchema}].spCreateTemplateContent @ID = @ID_8e0d5e7f,
   @TemplateID = @TemplateID_8e0d5e7f,
   @TypeID = @TypeID_8e0d5e7f,
@@ -998,6 +1084,8 @@ SET
   @PrefillFallbackMode_cb246a90 = N'Ignore'
 SET
   @RequireSpecificModels_cb246a90 = 0
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[AIPrompt] WHERE [ID] = @ID_cb246a90)
 EXEC [${mjSchema}].spCreateAIPrompt @ID = @ID_cb246a90,
   @Name = @Name_cb246a90,
   @Description = @Description_cb246a90,
@@ -1228,6 +1316,8 @@ SET
   @SkillActivationMode_17ae8143 = N'RequestedOnly'
 SET
   @RequirePlanMode_17ae8143 = 0
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[AIAgent] WHERE [ID] = @ID_17ae8143)
 EXEC [${mjSchema}].spCreateAIAgent @ID = @ID_17ae8143,
   @Name = @Name_17ae8143,
   @Description = @Description_17ae8143,
@@ -1369,7 +1459,10 @@ SET
 SET
   @Status_31f043bd = N'Active'
 SET
-  @ContextBehavior_31f043bd = N'Complete' EXEC [${mjSchema}].spCreateAIAgentPrompt @ID = @ID_31f043bd,
+  @ContextBehavior_31f043bd = N'Complete'
+-- idempotent: this seed row may already exist from V202607080009 (v1.0.0-v1.1.1)
+IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[AIAgentPrompt] WHERE [ID] = @ID_31f043bd)
+EXEC [${mjSchema}].spCreateAIAgentPrompt @ID = @ID_31f043bd,
   @AgentID = @AgentID_31f043bd,
   @PromptID = @PromptID_31f043bd,
   @Purpose = @Purpose_31f043bd,

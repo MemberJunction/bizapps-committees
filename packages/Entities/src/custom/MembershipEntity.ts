@@ -2,6 +2,10 @@ import { BaseEntity, IRunViewProvider, ValidationResult, ValidationErrorInfo, Va
 import { RegisterClass } from '@memberjunction/global';
 import { mjBizAppsCommitteesMembershipEntity } from '../generated/entity_subclasses';
 
+// SECURITY: same guard pattern as CommitteeAuthorization (packages/Server) — kept local
+// because that constant is not exported and cross-package re-exports are not allowed.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Custom Membership entity with business rule validation:
  * - No duplicate active memberships (same person + same term)
@@ -83,14 +87,25 @@ export class MembershipEntityCustom extends mjBizAppsCommitteesMembershipEntity 
             return;
         }
 
+        // SECURITY: PersonID, TermID and ID are interpolated into the ExtraFilter below.
+        // Refuse anything that is not a well-formed UUID rather than letting it reach SQL
+        // text; an invalid value is reported as an ordinary validation error and the
+        // duplicate-check query is skipped entirely.
+        if (!this.ValidateDuplicateCheckIDs(result)) {
+            return;
+        }
+
         // This entity owns a provider — route the query through it and carry the
         // entity's user context (MJ rule: never reach for the global provider here).
         // The concrete provider implements both interfaces; the cast bridges the
         // disjoint IEntityDataProvider/IRunViewProvider declarations.
         const rv = new RunView(this.ProviderToUse as unknown as IRunViewProvider);
+        // Exclude the record itself only when it already has an ID (an unsaved record has no
+        // persisted row to exclude, and interpolating an empty/absent ID helps nobody).
+        const selfExclusion = this.ID ? ` AND ID<>'${this.ID}'` : '';
         const dupeCheck = await rv.RunView<mjBizAppsCommitteesMembershipEntity>({
             EntityName: 'Committees: Memberships',
-            ExtraFilter: `PersonID='${this.PersonID}' AND TermID='${this.TermID}' AND Status='Active' AND ID<>'${this.ID}'`,
+            ExtraFilter: `PersonID='${this.PersonID}' AND TermID='${this.TermID}' AND Status='Active'${selfExclusion}`,
             ResultType: 'simple',
         }, this.ContextCurrentUser);
 
@@ -102,6 +117,27 @@ export class MembershipEntityCustom extends mjBizAppsCommitteesMembershipEntity 
                 ValidationErrorType.Failure
             ));
         }
+    }
+
+    /**
+     * Guards the values interpolated into the duplicate-check ExtraFilter: PersonID and
+     * TermID must be well-formed UUIDs, and ID must be one when present. Pushes a
+     * validation error per invalid value and returns false if any failed.
+     */
+    private ValidateDuplicateCheckIDs(result: ValidationResult): boolean {
+        const invalid: Array<{ field: string; value: string }> = [];
+        if (!UUID_RE.test(this.PersonID)) invalid.push({ field: 'PersonID', value: this.PersonID });
+        if (!UUID_RE.test(this.TermID)) invalid.push({ field: 'TermID', value: this.TermID });
+        if (this.ID && !UUID_RE.test(this.ID)) invalid.push({ field: 'ID', value: this.ID });
+        for (const { field, value } of invalid) {
+            result.Errors.push(new ValidationErrorInfo(
+                field,
+                `${field} must be a valid UUID.`,
+                value,
+                ValidationErrorType.Failure
+            ));
+        }
+        return invalid.length === 0;
     }
 }
 

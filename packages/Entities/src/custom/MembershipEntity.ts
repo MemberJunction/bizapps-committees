@@ -2,6 +2,11 @@ import { BaseEntity, IRunViewProvider, ValidationResult, ValidationErrorInfo, Va
 import { RegisterClass } from '@memberjunction/global';
 import { mjBizAppsCommitteesMembershipEntity } from '../generated/entity_subclasses';
 
+// Local copy of the UUID shape check. The Server package keeps its own UUID_RE in
+// CommitteeAuthorization, but Entities must not depend on Server, so the regex is
+// duplicated here rather than imported.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Custom Membership entity with business rule validation:
  * - No duplicate active memberships (same person + same term)
@@ -80,6 +85,20 @@ export class MembershipEntityCustom extends mjBizAppsCommitteesMembershipEntity 
      */
     private async ValidateNoDuplicateActiveMembership(result: ValidationResult): Promise<void> {
         if (this.Status !== 'Active' || !this.PersonID || !this.TermID) {
+            return;
+        }
+
+        // SECURITY: PersonID, TermID and ID are client-settable and are interpolated
+        // into a server-side ExtraFilter below, before any database type validation
+        // runs. Only values shaped like plain UUIDs may reach the filter — anything
+        // else is rejected here and the duplicate check is skipped.
+        if (!UUID_RE.test(this.PersonID) || !UUID_RE.test(this.TermID) || !UUID_RE.test(this.ID)) {
+            result.Errors.push(new ValidationErrorInfo(
+                'PersonID',
+                'PersonID/TermID must be a valid identifier.',
+                this.PersonID,
+                ValidationErrorType.Failure
+            ));
             return;
         }
 

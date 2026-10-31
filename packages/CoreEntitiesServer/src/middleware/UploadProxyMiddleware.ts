@@ -4,6 +4,20 @@ import { BaseServerMiddleware } from '@memberjunction/server';
 import { assertPublicHttpsTarget } from '../security/ssrf-guard.js';
 
 /**
+ * Maximum proxied upload size. The body is buffered in memory before forwarding,
+ * so an unbounded request could exhaust the process; cap it at 100MB.
+ */
+const MAX_UPLOAD_BODY_BYTES = 100 * 1024 * 1024;
+
+/** Thrown when a proxied upload body exceeds MAX_UPLOAD_BODY_BYTES. */
+class PayloadTooLargeError extends Error {
+    constructor() {
+        super(`Request body exceeds the ${MAX_UPLOAD_BODY_BYTES} byte upload limit`);
+        this.name = 'PayloadTooLargeError';
+    }
+}
+
+/**
  * Upload proxy middleware for storage providers that don't support CORS.
  *
  * Browsers can't upload directly to providers like Dropbox because their
@@ -88,6 +102,13 @@ export class UploadProxyMiddleware extends BaseServerMiddleware {
 
             await this.relayProviderResponse(response, res);
         } catch (err: unknown) {
+            if (err instanceof PayloadTooLargeError) {
+                console.error(`[upload-proxy] ${err.message}`);
+                res.set('Connection', 'close');
+                res.status(413).json({ error: err.message });
+                req.destroy();
+                return;
+            }
             const message = err instanceof Error ? err.message : String(err);
             console.error(`[upload-proxy] Error: ${message}`);
             res.status(500).json({ error: message });
@@ -95,16 +116,35 @@ export class UploadProxyMiddleware extends BaseServerMiddleware {
     }
 
     /**
-     * Buffers the raw request stream into a single Uint8Array.
+     * Buffers the raw request stream into a single Uint8Array, rejecting with
+     * PayloadTooLargeError once the body exceeds MAX_UPLOAD_BODY_BYTES.
      */
-    private async readRequestBody(req: Request): Promise<Uint8Array<ArrayBuffer>> {
-        const chunks: Uint8Array[] = [];
-        for await (const chunk of req) {
-            chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
-        }
-        // Use Uint8Array (not Buffer) so the body satisfies fetch's BodyInit type
-        // under @types/node 20+, which models Buffer's backing store as ArrayBufferLike.
-        return new Uint8Array(Buffer.concat(chunks));
+    private readRequestBody(req: Request): Promise<Uint8Array<ArrayBuffer>> {
+        return new Promise<Uint8Array<ArrayBuffer>>((resolve, reject) => {
+            const chunks: Buffer[] = [];
+            let totalBytes = 0;
+            const onData = (chunk: Buffer | string) => {
+                const buffer = typeof chunk === 'string' ? Buffer.from(chunk) : chunk;
+                totalBytes += buffer.length;
+                if (totalBytes > MAX_UPLOAD_BODY_BYTES) {
+                    // SECURITY: stop buffering immediately — the whole body is held in
+                    // memory, so an unbounded request would exhaust the process. The
+                    // caller sends the 413 and then destroys the request.
+                    req.removeListener('data', onData);
+                    req.pause();
+                    reject(new PayloadTooLargeError());
+                    return;
+                }
+                chunks.push(buffer);
+            };
+            req.on('data', onData);
+            req.on('end', () => {
+                // Use Uint8Array (not Buffer) so the body satisfies fetch's BodyInit type
+                // under @types/node 20+, which models Buffer's backing store as ArrayBufferLike.
+                resolve(new Uint8Array(Buffer.concat(chunks)));
+            });
+            req.on('error', (err: Error) => reject(err));
+        });
     }
 
     /**

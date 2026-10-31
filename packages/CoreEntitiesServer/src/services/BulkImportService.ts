@@ -1,6 +1,6 @@
 import { Metadata, RunView, UserInfo, LogError, LogStatus } from '@memberjunction/core';
 import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core';
-import { UUIDsEqual } from '@memberjunction/global';
+import { EscapeSQLString, UUIDsEqual } from '@memberjunction/global';
 import { AgentRunner } from '@memberjunction/ai-agents';
 import { AIEngine } from '@memberjunction/aiengine';
 import { MJAIAgentEntityExtended } from '@memberjunction/ai-core-plus';
@@ -497,7 +497,7 @@ export class BulkImportService {
     private async loadExistingPersonIDs(emails: string[], contextUser: UserInfo): Promise<Map<string, string>> {
         if (emails.length === 0) return new Map();
         const list = [...new Set(emails.map(e => e.toLowerCase()))]
-            .map(e => `'${e.replace(/'/g, "''")}'`).join(',');
+            .map(e => `'${EscapeSQLString(e)}'`).join(',');
         const rv = new RunView();
         const result = await rv.RunView({
             EntityName: 'MJ_BizApps_Common: People',

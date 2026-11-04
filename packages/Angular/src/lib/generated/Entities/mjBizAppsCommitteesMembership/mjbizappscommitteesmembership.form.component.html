@@ -131,9 +131,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Motions','SecondedByMembershipID')"
-                [NewRecordValues]="NewRecordValues('Committees: Motions')"
+                [NewRecordValues]="NewRecordValues('Committees: Motions','SecondedByMembershipID')"
                 [AllowLoad]="IsSectionExpanded('committeesMotionsSecondedByMembershipID')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesMotionsSecondedByMembershipID', $event.totalRowCount)"
                 >
@@ -156,9 +156,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Motions','MovedByMembershipID')"
-                [NewRecordValues]="NewRecordValues('Committees: Motions')"
+                [NewRecordValues]="NewRecordValues('Committees: Motions','MovedByMembershipID')"
                 [AllowLoad]="IsSectionExpanded('committeesMotionsMovedByMembershipID')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesMotionsMovedByMembershipID', $event.totalRowCount)"
                 >
@@ -181,9 +181,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Votes','MembershipID')"
-                [NewRecordValues]="NewRecordValues('Committees: Votes')"
+                [NewRecordValues]="NewRecordValues('Committees: Votes','MembershipID')"
                 [AllowLoad]="IsSectionExpanded('committeesVotes')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesVotes', $event.totalRowCount)"
                 >
@@ -206,9 +206,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Ballots','CreatedByMembershipID')"
-                [NewRecordValues]="NewRecordValues('Committees: Ballots')"
+                [NewRecordValues]="NewRecordValues('Committees: Ballots','CreatedByMembershipID')"
                 [AllowLoad]="IsSectionExpanded('committeesBallots')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesBallots', $event.totalRowCount)"
                 >

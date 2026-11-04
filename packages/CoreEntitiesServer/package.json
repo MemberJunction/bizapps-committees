@@ -13,31 +13,37 @@
   ],
   "scripts": {
     "build": "tsc && tsc-alias -f",
-    "test": "echo \"No tests configured yet\""
+    "test": "vitest run"
   },
   "author": "MemberJunction.com",
   "license": "BUSL-1.1",
   "peerDependencies": {
-    "@memberjunction/ai-agents": "^6.1.0-edge.6",
-    "@memberjunction/ai-core-plus": "^6.1.0-edge.6",
-    "@memberjunction/aiengine": "^6.1.0-edge.6",
-    "@memberjunction/core": "^6.1.0-edge.6",
-    "@memberjunction/core-entities": "^6.1.0-edge.6",
-    "@memberjunction/credentials": "^6.1.0-edge.6",
-    "@memberjunction/generic-database-provider": "^6.1.0-edge.6",
-    "@memberjunction/global": "^6.1.0-edge.6",
-    "@memberjunction/server": "^6.1.0-edge.6"
+    "@memberjunction/ai-agents": "^6.2.0-edge.8",
+    "@memberjunction/ai-core-plus": "^6.2.0-edge.8",
+    "@memberjunction/aiengine": "^6.2.0-edge.8",
+    "@memberjunction/core": "^6.2.0-edge.8",
+    "@memberjunction/core-entities": "^6.2.0-edge.8",
+    "@memberjunction/credentials": "^6.2.0-edge.8",
+    "@memberjunction/generic-database-provider": "^6.2.0-edge.8",
+    "@memberjunction/global": "^6.2.0-edge.8",
+    "@memberjunction/server": "^6.2.0-edge.8"
   },
   "dependencies": {
     "@mj-biz-apps/committees-core": "1.5.0",
     "@mj-biz-apps/committees-entities": "1.5.0",
-    "@mj-biz-apps/common-entities": "^5.34.0",
+    "@mj-biz-apps/common-entities": "^5.59.0",
+    "@mj-biz-apps/collaboration-core": "^0.1.0",
+    "@mj-biz-apps/collaboration-entities": "^0.1.0",
+    "@mj-biz-apps/collaboration-core-entities-server": "^0.1.0",
+    "@mj-biz-apps/tasks-entities": "^1.10.0",
+    "@mj-biz-apps/tasks-core": "^1.10.0",
     "class-validator": "^0.14.3",
     "rxjs": "^7.8.2"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "1.6.1"
   },
   "repository": {
     "type": "git",

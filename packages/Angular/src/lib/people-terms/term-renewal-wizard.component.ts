@@ -5,7 +5,7 @@ import {
     CarryRow, RenewalContext, TermRenewalService,
 } from '@mj-biz-apps/committees-core';
 import {
-    mjBizAppsCommitteesMembershipEntity, mjBizAppsCommitteesTermEntity,
+    mjBizAppsCommitteesMembershipEntity, TermEntityCustom,
 } from '@mj-biz-apps/committees-entities';
 import { SuccessionSuggestion } from './succession-suggestions.component';
 
@@ -228,14 +228,14 @@ export class TermRenewalWizardComponent {
         const md = new Metadata();
         const rv = new RunView();
         const name = this.escapeSqlString(this.TermName.trim());
-        const existing = await rv.RunView<mjBizAppsCommitteesTermEntity>({
+        const existing = await rv.RunView<TermEntityCustom>({
             EntityName: 'Committees: Terms',
-            ExtraFilter: `CommitteeID = '${this._committeeID}' AND Name = '${name}'`,
+            ExtraFilter: `ParentID = '${this._committeeID}' AND Name = '${name}'`,
             ResultType: 'entity_object',
         });
         const term = existing.Success && existing.Results && existing.Results.length > 0
             ? existing.Results[0]
-            : await md.GetEntityObject<mjBizAppsCommitteesTermEntity>('Committees: Terms');
+            : await md.GetEntityObject<TermEntityCustom>('Committees: Terms');
         term.CommitteeID = this._committeeID!;
         term.Name = this.TermName.trim();
         term.StartDate = new Date(this.StartDateStr + 'T00:00:00Z');
@@ -295,7 +295,7 @@ export class TermRenewalWizardComponent {
         }
 
         if (prev.Status !== 'Completed') {
-            const term = await md.GetEntityObject<mjBizAppsCommitteesTermEntity>('Committees: Terms');
+            const term = await md.GetEntityObject<TermEntityCustom>('Committees: Terms');
             if (!await term.Load(prev.ID)) throw new Error('previous term not found');
             term.Status = 'Completed';
             if (!await term.Save()) throw new Error(term.LatestResult?.CompleteMessage ?? 'term completion failed');

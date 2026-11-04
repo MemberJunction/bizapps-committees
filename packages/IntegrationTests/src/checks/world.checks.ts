@@ -73,11 +73,11 @@ export const CommitteesWorldChecks: NamedCheck[] = [
         RequiresMutation: true,
         Fn: async (ctx: IntegrationCheckContext) => {
             const world = await LoadWorld(ctx);
-            const meetings = await FindRows<{ Name: string; Status: string; StartDateTime: Date }>(
+            const meetings = await FindRows<{ Name: string; Status: string; StartsAt: Date }>(
                 ctx,
                 E_MEETING,
                 `ID IN ('${world.Meetings.financeThu}', '${world.Meetings.auditThu}', '${world.Meetings.membershipWed}')`,
-                ['Name', 'Status', 'StartDateTime'],
+                ['Name', 'Status', 'StartsAt'],
             );
             Assert(meetings.length === 3, `this-week meetings: ${meetings.length}`);
             Assert(
@@ -132,13 +132,13 @@ export const CommitteesWorldChecks: NamedCheck[] = [
             );
             const termIDs = [...new Set(seats.map((s) => s.TermID))];
             Assert(termIDs.length >= 1, 'Elena has no active seats');
-            const terms = await FindRows<{ CommitteeID: string }>(
+            const terms = await FindRows<{ ParentID: string }>(
                 ctx,
                 E_TERM,
                 `ID IN (${termIDs.map((id) => `'${id}'`).join(',')})`,
-                ['ID', 'CommitteeID'],
+                ['ID', 'ParentID'],
             );
-            const committeeIDs = new Set(terms.map((t) => t.CommitteeID));
+            const committeeIDs = new Set(terms.map((t) => t.ParentID));
             Assert(
                 committeeIDs.size >= 4,
                 `Elena is on ${committeeIDs.size} committees; expected ≥4 (board + standing)`,

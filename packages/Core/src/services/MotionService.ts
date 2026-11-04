@@ -98,14 +98,32 @@ export class MotionService {
      */
     public async GetRegister(committeeID?: string, contextUser?: UserInfo): Promise<MotionRegisterData> {
         const rv = new RunView();
-        const [motions, meetings, memberships] = await rv.RunViews([
+        const [motions, meetings, links, committees, memberships] = await rv.RunViews([
             { EntityName: 'Committees: Motions', OrderBy: '__mj_CreatedAt DESC', ResultType: 'simple' },
-            { EntityName: 'Committees: Meetings', Fields: ['ID', 'CommitteeID', 'Committee', 'Name', 'StartDateTime'], ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Meetings', Fields: ['ID', 'Name', 'StartsAt'], ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Meeting Links', ExtraFilter: "EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'", Fields: ['MeetingID', 'RecordID'], ResultType: 'simple' },
+            { EntityName: 'Committees: Committees', Fields: ['ID', 'Name'], ResultType: 'simple' },
             { EntityName: 'Committees: Memberships', Fields: ['ID', 'PersonID', 'Person', 'Role'], ResultType: 'simple' },
         ], contextUser);
 
         const motionRows = (motions.Success ? motions.Results : []) as unknown as MotionRow[];
-        const meetingRows = (meetings.Success ? meetings.Results : []) as unknown as MeetingRefRow[];
+        const rawMeetings = (meetings.Success ? meetings.Results : []) as Array<{ ID: string; Name: string; StartsAt: string | Date }>;
+        const rawLinks = (links.Success ? links.Results : []) as Array<{ MeetingID: string; RecordID: string }>;
+        const rawCommittees = (committees.Success ? committees.Results : []) as Array<{ ID: string; Name: string }>;
+        const committeeNameByID = new Map(rawCommittees.map(c => [c.ID.toLowerCase(), c.Name]));
+        const committeeIDByMeeting = new Map(rawLinks.map(l => [l.MeetingID.toLowerCase(), l.RecordID]));
+        const meetingRows: MeetingRefRow[] = rawMeetings
+            .filter(m => committeeIDByMeeting.has(m.ID.toLowerCase()))
+            .map(m => {
+                const cid = committeeIDByMeeting.get(m.ID.toLowerCase())!;
+                return {
+                    ID: m.ID,
+                    CommitteeID: cid,
+                    Committee: committeeNameByID.get(cid.toLowerCase()) ?? '',
+                    Name: m.Name,
+                    StartDateTime: new Date(m.StartsAt),
+                };
+            });
         const membershipRows = (memberships.Success ? memberships.Results : []) as unknown as MembershipRefRow[];
 
         const votes = await this.loadVotes(motionRows.map(m => m.ID), contextUser);

@@ -6,10 +6,11 @@ import { ResourceData } from '@memberjunction/core-entities';
 import { BallotService, CommitteeTaskService, CommitteeTaskRow, INTENT_ASK_WINDOW_DAYS, RenewalIntentValue } from '@mj-biz-apps/committees-core';
 import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
 import {
-    mjBizAppsCommitteesAttendanceEntity,
     mjBizAppsCommitteesVoteEntity, mjBizAppsCommitteesMembershipEntity,
 } from '@mj-biz-apps/committees-entities';
-import { mjBizAppsTasksTaskEntity } from '@mj-biz-apps/tasks-entities';
+import {
+    mjBizAppsTasksTaskEntity, mjBizAppsTasksMeetingAttendeeEntity,
+} from '@mj-biz-apps/tasks-entities';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 interface TermRow { ID: string; CommitteeID: string; Committee: string; EndDate: string | null; Status: string; }
@@ -134,10 +135,16 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
         const rv = new RunView();
         const [membershipsR, termsR] = await rv.RunViews([
             { EntityName: 'Committees: Memberships', ExtraFilter: `PersonID = '${personID}' AND Status = 'Active'`, Fields: ['ID', 'TermID', 'PersonID', 'Role', 'RoleID', 'RenewalIntent'], ResultType: 'simple' },
-            { EntityName: 'Committees: Terms', Fields: ['ID', 'CommitteeID', 'Committee', 'EndDate', 'Status'], ResultType: 'simple' },
+            { EntityName: 'Committees: Terms', ExtraFilter: 'ParentID IS NOT NULL', Fields: ['ID', 'ParentID', 'Parent', 'PlannedCloseAt', 'ClosedAt'], ResultType: 'simple' },
         ]);
         const memberships = (membershipsR.Success ? membershipsR.Results : []) as unknown as MembershipRow[];
-        const terms = (termsR.Success ? termsR.Results : []) as unknown as TermRow[];
+        const terms = ((termsR.Success ? termsR.Results : []) as unknown as Array<Record<string, unknown>>).map(t => ({
+            ID: t['ID'] as string,
+            CommitteeID: ((t['CommitteeID'] ?? t['ParentID']) as string) || '',
+            Committee: ((t['Committee'] ?? t['Parent']) as string) || '',
+            EndDate: ((t['EndDate'] ?? t['PlannedCloseAt']) as string | null) ?? null,
+            Status: (t['Status'] as string) || (t['ClosedAt'] ? 'Completed' : 'Active'),
+        }));
         // Roles come from the process-wide lookup engine — no per-load query.
         const roles: RoleRow[] = CommitteesLookupEngine.Instance.Roles.map(r => ({ ID: r.ID, IsVotingRole: r.IsVotingRole }));
 
@@ -151,19 +158,48 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
 
         // My open tasks come from BizAppsTasks, concurrently with the batch below.
         const myTasksPromise = new CommitteeTaskService().GetTasks({ AssignedToPersonID: personID });
-        const [meetingsR, ballotsR, minutesR, myVotesR, myAttR] = await rv.RunViews([
-            { EntityName: 'Committees: Meetings', ExtraFilter: `CommitteeID IN (${committeeFilter})`, Fields: ['ID', 'CommitteeID', 'Committee', 'Name', 'StartDateTime', 'EndDateTime', 'LocationType', 'LocationText', 'VideoJoinURL', 'Status'], OrderBy: 'StartDateTime ASC', ResultType: 'simple' },
+        const md = new Metadata();
+        const spaceEntityId = md.EntityByName('MJ_BizApps_Collaboration: Spaces')?.ID ?? '';
+        const [meetingsR, ballotsR, minutesR, myVotesR, myAttR, linksR] = await rv.RunViews([
+            { EntityName: 'MJ_BizApps_Tasks: Meetings', Fields: ['ID', 'Name', 'StartsAt', 'EndsAt', 'LocationType', 'Location', 'VideoProvider', 'VideoJoinURL', 'Status'], OrderBy: 'StartsAt ASC', ResultType: 'simple' },
             { EntityName: 'Committees: Ballots', ExtraFilter: `Status = 'Open' AND CommitteeID IN (${committeeFilter})`, ResultType: 'simple' },
             { EntityName: 'Committees: Minutes', ExtraFilter: "ApprovalStatus = 'PendingApproval'", Fields: ['ID', 'MeetingID', 'Meeting', 'ApprovalStatus'], ResultType: 'simple' },
             { EntityName: 'Committees: Votes', ExtraFilter: `MembershipID IN (${[...this.myMembershipIDs].map(id => `'${id}'`).join(',')})`, Fields: ['ID', 'MotionID', 'MembershipID', 'VoteValue'], ResultType: 'simple' },
-            { EntityName: 'Committees: Attendances', ExtraFilter: `PersonID = '${personID}'`, Fields: ['ID', 'MeetingID', 'PersonID', 'AttendanceStatus'], ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Meeting Attendees', ExtraFilter: `PersonID = '${personID}'`, Fields: ['ID', 'MeetingID', 'PersonID', 'ResponseStatus', 'AttendanceStatus'], ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Meeting Links', ExtraFilter: spaceEntityId ? `EntityID = '${spaceEntityId}' AND RecordID IN (${committeeFilter})` : `RecordID IN (${committeeFilter})`, Fields: ['MeetingID', 'RecordID'], ResultType: 'simple' },
         ]);
-        const meetings = (meetingsR.Success ? meetingsR.Results : []) as unknown as MeetingRow[];
+        const linkByMeeting = new Map<string, string>();
+        for (const l of ((linksR?.Success ? linksR.Results : []) as unknown as Array<{ MeetingID: string; RecordID: string }>)) {
+            linkByMeeting.set(l.MeetingID.toLowerCase(), l.RecordID);
+        }
+        const committeeNameById = new Map(this.Committees.map(c => [c.CommitteeID.toLowerCase(), c.CommitteeName]));
+        const meetings = ((meetingsR.Success ? meetingsR.Results : []) as unknown as Array<Record<string, unknown>>)
+            .map(m => {
+                const mID = m['ID'] as string;
+                const cID = (m['CommitteeID'] as string) || linkByMeeting.get(mID.toLowerCase()) || '';
+                return {
+                    ID: mID,
+                    CommitteeID: cID,
+                    Committee: (m['Committee'] as string) || committeeNameById.get(cID.toLowerCase()) || '',
+                    Name: m['Name'] as string,
+                    StartDateTime: ((m['StartDateTime'] ?? m['StartsAt']) as string),
+                    EndDateTime: ((m['EndDateTime'] ?? m['EndsAt']) as string | null) ?? null,
+                    LocationType: (m['LocationType'] as string | null) ?? (m['VideoProvider'] && m['VideoProvider'] !== 'None' ? 'Virtual' : 'InPerson'),
+                    LocationText: ((m['LocationText'] ?? m['Location']) as string | null) ?? null,
+                    VideoJoinURL: (m['VideoJoinURL'] as string | null) ?? null,
+                    Status: m['Status'] === 'Ended' ? 'Completed' : (m['Status'] as string),
+                };
+            })
+            .filter(m => !m.CommitteeID || committeeNameById.has(m.CommitteeID.toLowerCase()));
         const actions = await myTasksPromise;
         const ballots = (ballotsR.Success ? ballotsR.Results : []) as unknown as BallotRow[];
         const minutes = (minutesR.Success ? minutesR.Results : []) as unknown as MinuteRow[];
         const myVotes = (myVotesR.Success ? myVotesR.Results : []) as unknown as VoteRow[];
-        const myAttendance = (myAttR.Success ? myAttR.Results : []) as unknown as ({ ID: string } & { MeetingID: string; AttendanceStatus: string })[];
+        const myAttendance = ((myAttR.Success ? myAttR.Results : []) as unknown as Array<Record<string, unknown>>).map(a => ({
+            ID: a['ID'] as string,
+            MeetingID: a['MeetingID'] as string,
+            AttendanceStatus: (a['AttendanceStatus'] as string) || (a['Attended'] ? 'Present' : (a['RSVPStatus'] === 'Declined' ? 'Absent' : 'Expected')),
+        }));
 
         this.pickNextMeeting(meetings, myAttendance, now);
         await this.loadNextMeetingAgenda();
@@ -213,12 +249,16 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
         if (!this.NextMeeting) return;
         const rv = new RunView();
         const result = await rv.RunView({
-            EntityName: 'Committees: Agenda Items',
+            EntityName: 'MJ_BizApps_Tasks: Meeting Agenda Items',
             ExtraFilter: `MeetingID = '${this.NextMeeting.ID}'`,
-            Fields: ['ID', 'MeetingID', 'ItemType'],
+            Fields: ['ID', 'MeetingID', 'Type'],
             ResultType: 'simple',
         });
-        const items = (result.Success ? result.Results : []) as unknown as AgendaCountRow[];
+        const items = ((result.Success ? result.Results : []) as unknown as Array<Record<string, unknown>>).map(i => ({
+            ID: i['ID'] as string,
+            MeetingID: i['MeetingID'] as string,
+            ItemType: ((i['ItemType'] ?? i['Type']) as string) || 'Discussion',
+        }));
         this.NextMeetingAgendaCount = items.length;
         this.NextMeetingVoteCount = items.filter(i => i.ItemType === 'Vote').length;
     }
@@ -326,14 +366,15 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
         this.IsActing = true;
         try {
             const md = new Metadata();
-            const att = await md.GetEntityObject<mjBizAppsCommitteesAttendanceEntity>('Committees: Attendances');
+            const att = await md.GetEntityObject<mjBizAppsTasksMeetingAttendeeEntity>('MJ_BizApps_Tasks: Meeting Attendees');
             if (this.myAttendanceID) {
                 if (!await att.Load(this.myAttendanceID)) throw new Error('Attendance not found');
             } else {
                 att.MeetingID = this.NextMeeting.ID;
                 att.PersonID = this.personID;
             }
-            att.AttendanceStatus = attending ? 'Expected' : 'Absent';
+            att.ResponseStatus = attending ? 'Accepted' : 'Declined';
+            att.AttendanceStatus = attending ? 'Unknown' : 'Absent';
             if (!await att.Save()) throw new Error(att.LatestResult?.CompleteMessage ?? 'RSVP failed');
             this.myAttendanceID = att.ID;
             this.MyRsvp = attending ? 'Expected' : 'Absent';

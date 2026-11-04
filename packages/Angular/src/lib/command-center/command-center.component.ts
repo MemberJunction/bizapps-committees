@@ -88,7 +88,7 @@ export class CommandCenterComponent extends BaseResourceComponent implements OnI
 
     OpenMeeting(meetingID: string): void {
         this.navigation.OpenEntityRecord(
-            'Committees: Meetings',
+            'MJ_BizApps_Tasks: Meetings',
             CompositeKey.FromID(meetingID),
         );
     }

@@ -55,8 +55,8 @@
                 <div class="form-group">
                     <label class="form-label">Type</label>
                     <select class="form-input"
-                        [ngModel]="AgendaItem.ItemType"
-                        (ngModelChange)="AgendaItem.ItemType = $event">
+                        [ngModel]="ItemType"
+                        (ngModelChange)="ItemType = $event">
                         @for (type of ItemTypeOptions; track type) {
                             <option [ngValue]="type">{{ type }}</option>
                         }
@@ -87,8 +87,8 @@
             <div class="form-group">
                 <label class="form-label">Status</label>
                 <select class="form-input"
-                    [ngModel]="AgendaItem.Status"
-                    (ngModelChange)="AgendaItem.Status = $event">
+                    [ngModel]="Status"
+                    (ngModelChange)="Status = $event">
                     @for (status of StatusOptions; track status) {
                         <option [ngValue]="status">{{ status }}</option>
                     }
@@ -110,8 +110,8 @@
                 <label class="form-label">Related Document URL</label>
                 <input class="form-input"
                     type="url"
-                    [ngModel]="AgendaItem.RelatedDocumentURL"
-                    (ngModelChange)="AgendaItem.RelatedDocumentURL = $event"
+                    [ngModel]="RelatedDocumentURL"
+                    (ngModelChange)="RelatedDocumentURL = $event"
                     placeholder="https://..." />
             </div>
 
@@ -119,8 +119,8 @@
             <div class="form-group">
                 <label class="form-label">Discussion Notes</label>
                 <textarea class="form-input form-textarea"
-                    [ngModel]="AgendaItem.Notes"
-                    (ngModelChange)="AgendaItem.Notes = $event"
+                    [ngModel]="Notes"
+                    (ngModelChange)="Notes = $event"
                     placeholder="Notes captured during meeting discussion"
                     rows="3"></textarea>
             </div>

@@ -13,5 +13,212 @@
       "CanDelete": 0,
       "ReadRLSFilterID": "@lookup:MJ: Row Level Security Filters.Name=Committees: Visible Votes"
     }
+  },
+  {
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Permissions.EntityID=@lookup:MJ: Entities.Name=Committees: Votes&RoleID=@lookup:MJ: Roles.Name=Space Participant&Type=Allow?create"
+    },
+    "fields": {
+      "EntityID": "@lookup:MJ: Entities.Name=Committees: Votes",
+      "RoleID": "@lookup:MJ: Roles.Name=Space Participant",
+      "Type": "Allow",
+      "CanCreate": 1,
+      "CanRead": 1,
+      "CanUpdate": 1,
+      "CanDelete": 0,
+      "ReadRLSFilterID": "@lookup:MJ: Row Level Security Filters.Name=Committees: Visible Votes"
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Permissions.EntityID=@lookup:MJ: Entities.Name=Committees: Committees&RoleID=@lookup:MJ: Roles.Name=UI&Type=Allow?create"
+    },
+    "fields": {
+      "EntityID": "@lookup:MJ: Entities.Name=Committees: Committees",
+      "RoleID": "@lookup:MJ: Roles.Name=UI",
+      "Type": "Allow",
+      "CanCreate": 0,
+      "CanRead": 1,
+      "CanUpdate": 0,
+      "CanDelete": 0,
+      "ReadRLSFilterID": "@lookup:MJ: Row Level Security Filters.Name=Collaboration: Visible Spaces"
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Permissions.EntityID=@lookup:MJ: Entities.Name=Committees: Committees&RoleID=@lookup:MJ: Roles.Name=Space Participant&Type=Allow?create"
+    },
+    "fields": {
+      "EntityID": "@lookup:MJ: Entities.Name=Committees: Committees",
+      "RoleID": "@lookup:MJ: Roles.Name=Space Participant",
+      "Type": "Allow",
+      "CanCreate": 1,
+      "CanRead": 1,
+      "CanUpdate": 1,
+      "CanDelete": 0,
+      "ReadRLSFilterID": "@lookup:MJ: Row Level Security Filters.Name=Collaboration: Visible Spaces"
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Permissions.EntityID=@lookup:MJ: Entities.Name=Committees: Terms&RoleID=@lookup:MJ: Roles.Name=UI&Type=Allow?create"
+    },
+    "fields": {
+      "EntityID": "@lookup:MJ: Entities.Name=Committees: Terms",
+      "RoleID": "@lookup:MJ: Roles.Name=UI",
+      "Type": "Allow",
+      "CanCreate": 0,
+      "CanRead": 1,
+      "CanUpdate": 0,
+      "CanDelete": 0,
+      "ReadRLSFilterID": "@lookup:MJ: Row Level Security Filters.Name=Collaboration: Visible Spaces"
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Permissions.EntityID=@lookup:MJ: Entities.Name=Committees: Terms&RoleID=@lookup:MJ: Roles.Name=Space Participant&Type=Allow?create"
+    },
+    "fields": {
+      "EntityID": "@lookup:MJ: Entities.Name=Committees: Terms",
+      "RoleID": "@lookup:MJ: Roles.Name=Space Participant",
+      "Type": "Allow",
+      "CanCreate": 1,
+      "CanRead": 1,
+      "CanUpdate": 1,
+      "CanDelete": 0,
+      "ReadRLSFilterID": "@lookup:MJ: Row Level Security Filters.Name=Collaboration: Visible Spaces"
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Permissions.EntityID=@lookup:MJ: Entities.Name=Committees: Memberships&RoleID=@lookup:MJ: Roles.Name=Space Participant&Type=Allow?create"
+    },
+    "fields": {
+      "EntityID": "@lookup:MJ: Entities.Name=Committees: Memberships",
+      "RoleID": "@lookup:MJ: Roles.Name=Space Participant",
+      "Type": "Allow",
+      "CanCreate": 1,
+      "CanRead": 1,
+      "CanUpdate": 1,
+      "CanDelete": 0,
+      "ReadRLSFilterID": "@lookup:MJ: Row Level Security Filters.Name=Collaboration: Data Reach - Committees: Memberships"
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Permissions.EntityID=@lookup:MJ: Entities.Name=Committees: Ballots&RoleID=@lookup:MJ: Roles.Name=Space Participant&Type=Allow?create"
+    },
+    "fields": {
+      "EntityID": "@lookup:MJ: Entities.Name=Committees: Ballots",
+      "RoleID": "@lookup:MJ: Roles.Name=Space Participant",
+      "Type": "Allow",
+      "CanCreate": 1,
+      "CanRead": 1,
+      "CanUpdate": 1,
+      "CanDelete": 0,
+      "ReadRLSFilterID": "@lookup:MJ: Row Level Security Filters.Name=Collaboration: Data Reach - Committees: Ballots"
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Permissions.EntityID=@lookup:MJ: Entities.Name=Committees: Motions&RoleID=@lookup:MJ: Roles.Name=Space Participant&Type=Allow?create"
+    },
+    "fields": {
+      "EntityID": "@lookup:MJ: Entities.Name=Committees: Motions",
+      "RoleID": "@lookup:MJ: Roles.Name=Space Participant",
+      "Type": "Allow",
+      "CanCreate": 1,
+      "CanRead": 1,
+      "CanUpdate": 1,
+      "CanDelete": 0,
+      "ReadRLSFilterID": "@lookup:MJ: Row Level Security Filters.Name=Collaboration: Data Reach - Committees: Motions"
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Permissions.EntityID=@lookup:MJ: Entities.Name=Committees: Minutes&RoleID=@lookup:MJ: Roles.Name=Space Participant&Type=Allow?create"
+    },
+    "fields": {
+      "EntityID": "@lookup:MJ: Entities.Name=Committees: Minutes",
+      "RoleID": "@lookup:MJ: Roles.Name=Space Participant",
+      "Type": "Allow",
+      "CanCreate": 1,
+      "CanRead": 1,
+      "CanUpdate": 1,
+      "CanDelete": 0,
+      "ReadRLSFilterID": "@lookup:MJ: Row Level Security Filters.Name=Collaboration: Data Reach - Committees: Minutes"
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Permissions.EntityID=@lookup:MJ: Entities.Name=Committees: Artifacts&RoleID=@lookup:MJ: Roles.Name=Space Participant&Type=Allow?create"
+    },
+    "fields": {
+      "EntityID": "@lookup:MJ: Entities.Name=Committees: Artifacts",
+      "RoleID": "@lookup:MJ: Roles.Name=Space Participant",
+      "Type": "Allow",
+      "CanCreate": 1,
+      "CanRead": 1,
+      "CanUpdate": 1,
+      "CanDelete": 0,
+      "ReadRLSFilterID": "@lookup:MJ: Row Level Security Filters.Name=Collaboration: Data Reach - Committees: Artifacts"
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Permissions.EntityID=@lookup:MJ: Entities.Name=Committees: Comments&RoleID=@lookup:MJ: Roles.Name=Space Participant&Type=Allow?create"
+    },
+    "fields": {
+      "EntityID": "@lookup:MJ: Entities.Name=Committees: Comments",
+      "RoleID": "@lookup:MJ: Roles.Name=Space Participant",
+      "Type": "Allow",
+      "CanCreate": 1,
+      "CanRead": 1,
+      "CanUpdate": 1,
+      "CanDelete": 0,
+      "ReadRLSFilterID": "@lookup:MJ: Row Level Security Filters.Name=Collaboration: Data Reach - Committees: Comments"
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Permissions.EntityID=@lookup:MJ: Entities.Name=Committees: Roles&RoleID=@lookup:MJ: Roles.Name=Space Participant&Type=Allow?create"
+    },
+    "fields": {
+      "EntityID": "@lookup:MJ: Entities.Name=Committees: Roles",
+      "RoleID": "@lookup:MJ: Roles.Name=Space Participant",
+      "Type": "Allow",
+      "CanCreate": 0,
+      "CanRead": 1,
+      "CanUpdate": 0,
+      "CanDelete": 0
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Permissions.EntityID=@lookup:MJ: Entities.Name=Committees: Types&RoleID=@lookup:MJ: Roles.Name=Space Participant&Type=Allow?create"
+    },
+    "fields": {
+      "EntityID": "@lookup:MJ: Entities.Name=Committees: Types",
+      "RoleID": "@lookup:MJ: Roles.Name=Space Participant",
+      "Type": "Allow",
+      "CanCreate": 0,
+      "CanRead": 1,
+      "CanUpdate": 0,
+      "CanDelete": 0
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "@lookup:MJ: Entity Permissions.EntityID=@lookup:MJ: Entities.Name=Committees: Artifact Types&RoleID=@lookup:MJ: Roles.Name=Space Participant&Type=Allow?create"
+    },
+    "fields": {
+      "EntityID": "@lookup:MJ: Entities.Name=Committees: Artifact Types",
+      "RoleID": "@lookup:MJ: Roles.Name=Space Participant",
+      "Type": "Allow",
+      "CanCreate": 0,
+      "CanRead": 1,
+      "CanUpdate": 0,
+      "CanDelete": 0
+    }
   }
 ]

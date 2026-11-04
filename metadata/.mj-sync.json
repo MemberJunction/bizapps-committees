@@ -14,22 +14,19 @@
     "filterType": "exclude"
   },
   "directoryOrder": [
-    "credential-types",
     "committee-types",
     "roles",
     "artifact-types",
     "file-storage-providers",
+    "space-types",
+    "meeting-agenda-item-types",
     "prompts",
     "agents",
     "entities",
     "entity-fields",
     "entity-relationships",
     "row-level-security-filters",
-    "entity-permissions",
-    "record-processes",
-    "ml-training-pipelines",
-    "ml-models",
-    "ml-model-scoring-bindings"
+    "entity-permissions"
   ],
   "emitSyncNotes": false
 }

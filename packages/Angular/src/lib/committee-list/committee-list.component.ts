@@ -111,13 +111,13 @@ export class CommitteeListComponent extends BaseResourceComponent implements OnI
             {
                 EntityName: 'Committees: Committees',
                 ExtraFilter: '',
-                Fields: ['ID', 'Name', 'Description', 'Type', 'Status', 'ParentCommittee', 'Organization'],
+                Fields: ['ID', 'Name', 'Description', 'Type', 'Status', 'Parent', 'Organization'],
                 OrderBy: 'Name ASC',
                 ResultType: 'simple'
             },
             {
                 EntityName: 'Committees: Terms',
-                Fields: ['ID', 'CommitteeID'],
+                Fields: ['ID', 'ParentID'],
                 ResultType: 'simple'
             },
             {
@@ -132,8 +132,8 @@ export class CommitteeListComponent extends BaseResourceComponent implements OnI
             // Build term → committee map
             const termToCommittee = new Map<string, string>();
             if (termsResult.Success) {
-                for (const t of termsResult.Results as { ID: string; CommitteeID: string }[]) {
-                    termToCommittee.set(t.ID, t.CommitteeID);
+                for (const t of termsResult.Results as { ID: string; ParentID: string }[]) {
+                    termToCommittee.set(t.ID, t.ParentID);
                 }
             }
 
@@ -148,6 +148,8 @@ export class CommitteeListComponent extends BaseResourceComponent implements OnI
 
             // Attach count to each committee
             this.Committees = committeesResult.Results.map((c: Record<string, unknown>) => ({
+                ...c,
+                ParentCommittee: c['Parent'],
                 ...c,
                 MemberCount: memberCounts.get(c['ID'] as string) ?? 0
             }));

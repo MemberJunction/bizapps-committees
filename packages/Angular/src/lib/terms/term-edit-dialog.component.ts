@@ -1,10 +1,10 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
-import { mjBizAppsCommitteesTermEntity } from '@mj-biz-apps/committees-entities';
+import { TermEntityCustom } from '@mj-biz-apps/committees-entities';
 
 export interface TermDialogResult {
     Saved: boolean;
-    Term: mjBizAppsCommitteesTermEntity | null;
+    Term: TermEntityCustom | null;
 }
 
 @Component({
@@ -19,7 +19,7 @@ export class TermEditDialogComponent implements OnInit {
     @Input() CommitteeID: string | null = null;
     @Output() DialogClosed = new EventEmitter<TermDialogResult>();
 
-    Term: mjBizAppsCommitteesTermEntity | null = null;
+    Term: TermEntityCustom | null = null;
     IsLoading = true;
     IsSaving = false;
     ErrorMessage = '';
@@ -127,8 +127,8 @@ export class TermEditDialogComponent implements OnInit {
         const rv = new RunView();
         const safeName = this.Term!.Name.trim().replace(/'/g, "''");
         const existingFilter = this.IsNew
-            ? `CommitteeID = '${this.Term!.CommitteeID}' AND Name = '${safeName}'`
-            : `CommitteeID = '${this.Term!.CommitteeID}' AND Name = '${safeName}' AND ID != '${this.Term!.ID}'`;
+            ? `ParentID = '${this.Term!.CommitteeID}' AND Name = '${safeName}'`
+            : `ParentID = '${this.Term!.CommitteeID}' AND Name = '${safeName}' AND ID != '${this.Term!.ID}'`;
 
         const result = await rv.RunView<{ ID: string }>({
             EntityName: 'Committees: Terms',
@@ -148,7 +148,7 @@ export class TermEditDialogComponent implements OnInit {
     private async loadOrCreateTerm(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.Term = await md.GetEntityObject<mjBizAppsCommitteesTermEntity>('Committees: Terms');
+            this.Term = await md.GetEntityObject<TermEntityCustom>('Committees: Terms');
             this.Term.Status = 'Upcoming';
             if (this.CommitteeID) {
                 this.Term.CommitteeID = this.CommitteeID;
@@ -159,9 +159,9 @@ export class TermEditDialogComponent implements OnInit {
             this.StartDateLocal = `${year}-07-01`;
             this.EndDateLocal = `${year + 1}-06-30`;
         } else {
-            this.Term = await md.GetEntityObject<mjBizAppsCommitteesTermEntity>('Committees: Terms');
+            this.Term = await md.GetEntityObject<TermEntityCustom>('Committees: Terms');
             await this.Term.Load(this.TermID!);
-            this.StartDateLocal = this.toLocalDateString(this.Term.StartDate);
+            this.StartDateLocal = this.Term.StartDate ? this.toLocalDateString(this.Term.StartDate) : '';
             if (this.Term.EndDate) {
                 this.EndDateLocal = this.toLocalDateString(this.Term.EndDate);
             }

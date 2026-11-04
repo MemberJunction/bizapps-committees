@@ -268,8 +268,8 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
     private resolveLinkableEntities(md: Metadata): LinkableEntities {
         return {
             committee: md.EntityByName('Committees: Committees'),
-            meeting: md.EntityByName('Committees: Meetings'),
-            agenda: md.EntityByName('Committees: Agenda Items'),
+            meeting: md.EntityByName('MJ_BizApps_Tasks: Meetings'),
+            agenda: md.EntityByName('MJ_BizApps_Tasks: Meeting Agenda Items'),
             task: md.EntityByName('MJ_BizApps_Tasks: Tasks'),
         };
     }
@@ -283,8 +283,8 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
             { EntityName: 'MJ: File Entity Record Links', Fields: ['FileID', 'EntityID', 'RecordID'], ExtraFilter: `EntityID IN (${entityIDFilter})`, ResultType: 'simple' },
             { EntityName: 'MJ: File Categories', Fields: ['ID', 'Name'], OrderBy: 'Name ASC', ResultType: 'simple' },
             { EntityName: 'Committees: Committees', Fields: ['ID', 'Name'], ExtraFilter: '', OrderBy: 'Name ASC', ResultType: 'simple' },
-            { EntityName: 'Committees: Meetings', Fields: ['ID', 'CommitteeID'], ResultType: 'simple' },
-            { EntityName: 'Committees: Agenda Items', Fields: ['ID', 'MeetingID'], ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Meetings', Fields: ['ID'], ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Meeting Agenda Items', Fields: ['ID', 'MeetingID'], ResultType: 'simple' },
         ]);
         const taskCommittees = new Map<string, string>();
         for (const t of await tasksPromise) {

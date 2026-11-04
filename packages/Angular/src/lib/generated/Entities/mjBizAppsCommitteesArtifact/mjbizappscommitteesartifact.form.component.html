@@ -166,9 +166,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Comments','ArtifactID')"
-                [NewRecordValues]="NewRecordValues('Committees: Comments')"
+                [NewRecordValues]="NewRecordValues('Committees: Comments','ArtifactID')"
                 [AllowLoad]="IsSectionExpanded('committeesComments')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesComments', $event.totalRowCount)"
                 >
@@ -191,9 +191,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Minutes','ArtifactID')"
-                [NewRecordValues]="NewRecordValues('Committees: Minutes')"
+                [NewRecordValues]="NewRecordValues('Committees: Minutes','ArtifactID')"
                 [AllowLoad]="IsSectionExpanded('committeesMinutes')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesMinutes', $event.totalRowCount)"
                 >

@@ -6,10 +6,13 @@ import { BallotService, MotionService, VoteTally, OutcomeForecast } from '@mj-bi
 import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 import {
-    mjBizAppsCommitteesMeetingEntity, mjBizAppsCommitteesAgendaItemEntity,
     mjBizAppsCommitteesMotionEntity, mjBizAppsCommitteesVoteEntity,
-    mjBizAppsCommitteesAttendanceEntity, mjBizAppsCommitteesMinuteEntity,
+    mjBizAppsCommitteesMinuteEntity,
 } from '@mj-biz-apps/committees-entities';
+import {
+    mjBizAppsTasksMeetingEntity, mjBizAppsTasksMeetingAgendaItemEntity,
+    mjBizAppsTasksMeetingAttendeeEntity,
+} from '@mj-biz-apps/tasks-entities';
 
 interface MeetingRow {
     ID: string; CommitteeID: string; Committee: string; Name: string;
@@ -145,23 +148,63 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
             const rv = new RunView();
             const id = this._meetingID;
             await CommitteesLookupEngine.Instance.Config();
-            const [meeting, agenda, attendance, motions, votesRes, terms, memberships, minutes] = await rv.RunViews([
-                { EntityName: 'Committees: Meetings', ExtraFilter: `ID = '${id}'`, ResultType: 'simple' },
-                { EntityName: 'Committees: Agenda Items', ExtraFilter: `MeetingID = '${id}'`, OrderBy: 'Sequence ASC', ResultType: 'simple' },
-                { EntityName: 'Committees: Attendances', ExtraFilter: `MeetingID = '${id}'`, ResultType: 'simple' },
+            const md = new Metadata();
+            const spaceEntityId = md.EntityByName('MJ_BizApps_Collaboration: Spaces')?.ID ?? '';
+            const [meeting, agenda, attendance, motions, votesRes, terms, memberships, minutes, linksRes] = await rv.RunViews([
+                { EntityName: 'MJ_BizApps_Tasks: Meetings', ExtraFilter: `ID = '${id}'`, ResultType: 'simple' },
+                { EntityName: 'MJ_BizApps_Tasks: Meeting Agenda Items', ExtraFilter: `MeetingID = '${id}'`, OrderBy: 'Sequence ASC', ResultType: 'simple' },
+                { EntityName: 'MJ_BizApps_Tasks: Meeting Attendees', ExtraFilter: `MeetingID = '${id}'`, ResultType: 'simple' },
                 { EntityName: 'Committees: Motions', ExtraFilter: `MeetingID = '${id}'`, OrderBy: 'Sequence ASC', ResultType: 'simple' },
                 { EntityName: 'Committees: Votes', ExtraFilter: `MotionID IN (SELECT ID FROM [__mj_BizAppsCommittees].[vwMotions] WHERE MeetingID = '${id}')`, ResultType: 'simple' },
-                { EntityName: 'Committees: Terms', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'CommitteeID', 'Status'], ResultType: 'simple' },
+                { EntityName: 'Committees: Terms', ExtraFilter: 'ClosedAt IS NULL AND ParentID IS NOT NULL', Fields: ['ID', 'ParentID'], ResultType: 'simple' },
                 { EntityName: 'Committees: Memberships', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'PersonID', 'Person', 'Role', 'RoleID', 'TermID'], ResultType: 'simple' },
                 { EntityName: 'Committees: Minutes', ExtraFilter: `MeetingID = '${id}'`, ResultType: 'simple' },
+                { EntityName: 'MJ_BizApps_Tasks: Meeting Links', ExtraFilter: spaceEntityId ? `MeetingID = '${id}' AND EntityID = '${spaceEntityId}'` : `MeetingID = '${id}'`, Fields: ['RecordID'], ResultType: 'simple' },
             ]);
-            this.Meeting = ((meeting.Success ? meeting.Results : []) as unknown as MeetingRow[])[0] ?? null;
-            this.Agenda = (agenda.Success ? agenda.Results : []) as unknown as AgendaRow[];
+            const rawMeeting = ((meeting.Success ? meeting.Results : []) as unknown as Record<string, unknown>[])[0] ?? null;
+            const linkedSpaceID = ((linksRes?.Success ? linksRes.Results : []) as unknown as Array<{ RecordID: string }>)[0]?.RecordID ?? '';
+            this.Meeting = rawMeeting ? {
+                ID: rawMeeting['ID'] as string,
+                CommitteeID: (rawMeeting['CommitteeID'] as string) || linkedSpaceID,
+                Committee: (rawMeeting['Committee'] as string) || '',
+                Name: rawMeeting['Name'] as string,
+                StartDateTime: (rawMeeting['StartDateTime'] ?? rawMeeting['StartsAt']) as Date,
+                EndDateTime: ((rawMeeting['EndDateTime'] ?? rawMeeting['EndsAt']) as Date | null) ?? null,
+                TimeZone: (rawMeeting['TimeZone'] as string | null) ?? null,
+                LocationType: (rawMeeting['LocationType'] as string | null) ?? (rawMeeting['VideoProvider'] && rawMeeting['VideoProvider'] !== 'None' ? 'Virtual' : 'InPerson'),
+                LocationText: ((rawMeeting['LocationText'] ?? rawMeeting['Location']) as string | null) ?? null,
+                Status: rawMeeting['Status'] === 'Ended' ? 'Completed' : (rawMeeting['Status'] as string),
+            } : null;
+            this.Agenda = ((agenda.Success ? agenda.Results : []) as unknown as Record<string, unknown>[]).map(ag => ({
+                ID: ag['ID'] as string,
+                ParentAgendaItemID: ((ag['ParentAgendaItemID'] ?? ag['ParentID']) as string | null) ?? null,
+                Sequence: ag['Sequence'] as number,
+                Name: ((ag['Name'] ?? ag['Title']) as string) || '',
+                Description: (ag['Description'] as string | null) ?? null,
+                PresenterPerson: (ag['PresenterPerson'] as string | null) ?? null,
+                DurationMinutes: (ag['DurationMinutes'] as number | null) ?? null,
+                ItemType: ((ag['ItemType'] ?? ag['AgendaItemType']) as string) || 'Discussion',
+                RelatedDocumentURL: (ag['RelatedDocumentURL'] as string | null) ?? null,
+                Status: (ag['Status'] as string) || 'Pending',
+                Notes: ((ag['Notes'] ?? ag['Description']) as string | null) ?? null,
+            }));
             this.allMotions = (motions.Success ? motions.Results : []) as unknown as MotionRowLocal[];
             this.allVotes = (votesRes.Success ? votesRes.Results : []) as unknown as VoteRowLocal[];
-            this.indexAttendance((attendance.Success ? attendance.Results : []) as unknown as AttendanceRow[]);
+            const attRows = ((attendance.Success ? attendance.Results : []) as unknown as Record<string, unknown>[]).map(a => ({
+                ID: a['ID'] as string,
+                PersonID: a['PersonID'] as string,
+                Person: ((a['Person'] ?? a['DisplayName']) as string) || '',
+                AttendanceStatus: (a['AttendanceStatus'] as string) || (a['Attended'] ? 'Present' : (a['RSVPStatus'] === 'Declined' ? 'Absent' : 'Expected')),
+                JoinedAt: (a['JoinedAt'] as Date | null) ?? null,
+            }));
+            this.indexAttendance(attRows);
+            const termRows = ((terms.Success ? terms.Results : []) as unknown as Array<{ ID: string; CommitteeID?: string; ParentID?: string; Status?: string }>).map(t => ({
+                ID: t.ID,
+                CommitteeID: t.CommitteeID || t.ParentID || '',
+                Status: t.Status || 'Active',
+            }));
             this.buildRollCall(
-                (terms.Success ? terms.Results : []) as unknown as TermRow[],
+                termRows,
                 (memberships.Success ? memberships.Results : []) as unknown as MemberRow[],
                 // Roles come from the process-wide lookup engine — no per-load query.
                 CommitteesLookupEngine.Instance.Roles.map(r => ({ ID: r.ID, IsVotingRole: r.IsVotingRole })));
@@ -332,9 +375,9 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
         this.IsActing = true;
         try {
             const md = new Metadata();
-            const meeting = await md.GetEntityObject<mjBizAppsCommitteesMeetingEntity>('Committees: Meetings');
+            const meeting = await md.GetEntityObject<mjBizAppsTasksMeetingEntity>('MJ_BizApps_Tasks: Meetings');
             if (!await meeting.Load(this.Meeting.ID)) throw new Error('Meeting not found');
-            meeting.Status = status as mjBizAppsCommitteesMeetingEntity['Status'];
+            meeting.Status = status as mjBizAppsTasksMeetingEntity['Status'];
             if (!await meeting.Save()) throw new Error(meeting.LatestResult?.CompleteMessage ?? 'Status change failed');
             this.Meeting = { ...this.Meeting, Status: status };
         } catch (err) {
@@ -363,9 +406,9 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
         this.IsActing = true;
         try {
             const md = new Metadata();
-            const entity = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items');
+            const entity = await md.GetEntityObject<mjBizAppsTasksMeetingAgendaItemEntity>('MJ_BizApps_Tasks: Meeting Agenda Items');
             if (!await entity.Load(item.ID)) throw new Error('Agenda item not found');
-            entity.Status = status as mjBizAppsCommitteesAgendaItemEntity['Status'];
+            entity.Status = (status === 'Completed' ? 'Done' : status === 'Tabled' ? 'Deferred' : status === 'Pending' ? 'Planned' : status) as mjBizAppsTasksMeetingAgendaItemEntity['Status'];
             if (!await entity.Save()) throw new Error(entity.LatestResult?.CompleteMessage ?? 'Agenda update failed');
             item.Status = status;
             if (advance) { this.pickCurrentItem(); this.refreshFloorMotion(); this.refreshDraftProposal(); }
@@ -473,12 +516,13 @@ export class LiveMeetingComponent implements OnInit, OnDestroy {
         try {
             const md = new Metadata();
             const existing = this.attendanceByPerson.get(row.PersonID.toLowerCase());
-            const att = await md.GetEntityObject<mjBizAppsCommitteesAttendanceEntity>('Committees: Attendances');
+            const att = await md.GetEntityObject<mjBizAppsTasksMeetingAttendeeEntity>('MJ_BizApps_Tasks: Meeting Attendees');
             if (existing) {
                 if (!await att.Load(existing.ID)) throw new Error('Attendance not found');
             } else {
                 att.MeetingID = this.Meeting.ID;
                 att.PersonID = row.PersonID;
+                att.DisplayName = row.PersonName;
             }
             att.AttendanceStatus = status;
             if (status === 'Present' && !att.JoinedAt) att.JoinedAt = new Date();

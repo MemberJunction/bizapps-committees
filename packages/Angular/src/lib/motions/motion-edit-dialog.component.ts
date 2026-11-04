@@ -160,7 +160,7 @@ export class MotionEditDialogComponent implements OnInit {
         const queries: Parameters<typeof rv.RunViews>[0] = [];
         if (this.MeetingID) {
             queries.push({
-                EntityName: 'Committees: Agenda Items',
+                EntityName: 'MJ_BizApps_Tasks: Meeting Agenda Items',
                 Fields: ['ID', 'Name'],
                 ExtraFilter: `MeetingID = '${this.MeetingID}'`,
                 OrderBy: 'Sequence ASC',
@@ -170,7 +170,7 @@ export class MotionEditDialogComponent implements OnInit {
         if (this.CommitteeID) {
             queries.push({
                 EntityName: 'Committees: Terms',
-                ExtraFilter: `CommitteeID = '${this.CommitteeID}'`,
+                ExtraFilter: `ParentID = '${this.CommitteeID}'`,
                 Fields: ['ID'],
                 ResultType: 'simple'
             });

@@ -109,28 +109,36 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
 
         const [upcoming, past] = await rv.RunViews([
             {
-                EntityName: 'Committees: Meetings',
-                ExtraFilter: `StartDateTime >= '${now}' AND Status NOT IN ('Cancelled', 'Completed')`,
-                Fields: ['ID', 'Name', 'StartDateTime', 'EndDateTime', 'Committee', 'Status', 'LocationType', 'Location', 'VideoJoinURL'],
-                OrderBy: 'StartDateTime ASC',
+                EntityName: 'MJ_BizApps_Tasks: Meetings',
+                ExtraFilter: `StartsAt >= '${now}' AND Status NOT IN ('Cancelled', 'Completed')`,
+                Fields: ['ID', 'Name', 'StartsAt', 'EndsAt', 'Status', 'LocationType', 'Location', 'VideoJoinURL'],
+                OrderBy: 'StartsAt ASC',
                 MaxRows: 50,
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Committees: Meetings',
-                ExtraFilter: `StartDateTime < '${now}' OR Status IN ('Cancelled', 'Completed')`,
-                Fields: ['ID', 'Name', 'StartDateTime', 'EndDateTime', 'Committee', 'Status', 'LocationType', 'Location', 'VideoJoinURL'],
-                OrderBy: 'StartDateTime DESC',
+                EntityName: 'MJ_BizApps_Tasks: Meetings',
+                ExtraFilter: `StartsAt < '${now}' OR Status IN ('Cancelled', 'Completed')`,
+                Fields: ['ID', 'Name', 'StartsAt', 'EndsAt', 'Status', 'LocationType', 'Location', 'VideoJoinURL'],
+                OrderBy: 'StartsAt DESC',
                 MaxRows: 50,
                 ResultType: 'simple'
             }
         ]);
 
         if (upcoming.Success) {
-            this.UpcomingMeetings = upcoming.Results;
+            this.UpcomingMeetings = (upcoming.Results as Record<string, unknown>[]).map(r => ({
+                ...r,
+                StartDateTime: r['StartDateTime'] ?? r['StartsAt'],
+                EndDateTime: r['EndDateTime'] ?? r['EndsAt'],
+            }));
         }
         if (past.Success) {
-            this.PastMeetings = past.Results;
+            this.PastMeetings = (past.Results as Record<string, unknown>[]).map(r => ({
+                ...r,
+                StartDateTime: r['StartDateTime'] ?? r['StartsAt'],
+                EndDateTime: r['EndDateTime'] ?? r['EndsAt'],
+            }));
         }
     }
 }

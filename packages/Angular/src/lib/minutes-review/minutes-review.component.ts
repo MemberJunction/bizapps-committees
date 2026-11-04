@@ -78,11 +78,18 @@ export class MinutesReviewComponent implements OnInit {
         try {
             const rv = new RunView();
             const [meeting, minutes, attendance] = await rv.RunViews([
-                { EntityName: 'Committees: Meetings', ExtraFilter: `ID = '${this._meetingID}'`, Fields: ['ID', 'Name', 'Committee', 'StartDateTime', 'Status'], ResultType: 'simple' },
+                { EntityName: 'MJ_BizApps_Tasks: Meetings', ExtraFilter: `ID = '${this._meetingID}'`, Fields: ['ID', 'Name', 'StartsAt', 'Status'], ResultType: 'simple' },
                 { EntityName: 'Committees: Minutes', ExtraFilter: `MeetingID = '${this._meetingID}'`, ResultType: 'simple' },
-                { EntityName: 'Committees: Attendances', ExtraFilter: `MeetingID = '${this._meetingID}' AND AttendanceStatus IN ('Present','Partial')`, Fields: ['ID'], ResultType: 'simple' },
+                { EntityName: 'MJ_BizApps_Tasks: Meeting Attendees', ExtraFilter: `MeetingID = '${this._meetingID}' AND AttendanceStatus IN ('Present','Late','LeftEarly')`, Fields: ['ID'], ResultType: 'simple' },
             ]);
-            this.Meeting = ((meeting.Success ? meeting.Results : []) as unknown as MeetingRow[])[0] ?? null;
+            const rawMeeting = ((meeting.Success ? meeting.Results : []) as unknown as Array<Record<string, unknown>>)[0] ?? null;
+            this.Meeting = rawMeeting ? {
+                ID: rawMeeting['ID'] as string,
+                Name: rawMeeting['Name'] as string,
+                Committee: (rawMeeting['Committee'] as string) || '',
+                StartDateTime: (rawMeeting['StartDateTime'] ?? rawMeeting['StartsAt']) as Date,
+                Status: rawMeeting['Status'] as string,
+            } : null;
             this.Minute = ((minutes.Success ? minutes.Results : []) as unknown as MinuteRow[])[0] ?? null;
             this.AttendanceCount = attendance.Success ? attendance.Results.length : 0;
             this.Sections = this.Minute?.Content ? MinutesReviewComponent.ParseSections(this.Minute.Content) : [];

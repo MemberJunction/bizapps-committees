@@ -114,33 +114,67 @@ export class SuccessionService {
      */
     public async GetTermClock(committeeID: string | null, contextUser?: UserInfo): Promise<TermClock> {
         const rv = new RunView();
+        const now = new Date();
         await CommitteesLookupEngine.Instance.Config(false, contextUser);
-        const [terms, memberships, meetings] = await rv.RunViews([
-            { EntityName: 'Committees: Terms', Fields: ['ID', 'CommitteeID', 'Committee', 'Name', 'StartDate', 'EndDate', 'Status'], ResultType: 'simple' },
+        const [terms, memberships, meetings, links] = await rv.RunViews([
+            { EntityName: 'Committees: Terms', ExtraFilter: 'ParentID IS NOT NULL', Fields: ['ID', 'ParentID', 'Parent', 'Name', 'StartedAt', 'PlannedCloseAt', 'ClosedAt'], ResultType: 'simple' },
             // Ended memberships stay in: they are the timeline's past-service bars.
             { EntityName: 'Committees: Memberships', ExtraFilter: "Status IN ('Active', 'Ended')", Fields: ['ID', 'TermID', 'PersonID', 'Person', 'RoleID', 'Role', 'Status', 'RenewalIntent'], ResultType: 'simple' },
-            { EntityName: 'Committees: Meetings', ExtraFilter: "Status = 'Completed'", Fields: ['ID', 'CommitteeID', 'Status', 'StartDateTime'], ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Meetings', ExtraFilter: "Status = 'Completed'", Fields: ['ID', 'Status', 'StartsAt'], ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Meeting Links', ExtraFilter: "EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'", Fields: ['MeetingID', 'RecordID'], ResultType: 'simple' },
         ], contextUser);
-        const termRows = (terms.Success ? terms.Results : []) as unknown as TermRow[];
+        const rawTerms = (terms.Success ? terms.Results : []) as Array<{
+            ID: string; ParentID: string; Parent: string | null; Name: string;
+            StartedAt: string | Date | null; PlannedCloseAt: string | Date | null; ClosedAt: string | Date | null;
+        }>;
+        const termRows: TermRow[] = rawTerms.map(t => {
+            const start = t.StartedAt ?? now;
+            const end = t.ClosedAt ?? t.PlannedCloseAt ?? null;
+            const status = t.ClosedAt ? 'Completed' : (new Date(start) > now ? 'Upcoming' : 'Active');
+            return {
+                ID: t.ID,
+                CommitteeID: t.ParentID,
+                Committee: t.Parent ?? '',
+                Name: t.Name,
+                StartDate: start,
+                EndDate: end,
+                Status: status,
+            };
+        });
         const membershipRows = (memberships.Success ? memberships.Results : []) as unknown as MembershipRow[];
         // Roles come from the process-wide lookup engine — no per-call query.
         const roleRows: RoleRow[] = CommitteesLookupEngine.Instance.Roles.map(r => ({ ID: r.ID, Name: r.Name, IsVotingRole: r.IsVotingRole, IsOfficer: r.IsOfficer }));
-        const meetingRows = (meetings.Success ? meetings.Results : []) as unknown as CompletedMeetingRow[];
+        const rawMeetings = (meetings.Success ? meetings.Results : []) as Array<{ ID: string; Status: string; StartsAt: string | Date }>;
+        const rawLinks = (links.Success ? links.Results : []) as Array<{ MeetingID: string; RecordID: string }>;
+        const committeeByMeeting = new Map(rawLinks.map(l => [l.MeetingID.toLowerCase(), l.RecordID]));
+        const meetingRows: CompletedMeetingRow[] = rawMeetings
+            .filter(m => committeeByMeeting.has(m.ID.toLowerCase()))
+            .map(m => ({
+                ID: m.ID,
+                CommitteeID: committeeByMeeting.get(m.ID.toLowerCase())!,
+                Status: 'Completed',
+                StartDateTime: m.StartsAt,
+            }));
 
         const attendance = await this.loadAttendance(meetingRows.map(m => m.ID), contextUser);
-        return SuccessionService.Compute(termRows, membershipRows, roleRows, meetingRows, attendance, committeeID, new Date());
+        return SuccessionService.Compute(termRows, membershipRows, roleRows, meetingRows, attendance, committeeID, now);
     }
 
     private async loadAttendance(meetingIDs: string[], contextUser?: UserInfo): Promise<AttendanceRow[]> {
         if (meetingIDs.length === 0) return [];
         const rv = new RunView();
         const result = await rv.RunView({
-            EntityName: 'Committees: Attendances',
-            ExtraFilter: `MeetingID IN (${meetingIDs.map(id => `'${id}'`).join(',')})`,
-            Fields: ['MeetingID', 'PersonID', 'AttendanceStatus'],
+            EntityName: 'MJ_BizApps_Tasks: Meeting Attendees',
+            ExtraFilter: `MeetingID IN (${meetingIDs.map(id => `'${id}'`).join(',')}) AND PersonID IS NOT NULL`,
+            Fields: ['MeetingID', 'PersonID', 'Attended'],
             ResultType: 'simple',
         }, contextUser);
-        return (result.Success ? result.Results : []) as unknown as AttendanceRow[];
+        const rows = (result.Success ? result.Results : []) as Array<{ MeetingID: string; PersonID: string; Attended: boolean }>;
+        return rows.map(r => ({
+            MeetingID: r.MeetingID,
+            PersonID: r.PersonID,
+            AttendanceStatus: r.Attended ? 'Present' : 'Absent',
+        }));
     }
 
     // ── Pure assembly ───────────────────────────────────────────

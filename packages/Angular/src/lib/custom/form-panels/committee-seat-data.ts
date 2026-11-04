@@ -167,15 +167,23 @@ export async function LoadCommitteesForPerson(
     const termIDs = [...new Set(rows.map((r) => r.TermID).filter(Boolean))];
     const roleIDs = [...new Set(rows.map((r) => r.RoleID).filter(Boolean))];
     const [termsRes, roles] = await Promise.all([
-        ViewOf(provider).RunView<TermRow>({
+        ViewOf(provider).RunView<{ ID: string; ParentID: string; Name: string; StartedAt: string | Date | null; PlannedCloseAt: string | Date | null; ClosedAt: string | Date | null; Parent: string }>({
             EntityName: 'Committees: Terms',
             ExtraFilter: `ID IN (${InList(termIDs)})`,
-            Fields: ['ID', 'CommitteeID', 'Name', 'StartDate', 'EndDate', 'Status', 'Committee'],
+            Fields: ['ID', 'ParentID', 'Name', 'StartedAt', 'PlannedCloseAt', 'ClosedAt', 'Parent'],
             ResultType: 'simple',
         }),
         LoadRoles(provider, roleIDs),
     ]);
-    const terms = new Map((termsRes.Results ?? []).map((t) => [t.ID, t]));
+    const terms = new Map((termsRes.Results ?? []).map((t) => [t.ID, {
+        ID: t.ID,
+        CommitteeID: t.ParentID,
+        Name: t.Name,
+        StartDate: t.StartedAt,
+        EndDate: t.ClosedAt ?? t.PlannedCloseAt,
+        Status: t.ClosedAt ? 'Completed' : (t.StartedAt ? 'Active' : 'Upcoming'),
+        Committee: t.Parent,
+    } as TermRow]));
 
     const byCommittee = new Map<string, PersonCommitteeCard>();
     for (const m of rows) {
@@ -209,13 +217,21 @@ export async function LoadMembersForCommittee(
     committeeID: string,
     provider?: IMetadataProvider,
 ): Promise<CommitteeMemberCard[]> {
-    const termsRes = await ViewOf(provider).RunView<TermRow>({
+    const termsRes = await ViewOf(provider).RunView<{ ID: string; ParentID: string; Name: string; StartedAt: string | Date | null; PlannedCloseAt: string | Date | null; ClosedAt: string | Date | null; Parent: string }>({
         EntityName: 'Committees: Terms',
-        ExtraFilter: `CommitteeID = '${Quote(committeeID)}'`,
-        Fields: ['ID', 'CommitteeID', 'Name', 'StartDate', 'EndDate', 'Status', 'Committee'],
+        ExtraFilter: `ParentID = '${Quote(committeeID)}'`,
+        Fields: ['ID', 'ParentID', 'Name', 'StartedAt', 'PlannedCloseAt', 'ClosedAt', 'Parent'],
         ResultType: 'simple',
     });
-    const terms = termsRes.Results ?? [];
+    const terms: TermRow[] = (termsRes.Results ?? []).map((t) => ({
+        ID: t.ID,
+        CommitteeID: t.ParentID,
+        Name: t.Name,
+        StartDate: t.StartedAt,
+        EndDate: t.ClosedAt ?? t.PlannedCloseAt,
+        Status: t.ClosedAt ? 'Completed' : (t.StartedAt ? 'Active' : 'Upcoming'),
+        Committee: t.Parent,
+    }));
     if (terms.length === 0) return [];
     const termMap = new Map(terms.map((t) => [t.ID, t]));
 

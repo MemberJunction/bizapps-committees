@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
-import { RunView } from '@memberjunction/core';
+import { Metadata, RunView } from '@memberjunction/core';
 import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
 import { CommitteeHealthService, CommitteeTaskService, CommitteeTaskRow, TermHygiene, MotionService, MotionRegisterRow } from '@mj-biz-apps/committees-core';
 
@@ -137,20 +137,54 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
         await CommitteesLookupEngine.Instance.Config();
         // Open tasks come from BizAppsTasks, concurrently with the batch below.
         const tasksPromise = new CommitteeTaskService().GetTasks({});
-        const [committee, terms, meetings, artifacts, motions] = await rv.RunViews([
-            { EntityName: 'Committees: Committees', ExtraFilter: `ID='${id}'`, Fields: ['ID', 'Name', 'Status', 'IsPublic', 'Type', 'MissionStatement', 'FormationDate', 'ParentCommittee'], ResultType: 'simple' },
-            { EntityName: 'Committees: Terms', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'CommitteeID', 'Name', 'Status', 'StartDate', 'EndDate'], OrderBy: 'StartDate DESC', ResultType: 'simple' },
-            { EntityName: 'Committees: Meetings', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Name', 'StartDateTime', 'EndDateTime', 'LocationType', 'LocationText', 'Status'], OrderBy: 'StartDateTime ASC', ResultType: 'simple' },
+        const md = new Metadata();
+        const spaceEntityId = md.EntityByName('MJ_BizApps_Collaboration: Spaces')?.ID ?? '';
+        const [committee, terms, meetings, artifacts, motions, links] = await rv.RunViews([
+            { EntityName: 'Committees: Committees', ExtraFilter: `ID='${id}'`, Fields: ['ID', 'Name', 'Status', 'IsPublic', 'Type', 'MissionStatement', 'StartedAt', 'Parent'], ResultType: 'simple' },
+            { EntityName: 'Committees: Terms', ExtraFilter: `ParentID='${id}'`, Fields: ['ID', 'ParentID', 'Name', 'StartedAt', 'PlannedCloseAt', 'ClosedAt'], OrderBy: 'StartedAt DESC', ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Meetings', Fields: ['ID', 'Name', 'StartsAt', 'EndsAt', 'LocationType', 'Location', 'Status'], OrderBy: 'StartsAt ASC', ResultType: 'simple' },
             { EntityName: 'Committees: Artifacts', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Name', 'Provider', 'URL', 'ArtifactType'], ResultType: 'simple' },
-            { EntityName: 'Committees: Motions', ExtraFilter: `MeetingID IN (SELECT ID FROM [__mj_BizAppsCommittees].[vwMeetings] WHERE CommitteeID='${id}')`, Fields: ['ID', 'Name', 'Result'], ResultType: 'simple' },
+            { EntityName: 'Committees: Motions', ExtraFilter: 'MeetingID IS NOT NULL', Fields: ['ID', 'MeetingID', 'Name', 'Result'], ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Meeting Links', ExtraFilter: spaceEntityId ? `EntityID='${spaceEntityId}' AND RecordID='${id}'` : `RecordID='${id}'`, Fields: ['MeetingID'], ResultType: 'simple' },
         ]);
 
-        this.Committee = committee.Success && committee.Results.length > 0 ? committee.Results[0] as unknown as CommitteeRow : null;
-        this.Terms = terms.Success ? terms.Results as unknown as TermRow[] : [];
-        this.Meetings = meetings.Success ? meetings.Results as unknown as MeetingRow[] : [];
+        const rawC = committee.Success && committee.Results.length > 0 ? committee.Results[0] as Record<string, unknown> : null;
+        this.Committee = rawC ? {
+            ID: rawC['ID'] as string,
+            Name: rawC['Name'] as string,
+            Status: rawC['Status'] as string,
+            IsPublic: Boolean(rawC['IsPublic']),
+            Type: (rawC['Type'] as string) || '',
+            MissionStatement: (rawC['MissionStatement'] as string | null) ?? null,
+            FormationDate: ((rawC['FormationDate'] ?? rawC['StartedAt']) as string | null) ?? null,
+            ParentCommittee: ((rawC['ParentCommittee'] ?? rawC['Parent']) as string | null) ?? null,
+        } : null;
+        this.Terms = (terms.Success ? (terms.Results as Record<string, unknown>[]) : []).map(t => ({
+            ID: t['ID'] as string,
+            CommitteeID: ((t['CommitteeID'] ?? t['ParentID']) as string) || id,
+            Name: t['Name'] as string,
+            Status: (t['Status'] as string) || (t['ClosedAt'] ? 'Completed' : 'Active'),
+            StartDate: ((t['StartDate'] ?? t['StartedAt']) as string) || new Date().toISOString(),
+            EndDate: ((t['EndDate'] ?? t['PlannedCloseAt']) as string | null) ?? null,
+        }));
+        const linkedMeetingIDs = new Set(((links?.Success ? links.Results : []) as Array<{ MeetingID: string }>).map(l => l.MeetingID.toLowerCase()));
+        this.Meetings = (meetings.Success ? (meetings.Results as Record<string, unknown>[]) : [])
+            .filter(m => linkedMeetingIDs.size === 0 || linkedMeetingIDs.has(String(m['ID']).toLowerCase()) || String(m['CommitteeID'] ?? '').toLowerCase() === id.toLowerCase())
+            .map(m => ({
+                ID: m['ID'] as string,
+                Name: m['Name'] as string,
+                StartDateTime: ((m['StartDateTime'] ?? m['StartsAt']) as string),
+                EndDateTime: ((m['EndDateTime'] ?? m['EndsAt']) as string | null) ?? null,
+                LocationType: (m['LocationType'] as string | null) ?? null,
+                LocationText: ((m['LocationText'] ?? m['Location']) as string | null) ?? null,
+                Status: m['Status'] as string,
+            }));
         this.OpenActions = (await tasksPromise).filter(t => t.CommitteeIDs.some(cid => cid.toLowerCase() === id.toLowerCase()));
         this.Artifacts = artifacts.Success ? artifacts.Results as unknown as ArtifactRow[] : [];
-        this.MotionCount = motions.Success ? (motions.Results as unknown as MotionRow[]).length : 0;
+        const meetingIDSet = new Set(this.Meetings.map(m => m.ID.toLowerCase()));
+        this.MotionCount = motions.Success
+            ? (motions.Results as Array<{ ID: string; MeetingID?: string }>).filter(m => !m.MeetingID || meetingIDSet.has(m.MeetingID.toLowerCase())).length
+            : 0;
         await this.loadMotionRegister(id);
         this.Term = CommitteeHealthService.ComputeTermHygiene(
             this.Terms.map(t => ({ ID: t.ID, CommitteeID: t.CommitteeID, Status: t.Status, StartDate: t.StartDate, EndDate: t.EndDate })),

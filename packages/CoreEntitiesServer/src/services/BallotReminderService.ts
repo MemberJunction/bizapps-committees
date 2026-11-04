@@ -71,7 +71,7 @@ export class BallotReminderService {
         await CommitteesLookupEngine.Instance.Config(false, contextUser);
         const rv = new RunView();
         const [termsR, membershipsR, votesR] = await rv.RunViews([
-            { EntityName: 'Committees: Terms', ExtraFilter: `CommitteeID = '${ballot.CommitteeID}' AND Status = 'Active'`, Fields: ['ID', 'CommitteeID', 'Status'], ResultType: 'simple' },
+            { EntityName: 'Committees: Terms', ExtraFilter: `ParentID = '${ballot.CommitteeID}' AND ClosedAt IS NULL`, Fields: ['ID', 'ParentID'], ResultType: 'simple' },
             { EntityName: 'Committees: Memberships', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'TermID', 'PersonID', 'Person', 'RoleID'], ResultType: 'simple' },
             { EntityName: 'Committees: Votes', ExtraFilter: `MotionID = '${ballot.MotionID}'`, Fields: ['MembershipID'], ResultType: 'simple' },
         ], contextUser);

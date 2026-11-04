@@ -205,15 +205,19 @@ export class MembershipPanelComponent {
 
     private async loadTerms(): Promise<void> {
         const rv = new RunView();
-        const result = await rv.RunView({
+        const result = await rv.RunView<{ ID: string; Name: string; StartedAt: string | null; ClosedAt: string | null }>({
             EntityName: 'Committees: Terms',
-            Fields: ['ID', 'Name', 'Status'],
-            ExtraFilter: `CommitteeID = '${this.CommitteeID}'`,
-            OrderBy: 'StartDate DESC',
+            Fields: ['ID', 'Name', 'StartedAt', 'ClosedAt'],
+            ExtraFilter: `ParentID = '${this.CommitteeID}'`,
+            OrderBy: 'StartedAt DESC',
             ResultType: 'simple'
         });
         if (result.Success) {
-            this.Terms = result.Results as { ID: string; Name: string; Status: string }[];
+            this.Terms = (result.Results ?? []).map(t => ({
+                ID: t.ID,
+                Name: t.Name,
+                Status: t.ClosedAt ? 'Completed' : (t.StartedAt ? 'Active' : 'Upcoming'),
+            }));
         }
     }
 

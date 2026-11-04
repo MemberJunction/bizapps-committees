@@ -2,14 +2,19 @@ import { UUIDsEqual } from '@memberjunction/global';
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
 import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
-import { mjBizAppsCommitteesMeetingEntity, mjBizAppsCommitteesAttendanceEntity, mjBizAppsCommitteesAgendaItemEntity } from '@mj-biz-apps/committees-entities';
+import {
+    mjBizAppsTasksMeetingEntity,
+    mjBizAppsTasksMeetingAttendeeEntity,
+    mjBizAppsTasksMeetingAgendaItemEntity,
+    mjBizAppsTasksMeetingLinkEntity,
+} from '@mj-biz-apps/tasks-entities';
 import { AgendaItemDialogResult } from '../agenda/agenda-item-edit-dialog.component';
 import { MotionDialogResult } from '../motions/motion-edit-dialog.component';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 export interface MeetingDialogResult {
     Saved: boolean;
-    Meeting: mjBizAppsCommitteesMeetingEntity | null;
+    Meeting: mjBizAppsTasksMeetingEntity | null;
 }
 
 interface AttendeeRow {
@@ -32,7 +37,11 @@ export class MeetingEditDialogComponent implements OnInit {
     @Input() MeetingID: string | null = null;
     @Output() DialogClosed = new EventEmitter<MeetingDialogResult>();
 
-    Meeting: mjBizAppsCommitteesMeetingEntity | null = null;
+    Meeting: mjBizAppsTasksMeetingEntity | null = null;
+    SelectedCommitteeID: string | null = null;
+    LocationType: 'Virtual' | 'InPerson' | 'Hybrid' = 'Virtual';
+    VideoRecordingURL: string | null = null;
+    TranscriptURL: string | null = null;
     IsLoading = true;
     IsSaving = false;
     ErrorMessage = '';
@@ -114,15 +123,18 @@ export class MeetingEditDialogComponent implements OnInit {
             return;
         }
 
-        this.Meeting.StartDateTime = new Date(this.StartDateTimeLocal);
-        this.Meeting.EndDateTime = this.EndDateTimeLocal ? new Date(this.EndDateTimeLocal) : null;
+        this.Meeting.StartsAt = new Date(this.StartDateTimeLocal);
+        this.Meeting.EndsAt = this.EndDateTimeLocal
+            ? new Date(this.EndDateTimeLocal)
+            : new Date(this.Meeting.StartsAt.getTime() + 60 * 60 * 1000);
+        this.Meeting.LocationType = this.LocationType;
 
         this.IsSaving = true;
         this.ErrorMessage = '';
         this.cdr.markForCheck();
 
         // Auto-set VideoProviderID from the default provider for virtual/hybrid meetings
-        const locationType = this.Meeting.LocationType;
+        const locationType = this.LocationType;
         if (this.DefaultProvider && (locationType === 'Virtual' || locationType === 'Hybrid')) {
             this.Meeting.VideoProviderID = this.DefaultProvider.ID;
         }
@@ -133,6 +145,10 @@ export class MeetingEditDialogComponent implements OnInit {
             this.ErrorMessage = 'Failed to save meeting. Please try again.';
             this.cdr.markForCheck();
             return;
+        }
+
+        if (this.SelectedCommitteeID) {
+            await this.ensureCommitteeLink(this.Meeting.ID, this.SelectedCommitteeID);
         }
 
         // Save attendee changes
@@ -283,8 +299,8 @@ export class MeetingEditDialogComponent implements OnInit {
 
         // Persist the two swapped items
         const md = new Metadata();
-        const entityA = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items');
-        const entityB = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items');
+        const entityA = await md.GetEntityObject<mjBizAppsTasksMeetingAgendaItemEntity>('MJ_BizApps_Tasks: Meeting Agenda Items');
+        const entityB = await md.GetEntityObject<mjBizAppsTasksMeetingAgendaItemEntity>('MJ_BizApps_Tasks: Meeting Agenda Items');
         await entityA.Load(this.AgendaItems[idx]['ID'] as string);
         await entityB.Load(this.AgendaItems[swapIdx]['ID'] as string);
         entityA.Sequence = this.AgendaItems[idx]['Sequence'] as number;
@@ -312,14 +328,18 @@ export class MeetingEditDialogComponent implements OnInit {
         if (!this.MeetingID) return;
         const rv = new RunView();
         const result = await rv.RunView({
-            EntityName: 'Committees: Agenda Items',
-            Fields: ['ID', 'Sequence', 'Name', 'ItemType', 'DurationMinutes', 'Status', 'Presenter', 'PresenterPersonID'],
+            EntityName: 'MJ_BizApps_Tasks: Meeting Agenda Items',
+            Fields: ['ID', 'Sequence', 'Name', 'Type', 'DurationMinutes', 'Status', 'PresenterPerson', 'PresenterPersonID'],
             ExtraFilter: `MeetingID = '${this.MeetingID}'`,
             OrderBy: 'Sequence ASC',
             ResultType: 'simple'
         });
         if (result.Success) {
-            this.AgendaItems = result.Results;
+            this.AgendaItems = (result.Results as Record<string, unknown>[]).map(r => ({
+                ...r,
+                ItemType: r['Type'] || 'Discussion',
+                Presenter: r['PresenterPerson']
+            }));
         }
     }
 
@@ -327,7 +347,7 @@ export class MeetingEditDialogComponent implements OnInit {
         if (!this.Meeting!.Name?.trim()) {
             return 'Meeting title is required.';
         }
-        if (!this.Meeting!.CommitteeID) {
+        if (!this.SelectedCommitteeID) {
             return 'Please select a committee.';
         }
         if (!this.StartDateTimeLocal) {
@@ -342,25 +362,65 @@ export class MeetingEditDialogComponent implements OnInit {
     private async loadOrCreateMeeting(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.Meeting = await md.GetEntityObject<mjBizAppsCommitteesMeetingEntity>('Committees: Meetings');
+            this.Meeting = await md.GetEntityObject<mjBizAppsTasksMeetingEntity>('MJ_BizApps_Tasks: Meetings');
             this.Meeting.Status = 'Scheduled';
-            this.Meeting.LocationType = 'Virtual';
+            this.LocationType = 'Virtual';
             const now = new Date();
             now.setHours(now.getHours() + 1, 0, 0, 0);
             this.StartDateTimeLocal = this.toLocalDateTimeString(now);
         } else {
-            this.Meeting = await md.GetEntityObject<mjBizAppsCommitteesMeetingEntity>('Committees: Meetings');
+            this.Meeting = await md.GetEntityObject<mjBizAppsTasksMeetingEntity>('MJ_BizApps_Tasks: Meetings');
             await this.Meeting.Load(this.MeetingID!);
-            this.StartDateTimeLocal = this.toLocalDateTimeString(this.Meeting.StartDateTime);
-            if (this.Meeting.EndDateTime) {
-                this.EndDateTimeLocal = this.toLocalDateTimeString(this.Meeting.EndDateTime);
+            this.StartDateTimeLocal = this.toLocalDateTimeString(this.Meeting.StartsAt);
+            if (this.Meeting.EndsAt) {
+                this.EndDateTimeLocal = this.toLocalDateTimeString(this.Meeting.EndsAt);
+            }
+            this.LocationType = this.Meeting.VideoProvider && this.Meeting.VideoProvider !== 'None'
+                ? (this.Meeting.Location ? 'Hybrid' : 'Virtual')
+                : 'InPerson';
+            this.TranscriptURL = this.Meeting.TranscriptFile;
+            const rv = new RunView();
+            const spaceEntityId = md.EntityByName('MJ_BizApps_Collaboration: Spaces')?.ID;
+            if (spaceEntityId) {
+                const links = await rv.RunView<{ RecordID: string }>({
+                    EntityName: 'MJ_BizApps_Tasks: Meeting Links',
+                    ExtraFilter: `MeetingID = '${this.MeetingID}' AND EntityID = '${spaceEntityId}'`,
+                    Fields: ['RecordID'],
+                    MaxRows: 1,
+                    ResultType: 'simple'
+                });
+                if (links.Success && links.Results?.length) {
+                    this.SelectedCommitteeID = links.Results[0].RecordID;
+                }
             }
         }
     }
 
+    private async ensureCommitteeLink(meetingID: string, committeeID: string): Promise<void> {
+        const md = new Metadata();
+        const spaceEntityId = md.EntityByName('MJ_BizApps_Collaboration: Spaces')?.ID;
+        if (!spaceEntityId) return;
+        const rv = new RunView();
+        const existing = await rv.RunView<{ ID: string; RecordID: string }>({
+            EntityName: 'MJ_BizApps_Tasks: Meeting Links',
+            ExtraFilter: `MeetingID = '${meetingID}' AND EntityID = '${spaceEntityId}'`,
+            Fields: ['ID', 'RecordID'],
+            ResultType: 'simple'
+        });
+        if (existing.Success && existing.Results?.some(r => UUIDsEqual(r.RecordID, committeeID))) {
+            return;
+        }
+        const link = await md.GetEntityObject<mjBizAppsTasksMeetingLinkEntity>('MJ_BizApps_Tasks: Meeting Links');
+        link.NewRecord();
+        link.MeetingID = meetingID;
+        link.EntityID = spaceEntityId;
+        link.RecordID = committeeID;
+        await link.Save();
+    }
+
     private async loadLookups(): Promise<void> {
         const rv = new RunView();
-        const [committeesResult, peopleResult, providerResult] = await rv.RunViews([
+        const [committeesResult, peopleResult] = await rv.RunViews([
             {
                 EntityName: 'Committees: Committees',
                 Fields: ['ID', 'Name'],
@@ -373,13 +433,6 @@ export class MeetingEditDialogComponent implements OnInit {
                 Fields: ['ID', 'DisplayName'],
                 OrderBy: 'DisplayName ASC',
                 MaxRows: 500,
-                ResultType: 'simple'
-            },
-            {
-                EntityName: 'Committees: Video Providers',
-                Fields: ['ID', 'Name'],
-                ExtraFilter: `IsDefault = 1 AND IsActive = 1`,
-                MaxRows: 1,
                 ResultType: 'simple'
             }
         ]);
@@ -401,18 +454,14 @@ export class MeetingEditDialogComponent implements OnInit {
         if (peopleResult.Success) {
             this.AllPeople = peopleResult.Results as { ID: string; DisplayName: string }[];
         }
-
-        if (providerResult.Success && providerResult.Results.length > 0) {
-            this.DefaultProvider = providerResult.Results[0] as { ID: string; Name: string };
-        }
     }
 
 
     private async loadAttendees(): Promise<void> {
         const rv = new RunView();
         const result = await rv.RunView({
-            EntityName: 'Committees: Attendances',
-            Fields: ['ID', 'PersonID', 'Person', 'AttendanceStatus'],
+            EntityName: 'MJ_BizApps_Tasks: Meeting Attendees',
+            Fields: ['ID', 'PersonID', 'Person', 'DisplayName', 'ResponseStatus', 'AttendanceStatus'],
             ExtraFilter: `MeetingID = '${this.MeetingID}'`,
             OrderBy: 'Person ASC',
             ResultType: 'simple'
@@ -421,8 +470,8 @@ export class MeetingEditDialogComponent implements OnInit {
             this.Attendees = result.Results.map((r: Record<string, unknown>) => ({
                 ID: r['ID'] as string,
                 PersonID: r['PersonID'] as string,
-                DisplayName: (r['Person'] as string) || '',
-                Status: r['AttendanceStatus'] as AttendeeRow['Status'],
+                DisplayName: (r['Person'] as string) || (r['DisplayName'] as string) || '',
+                Status: (r['AttendanceStatus'] === 'Unknown' ? 'Expected' : r['AttendanceStatus']) as AttendeeRow['Status'],
                 IsNew: false,
                 IsRemoved: false
             }));
@@ -434,17 +483,25 @@ export class MeetingEditDialogComponent implements OnInit {
 
         // Delete removed attendees
         for (const attendee of this.Attendees.filter(a => a.IsRemoved && !a.IsNew)) {
-            const entity = await md.GetEntityObject<mjBizAppsCommitteesAttendanceEntity>('Committees: Attendances');
+            const entity = await md.GetEntityObject<mjBizAppsTasksMeetingAttendeeEntity>('MJ_BizApps_Tasks: Meeting Attendees');
             await entity.Load(attendee.ID!);
             await entity.Delete();
         }
 
         // Create new attendees
         for (const attendee of this.Attendees.filter(a => a.IsNew && !a.IsRemoved)) {
-            const entity = await md.GetEntityObject<mjBizAppsCommitteesAttendanceEntity>('Committees: Attendances');
+            const entity = await md.GetEntityObject<mjBizAppsTasksMeetingAttendeeEntity>('MJ_BizApps_Tasks: Meeting Attendees');
             entity.MeetingID = this.Meeting!.ID;
             entity.PersonID = attendee.PersonID;
-            entity.AttendanceStatus = attendee.Status;
+            entity.DisplayName = attendee.DisplayName;
+            entity.ResponseStatus = attendee.Status === 'Absent' ? 'Declined' : 'None';
+            entity.AttendanceStatus = attendee.Status === 'Present'
+                ? 'Present'
+                : attendee.Status === 'Absent'
+                ? 'Absent'
+                : attendee.Status === 'Excused'
+                ? 'Excused'
+                : 'Unknown';
             await entity.Save();
         }
     }

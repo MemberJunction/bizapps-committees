@@ -8,10 +8,12 @@ import type { IntegrationCheckContext } from '@memberjunction/testing-integratio
 import { Assert } from '@memberjunction/testing-integration/registry';
 import {
     E_AGENDA,
+    E_AGENDA_TYPE,
     E_ATTENDANCE,
     E_BALLOT,
     E_COMMITTEE,
     E_MEETING,
+    E_MEETING_LINK,
     E_MEMBERSHIP,
     E_MINUTE,
     E_MOTION,
@@ -612,8 +614,8 @@ async function upsertCommittee(
     row.Set('Description', desc);
     row.Set('Status', status);
     row.Set('IsPublic', true);
-    row.Set('FormationDate', formation ?? UtcDay(-800));
-    row.Set('DissolutionDate', dissolution ?? null);
+    row.Set('StartedAt', formation ?? UtcDay(-800));
+    row.Set('ClosedAt', dissolution ?? null);
     row.Set('MissionStatement', rest);
     await RequireSave(row, name);
     return String(row.Get('ID'));
@@ -627,17 +629,18 @@ async function upsertTerm(
     end: Date,
     status: 'Active' | 'Completed' | 'Upcoming',
 ): Promise<string> {
-    const existing = await FindId(ctx, E_TERM, `CommitteeID = '${committeeID}' AND Name = '${Quote(name)}'`);
+    const existing = await FindId(ctx, E_TERM, `ParentID = '${committeeID}' AND Name = '${Quote(name)}'`);
     const row = await EntityOf(ctx, E_TERM);
     if (existing) {
         Assert(await LoadExisting(row, existing), `could not load term ${name}`);
     } else {
         row.NewRecord();
-        row.Set('CommitteeID', committeeID);
+        row.Set('ParentID', committeeID);
         row.Set('Name', name);
     }
-    row.Set('StartDate', start);
-    row.Set('EndDate', end);
+    row.Set('StartedAt', start);
+    row.Set('PlannedCloseAt', end);
+    row.Set('ClosedAt', status === 'Completed' ? end : null);
     row.Set('Status', status);
     await RequireSave(row, `term ${name}`);
     return String(row.Get('ID'));
@@ -702,28 +705,50 @@ async function upsertMeeting(
     location: 'Virtual' | 'Hybrid' | 'InPerson',
 ): Promise<string> {
     const desc = WorldDescription(key, name);
-    const existing = await FindId(ctx, E_MEETING, `CommitteeID = '${committeeID}' AND Description LIKE '${Quote(WORLD_MARK_KEY(key))}%'`);
+    const existing = await FindId(ctx, E_MEETING, `Description LIKE '${Quote(WORLD_MARK_KEY(key))}%'`);
     const row = await EntityOf(ctx, E_MEETING);
     if (existing) {
         Assert(await LoadExisting(row, existing), `could not load meeting ${key}`);
     } else {
         row.NewRecord();
-        row.Set('CommitteeID', committeeID);
     }
     row.Set('Name', name);
     row.Set('Description', desc);
-    row.Set('StartDateTime', start);
-    row.Set('EndDateTime', new Date(start.getTime() + durationMin * 60_000));
+    if (!row.Get('OrganizerPersonID')) {
+        const organizerPersonID =
+            (await FindId(ctx, E_PERSON, `Email = 'elena.voss@com-world.example'`)) ??
+            (await FindId(ctx, E_PERSON, `1=1`));
+        if (organizerPersonID) {
+            row.Set('OrganizerPersonID', organizerPersonID);
+        }
+    }
+    row.Set('StartsAt', start);
+    row.Set('EndsAt', new Date(start.getTime() + durationMin * 60_000));
     row.Set('TimeZone', 'America/New_York');
     row.Set('LocationType', location);
     row.Set('Status', status);
     if (location !== 'InPerson') {
         row.Set('VideoJoinURL', 'https://example.test/zoom/com-world');
     } else {
-        row.Set('LocationText', 'Blue Cypress Press, Board Room');
+        row.Set('Location', 'Blue Cypress Press, Board Room');
     }
     await RequireSave(row, `meeting ${name}`);
-    return String(row.Get('ID'));
+    const meetingID = String(row.Get('ID'));
+
+    // Link meeting to both MJ_BizApps_Collaboration: Spaces and Committees: Committees
+    for (const entityID of ['3648DC35-1DC4-4ED6-A1A6-5D87271A54DB', 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE']) {
+        const existingLink = await FindId(ctx, E_MEETING_LINK, `MeetingID = '${meetingID}' AND EntityID = '${entityID}' AND RecordID = '${committeeID}'`);
+        if (!existingLink) {
+            const link = await EntityOf(ctx, E_MEETING_LINK);
+            link.NewRecord();
+            link.Set('MeetingID', meetingID);
+            link.Set('EntityID', entityID);
+            link.Set('RecordID', committeeID);
+            await RequireSave(link, `meeting link ${name}`);
+        }
+    }
+
+    return meetingID;
 }
 
 function WORLD_MARK_KEY(key: string): string {
@@ -745,10 +770,11 @@ async function upsertAgenda(
             row.Set('MeetingID', meetingID);
             row.Set('Sequence', item.seq);
         }
+        const typeID = await FindId(ctx, E_AGENDA_TYPE, `Name = '${Quote(item.type)}'`);
         row.Set('Name', item.name);
-        row.Set('ItemType', item.type);
+        if (typeID) row.Set('TypeID', typeID);
         row.Set('DurationMinutes', item.mins);
-        row.Set('Status', 'Pending');
+        row.Set('Status', 'Planned');
         if (item.presenter) row.Set('PresenterPersonID', item.presenter);
         await RequireSave(row, `agenda ${item.name}`);
     }
@@ -792,8 +818,10 @@ async function upsertAttendance(
             row.NewRecord();
             row.Set('MeetingID', meetingID);
             row.Set('PersonID', personID);
+            row.Set('Role', 'Required');
         }
-        row.Set('AttendanceStatus', i < expectedCount ? 'Expected' : 'Absent');
+        row.Set('ResponseStatus', i < expectedCount ? 'Accepted' : 'Declined');
+        row.Set('AttendanceStatus', i < expectedCount ? 'Unknown' : 'Absent');
         await RequireSave(row, 'attendance');
     }
 }
@@ -812,8 +840,11 @@ async function upsertAttendanceMix(
             row.NewRecord();
             row.Set('MeetingID', meetingID);
             row.Set('PersonID', personID);
+            row.Set('Role', 'Required');
         }
-        row.Set('AttendanceStatus', status);
+        const mappedAttendance = status === 'Expected' ? 'Unknown' : (status === 'Partial' ? 'Late' : status);
+        row.Set('ResponseStatus', status === 'Absent' || status === 'Excused' ? 'Declined' : 'Accepted');
+        row.Set('AttendanceStatus', mappedAttendance);
         await RequireSave(row, 'attendance mix');
     }
 }

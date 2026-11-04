@@ -61,11 +61,28 @@ export class TermRenewalService {
         const rv = new RunView();
         const termsR = await rv.RunView({
             EntityName: 'Committees: Terms',
-            ExtraFilter: `CommitteeID = '${committeeID}'`,
-            Fields: ['ID', 'CommitteeID', 'Committee', 'Name', 'StartDate', 'EndDate', 'Status'],
+            ExtraFilter: `ParentID = '${committeeID}'`,
+            Fields: ['ID', 'ParentID', 'Parent', 'Name', 'StartedAt', 'PlannedCloseAt', 'ClosedAt'],
             ResultType: 'simple',
         }, contextUser);
-        const terms = (termsR.Success ? termsR.Results : []) as unknown as TermRow[];
+        const rawTerms = (termsR.Success ? termsR.Results : []) as Array<{
+            ID: string; ParentID: string; Parent: string | null; Name: string;
+            StartedAt: string | Date | null; PlannedCloseAt: string | Date | null; ClosedAt: string | Date | null;
+        }>;
+        const terms: TermRow[] = rawTerms.map(t => {
+            const start = t.StartedAt ?? now;
+            const end = t.ClosedAt ?? t.PlannedCloseAt ?? null;
+            const status = t.ClosedAt ? 'Completed' : (new Date(start) > now ? 'Upcoming' : 'Active');
+            return {
+                ID: t.ID,
+                CommitteeID: t.ParentID,
+                Committee: t.Parent ?? '',
+                Name: t.Name,
+                StartDate: start,
+                EndDate: end,
+                Status: status,
+            };
+        });
         // Roles come from the process-wide lookup engine — no per-call query.
         const roles: RoleRow[] = [...CommitteesLookupEngine.Instance.Roles]
             .sort((a, b) => (a.Sequence ?? 0) - (b.Sequence ?? 0))

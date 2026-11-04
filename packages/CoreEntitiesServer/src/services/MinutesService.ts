@@ -2,10 +2,8 @@ import { Metadata, RunView, UserInfo, LogError } from '@memberjunction/core';
 import { AIEngine } from '@memberjunction/aiengine';
 import { CompletionWithFallback } from './aiModel.js';
 import { assertPublicHttpsTarget } from '../security/ssrf-guard.js';
-import {
-    mjBizAppsCommitteesMeetingEntity,
-    mjBizAppsCommitteesMinuteEntity,
-} from '@mj-biz-apps/committees-entities';
+import { mjBizAppsTasksMeetingEntity } from '@mj-biz-apps/tasks-entities';
+import { mjBizAppsCommitteesMinuteEntity } from '@mj-biz-apps/committees-entities';
 
 /**
  * Result returned by GenerateDraftMinutes. Content is Markdown-formatted
@@ -63,10 +61,12 @@ interface AttendanceRow {
 
 /** Aggregated meeting data used to build the AI prompt. */
 interface MeetingBundle {
-    meeting: mjBizAppsCommitteesMeetingEntity;
+    meeting: mjBizAppsTasksMeetingEntity;
+    committeeName: string;
     agendaItems: AgendaItemRow[];
     motions: MotionRow[];
     attendance: AttendanceRow[];
+    storedTranscript: string | null;
 }
 
 /**
@@ -101,8 +101,8 @@ export class MinutesService {
                 };
             }
 
-            const urlToFetch = transcriptURLOverride ?? bundle.meeting.TranscriptURL;
-            const transcript = transcriptText ?? await this.fetchTranscript(urlToFetch);
+            const urlToFetch = transcriptURLOverride;
+            const transcript = transcriptText ?? bundle.storedTranscript ?? await this.fetchTranscript(urlToFetch);
             const prompt = this.buildPrompt(bundle, transcript);
             const content = await this.callAI(prompt, contextUser);
 
@@ -172,12 +172,12 @@ export class MinutesService {
         if (!meeting) return null;
 
         const rv = new RunView();
-        const [agendaResult, motionResult, attendanceResult] = await rv.RunViews([
+        const [agendaResult, motionResult, attendanceResult, linkResult, noteResult] = await rv.RunViews([
             {
-                EntityName: 'Committees: Agenda Items',
+                EntityName: 'MJ_BizApps_Tasks: Meeting Agenda Items',
                 ExtraFilter: `MeetingID='${meetingID}'`,
                 OrderBy: 'Sequence ASC',
-                Fields: ['ID', 'Sequence', 'Name', 'Description', 'ItemType', 'Status', 'Notes', 'DurationMinutes'],
+                Fields: ['ID', 'Sequence', 'Name', 'Description', 'Type', 'Status', 'Outcome', 'DurationMinutes'],
                 ResultType: 'simple',
             },
             {
@@ -188,25 +188,82 @@ export class MinutesService {
                 ResultType: 'simple',
             },
             {
-                EntityName: 'Committees: Attendances',
+                EntityName: 'MJ_BizApps_Tasks: Meeting Attendees',
                 ExtraFilter: `MeetingID='${meetingID}'`,
-                Fields: ['ID', 'AttendanceStatus', 'Person'],
+                Fields: ['ID', 'AttendanceStatus', 'ResponseStatus', 'Person', 'DisplayName'],
+                ResultType: 'simple',
+            },
+            {
+                EntityName: 'MJ_BizApps_Tasks: Meeting Links',
+                ExtraFilter: `MeetingID='${meetingID}' AND EntityID='A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'`,
+                Fields: ['RecordID'],
+                MaxRows: 1,
+                ResultType: 'simple',
+            },
+            {
+                EntityName: 'MJ_BizApps_Tasks: Meeting Notes',
+                ExtraFilter: `MeetingID='${meetingID}' AND Kind IN ('Transcript', 'LiveTranscript')`,
+                OrderBy: '__mj_CreatedAt DESC',
+                MaxRows: 1,
+                Fields: ['Body'],
                 ResultType: 'simple',
             },
         ], contextUser);
 
+        let committeeName = '';
+        const committeeID = (linkResult.Success ? (linkResult.Results as Array<{ RecordID: string }>)?.[0]?.RecordID : null) ?? null;
+        if (committeeID && GUID_PATTERN.test(committeeID)) {
+            const comRes = await rv.RunView<{ Name: string }>({
+                EntityName: 'Committees: Committees',
+                ExtraFilter: `ID='${committeeID}'`,
+                Fields: ['Name'],
+                MaxRows: 1,
+                ResultType: 'simple',
+            }, contextUser);
+            if (comRes.Success && comRes.Results?.[0]) {
+                committeeName = comRes.Results[0].Name;
+            }
+        }
+
+        const rawAgenda = (agendaResult.Success ? agendaResult.Results ?? [] : []) as Array<{
+            ID: string; Sequence: number; Name: string; Description: string | null; Type: string | null; Status: string | null; Outcome: string | null; DurationMinutes: number | null;
+        }>;
+        const agendaItems: AgendaItemRow[] = rawAgenda.map(a => ({
+            ID: a.ID,
+            Sequence: a.Sequence,
+            Name: a.Name,
+            Description: a.Description,
+            ItemType: a.Type ?? 'Discussion',
+            Status: a.Status ?? 'Done',
+            Notes: a.Outcome ?? null,
+            DurationMinutes: a.DurationMinutes,
+        }));
+
+        const rawAtt = (attendanceResult.Success ? attendanceResult.Results ?? [] : []) as Array<{
+            ID: string; AttendanceStatus: string | null; ResponseStatus: string | null; Person: string | null; DisplayName: string | null;
+        }>;
+        const attendance: AttendanceRow[] = rawAtt.map(a => ({
+            ID: a.ID,
+            AttendanceStatus: a.AttendanceStatus && a.AttendanceStatus !== 'Unknown' ? a.AttendanceStatus : (a.ResponseStatus === 'Declined' ? 'Excused' : 'Absent'),
+            Person: a.Person ?? a.DisplayName ?? 'Attendee',
+        }));
+
+        const storedTranscript = (noteResult.Success ? (noteResult.Results as Array<{ Body: string | null }>)?.[0]?.Body : null) ?? null;
+
         return {
             meeting,
-            agendaItems: agendaResult.Success ? (agendaResult.Results ?? []) as AgendaItemRow[] : [],
+            committeeName,
+            agendaItems,
             motions: motionResult.Success ? (motionResult.Results ?? []) as MotionRow[] : [],
-            attendance: attendanceResult.Success ? (attendanceResult.Results ?? []) as AttendanceRow[] : [],
+            attendance,
+            storedTranscript,
         };
     }
 
     /** Loads a single Meeting entity by ID, returning null if not found. */
-    private async loadMeeting(meetingID: string, contextUser: UserInfo): Promise<mjBizAppsCommitteesMeetingEntity | null> {
+    private async loadMeeting(meetingID: string, contextUser: UserInfo): Promise<mjBizAppsTasksMeetingEntity | null> {
         const md = new Metadata();
-        const meeting = await md.GetEntityObject<mjBizAppsCommitteesMeetingEntity>('Committees: Meetings', contextUser);
+        const meeting = await md.GetEntityObject<mjBizAppsTasksMeetingEntity>('MJ_BizApps_Tasks: Meetings', contextUser);
         const loaded = await meeting.Load(meetingID);
         return loaded ? meeting : null;
     }
@@ -243,15 +300,16 @@ export class MinutesService {
 
     /** Assembles the full AI prompt from meeting bundle and optional transcript. */
     private buildPrompt(bundle: MeetingBundle, transcript: string | null): string {
-        const { meeting, agendaItems, motions, attendance } = bundle;
+        const { meeting, committeeName, agendaItems, motions, attendance } = bundle;
 
-        const meetingDate = new Date(meeting.StartDateTime).toLocaleDateString('en-US', {
+        const meetingDate = new Date(meeting.StartsAt).toLocaleDateString('en-US', {
             weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
         });
+        const hasVideo = meeting.VideoProvider && meeting.VideoProvider !== 'None';
         const locationLine = [
-            meeting.LocationType,
-            meeting.LocationText ?? null,
-            meeting.VideoProvider ? `via ${meeting.VideoProvider}` : null,
+            hasVideo ? (meeting.Location ? 'Hybrid' : 'Virtual') : (meeting.Location ? 'InPerson' : null),
+            meeting.Location ?? null,
+            hasVideo ? `via ${meeting.VideoProvider}` : null,
         ].filter(Boolean).join(' — ');
 
         const attendanceSection = this.formatAttendanceForPrompt(attendance);
@@ -267,7 +325,7 @@ export class MinutesService {
 
 **Meeting:** ${meeting.Name}
 **Date:** ${meetingDate}
-**Committee:** ${meeting.Committee ?? ''}
+**Committee:** ${committeeName}
 **Format:** ${locationLine}
 
 ${attendanceSection}

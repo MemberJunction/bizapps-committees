@@ -58,3 +58,4 @@ export * from './lib/motions-ballots/ballot-close-dialog.component';
 export * from './lib/meeting-detail/agenda-builder.component';
 export * from './lib/shared/person-create-dialog.component';
 export * from './lib/member-home/member-home.component';
+export * from './lib/drivers/committee-space-ui-driver';

@@ -115,19 +115,9 @@ UPDATE [${flyway:defaultSchema}].[ArtifactType]
    SET [ExtendedEntityID] = NULL
  WHERE [ExtendedEntityID] IN (SELECT [ID] FROM @DroppedEntities);
 
--- Repoint EntityField.RelatedEntityID from Committees: Meetings / Agenda Items to MJ_BizApps_Tasks: Meetings / Meeting Agenda Items
-UPDATE [${mjSchema}].[EntityField]
-   SET [RelatedEntityID] = 'D8B37817-4EB1-414C-9273-5977AB80DB63',
-       [RelatedEntityFieldName] = 'ID'
- WHERE [RelatedEntityID] = 'F7DEBA2D-4E28-4C6E-971B-6099217FAB29'
-   AND [EntityID] NOT IN (SELECT [ID] FROM @DroppedEntities);
-
-UPDATE [${mjSchema}].[EntityField]
-   SET [RelatedEntityID] = '9C171F1D-86F9-4630-8548-1DC6163272CA',
-       [RelatedEntityFieldName] = 'ID'
- WHERE [RelatedEntityID] = 'D7F80482-E5EE-4DD9-ABAC-1F357D8A76E8'
-   AND [EntityID] NOT IN (SELECT [ID] FROM @DroppedEntities);
-
+-- Clear RelatedEntityID referencing dropped entities so CodeGen's spUpdateExistingEntityFieldsFromSchema
+-- discovers the new foreign keys to MJ_BizApps_Tasks: Meetings and Meeting Agenda Items and marks
+-- Minutes, Motions, Artifacts, and Comments as modified for view/SP regeneration.
 UPDATE [${mjSchema}].[EntityField]
    SET [RelatedEntityID] = NULL,
        [RelatedEntityFieldName] = NULL
@@ -156,6 +146,21 @@ DELETE FROM [${mjSchema}].[UserApplicationEntity]
  WHERE [EntityID] IN (SELECT [ID] FROM @DroppedEntities);
 
 DELETE FROM [${mjSchema}].[ApplicationEntity]
+ WHERE [EntityID] IN (SELECT [ID] FROM @DroppedEntities);
+
+DELETE FROM [${mjSchema}].[MLModelScoringBinding]
+ WHERE [TargetEntityID] IN (SELECT [ID] FROM @DroppedEntities);
+
+DELETE FROM [${mjSchema}].[MLModel]
+ WHERE [PipelineID] IN (
+     SELECT [ID] FROM [${mjSchema}].[MLTrainingPipeline]
+      WHERE [TargetEntityID] IN (SELECT [ID] FROM @DroppedEntities)
+ );
+
+DELETE FROM [${mjSchema}].[MLTrainingPipeline]
+ WHERE [TargetEntityID] IN (SELECT [ID] FROM @DroppedEntities);
+
+DELETE FROM [${mjSchema}].[RecordProcess]
  WHERE [EntityID] IN (SELECT [ID] FROM @DroppedEntities);
 
 DELETE FROM [${mjSchema}].[Entity]
@@ -260,16 +265,36 @@ UPDATE [${mjSchema}].[Entity]
 DELETE efv
   FROM [${mjSchema}].[EntityFieldValue] efv
   INNER JOIN [${mjSchema}].[EntityField] ef ON efv.[EntityFieldID] = ef.[ID]
- WHERE (ef.[EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND ef.[Name] IN ('Name', 'Description', 'ParentCommitteeID', 'FormationDate', 'DissolutionDate', 'ParentCommittee'))
-    OR (ef.[EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND ef.[Name] IN ('CommitteeID', 'Name', 'StartDate', 'EndDate', 'Committee'));
+ WHERE (ef.[EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND ef.[Name] IN ('ParentCommitteeID', 'FormationDate', 'DissolutionDate', 'ParentCommittee'))
+    OR (ef.[EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND ef.[Name] IN ('CommitteeID', 'StartDate', 'EndDate', 'Committee'));
 
 DELETE FROM [${mjSchema}].[EntityField]
- WHERE ([EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND [Name] IN ('Name', 'Description', 'ParentCommitteeID', 'FormationDate', 'DissolutionDate', 'ParentCommittee'))
-    OR ([EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND [Name] IN ('CommitteeID', 'Name', 'StartDate', 'EndDate', 'Committee'));
+ WHERE ([EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND [Name] IN ('ParentCommitteeID', 'FormationDate', 'DissolutionDate', 'ParentCommittee'))
+    OR ([EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND [Name] IN ('CommitteeID', 'StartDate', 'EndDate', 'Committee'));
+
+UPDATE [${mjSchema}].[EntityField]
+   SET [IsVirtual] = 1
+ WHERE ([EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND [Name] IN ('Name', 'Description'))
+    OR ([EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND [Name] IN ('Name'));
 
 DELETE FROM [${mjSchema}].[EntityRelationship]
  WHERE ([EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND [RelatedEntityJoinField] IN ('ParentCommitteeID', 'CommitteeID'))
     OR ([RelatedEntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND [RelatedEntityJoinField] IN ('ParentCommitteeID', 'CommitteeID'));
+
+-- Offset existing virtual field sequences on the 6 schema-modified entities before CodeGen Pass 1
+-- so spUpdateExistingEntityFieldsFromSchema never collides on UQ_EntityField_EntityID_Sequence
+-- before the final base views are regenerated and renumbered in Pass 2.
+UPDATE [${mjSchema}].[EntityField]
+   SET [Sequence] = [Sequence] + 1000
+ WHERE [EntityID] IN (
+     'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Committees: Committees
+     '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Committees: Terms
+     '0EC944F9-F908-4662-87B2-E57077A873FF', -- Committees: Minutes
+     'AAAEE71B-D7CF-4628-BED0-59D43256E46A', -- Committees: Motions
+     '272BEFB5-727A-4525-B235-775A56B7ACBB', -- Committees: Artifacts
+     'C1CEF804-AA80-47A0-9750-2A4C5227B6DF'  -- Committees: Comments
+ )
+   AND [IsVirtual] = 1;
 GO
 
 DROP VIEW IF EXISTS [${flyway:defaultSchema}].[vwArtifacts];
@@ -445,7 +470,6 @@ GO
 -- =============================================================================
 -- GENERATED BY MemberJunction CodeGen — DO NOT EDIT BY HAND
 -- =============================================================================
-
 /* SQL text to update existing entities from schema */
 EXEC [${mjSchema}].[spUpdateExistingEntitiesFromSchema] @ExcludedSchemaNames='', @IncludedSchemaNames='${flyway:defaultSchema}';
 
@@ -454,3901 +478,7 @@ UPDATE [${mjSchema}].[EntityField]
                          SET [Configuration] = '{"Hierarchy":{"IsHierarchy":true}}'
                          WHERE [ID] = '4D316764-A3C3-473B-BEF5-03B6CC27699F' AND ([Configuration] IS NULL OR [Configuration] = '');
 
-/* SQL text to insert 52 new entity field(s) */
 
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'd5da7296-8a09-4a53-8bf8-3a6a73b4f3c9' OR (EntityID = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND Name = 'Meeting')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'd5da7296-8a09-4a53-8bf8-3a6a73b4f3c9',
-            'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', -- Entity: Committees: Comments
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF'),
-            'Meeting',
-            'Meeting',
-            NULL,
-            'nvarchar',
-            510,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'b2b23cf7-e921-4fa3-9c1b-f4e25483835a' OR (EntityID = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND Name = 'AgendaItem')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'b2b23cf7-e921-4fa3-9c1b-f4e25483835a',
-            'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', -- Entity: Committees: Comments
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF'),
-            'AgendaItem',
-            'Agenda Item',
-            NULL,
-            'nvarchar',
-            1000,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'acf7741b-698e-4fbf-9dee-23bfaf96b194' OR (EntityID = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND Name = 'Task')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'acf7741b-698e-4fbf-9dee-23bfaf96b194',
-            'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', -- Entity: Committees: Comments
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF'),
-            'Task',
-            'Task',
-            NULL,
-            'nvarchar',
-            510,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '511f7e88-4b22-4f69-9f9c-4af07be3c9b3' OR (EntityID = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND Name = 'Artifact')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '511f7e88-4b22-4f69-9f9c-4af07be3c9b3',
-            'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', -- Entity: Committees: Comments
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF'),
-            'Artifact',
-            'Artifact',
-            NULL,
-            'nvarchar',
-            510,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'cb94b89b-ccf5-4d75-8c95-622b5eef7e4a' OR (EntityID = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND Name = 'Person')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'cb94b89b-ccf5-4d75-8c95-622b5eef7e4a',
-            'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', -- Entity: Committees: Comments
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF'),
-            'Person',
-            'Person',
-            NULL,
-            'nvarchar',
-            402,
-            0,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '82a44021-6ad7-44c0-8e24-4ab8deff5ecb' OR (EntityID = 'F8FADBBE-A323-48FB-8395-3B543729F6E6' AND Name = 'Person')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '82a44021-6ad7-44c0-8e24-4ab8deff5ecb',
-            'F8FADBBE-A323-48FB-8395-3B543729F6E6', -- Entity: Committees: Memberships
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'F8FADBBE-A323-48FB-8395-3B543729F6E6'),
-            'Person',
-            'Person',
-            NULL,
-            'nvarchar',
-            402,
-            0,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '7a5f9bab-1cf6-4d91-b5a4-57495f9c5a1d' OR (EntityID = 'F8FADBBE-A323-48FB-8395-3B543729F6E6' AND Name = 'Role')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '7a5f9bab-1cf6-4d91-b5a4-57495f9c5a1d',
-            'F8FADBBE-A323-48FB-8395-3B543729F6E6', -- Entity: Committees: Memberships
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'F8FADBBE-A323-48FB-8395-3B543729F6E6'),
-            'Role',
-            'Role',
-            NULL,
-            'nvarchar',
-            200,
-            0,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '1a0650ec-b6ab-42be-a6e4-874c7a329159' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'SpaceTypeID')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '1a0650ec-b6ab-42be-a6e4-874c7a329159',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'SpaceTypeID',
-            'Space Type ID',
-            NULL,
-            'uniqueidentifier',
-            16,
-            0,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '5caa37c2-a8de-48da-aedf-79264553d756' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'ParentID')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '5caa37c2-a8de-48da-aedf-79264553d756',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'ParentID',
-            'Parent ID',
-            NULL,
-            'uniqueidentifier',
-            16,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'f4a48364-bae4-47bb-be24-0aa1d9c4512a' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'Name')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'f4a48364-bae4-47bb-be24-0aa1d9c4512a',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'Name',
-            'Name',
-            NULL,
-            'nvarchar',
-            400,
-            0,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            1,
-            1,
-            0,
-            1,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '42067e87-9989-4ff2-a31e-6c321b46b377' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'Description')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '42067e87-9989-4ff2-a31e-6c321b46b377',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'Description',
-            'Description',
-            NULL,
-            'nvarchar',
-            -1,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'fb5fed3d-6b24-4cdb-81db-91375c8c15fc' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'OwnerID')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'fb5fed3d-6b24-4cdb-81db-91375c8c15fc',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'OwnerID',
-            'Owner ID',
-            NULL,
-            'uniqueidentifier',
-            16,
-            0,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '6e87f1b4-5224-4220-8fe5-3cd746f3bfc4' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'InheritsMembership')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '6e87f1b4-5224-4220-8fe5-3cd746f3bfc4',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'InheritsMembership',
-            'Inherits Membership',
-            NULL,
-            'bit',
-            1,
-            1,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'ae98ce1d-8967-4931-821d-f31e44fa4d22' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'AgentRetrieval')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'ae98ce1d-8967-4931-821d-f31e44fa4d22',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'AgentRetrieval',
-            'Agent Retrieval',
-            NULL,
-            'nvarchar',
-            60,
-            0,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'ba011cd7-5e7c-4fe7-8d85-a15d7cb67642' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'StartedAt')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'ba011cd7-5e7c-4fe7-8d85-a15d7cb67642',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'StartedAt',
-            'Started At',
-            NULL,
-            'datetimeoffset',
-            10,
-            34,
-            7,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'eee2adfc-b6a8-4da0-87af-9aaf4337d0a3' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'ClosedAt')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'eee2adfc-b6a8-4da0-87af-9aaf4337d0a3',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'ClosedAt',
-            'Closed At',
-            NULL,
-            'datetimeoffset',
-            10,
-            34,
-            7,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '6a085f93-5971-490a-88e7-c47023eb008b' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'AllowParentAssignees')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '6a085f93-5971-490a-88e7-c47023eb008b',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'AllowParentAssignees',
-            'Allow Parent Assignees',
-            NULL,
-            'bit',
-            1,
-            1,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '8ac7a09d-8018-4908-bd9d-a2bafa379a65' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'PlannedCloseAt')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '8ac7a09d-8018-4908-bd9d-a2bafa379a65',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'PlannedCloseAt',
-            'Planned Close At',
-            NULL,
-            'datetimeoffset',
-            10,
-            34,
-            7,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '468abbc5-f172-4272-b45a-b7caefe7f86e' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'IconClass')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '468abbc5-f172-4272-b45a-b7caefe7f86e',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'IconClass',
-            'Icon Class',
-            NULL,
-            'nvarchar',
-            200,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '2b49b06d-9279-4baf-aeb5-1987f903a197' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'Color')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '2b49b06d-9279-4baf-aeb5-1987f903a197',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'Color',
-            'Color',
-            NULL,
-            'nvarchar',
-            100,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '27dbcd1b-7208-41dd-bb9e-66ebd9043144' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'BackgroundImageURL')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '27dbcd1b-7208-41dd-bb9e-66ebd9043144',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'BackgroundImageURL',
-            'Background Image URL',
-            NULL,
-            'nvarchar',
-            2000,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '410db781-3264-4a65-99c1-986c86706a2d' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'Configuration')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '410db781-3264-4a65-99c1-986c86706a2d',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'Configuration',
-            'Configuration',
-            NULL,
-            'nvarchar',
-            -1,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'f1758691-4cbe-489c-a04e-32bcd1f442a1' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'StatusID')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'f1758691-4cbe-489c-a04e-32bcd1f442a1',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'StatusID',
-            'Status ID',
-            NULL,
-            'uniqueidentifier',
-            16,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'dc056dbe-66a7-4f4c-bc9a-f9c2323064aa' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'Type')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'dc056dbe-66a7-4f4c-bc9a-f9c2323064aa',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'Type',
-            'Type',
-            NULL,
-            'nvarchar',
-            200,
-            0,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '0f99e562-0c1d-4c59-874b-54a368a1fb84' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'Organization')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '0f99e562-0c1d-4c59-874b-54a368a1fb84',
-            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
-            'Organization',
-            'Organization',
-            NULL,
-            'nvarchar',
-            510,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'bfb089b2-111f-4c38-ae8f-8b8cbac5e330' OR (EntityID = 'AAAEE71B-D7CF-4628-BED0-59D43256E46A' AND Name = 'Meeting')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'bfb089b2-111f-4c38-ae8f-8b8cbac5e330',
-            'AAAEE71B-D7CF-4628-BED0-59D43256E46A', -- Entity: Committees: Motions
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'AAAEE71B-D7CF-4628-BED0-59D43256E46A'),
-            'Meeting',
-            'Meeting',
-            NULL,
-            'nvarchar',
-            510,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '9dc5db6e-3619-42ad-9c98-bd833a30d741' OR (EntityID = 'AAAEE71B-D7CF-4628-BED0-59D43256E46A' AND Name = 'AgendaItem')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '9dc5db6e-3619-42ad-9c98-bd833a30d741',
-            'AAAEE71B-D7CF-4628-BED0-59D43256E46A', -- Entity: Committees: Motions
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'AAAEE71B-D7CF-4628-BED0-59D43256E46A'),
-            'AgendaItem',
-            'Agenda Item',
-            NULL,
-            'nvarchar',
-            1000,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '22287041-5011-4245-a391-53c8b4b368b6' OR (EntityID = '272BEFB5-727A-4525-B235-775A56B7ACBB' AND Name = 'Meeting')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '22287041-5011-4245-a391-53c8b4b368b6',
-            '272BEFB5-727A-4525-B235-775A56B7ACBB', -- Entity: Committees: Artifacts
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '272BEFB5-727A-4525-B235-775A56B7ACBB'),
-            'Meeting',
-            'Meeting',
-            NULL,
-            'nvarchar',
-            510,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '81113fad-865b-4ffc-a37e-91f516a3279b' OR (EntityID = '272BEFB5-727A-4525-B235-775A56B7ACBB' AND Name = 'AgendaItem')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '81113fad-865b-4ffc-a37e-91f516a3279b',
-            '272BEFB5-727A-4525-B235-775A56B7ACBB', -- Entity: Committees: Artifacts
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '272BEFB5-727A-4525-B235-775A56B7ACBB'),
-            'AgendaItem',
-            'Agenda Item',
-            NULL,
-            'nvarchar',
-            1000,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '5ef295a5-02ca-4d4b-b937-38415048e1c4' OR (EntityID = '272BEFB5-727A-4525-B235-775A56B7ACBB' AND Name = 'Task')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '5ef295a5-02ca-4d4b-b937-38415048e1c4',
-            '272BEFB5-727A-4525-B235-775A56B7ACBB', -- Entity: Committees: Artifacts
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '272BEFB5-727A-4525-B235-775A56B7ACBB'),
-            'Task',
-            'Task',
-            NULL,
-            'nvarchar',
-            510,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'a9d8d252-940a-405e-bbb0-1059cf19ee71' OR (EntityID = '272BEFB5-727A-4525-B235-775A56B7ACBB' AND Name = 'ArtifactType')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'a9d8d252-940a-405e-bbb0-1059cf19ee71',
-            '272BEFB5-727A-4525-B235-775A56B7ACBB', -- Entity: Committees: Artifacts
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '272BEFB5-727A-4525-B235-775A56B7ACBB'),
-            'ArtifactType',
-            'Artifact Type',
-            NULL,
-            'nvarchar',
-            200,
-            0,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'b50d2991-92fa-4421-b471-3e9421c4fd68' OR (EntityID = '272BEFB5-727A-4525-B235-775A56B7ACBB' AND Name = 'UploadedByPerson')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'b50d2991-92fa-4421-b471-3e9421c4fd68',
-            '272BEFB5-727A-4525-B235-775A56B7ACBB', -- Entity: Committees: Artifacts
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '272BEFB5-727A-4525-B235-775A56B7ACBB'),
-            'UploadedByPerson',
-            'Uploaded By Person',
-            NULL,
-            'nvarchar',
-            402,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '0a2942b2-09fe-4ccc-9880-e9d8a84b912a' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'SpaceTypeID')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '0a2942b2-09fe-4ccc-9880-e9d8a84b912a',
-            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
-            'SpaceTypeID',
-            'Space Type ID',
-            NULL,
-            'uniqueidentifier',
-            16,
-            0,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            1,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'dc790737-142d-4ca5-a9d9-a63e22872708' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'ParentID')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'dc790737-142d-4ca5-a9d9-a63e22872708',
-            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
-            'ParentID',
-            'Parent ID',
-            NULL,
-            'uniqueidentifier',
-            16,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '2e778236-1483-4451-bd73-0bc4d0d23de6' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'Name')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '2e778236-1483-4451-bd73-0bc4d0d23de6',
-            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
-            'Name',
-            'Name',
-            NULL,
-            'nvarchar',
-            400,
-            0,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            1,
-            1,
-            0,
-            1,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '2ebc6b03-b595-4db0-bb8e-5d3ad271fa28' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'Description')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '2ebc6b03-b595-4db0-bb8e-5d3ad271fa28',
-            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
-            'Description',
-            'Description',
-            NULL,
-            'nvarchar',
-            -1,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'a8bc8066-ca5a-4379-bc72-477a1c3e242a' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'OwnerID')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'a8bc8066-ca5a-4379-bc72-477a1c3e242a',
-            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
-            'OwnerID',
-            'Owner ID',
-            NULL,
-            'uniqueidentifier',
-            16,
-            0,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '40904a18-d4eb-424c-8894-b20307d19efa' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'InheritsMembership')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '40904a18-d4eb-424c-8894-b20307d19efa',
-            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
-            'InheritsMembership',
-            'Inherits Membership',
-            NULL,
-            'bit',
-            1,
-            1,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '31b30ce4-1a4a-4472-b866-0e27db73ca17' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'AgentRetrieval')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '31b30ce4-1a4a-4472-b866-0e27db73ca17',
-            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
-            'AgentRetrieval',
-            'Agent Retrieval',
-            NULL,
-            'nvarchar',
-            60,
-            0,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '27bb32d0-930b-47c7-a843-c40523ffa154' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'StartedAt')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '27bb32d0-930b-47c7-a843-c40523ffa154',
-            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
-            'StartedAt',
-            'Started At',
-            NULL,
-            'datetimeoffset',
-            10,
-            34,
-            7,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'c790b047-84a0-44f9-b49f-1c11cba03543' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'ClosedAt')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'c790b047-84a0-44f9-b49f-1c11cba03543',
-            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
-            'ClosedAt',
-            'Closed At',
-            NULL,
-            'datetimeoffset',
-            10,
-            34,
-            7,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '066def55-d808-46d1-9608-c39fb512b87f' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'AllowParentAssignees')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '066def55-d808-46d1-9608-c39fb512b87f',
-            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
-            'AllowParentAssignees',
-            'Allow Parent Assignees',
-            NULL,
-            'bit',
-            1,
-            1,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '697f7834-1107-4133-ae23-5405f9b8f895' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'PlannedCloseAt')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '697f7834-1107-4133-ae23-5405f9b8f895',
-            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
-            'PlannedCloseAt',
-            'Planned Close At',
-            NULL,
-            'datetimeoffset',
-            10,
-            34,
-            7,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '153b607a-781f-47d3-afcf-f6edbafdc1a3' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'IconClass')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '153b607a-781f-47d3-afcf-f6edbafdc1a3',
-            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
-            'IconClass',
-            'Icon Class',
-            NULL,
-            'nvarchar',
-            200,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '37c63aeb-5dff-49d1-bb3d-7a4798b88aa0' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'Color')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '37c63aeb-5dff-49d1-bb3d-7a4798b88aa0',
-            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
-            'Color',
-            'Color',
-            NULL,
-            'nvarchar',
-            100,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '4f4df8a0-aa7e-4d3c-affa-5e8b6984cf0f' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'BackgroundImageURL')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '4f4df8a0-aa7e-4d3c-affa-5e8b6984cf0f',
-            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
-            'BackgroundImageURL',
-            'Background Image URL',
-            NULL,
-            'nvarchar',
-            2000,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'ef837115-d841-4050-a4bd-7f9091fcd2b6' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'Configuration')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'ef837115-d841-4050-a4bd-7f9091fcd2b6',
-            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
-            'Configuration',
-            'Configuration',
-            NULL,
-            'nvarchar',
-            -1,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '5b72f755-5ad6-4828-b5e7-9191ab6bede9' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'StatusID')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '5b72f755-5ad6-4828-b5e7-9191ab6bede9',
-            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
-            'StatusID',
-            'Status ID',
-            NULL,
-            'uniqueidentifier',
-            16,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'd0166430-c6cc-4d4e-b6cf-dc8c439aab18' OR (EntityID = '194B3496-2829-4806-BC42-CF0724A1DD26' AND Name = 'Motion')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'd0166430-c6cc-4d4e-b6cf-dc8c439aab18',
-            '194B3496-2829-4806-BC42-CF0724A1DD26', -- Entity: Committees: Ballots
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '194B3496-2829-4806-BC42-CF0724A1DD26'),
-            'Motion',
-            'Motion',
-            NULL,
-            'nvarchar',
-            510,
-            0,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '02605148-21c7-4c48-8304-a95034a83645' OR (EntityID = '0EC944F9-F908-4662-87B2-E57077A873FF' AND Name = 'Artifact')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '02605148-21c7-4c48-8304-a95034a83645',
-            '0EC944F9-F908-4662-87B2-E57077A873FF', -- Entity: Committees: Minutes
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '0EC944F9-F908-4662-87B2-E57077A873FF'),
-            'Artifact',
-            'Artifact',
-            NULL,
-            'nvarchar',
-            510,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '768416c0-d658-444a-a09b-26ce4fad43b8' OR (EntityID = '0EC944F9-F908-4662-87B2-E57077A873FF' AND Name = 'Meeting')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '768416c0-d658-444a-a09b-26ce4fad43b8',
-            '0EC944F9-F908-4662-87B2-E57077A873FF', -- Entity: Committees: Minutes
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '0EC944F9-F908-4662-87B2-E57077A873FF'),
-            'Meeting',
-            'Meeting',
-            NULL,
-            'nvarchar',
-            510,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'c23af691-8387-4481-9318-241b98777c82' OR (EntityID = '0EC944F9-F908-4662-87B2-E57077A873FF' AND Name = 'ApprovedByMeeting')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'c23af691-8387-4481-9318-241b98777c82',
-            '0EC944F9-F908-4662-87B2-E57077A873FF', -- Entity: Committees: Minutes
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '0EC944F9-F908-4662-87B2-E57077A873FF'),
-            'ApprovedByMeeting',
-            'Approved By Meeting',
-            NULL,
-            'nvarchar',
-            510,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-/* SQL text to update existing entity fields from schema */
-EXEC [${mjSchema}].[spUpdateExistingEntityFieldsFromSchema] @ExcludedSchemaNames='', @IncludedSchemaNames='${flyway:defaultSchema}';
-
-/* Update IS-A parent field SpaceTypeID on Committees: Committees */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='uniqueidentifier',
-                      [Length]=16,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=0,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]='01596359-EC4B-449C-BA16-316DE4B92A4E',
-                      [RelatedEntityFieldName]='ID',
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='1A0650EC-B6AB-42BE-A6E4-874C7A329159';
-
-/* Update IS-A parent field ParentID on Committees: Committees */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='uniqueidentifier',
-                      [Length]=16,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]='3648DC35-1DC4-4ED6-A1A6-5D87271A54DB',
-                      [RelatedEntityFieldName]='ID',
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='5CAA37C2-A8DE-48DA-AEDF-79264553D756';
-
-/* Update IS-A parent field Name on Committees: Committees */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='nvarchar',
-                      [Length]=400,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=0,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='F4A48364-BAE4-47BB-BE24-0AA1D9C4512A';
-
-/* Update IS-A parent field Description on Committees: Committees */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='nvarchar',
-                      [Length]=-1,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='42067E87-9989-4FF2-A31E-6C321B46B377';
-
-/* Update IS-A parent field OwnerID on Committees: Committees */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='uniqueidentifier',
-                      [Length]=16,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=0,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]='E1238F34-2837-EF11-86D4-6045BDEE16E6',
-                      [RelatedEntityFieldName]='ID',
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='FB5FED3D-6B24-4CDB-81DB-91375C8C15FC';
-
-/* Update IS-A parent field InheritsMembership on Committees: Committees */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='bit',
-                      [Length]=1,
-                      [Precision]=1,
-                      [Scale]=0,
-                      [AllowsNull]=0,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='6E87F1B4-5224-4220-8FE5-3CD746F3BFC4';
-
-/* Update IS-A parent field AgentRetrieval on Committees: Committees */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='nvarchar',
-                      [Length]=60,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=0,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='AE98CE1D-8967-4931-821D-F31E44FA4D22';
-
-/* Update IS-A parent field StartedAt on Committees: Committees */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='datetimeoffset',
-                      [Length]=10,
-                      [Precision]=34,
-                      [Scale]=7,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='BA011CD7-5E7C-4FE7-8D85-A15D7CB67642';
-
-/* Update IS-A parent field ClosedAt on Committees: Committees */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='datetimeoffset',
-                      [Length]=10,
-                      [Precision]=34,
-                      [Scale]=7,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='EEE2ADFC-B6A8-4DA0-87AF-9AAF4337D0A3';
-
-/* Update IS-A parent field AllowParentAssignees on Committees: Committees */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='bit',
-                      [Length]=1,
-                      [Precision]=1,
-                      [Scale]=0,
-                      [AllowsNull]=0,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='6A085F93-5971-490A-88E7-C47023EB008B';
-
-/* Update IS-A parent field PlannedCloseAt on Committees: Committees */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='datetimeoffset',
-                      [Length]=10,
-                      [Precision]=34,
-                      [Scale]=7,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='8AC7A09D-8018-4908-BD9D-A2BAFA379A65';
-
-/* Update IS-A parent field IconClass on Committees: Committees */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='nvarchar',
-                      [Length]=200,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='468ABBC5-F172-4272-B45A-B7CAEFE7F86E';
-
-/* Update IS-A parent field Color on Committees: Committees */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='nvarchar',
-                      [Length]=100,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='2B49B06D-9279-4BAF-AEB5-1987F903A197';
-
-/* Update IS-A parent field BackgroundImageURL on Committees: Committees */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='nvarchar',
-                      [Length]=2000,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='27DBCD1B-7208-41DD-BB9E-66EBD9043144';
-
-/* Update IS-A parent field Configuration on Committees: Committees */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='nvarchar',
-                      [Length]=-1,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='410DB781-3264-4A65-99C1-986C86706A2D';
-
-/* Update IS-A parent field StatusID on Committees: Committees */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='uniqueidentifier',
-                      [Length]=16,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]='106DF2B5-DF08-48EE-A0E1-26C329DC0343',
-                      [RelatedEntityFieldName]='ID',
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='F1758691-4CBE-489C-A04E-32BCD1F442A1';
-
-/* Update entity timestamp for Committees: Committees after IS-A field sync */
-UPDATE [${mjSchema}].[Entity] SET [__mj_UpdatedAt]=GETUTCDATE() WHERE ID='A5DA88A1-AA21-4A3F-B1C4-42652FB440CE';
-
-/* Update IS-A parent field SpaceTypeID on Committees: Terms */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='uniqueidentifier',
-                      [Length]=16,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=0,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]='01596359-EC4B-449C-BA16-316DE4B92A4E',
-                      [RelatedEntityFieldName]='ID',
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='0A2942B2-09FE-4CCC-9880-E9D8A84B912A';
-
-/* Update IS-A parent field ParentID on Committees: Terms */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='uniqueidentifier',
-                      [Length]=16,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]='3648DC35-1DC4-4ED6-A1A6-5D87271A54DB',
-                      [RelatedEntityFieldName]='ID',
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='DC790737-142D-4CA5-A9D9-A63E22872708';
-
-/* Update IS-A parent field Name on Committees: Terms */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='nvarchar',
-                      [Length]=400,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=0,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='2E778236-1483-4451-BD73-0BC4D0D23DE6';
-
-/* Update IS-A parent field Description on Committees: Terms */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='nvarchar',
-                      [Length]=-1,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='2EBC6B03-B595-4DB0-BB8E-5D3AD271FA28';
-
-/* Update IS-A parent field OwnerID on Committees: Terms */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='uniqueidentifier',
-                      [Length]=16,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=0,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]='E1238F34-2837-EF11-86D4-6045BDEE16E6',
-                      [RelatedEntityFieldName]='ID',
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='A8BC8066-CA5A-4379-BC72-477A1C3E242A';
-
-/* Update IS-A parent field InheritsMembership on Committees: Terms */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='bit',
-                      [Length]=1,
-                      [Precision]=1,
-                      [Scale]=0,
-                      [AllowsNull]=0,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='40904A18-D4EB-424C-8894-B20307D19EFA';
-
-/* Update IS-A parent field AgentRetrieval on Committees: Terms */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='nvarchar',
-                      [Length]=60,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=0,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='31B30CE4-1A4A-4472-B866-0E27DB73CA17';
-
-/* Update IS-A parent field StartedAt on Committees: Terms */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='datetimeoffset',
-                      [Length]=10,
-                      [Precision]=34,
-                      [Scale]=7,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='27BB32D0-930B-47C7-A843-C40523FFA154';
-
-/* Update IS-A parent field ClosedAt on Committees: Terms */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='datetimeoffset',
-                      [Length]=10,
-                      [Precision]=34,
-                      [Scale]=7,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='C790B047-84A0-44F9-B49F-1C11CBA03543';
-
-/* Update IS-A parent field AllowParentAssignees on Committees: Terms */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='bit',
-                      [Length]=1,
-                      [Precision]=1,
-                      [Scale]=0,
-                      [AllowsNull]=0,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='066DEF55-D808-46D1-9608-C39FB512B87F';
-
-/* Update IS-A parent field PlannedCloseAt on Committees: Terms */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='datetimeoffset',
-                      [Length]=10,
-                      [Precision]=34,
-                      [Scale]=7,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='697F7834-1107-4133-AE23-5405F9B8F895';
-
-/* Update IS-A parent field IconClass on Committees: Terms */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='nvarchar',
-                      [Length]=200,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='153B607A-781F-47D3-AFCF-F6EDBAFDC1A3';
-
-/* Update IS-A parent field Color on Committees: Terms */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='nvarchar',
-                      [Length]=100,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='37C63AEB-5DFF-49D1-BB3D-7A4798B88AA0';
-
-/* Update IS-A parent field BackgroundImageURL on Committees: Terms */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='nvarchar',
-                      [Length]=2000,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='4F4DF8A0-AA7E-4D3C-AFFA-5E8B6984CF0F';
-
-/* Update IS-A parent field Configuration on Committees: Terms */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='nvarchar',
-                      [Length]=-1,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]=NULL,
-                      [RelatedEntityFieldName]=NULL,
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='EF837115-D841-4050-A4BD-7F9091FCD2B6';
-
-/* Update IS-A parent field StatusID on Committees: Terms */
-UPDATE [${mjSchema}].[EntityField]
-                  SET [IsVirtual]=1,
-                      [Type]='uniqueidentifier',
-                      [Length]=16,
-                      [Precision]=0,
-                      [Scale]=0,
-                      [AllowsNull]=1,
-                      [AllowUpdateAPI]=1,
-                      [IncludeRelatedEntityNameFieldInBaseView]=0,
-                      [RelatedEntityID]='106DF2B5-DF08-48EE-A0E1-26C329DC0343',
-                      [RelatedEntityFieldName]='ID',
-                      [RelatedEntityDisplayType]='Search'
-                  WHERE [ID]='5B72F755-5AD6-4828-B5E7-9191AB6BEDE9';
-
-/* Update entity timestamp for Committees: Terms after IS-A field sync */
-UPDATE [${mjSchema}].[Entity] SET [__mj_UpdatedAt]=GETUTCDATE() WHERE ID='87BEDFA6-F149-4AF2-993C-81BD01169584';
-
-/* SQL text to set default column width where needed */
-EXEC [${mjSchema}].[spSetDefaultColumnWidthWhereNeeded] @ExcludedSchemaNames='', @IncludedSchemaNames='${flyway:defaultSchema}';
-
-/* Create Entity Relationship: MJ_BizApps_Tasks: Meetings -> Committees: Comments (One To Many via MeetingID) */
-   IF NOT EXISTS (
-      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '3d9c8f1b-d175-444f-b379-06390e5065b2' OR ([EntityID] = 'D8B37817-4EB1-414C-9273-5977AB80DB63' AND [RelatedEntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND [RelatedEntityJoinField] = 'MeetingID')
-   )
-   BEGIN
-      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
-                    VALUES ('3d9c8f1b-d175-444f-b379-06390e5065b2', 'D8B37817-4EB1-414C-9273-5977AB80DB63', 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', 'MeetingID', 'One To Many', 1, 1, 6, GETUTCDATE(), GETUTCDATE())
-   END;
-                    
-/* Create Entity Relationship: MJ_BizApps_Tasks: Meetings -> Committees: Motions (One To Many via MeetingID) */
-   IF NOT EXISTS (
-      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = 'a78a8e3a-915b-4a29-b19b-18fbcdebf0ea' OR ([EntityID] = 'D8B37817-4EB1-414C-9273-5977AB80DB63' AND [RelatedEntityID] = 'AAAEE71B-D7CF-4628-BED0-59D43256E46A' AND [RelatedEntityJoinField] = 'MeetingID')
-   )
-   BEGIN
-      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
-                    VALUES ('a78a8e3a-915b-4a29-b19b-18fbcdebf0ea', 'D8B37817-4EB1-414C-9273-5977AB80DB63', 'AAAEE71B-D7CF-4628-BED0-59D43256E46A', 'MeetingID', 'One To Many', 1, 1, 7, GETUTCDATE(), GETUTCDATE())
-   END;
-                    
-/* Create Entity Relationship: MJ_BizApps_Tasks: Meetings -> Committees: Artifacts (One To Many via MeetingID) */
-   IF NOT EXISTS (
-      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = 'f12e9fc4-bf08-4759-ae4f-1304c8be58bf' OR ([EntityID] = 'D8B37817-4EB1-414C-9273-5977AB80DB63' AND [RelatedEntityID] = '272BEFB5-727A-4525-B235-775A56B7ACBB' AND [RelatedEntityJoinField] = 'MeetingID')
-   )
-   BEGIN
-      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
-                    VALUES ('f12e9fc4-bf08-4759-ae4f-1304c8be58bf', 'D8B37817-4EB1-414C-9273-5977AB80DB63', '272BEFB5-727A-4525-B235-775A56B7ACBB', 'MeetingID', 'One To Many', 1, 1, 8, GETUTCDATE(), GETUTCDATE())
-   END;
-
-
-/* Create Entity Relationship: MJ_BizApps_Tasks: Meetings -> Committees: Minutes (One To Many via MeetingID) */
-   IF NOT EXISTS (
-      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '221f500b-7f56-47db-9fbb-950ad5b0cd3d' OR ([EntityID] = 'D8B37817-4EB1-414C-9273-5977AB80DB63' AND [RelatedEntityID] = '0EC944F9-F908-4662-87B2-E57077A873FF' AND [RelatedEntityJoinField] = 'MeetingID')
-   )
-   BEGIN
-      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
-                    VALUES ('221f500b-7f56-47db-9fbb-950ad5b0cd3d', 'D8B37817-4EB1-414C-9273-5977AB80DB63', '0EC944F9-F908-4662-87B2-E57077A873FF', 'MeetingID', 'One To Many', 1, 1, 9, GETUTCDATE(), GETUTCDATE())
-   END;
-                    
-/* Create Entity Relationship: MJ_BizApps_Tasks: Meetings -> Committees: Minutes (One To Many via ApprovedByMeetingID) */
-   IF NOT EXISTS (
-      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '6f538f63-f536-421e-8f91-512864ffd4b5' OR ([EntityID] = 'D8B37817-4EB1-414C-9273-5977AB80DB63' AND [RelatedEntityID] = '0EC944F9-F908-4662-87B2-E57077A873FF' AND [RelatedEntityJoinField] = 'ApprovedByMeetingID')
-   )
-   BEGIN
-      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
-                    VALUES ('6f538f63-f536-421e-8f91-512864ffd4b5', 'D8B37817-4EB1-414C-9273-5977AB80DB63', '0EC944F9-F908-4662-87B2-E57077A873FF', 'ApprovedByMeetingID', 'One To Many', 1, 1, 10, GETUTCDATE(), GETUTCDATE())
-   END;
-                    
-/* Create Entity Relationship: Committees: Committees -> Committees: Comments (One To Many via CommitteeID) */
-   IF NOT EXISTS (
-      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = 'ca55591f-cb52-40c9-95ea-01e4b65e94d6' OR ([EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND [RelatedEntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND [RelatedEntityJoinField] = 'CommitteeID')
-   )
-   BEGIN
-      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
-                    VALUES ('ca55591f-cb52-40c9-95ea-01e4b65e94d6', 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', 'CommitteeID', 'One To Many', 1, 1, 1, GETUTCDATE(), GETUTCDATE())
-   END;
-
-
-/* Create Entity Relationship: Committees: Committees -> Committees: Artifacts (One To Many via CommitteeID) */
-   IF NOT EXISTS (
-      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = 'eb086280-ff93-4f4f-ad03-5799d19802b0' OR ([EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND [RelatedEntityID] = '272BEFB5-727A-4525-B235-775A56B7ACBB' AND [RelatedEntityJoinField] = 'CommitteeID')
-   )
-   BEGIN
-      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
-                    VALUES ('eb086280-ff93-4f4f-ad03-5799d19802b0', 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', '272BEFB5-727A-4525-B235-775A56B7ACBB', 'CommitteeID', 'One To Many', 1, 1, 2, GETUTCDATE(), GETUTCDATE())
-   END;
-                    
-/* Create Entity Relationship: Committees: Committees -> Committees: Ballots (One To Many via CommitteeID) */
-   IF NOT EXISTS (
-      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '12014afb-b1c3-4d28-a5ec-09b445e6dfb5' OR ([EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND [RelatedEntityID] = '194B3496-2829-4806-BC42-CF0724A1DD26' AND [RelatedEntityJoinField] = 'CommitteeID')
-   )
-   BEGIN
-      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
-                    VALUES ('12014afb-b1c3-4d28-a5ec-09b445e6dfb5', 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', '194B3496-2829-4806-BC42-CF0724A1DD26', 'CommitteeID', 'One To Many', 1, 1, 3, GETUTCDATE(), GETUTCDATE())
-   END;
-                    
-/* Create Entity Relationship: MJ_BizApps_Collaboration: Spaces -> Committees: Committees (One To Many via ID) */
-   IF NOT EXISTS (
-      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '4de3db85-9098-4cb1-9558-af4a5f488654' OR ([EntityID] = '3648DC35-1DC4-4ED6-A1A6-5D87271A54DB' AND [RelatedEntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND [RelatedEntityJoinField] = 'ID')
-   )
-   BEGIN
-      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
-                    VALUES ('4de3db85-9098-4cb1-9558-af4a5f488654', '3648DC35-1DC4-4ED6-A1A6-5D87271A54DB', 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', 'ID', 'One To Many', 1, 1, 13, GETUTCDATE(), GETUTCDATE())
-   END;
-
-
-/* Create Entity Relationship: MJ_BizApps_Collaboration: Spaces -> Committees: Terms (One To Many via ID) */
-   IF NOT EXISTS (
-      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '2378eaa4-1092-4228-b819-52bbe426f36b' OR ([EntityID] = '3648DC35-1DC4-4ED6-A1A6-5D87271A54DB' AND [RelatedEntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND [RelatedEntityJoinField] = 'ID')
-   )
-   BEGIN
-      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
-                    VALUES ('2378eaa4-1092-4228-b819-52bbe426f36b', '3648DC35-1DC4-4ED6-A1A6-5D87271A54DB', '87BEDFA6-F149-4AF2-993C-81BD01169584', 'ID', 'One To Many', 1, 1, 14, GETUTCDATE(), GETUTCDATE())
-   END;
-
-
-/* Create Entity Relationship: MJ_BizApps_Tasks: Meeting Agenda Items -> Committees: Comments (One To Many via AgendaItemID) */
-   IF NOT EXISTS (
-      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '5232ac21-d1dc-42e0-9ded-7094116ab32e' OR ([EntityID] = '9C171F1D-86F9-4630-8548-1DC6163272CA' AND [RelatedEntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND [RelatedEntityJoinField] = 'AgendaItemID')
-   )
-   BEGIN
-      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
-                    VALUES ('5232ac21-d1dc-42e0-9ded-7094116ab32e', '9C171F1D-86F9-4630-8548-1DC6163272CA', 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', 'AgendaItemID', 'One To Many', 1, 1, 3, GETUTCDATE(), GETUTCDATE())
-   END;
-                    
-/* Create Entity Relationship: MJ_BizApps_Tasks: Meeting Agenda Items -> Committees: Motions (One To Many via AgendaItemID) */
-   IF NOT EXISTS (
-      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '78e1031a-0b96-46a7-b3ed-e20592ae504b' OR ([EntityID] = '9C171F1D-86F9-4630-8548-1DC6163272CA' AND [RelatedEntityID] = 'AAAEE71B-D7CF-4628-BED0-59D43256E46A' AND [RelatedEntityJoinField] = 'AgendaItemID')
-   )
-   BEGIN
-      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
-                    VALUES ('78e1031a-0b96-46a7-b3ed-e20592ae504b', '9C171F1D-86F9-4630-8548-1DC6163272CA', 'AAAEE71B-D7CF-4628-BED0-59D43256E46A', 'AgendaItemID', 'One To Many', 1, 1, 4, GETUTCDATE(), GETUTCDATE())
-   END;
-                    
-/* Create Entity Relationship: MJ_BizApps_Tasks: Meeting Agenda Items -> Committees: Artifacts (One To Many via AgendaItemID) */
-   IF NOT EXISTS (
-      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '2790ea1d-7a62-4d42-946d-15336e0c5562' OR ([EntityID] = '9C171F1D-86F9-4630-8548-1DC6163272CA' AND [RelatedEntityID] = '272BEFB5-727A-4525-B235-775A56B7ACBB' AND [RelatedEntityJoinField] = 'AgendaItemID')
-   )
-   BEGIN
-      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
-                    VALUES ('2790ea1d-7a62-4d42-946d-15336e0c5562', '9C171F1D-86F9-4630-8548-1DC6163272CA', '272BEFB5-727A-4525-B235-775A56B7ACBB', 'AgendaItemID', 'One To Many', 1, 1, 5, GETUTCDATE(), GETUTCDATE())
-   END;
-
-/* SQL text to sync schema info from database schemas */
-EXEC [${mjSchema}].[spUpdateSchemaInfoFromDatabase] @ExcludedSchemaNames='', @IncludedSchemaNames='${flyway:defaultSchema}';
-
-/* Index for Foreign Keys for Artifact */
 -----------------------------------------------------------------
 -- SQL Code Generation
 -- Entity: Committees: Artifacts
@@ -4663,6 +793,477 @@ IF NOT EXISTS (
 )
 CREATE INDEX IDX_AUTO_MJ_FKEY_Motion_SecondedByMembershipID ON [${flyway:defaultSchema}].[Motion] ([SecondedByMembershipID]);
 
+/* Base View SQL for Committees: Committees */
+-----------------------------------------------------------------
+-- SQL Code Generation
+-- Entity: Committees: Committees
+-- Item: vwCommittees
+--
+-- This was generated by the MemberJunction CodeGen tool.
+-- This file should NOT be edited by hand.
+-----------------------------------------------------------------
+
+------------------------------------------------------------
+----- BASE VIEW FOR ENTITY:      Committees: Committees
+-----               SCHEMA:      ${flyway:defaultSchema}
+-----               BASE TABLE:  Committee
+-----               PRIMARY KEY: ID
+------------------------------------------------------------
+IF OBJECT_ID('[${flyway:defaultSchema}].[vwCommittees]', 'V') IS NOT NULL
+    DROP VIEW [${flyway:defaultSchema}].[vwCommittees];
+GO
+
+CREATE VIEW [${flyway:defaultSchema}].[vwCommittees]
+AS
+SELECT
+    c.*,
+    __mj_isa_p1.[SpaceTypeID],
+    __mj_isa_p1.[ParentID],
+    __mj_isa_p1.[Name],
+    __mj_isa_p1.[Description],
+    __mj_isa_p1.[OwnerID],
+    __mj_isa_p1.[InheritsMembership],
+    __mj_isa_p1.[AgentRetrieval],
+    __mj_isa_p1.[StartedAt],
+    __mj_isa_p1.[ClosedAt],
+    __mj_isa_p1.[AllowParentAssignees],
+    __mj_isa_p1.[PlannedCloseAt],
+    __mj_isa_p1.[IconClass],
+    __mj_isa_p1.[Color],
+    __mj_isa_p1.[BackgroundImageURL],
+    __mj_isa_p1.[Configuration],
+    __mj_isa_p1.[StatusID],
+    mjBizAppsCommitteesType_TypeID.[Name] AS [Type],
+    mjBizAppsCommonOrganization_OrganizationID.[Name] AS [Organization]
+FROM
+    [${flyway:defaultSchema}].[Committee] AS c
+INNER JOIN
+    [__mj_BizAppsCollaboration].[Space] AS __mj_isa_p1
+  ON
+    [c].[ID] = __mj_isa_p1.[ID]
+INNER JOIN
+    [${flyway:defaultSchema}].[Type] AS mjBizAppsCommitteesType_TypeID
+  ON
+    [c].[TypeID] = mjBizAppsCommitteesType_TypeID.[ID]
+LEFT OUTER JOIN
+    [__mj_BizAppsCommon].[Organization] AS mjBizAppsCommonOrganization_OrganizationID
+  ON
+    [c].[OrganizationID] = mjBizAppsCommonOrganization_OrganizationID.[ID]
+GO
+REVOKE SELECT ON [${flyway:defaultSchema}].[vwCommittees] FROM [cdp_Developer]
+REVOKE SELECT ON [${flyway:defaultSchema}].[vwCommittees] FROM [cdp_Integration]
+REVOKE SELECT ON [${flyway:defaultSchema}].[vwCommittees] FROM [cdp_UI]
+GRANT SELECT ON [${flyway:defaultSchema}].[vwCommittees] TO [cdp_UI], [cdp_Developer], [cdp_Integration];
+
+/* Base View Permissions SQL for Committees: Committees */
+-----------------------------------------------------------------
+-- SQL Code Generation
+-- Entity: Committees: Committees
+-- Item: Permissions for vwCommittees
+--
+-- This was generated by the MemberJunction CodeGen tool.
+-- This file should NOT be edited by hand.
+-----------------------------------------------------------------
+
+REVOKE SELECT ON [${flyway:defaultSchema}].[vwCommittees] FROM [cdp_Developer]
+REVOKE SELECT ON [${flyway:defaultSchema}].[vwCommittees] FROM [cdp_Integration]
+REVOKE SELECT ON [${flyway:defaultSchema}].[vwCommittees] FROM [cdp_UI]
+GRANT SELECT ON [${flyway:defaultSchema}].[vwCommittees] TO [cdp_UI], [cdp_Developer], [cdp_Integration];
+
+/* spCreate SQL for Committees: Committees */
+-----------------------------------------------------------------
+-- SQL Code Generation
+-- Entity: Committees: Committees
+-- Item: spCreateCommittee
+--
+-- This was generated by the MemberJunction CodeGen tool.
+-- This file should NOT be edited by hand.
+-----------------------------------------------------------------
+
+------------------------------------------------------------
+----- CREATE PROCEDURE FOR Committee
+------------------------------------------------------------
+IF OBJECT_ID('[${flyway:defaultSchema}].[spCreateCommittee]', 'P') IS NOT NULL
+    DROP PROCEDURE [${flyway:defaultSchema}].[spCreateCommittee];
+GO
+
+CREATE PROCEDURE [${flyway:defaultSchema}].[spCreateCommittee]
+    @ID uniqueidentifier = NULL,
+    @TypeID uniqueidentifier,
+    @OrganizationID_Clear bit = 0,
+    @OrganizationID uniqueidentifier = NULL,
+    @CharterDocumentURL_Clear bit = 0,
+    @CharterDocumentURL nvarchar(1000) = NULL,
+    @MissionStatement_Clear bit = 0,
+    @MissionStatement nvarchar(MAX) = NULL,
+    @Status nvarchar(50) = NULL,
+    @IsPublic bit = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @ActualID UNIQUEIDENTIFIER = ISNULL(@ID, NEWID())
+    INSERT INTO
+    [${flyway:defaultSchema}].[Committee]
+        (
+            [TypeID],
+                [OrganizationID],
+                [CharterDocumentURL],
+                [MissionStatement],
+                [Status],
+                [IsPublic],
+                [ID]
+        )
+    VALUES
+        (
+            @TypeID,
+                CASE WHEN @OrganizationID_Clear = 1 THEN NULL ELSE ISNULL(@OrganizationID, NULL) END,
+                CASE WHEN @CharterDocumentURL_Clear = 1 THEN NULL ELSE ISNULL(@CharterDocumentURL, NULL) END,
+                CASE WHEN @MissionStatement_Clear = 1 THEN NULL ELSE ISNULL(@MissionStatement, NULL) END,
+                ISNULL(@Status, 'Active'),
+                ISNULL(@IsPublic, 1),
+                @ActualID
+        )
+    -- return the new record from the base view, which might have some calculated fields
+    SELECT * FROM [${flyway:defaultSchema}].[vwCommittees] WHERE [ID] = @ActualID
+END
+GO
+GRANT EXECUTE ON [${flyway:defaultSchema}].[spCreateCommittee] TO [cdp_Developer], [cdp_Integration];
+
+/* spCreate Permissions for Committees: Committees */
+
+GRANT EXECUTE ON [${flyway:defaultSchema}].[spCreateCommittee] TO [cdp_Developer], [cdp_Integration];
+
+/* spUpdate SQL for Committees: Committees */
+-----------------------------------------------------------------
+-- SQL Code Generation
+-- Entity: Committees: Committees
+-- Item: spUpdateCommittee
+--
+-- This was generated by the MemberJunction CodeGen tool.
+-- This file should NOT be edited by hand.
+-----------------------------------------------------------------
+
+------------------------------------------------------------
+----- UPDATE PROCEDURE FOR Committee
+------------------------------------------------------------
+IF OBJECT_ID('[${flyway:defaultSchema}].[spUpdateCommittee]', 'P') IS NOT NULL
+    DROP PROCEDURE [${flyway:defaultSchema}].[spUpdateCommittee];
+GO
+
+CREATE PROCEDURE [${flyway:defaultSchema}].[spUpdateCommittee]
+    @ID uniqueidentifier,
+    @TypeID uniqueidentifier = NULL,
+    @OrganizationID_Clear bit = 0,
+    @OrganizationID uniqueidentifier = NULL,
+    @CharterDocumentURL_Clear bit = 0,
+    @CharterDocumentURL nvarchar(1000) = NULL,
+    @MissionStatement_Clear bit = 0,
+    @MissionStatement nvarchar(MAX) = NULL,
+    @Status nvarchar(50) = NULL,
+    @IsPublic bit = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE
+        [${flyway:defaultSchema}].[Committee]
+    SET
+        [TypeID] = ISNULL(@TypeID, [TypeID]),
+        [OrganizationID] = CASE WHEN @OrganizationID_Clear = 1 THEN NULL ELSE ISNULL(@OrganizationID, [OrganizationID]) END,
+        [CharterDocumentURL] = CASE WHEN @CharterDocumentURL_Clear = 1 THEN NULL ELSE ISNULL(@CharterDocumentURL, [CharterDocumentURL]) END,
+        [MissionStatement] = CASE WHEN @MissionStatement_Clear = 1 THEN NULL ELSE ISNULL(@MissionStatement, [MissionStatement]) END,
+        [Status] = ISNULL(@Status, [Status]),
+        [IsPublic] = ISNULL(@IsPublic, [IsPublic])
+    WHERE
+        [ID] = @ID
+
+    -- Check if the update was successful
+    IF @@ROWCOUNT = 0
+        -- Nothing was updated, return no rows, but column structure from base view intact, semantically correct this way.
+        SELECT TOP 0 * FROM [${flyway:defaultSchema}].[vwCommittees] WHERE 1=0
+    ELSE
+        -- Return the updated record so the caller can see the updated values and any calculated fields
+        SELECT
+                                        *
+                                    FROM
+                                        [${flyway:defaultSchema}].[vwCommittees]
+                                    WHERE
+                                        [ID] = @ID
+                                    
+END
+GO
+
+GRANT EXECUTE ON [${flyway:defaultSchema}].[spUpdateCommittee] TO [cdp_Developer], [cdp_Integration]
+GO
+
+------------------------------------------------------------
+----- TRIGGER FOR __mj_UpdatedAt field for the Committee table
+------------------------------------------------------------
+IF OBJECT_ID('[${flyway:defaultSchema}].[trgUpdateCommittee]', 'TR') IS NOT NULL
+    DROP TRIGGER [${flyway:defaultSchema}].[trgUpdateCommittee];
+GO
+CREATE TRIGGER [${flyway:defaultSchema}].trgUpdateCommittee
+ON [${flyway:defaultSchema}].[Committee]
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE
+        [${flyway:defaultSchema}].[Committee]
+    SET
+        __mj_UpdatedAt = GETUTCDATE()
+    FROM
+        [${flyway:defaultSchema}].[Committee] AS _organicTable
+    INNER JOIN
+        INSERTED AS I ON
+        _organicTable.[ID] = I.[ID];
+END;
+GO
+
+/* spUpdate Permissions for Committees: Committees */
+
+GRANT EXECUTE ON [${flyway:defaultSchema}].[spUpdateCommittee] TO [cdp_Developer], [cdp_Integration];
+
+/* Index for Foreign Keys for Term */
+-----------------------------------------------------------------
+-- SQL Code Generation
+-- Entity: Committees: Terms
+-- Item: Index for Foreign Keys
+--
+-- This was generated by the MemberJunction CodeGen tool.
+-- This file should NOT be edited by hand.
+-----------------------------------------------------------------;
+
+/* Base View SQL for Committees: Terms */
+-----------------------------------------------------------------
+-- SQL Code Generation
+-- Entity: Committees: Terms
+-- Item: vwTerms
+--
+-- This was generated by the MemberJunction CodeGen tool.
+-- This file should NOT be edited by hand.
+-----------------------------------------------------------------
+
+------------------------------------------------------------
+----- BASE VIEW FOR ENTITY:      Committees: Terms
+-----               SCHEMA:      ${flyway:defaultSchema}
+-----               BASE TABLE:  Term
+-----               PRIMARY KEY: ID
+------------------------------------------------------------
+IF OBJECT_ID('[${flyway:defaultSchema}].[vwTerms]', 'V') IS NOT NULL
+    DROP VIEW [${flyway:defaultSchema}].[vwTerms];
+GO
+
+CREATE VIEW [${flyway:defaultSchema}].[vwTerms]
+AS
+SELECT
+    t.*,
+    __mj_isa_p1.[SpaceTypeID],
+    __mj_isa_p1.[ParentID],
+    __mj_isa_p1.[Name],
+    __mj_isa_p1.[Description],
+    __mj_isa_p1.[OwnerID],
+    __mj_isa_p1.[InheritsMembership],
+    __mj_isa_p1.[AgentRetrieval],
+    __mj_isa_p1.[StartedAt],
+    __mj_isa_p1.[ClosedAt],
+    __mj_isa_p1.[AllowParentAssignees],
+    __mj_isa_p1.[PlannedCloseAt],
+    __mj_isa_p1.[IconClass],
+    __mj_isa_p1.[Color],
+    __mj_isa_p1.[BackgroundImageURL],
+    __mj_isa_p1.[Configuration],
+    __mj_isa_p1.[StatusID]
+FROM
+    [${flyway:defaultSchema}].[Term] AS t
+INNER JOIN
+    [__mj_BizAppsCollaboration].[Space] AS __mj_isa_p1
+  ON
+    [t].[ID] = __mj_isa_p1.[ID]
+GO
+REVOKE SELECT ON [${flyway:defaultSchema}].[vwTerms] FROM [cdp_Developer]
+REVOKE SELECT ON [${flyway:defaultSchema}].[vwTerms] FROM [cdp_Integration]
+REVOKE SELECT ON [${flyway:defaultSchema}].[vwTerms] FROM [cdp_UI]
+GRANT SELECT ON [${flyway:defaultSchema}].[vwTerms] TO [cdp_UI], [cdp_Developer], [cdp_Integration];
+
+/* Base View Permissions SQL for Committees: Terms */
+-----------------------------------------------------------------
+-- SQL Code Generation
+-- Entity: Committees: Terms
+-- Item: Permissions for vwTerms
+--
+-- This was generated by the MemberJunction CodeGen tool.
+-- This file should NOT be edited by hand.
+-----------------------------------------------------------------
+
+REVOKE SELECT ON [${flyway:defaultSchema}].[vwTerms] FROM [cdp_Developer]
+REVOKE SELECT ON [${flyway:defaultSchema}].[vwTerms] FROM [cdp_Integration]
+REVOKE SELECT ON [${flyway:defaultSchema}].[vwTerms] FROM [cdp_UI]
+GRANT SELECT ON [${flyway:defaultSchema}].[vwTerms] TO [cdp_UI], [cdp_Developer], [cdp_Integration];
+
+/* spCreate SQL for Committees: Terms */
+-----------------------------------------------------------------
+-- SQL Code Generation
+-- Entity: Committees: Terms
+-- Item: spCreateTerm
+--
+-- This was generated by the MemberJunction CodeGen tool.
+-- This file should NOT be edited by hand.
+-----------------------------------------------------------------
+
+------------------------------------------------------------
+----- CREATE PROCEDURE FOR Term
+------------------------------------------------------------
+IF OBJECT_ID('[${flyway:defaultSchema}].[spCreateTerm]', 'P') IS NOT NULL
+    DROP PROCEDURE [${flyway:defaultSchema}].[spCreateTerm];
+GO
+
+CREATE PROCEDURE [${flyway:defaultSchema}].[spCreateTerm]
+    @ID uniqueidentifier = NULL,
+    @Status nvarchar(50) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    DECLARE @ActualID UNIQUEIDENTIFIER = ISNULL(@ID, NEWID())
+    INSERT INTO
+    [${flyway:defaultSchema}].[Term]
+        (
+            [Status],
+                [ID]
+        )
+    VALUES
+        (
+            ISNULL(@Status, 'Active'),
+                @ActualID
+        )
+    -- return the new record from the base view, which might have some calculated fields
+    SELECT * FROM [${flyway:defaultSchema}].[vwTerms] WHERE [ID] = @ActualID
+END
+GO
+GRANT EXECUTE ON [${flyway:defaultSchema}].[spCreateTerm] TO [cdp_Developer], [cdp_Integration];
+
+/* spCreate Permissions for Committees: Terms */
+
+GRANT EXECUTE ON [${flyway:defaultSchema}].[spCreateTerm] TO [cdp_Developer], [cdp_Integration];
+
+/* spUpdate SQL for Committees: Terms */
+-----------------------------------------------------------------
+-- SQL Code Generation
+-- Entity: Committees: Terms
+-- Item: spUpdateTerm
+--
+-- This was generated by the MemberJunction CodeGen tool.
+-- This file should NOT be edited by hand.
+-----------------------------------------------------------------
+
+------------------------------------------------------------
+----- UPDATE PROCEDURE FOR Term
+------------------------------------------------------------
+IF OBJECT_ID('[${flyway:defaultSchema}].[spUpdateTerm]', 'P') IS NOT NULL
+    DROP PROCEDURE [${flyway:defaultSchema}].[spUpdateTerm];
+GO
+
+CREATE PROCEDURE [${flyway:defaultSchema}].[spUpdateTerm]
+    @ID uniqueidentifier,
+    @Status nvarchar(50) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE
+        [${flyway:defaultSchema}].[Term]
+    SET
+        [Status] = ISNULL(@Status, [Status])
+    WHERE
+        [ID] = @ID
+
+    -- Check if the update was successful
+    IF @@ROWCOUNT = 0
+        -- Nothing was updated, return no rows, but column structure from base view intact, semantically correct this way.
+        SELECT TOP 0 * FROM [${flyway:defaultSchema}].[vwTerms] WHERE 1=0
+    ELSE
+        -- Return the updated record so the caller can see the updated values and any calculated fields
+        SELECT
+                                        *
+                                    FROM
+                                        [${flyway:defaultSchema}].[vwTerms]
+                                    WHERE
+                                        [ID] = @ID
+                                    
+END
+GO
+
+GRANT EXECUTE ON [${flyway:defaultSchema}].[spUpdateTerm] TO [cdp_Developer], [cdp_Integration]
+GO
+
+------------------------------------------------------------
+----- TRIGGER FOR __mj_UpdatedAt field for the Term table
+------------------------------------------------------------
+IF OBJECT_ID('[${flyway:defaultSchema}].[trgUpdateTerm]', 'TR') IS NOT NULL
+    DROP TRIGGER [${flyway:defaultSchema}].[trgUpdateTerm];
+GO
+CREATE TRIGGER [${flyway:defaultSchema}].trgUpdateTerm
+ON [${flyway:defaultSchema}].[Term]
+AFTER UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+    UPDATE
+        [${flyway:defaultSchema}].[Term]
+    SET
+        __mj_UpdatedAt = GETUTCDATE()
+    FROM
+        [${flyway:defaultSchema}].[Term] AS _organicTable
+    INNER JOIN
+        INSERTED AS I ON
+        _organicTable.[ID] = I.[ID];
+END;
+GO
+
+/* spUpdate Permissions for Committees: Terms */
+
+GRANT EXECUTE ON [${flyway:defaultSchema}].[spUpdateTerm] TO [cdp_Developer], [cdp_Integration];
+
+/* spDelete SQL for Committees: Terms */
+-----------------------------------------------------------------
+-- SQL Code Generation
+-- Entity: Committees: Terms
+-- Item: spDeleteTerm
+--
+-- This was generated by the MemberJunction CodeGen tool.
+-- This file should NOT be edited by hand.
+-----------------------------------------------------------------
+
+------------------------------------------------------------
+----- DELETE PROCEDURE FOR Term
+------------------------------------------------------------
+IF OBJECT_ID('[${flyway:defaultSchema}].[spDeleteTerm]', 'P') IS NOT NULL
+    DROP PROCEDURE [${flyway:defaultSchema}].[spDeleteTerm];
+GO
+
+CREATE PROCEDURE [${flyway:defaultSchema}].[spDeleteTerm]
+    @ID uniqueidentifier
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DELETE FROM
+        [${flyway:defaultSchema}].[Term]
+    WHERE
+        [ID] = @ID
+
+
+    -- Check if the delete was successful
+    IF @@ROWCOUNT = 0
+        SELECT NULL AS [ID] -- Return NULL for all primary key fields to indicate no record was deleted
+    ELSE
+        SELECT @ID AS [ID] -- Return the primary key values to indicate we successfully deleted the record
+END
+GO
+GRANT EXECUTE ON [${flyway:defaultSchema}].[spDeleteTerm] TO [cdp_Developer], [cdp_Integration];
+
+/* spDelete Permissions for Committees: Terms */
+
+GRANT EXECUTE ON [${flyway:defaultSchema}].[spDeleteTerm] TO [cdp_Developer], [cdp_Integration];
+
 /* Base View SQL for Committees: Artifacts */
 -----------------------------------------------------------------
 -- SQL Code Generation
@@ -4955,8 +1556,8 @@ BEGIN
 END
 GO
 
-REVOKE EXECUTE ON [${flyway:defaultSchema}].[spUpdateArtifact] FROM [cdp_Integration]
 REVOKE EXECUTE ON [${flyway:defaultSchema}].[spUpdateArtifact] FROM [cdp_Developer]
+REVOKE EXECUTE ON [${flyway:defaultSchema}].[spUpdateArtifact] FROM [cdp_Integration]
 GRANT EXECUTE ON [${flyway:defaultSchema}].[spUpdateArtifact] TO [cdp_Developer], [cdp_Integration]
 GO
 
@@ -4986,8 +1587,8 @@ GO
 
 /* spUpdate Permissions for Committees: Artifacts */
 
-REVOKE EXECUTE ON [${flyway:defaultSchema}].[spUpdateArtifact] FROM [cdp_Integration]
 REVOKE EXECUTE ON [${flyway:defaultSchema}].[spUpdateArtifact] FROM [cdp_Developer]
+REVOKE EXECUTE ON [${flyway:defaultSchema}].[spUpdateArtifact] FROM [cdp_Integration]
 GRANT EXECUTE ON [${flyway:defaultSchema}].[spUpdateArtifact] TO [cdp_Developer], [cdp_Integration];
 
 /* Base View SQL for Committees: Ballots */
@@ -5574,9 +2175,9 @@ INNER JOIN
 OUTER APPLY
     [${flyway:defaultSchema}].[fnCommentParentCommentID_GetHierarchyMeta]([c].[ID], [c].[ParentCommentID]) AS hier_ParentCommentID
 GO
+REVOKE SELECT ON [${flyway:defaultSchema}].[vwComments] FROM [cdp_Developer]
 REVOKE SELECT ON [${flyway:defaultSchema}].[vwComments] FROM [cdp_Integration]
 REVOKE SELECT ON [${flyway:defaultSchema}].[vwComments] FROM [cdp_UI]
-REVOKE SELECT ON [${flyway:defaultSchema}].[vwComments] FROM [cdp_Developer]
 GRANT SELECT ON [${flyway:defaultSchema}].[vwComments] TO [cdp_UI], [cdp_Developer], [cdp_Integration];
 
 /* Base View Permissions SQL for Committees: Comments */
@@ -5589,9 +2190,9 @@ GRANT SELECT ON [${flyway:defaultSchema}].[vwComments] TO [cdp_UI], [cdp_Develop
 -- This file should NOT be edited by hand.
 -----------------------------------------------------------------
 
+REVOKE SELECT ON [${flyway:defaultSchema}].[vwComments] FROM [cdp_Developer]
 REVOKE SELECT ON [${flyway:defaultSchema}].[vwComments] FROM [cdp_Integration]
 REVOKE SELECT ON [${flyway:defaultSchema}].[vwComments] FROM [cdp_UI]
-REVOKE SELECT ON [${flyway:defaultSchema}].[vwComments] FROM [cdp_Developer]
 GRANT SELECT ON [${flyway:defaultSchema}].[vwComments] TO [cdp_UI], [cdp_Developer], [cdp_Integration];
 
 /* spCreate SQL for Committees: Comments */
@@ -5816,236 +2417,6 @@ GO
 REVOKE EXECUTE ON [${flyway:defaultSchema}].[spUpdateComment] FROM [cdp_Developer]
 REVOKE EXECUTE ON [${flyway:defaultSchema}].[spUpdateComment] FROM [cdp_Integration]
 GRANT EXECUTE ON [${flyway:defaultSchema}].[spUpdateComment] TO [cdp_Developer], [cdp_Integration];
-
-/* Base View SQL for Committees: Committees */
------------------------------------------------------------------
--- SQL Code Generation
--- Entity: Committees: Committees
--- Item: vwCommittees
---
--- This was generated by the MemberJunction CodeGen tool.
--- This file should NOT be edited by hand.
------------------------------------------------------------------
-
-------------------------------------------------------------
------ BASE VIEW FOR ENTITY:      Committees: Committees
------               SCHEMA:      ${flyway:defaultSchema}
------               BASE TABLE:  Committee
------               PRIMARY KEY: ID
-------------------------------------------------------------
-IF OBJECT_ID('[${flyway:defaultSchema}].[vwCommittees]', 'V') IS NOT NULL
-    DROP VIEW [${flyway:defaultSchema}].[vwCommittees];
-GO
-
-CREATE VIEW [${flyway:defaultSchema}].[vwCommittees]
-AS
-SELECT
-    c.*,
-    __mj_isa_p1.[SpaceTypeID],
-    __mj_isa_p1.[ParentID],
-    __mj_isa_p1.[Name],
-    __mj_isa_p1.[Description],
-    __mj_isa_p1.[OwnerID],
-    __mj_isa_p1.[InheritsMembership],
-    __mj_isa_p1.[AgentRetrieval],
-    __mj_isa_p1.[StartedAt],
-    __mj_isa_p1.[ClosedAt],
-    __mj_isa_p1.[AllowParentAssignees],
-    __mj_isa_p1.[PlannedCloseAt],
-    __mj_isa_p1.[IconClass],
-    __mj_isa_p1.[Color],
-    __mj_isa_p1.[BackgroundImageURL],
-    __mj_isa_p1.[Configuration],
-    __mj_isa_p1.[StatusID],
-    mjBizAppsCommitteesType_TypeID.[Name] AS [Type],
-    mjBizAppsCommonOrganization_OrganizationID.[Name] AS [Organization]
-FROM
-    [${flyway:defaultSchema}].[Committee] AS c
-INNER JOIN
-    [__mj_BizAppsCollaboration].[Space] AS __mj_isa_p1
-  ON
-    [c].[ID] = __mj_isa_p1.[ID]
-INNER JOIN
-    [${flyway:defaultSchema}].[Type] AS mjBizAppsCommitteesType_TypeID
-  ON
-    [c].[TypeID] = mjBizAppsCommitteesType_TypeID.[ID]
-LEFT OUTER JOIN
-    [__mj_BizAppsCommon].[Organization] AS mjBizAppsCommonOrganization_OrganizationID
-  ON
-    [c].[OrganizationID] = mjBizAppsCommonOrganization_OrganizationID.[ID]
-GO
-REVOKE SELECT ON [${flyway:defaultSchema}].[vwCommittees] FROM [cdp_Integration]
-REVOKE SELECT ON [${flyway:defaultSchema}].[vwCommittees] FROM [cdp_UI]
-REVOKE SELECT ON [${flyway:defaultSchema}].[vwCommittees] FROM [cdp_Developer]
-GRANT SELECT ON [${flyway:defaultSchema}].[vwCommittees] TO [cdp_UI], [cdp_Developer], [cdp_Integration];
-
-/* Base View Permissions SQL for Committees: Committees */
------------------------------------------------------------------
--- SQL Code Generation
--- Entity: Committees: Committees
--- Item: Permissions for vwCommittees
---
--- This was generated by the MemberJunction CodeGen tool.
--- This file should NOT be edited by hand.
------------------------------------------------------------------
-
-REVOKE SELECT ON [${flyway:defaultSchema}].[vwCommittees] FROM [cdp_Integration]
-REVOKE SELECT ON [${flyway:defaultSchema}].[vwCommittees] FROM [cdp_UI]
-REVOKE SELECT ON [${flyway:defaultSchema}].[vwCommittees] FROM [cdp_Developer]
-GRANT SELECT ON [${flyway:defaultSchema}].[vwCommittees] TO [cdp_UI], [cdp_Developer], [cdp_Integration];
-
-/* spCreate SQL for Committees: Committees */
------------------------------------------------------------------
--- SQL Code Generation
--- Entity: Committees: Committees
--- Item: spCreateCommittee
---
--- This was generated by the MemberJunction CodeGen tool.
--- This file should NOT be edited by hand.
------------------------------------------------------------------
-
-------------------------------------------------------------
------ CREATE PROCEDURE FOR Committee
-------------------------------------------------------------
-IF OBJECT_ID('[${flyway:defaultSchema}].[spCreateCommittee]', 'P') IS NOT NULL
-    DROP PROCEDURE [${flyway:defaultSchema}].[spCreateCommittee];
-GO
-
-CREATE PROCEDURE [${flyway:defaultSchema}].[spCreateCommittee]
-    @ID uniqueidentifier = NULL,
-    @TypeID uniqueidentifier,
-    @OrganizationID_Clear bit = 0,
-    @OrganizationID uniqueidentifier = NULL,
-    @CharterDocumentURL_Clear bit = 0,
-    @CharterDocumentURL nvarchar(1000) = NULL,
-    @MissionStatement_Clear bit = 0,
-    @MissionStatement nvarchar(MAX) = NULL,
-    @Status nvarchar(50) = NULL,
-    @IsPublic bit = NULL
-AS
-BEGIN
-    SET NOCOUNT ON;
-    DECLARE @ActualID UNIQUEIDENTIFIER = ISNULL(@ID, NEWID())
-    INSERT INTO
-    [${flyway:defaultSchema}].[Committee]
-        (
-            [TypeID],
-                [OrganizationID],
-                [CharterDocumentURL],
-                [MissionStatement],
-                [Status],
-                [IsPublic],
-                [ID]
-        )
-    VALUES
-        (
-            @TypeID,
-                CASE WHEN @OrganizationID_Clear = 1 THEN NULL ELSE ISNULL(@OrganizationID, NULL) END,
-                CASE WHEN @CharterDocumentURL_Clear = 1 THEN NULL ELSE ISNULL(@CharterDocumentURL, NULL) END,
-                CASE WHEN @MissionStatement_Clear = 1 THEN NULL ELSE ISNULL(@MissionStatement, NULL) END,
-                ISNULL(@Status, 'Active'),
-                ISNULL(@IsPublic, 1),
-                @ActualID
-        )
-    -- return the new record from the base view, which might have some calculated fields
-    SELECT * FROM [${flyway:defaultSchema}].[vwCommittees] WHERE [ID] = @ActualID
-END
-GO
-GRANT EXECUTE ON [${flyway:defaultSchema}].[spCreateCommittee] TO [cdp_Developer], [cdp_Integration];
-
-/* spCreate Permissions for Committees: Committees */
-
-GRANT EXECUTE ON [${flyway:defaultSchema}].[spCreateCommittee] TO [cdp_Developer], [cdp_Integration];
-
-/* spUpdate SQL for Committees: Committees */
------------------------------------------------------------------
--- SQL Code Generation
--- Entity: Committees: Committees
--- Item: spUpdateCommittee
---
--- This was generated by the MemberJunction CodeGen tool.
--- This file should NOT be edited by hand.
------------------------------------------------------------------
-
-------------------------------------------------------------
------ UPDATE PROCEDURE FOR Committee
-------------------------------------------------------------
-IF OBJECT_ID('[${flyway:defaultSchema}].[spUpdateCommittee]', 'P') IS NOT NULL
-    DROP PROCEDURE [${flyway:defaultSchema}].[spUpdateCommittee];
-GO
-
-CREATE PROCEDURE [${flyway:defaultSchema}].[spUpdateCommittee]
-    @ID uniqueidentifier,
-    @TypeID uniqueidentifier = NULL,
-    @OrganizationID_Clear bit = 0,
-    @OrganizationID uniqueidentifier = NULL,
-    @CharterDocumentURL_Clear bit = 0,
-    @CharterDocumentURL nvarchar(1000) = NULL,
-    @MissionStatement_Clear bit = 0,
-    @MissionStatement nvarchar(MAX) = NULL,
-    @Status nvarchar(50) = NULL,
-    @IsPublic bit = NULL
-AS
-BEGIN
-    SET NOCOUNT ON;
-    UPDATE
-        [${flyway:defaultSchema}].[Committee]
-    SET
-        [TypeID] = ISNULL(@TypeID, [TypeID]),
-        [OrganizationID] = CASE WHEN @OrganizationID_Clear = 1 THEN NULL ELSE ISNULL(@OrganizationID, [OrganizationID]) END,
-        [CharterDocumentURL] = CASE WHEN @CharterDocumentURL_Clear = 1 THEN NULL ELSE ISNULL(@CharterDocumentURL, [CharterDocumentURL]) END,
-        [MissionStatement] = CASE WHEN @MissionStatement_Clear = 1 THEN NULL ELSE ISNULL(@MissionStatement, [MissionStatement]) END,
-        [Status] = ISNULL(@Status, [Status]),
-        [IsPublic] = ISNULL(@IsPublic, [IsPublic])
-    WHERE
-        [ID] = @ID
-
-    -- Check if the update was successful
-    IF @@ROWCOUNT = 0
-        -- Nothing was updated, return no rows, but column structure from base view intact, semantically correct this way.
-        SELECT TOP 0 * FROM [${flyway:defaultSchema}].[vwCommittees] WHERE 1=0
-    ELSE
-        -- Return the updated record so the caller can see the updated values and any calculated fields
-        SELECT
-                                        *
-                                    FROM
-                                        [${flyway:defaultSchema}].[vwCommittees]
-                                    WHERE
-                                        [ID] = @ID
-                                    
-END
-GO
-
-GRANT EXECUTE ON [${flyway:defaultSchema}].[spUpdateCommittee] TO [cdp_Developer], [cdp_Integration]
-GO
-
-------------------------------------------------------------
------ TRIGGER FOR __mj_UpdatedAt field for the Committee table
-------------------------------------------------------------
-IF OBJECT_ID('[${flyway:defaultSchema}].[trgUpdateCommittee]', 'TR') IS NOT NULL
-    DROP TRIGGER [${flyway:defaultSchema}].[trgUpdateCommittee];
-GO
-CREATE TRIGGER [${flyway:defaultSchema}].trgUpdateCommittee
-ON [${flyway:defaultSchema}].[Committee]
-AFTER UPDATE
-AS
-BEGIN
-    SET NOCOUNT ON;
-    UPDATE
-        [${flyway:defaultSchema}].[Committee]
-    SET
-        __mj_UpdatedAt = GETUTCDATE()
-    FROM
-        [${flyway:defaultSchema}].[Committee] AS _organicTable
-    INNER JOIN
-        INSERTED AS I ON
-        _organicTable.[ID] = I.[ID];
-END;
-GO
-
-/* spUpdate Permissions for Committees: Committees */
-
-GRANT EXECUTE ON [${flyway:defaultSchema}].[spUpdateCommittee] TO [cdp_Developer], [cdp_Integration];
 
 /* Base View SQL for Committees: Memberships */
 -----------------------------------------------------------------
@@ -6769,14 +3140,14 @@ BEGIN
     SELECT * FROM [${flyway:defaultSchema}].[vwMotions] WHERE [ID] = (SELECT [ID] FROM @InsertedRow)
 END
 GO
-REVOKE EXECUTE ON [${flyway:defaultSchema}].[spCreateMotion] FROM [cdp_Integration]
 REVOKE EXECUTE ON [${flyway:defaultSchema}].[spCreateMotion] FROM [cdp_Developer]
+REVOKE EXECUTE ON [${flyway:defaultSchema}].[spCreateMotion] FROM [cdp_Integration]
 GRANT EXECUTE ON [${flyway:defaultSchema}].[spCreateMotion] TO [cdp_Developer], [cdp_Integration];
 
 /* spCreate Permissions for Committees: Motions */
 
-REVOKE EXECUTE ON [${flyway:defaultSchema}].[spCreateMotion] FROM [cdp_Integration]
 REVOKE EXECUTE ON [${flyway:defaultSchema}].[spCreateMotion] FROM [cdp_Developer]
+REVOKE EXECUTE ON [${flyway:defaultSchema}].[spCreateMotion] FROM [cdp_Integration]
 GRANT EXECUTE ON [${flyway:defaultSchema}].[spCreateMotion] TO [cdp_Developer], [cdp_Integration];
 
 /* spUpdate SQL for Committees: Motions */
@@ -6859,8 +3230,8 @@ BEGIN
 END
 GO
 
-REVOKE EXECUTE ON [${flyway:defaultSchema}].[spUpdateMotion] FROM [cdp_Integration]
 REVOKE EXECUTE ON [${flyway:defaultSchema}].[spUpdateMotion] FROM [cdp_Developer]
+REVOKE EXECUTE ON [${flyway:defaultSchema}].[spUpdateMotion] FROM [cdp_Integration]
 GRANT EXECUTE ON [${flyway:defaultSchema}].[spUpdateMotion] TO [cdp_Developer], [cdp_Integration]
 GO
 
@@ -6890,8 +3261,8 @@ GO
 
 /* spUpdate Permissions for Committees: Motions */
 
-REVOKE EXECUTE ON [${flyway:defaultSchema}].[spUpdateMotion] FROM [cdp_Integration]
 REVOKE EXECUTE ON [${flyway:defaultSchema}].[spUpdateMotion] FROM [cdp_Developer]
+REVOKE EXECUTE ON [${flyway:defaultSchema}].[spUpdateMotion] FROM [cdp_Integration]
 GRANT EXECUTE ON [${flyway:defaultSchema}].[spUpdateMotion] TO [cdp_Developer], [cdp_Integration];
 
 /* spDelete SQL for Committees: Artifacts */
@@ -7212,253 +3583,13 @@ REVOKE EXECUTE ON [${flyway:defaultSchema}].[spDeleteMotion] FROM [cdp_Developer
 REVOKE EXECUTE ON [${flyway:defaultSchema}].[spDeleteMotion] FROM [cdp_Integration]
 GRANT EXECUTE ON [${flyway:defaultSchema}].[spDeleteMotion] TO [cdp_Developer], [cdp_Integration];
 
-/* Index for Foreign Keys for Term */
------------------------------------------------------------------
--- SQL Code Generation
--- Entity: Committees: Terms
--- Item: Index for Foreign Keys
---
--- This was generated by the MemberJunction CodeGen tool.
--- This file should NOT be edited by hand.
------------------------------------------------------------------;
 
-/* Base View SQL for Committees: Terms */
------------------------------------------------------------------
--- SQL Code Generation
--- Entity: Committees: Terms
--- Item: vwTerms
---
--- This was generated by the MemberJunction CodeGen tool.
--- This file should NOT be edited by hand.
------------------------------------------------------------------
-
-------------------------------------------------------------
------ BASE VIEW FOR ENTITY:      Committees: Terms
------               SCHEMA:      ${flyway:defaultSchema}
------               BASE TABLE:  Term
------               PRIMARY KEY: ID
-------------------------------------------------------------
-IF OBJECT_ID('[${flyway:defaultSchema}].[vwTerms]', 'V') IS NOT NULL
-    DROP VIEW [${flyway:defaultSchema}].[vwTerms];
-GO
-
-CREATE VIEW [${flyway:defaultSchema}].[vwTerms]
-AS
-SELECT
-    t.*,
-    __mj_isa_p1.[SpaceTypeID],
-    __mj_isa_p1.[ParentID],
-    __mj_isa_p1.[Name],
-    __mj_isa_p1.[Description],
-    __mj_isa_p1.[OwnerID],
-    __mj_isa_p1.[InheritsMembership],
-    __mj_isa_p1.[AgentRetrieval],
-    __mj_isa_p1.[StartedAt],
-    __mj_isa_p1.[ClosedAt],
-    __mj_isa_p1.[AllowParentAssignees],
-    __mj_isa_p1.[PlannedCloseAt],
-    __mj_isa_p1.[IconClass],
-    __mj_isa_p1.[Color],
-    __mj_isa_p1.[BackgroundImageURL],
-    __mj_isa_p1.[Configuration],
-    __mj_isa_p1.[StatusID]
-FROM
-    [${flyway:defaultSchema}].[Term] AS t
-INNER JOIN
-    [__mj_BizAppsCollaboration].[Space] AS __mj_isa_p1
-  ON
-    [t].[ID] = __mj_isa_p1.[ID]
-GO
-REVOKE SELECT ON [${flyway:defaultSchema}].[vwTerms] FROM [cdp_Developer]
-REVOKE SELECT ON [${flyway:defaultSchema}].[vwTerms] FROM [cdp_Integration]
-REVOKE SELECT ON [${flyway:defaultSchema}].[vwTerms] FROM [cdp_UI]
-GRANT SELECT ON [${flyway:defaultSchema}].[vwTerms] TO [cdp_UI], [cdp_Developer], [cdp_Integration];
-
-/* Base View Permissions SQL for Committees: Terms */
------------------------------------------------------------------
--- SQL Code Generation
--- Entity: Committees: Terms
--- Item: Permissions for vwTerms
---
--- This was generated by the MemberJunction CodeGen tool.
--- This file should NOT be edited by hand.
------------------------------------------------------------------
-
-REVOKE SELECT ON [${flyway:defaultSchema}].[vwTerms] FROM [cdp_Developer]
-REVOKE SELECT ON [${flyway:defaultSchema}].[vwTerms] FROM [cdp_Integration]
-REVOKE SELECT ON [${flyway:defaultSchema}].[vwTerms] FROM [cdp_UI]
-GRANT SELECT ON [${flyway:defaultSchema}].[vwTerms] TO [cdp_UI], [cdp_Developer], [cdp_Integration];
-
-/* spCreate SQL for Committees: Terms */
------------------------------------------------------------------
--- SQL Code Generation
--- Entity: Committees: Terms
--- Item: spCreateTerm
---
--- This was generated by the MemberJunction CodeGen tool.
--- This file should NOT be edited by hand.
------------------------------------------------------------------
-
-------------------------------------------------------------
------ CREATE PROCEDURE FOR Term
-------------------------------------------------------------
-IF OBJECT_ID('[${flyway:defaultSchema}].[spCreateTerm]', 'P') IS NOT NULL
-    DROP PROCEDURE [${flyway:defaultSchema}].[spCreateTerm];
-GO
-
-CREATE PROCEDURE [${flyway:defaultSchema}].[spCreateTerm]
-    @ID uniqueidentifier = NULL,
-    @Status nvarchar(50) = NULL
-AS
-BEGIN
-    SET NOCOUNT ON;
-    DECLARE @ActualID UNIQUEIDENTIFIER = ISNULL(@ID, NEWID())
-    INSERT INTO
-    [${flyway:defaultSchema}].[Term]
-        (
-            [Status],
-                [ID]
-        )
-    VALUES
-        (
-            ISNULL(@Status, 'Active'),
-                @ActualID
-        )
-    -- return the new record from the base view, which might have some calculated fields
-    SELECT * FROM [${flyway:defaultSchema}].[vwTerms] WHERE [ID] = @ActualID
-END
-GO
-GRANT EXECUTE ON [${flyway:defaultSchema}].[spCreateTerm] TO [cdp_Developer], [cdp_Integration];
-
-/* spCreate Permissions for Committees: Terms */
-
-GRANT EXECUTE ON [${flyway:defaultSchema}].[spCreateTerm] TO [cdp_Developer], [cdp_Integration];
-
-/* spUpdate SQL for Committees: Terms */
------------------------------------------------------------------
--- SQL Code Generation
--- Entity: Committees: Terms
--- Item: spUpdateTerm
---
--- This was generated by the MemberJunction CodeGen tool.
--- This file should NOT be edited by hand.
------------------------------------------------------------------
-
-------------------------------------------------------------
------ UPDATE PROCEDURE FOR Term
-------------------------------------------------------------
-IF OBJECT_ID('[${flyway:defaultSchema}].[spUpdateTerm]', 'P') IS NOT NULL
-    DROP PROCEDURE [${flyway:defaultSchema}].[spUpdateTerm];
-GO
-
-CREATE PROCEDURE [${flyway:defaultSchema}].[spUpdateTerm]
-    @ID uniqueidentifier,
-    @Status nvarchar(50) = NULL
-AS
-BEGIN
-    SET NOCOUNT ON;
-    UPDATE
-        [${flyway:defaultSchema}].[Term]
-    SET
-        [Status] = ISNULL(@Status, [Status])
-    WHERE
-        [ID] = @ID
-
-    -- Check if the update was successful
-    IF @@ROWCOUNT = 0
-        -- Nothing was updated, return no rows, but column structure from base view intact, semantically correct this way.
-        SELECT TOP 0 * FROM [${flyway:defaultSchema}].[vwTerms] WHERE 1=0
-    ELSE
-        -- Return the updated record so the caller can see the updated values and any calculated fields
-        SELECT
-                                        *
-                                    FROM
-                                        [${flyway:defaultSchema}].[vwTerms]
-                                    WHERE
-                                        [ID] = @ID
-                                    
-END
-GO
-
-GRANT EXECUTE ON [${flyway:defaultSchema}].[spUpdateTerm] TO [cdp_Developer], [cdp_Integration]
-GO
-
-------------------------------------------------------------
------ TRIGGER FOR __mj_UpdatedAt field for the Term table
-------------------------------------------------------------
-IF OBJECT_ID('[${flyway:defaultSchema}].[trgUpdateTerm]', 'TR') IS NOT NULL
-    DROP TRIGGER [${flyway:defaultSchema}].[trgUpdateTerm];
-GO
-CREATE TRIGGER [${flyway:defaultSchema}].trgUpdateTerm
-ON [${flyway:defaultSchema}].[Term]
-AFTER UPDATE
-AS
-BEGIN
-    SET NOCOUNT ON;
-    UPDATE
-        [${flyway:defaultSchema}].[Term]
-    SET
-        __mj_UpdatedAt = GETUTCDATE()
-    FROM
-        [${flyway:defaultSchema}].[Term] AS _organicTable
-    INNER JOIN
-        INSERTED AS I ON
-        _organicTable.[ID] = I.[ID];
-END;
-GO
-
-/* spUpdate Permissions for Committees: Terms */
-
-GRANT EXECUTE ON [${flyway:defaultSchema}].[spUpdateTerm] TO [cdp_Developer], [cdp_Integration];
-
-/* spDelete SQL for Committees: Terms */
------------------------------------------------------------------
--- SQL Code Generation
--- Entity: Committees: Terms
--- Item: spDeleteTerm
---
--- This was generated by the MemberJunction CodeGen tool.
--- This file should NOT be edited by hand.
------------------------------------------------------------------
-
-------------------------------------------------------------
------ DELETE PROCEDURE FOR Term
-------------------------------------------------------------
-IF OBJECT_ID('[${flyway:defaultSchema}].[spDeleteTerm]', 'P') IS NOT NULL
-    DROP PROCEDURE [${flyway:defaultSchema}].[spDeleteTerm];
-GO
-
-CREATE PROCEDURE [${flyway:defaultSchema}].[spDeleteTerm]
-    @ID uniqueidentifier
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    DELETE FROM
-        [${flyway:defaultSchema}].[Term]
-    WHERE
-        [ID] = @ID
-
-
-    -- Check if the delete was successful
-    IF @@ROWCOUNT = 0
-        SELECT NULL AS [ID] -- Return NULL for all primary key fields to indicate no record was deleted
-    ELSE
-        SELECT @ID AS [ID] -- Return the primary key values to indicate we successfully deleted the record
-END
-GO
-GRANT EXECUTE ON [${flyway:defaultSchema}].[spDeleteTerm] TO [cdp_Developer], [cdp_Integration];
-
-/* spDelete Permissions for Committees: Terms */
-
-GRANT EXECUTE ON [${flyway:defaultSchema}].[spDeleteTerm] TO [cdp_Developer], [cdp_Integration];
-
-/* SQL text to delete unneeded entity fields */
 EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='', @IncludedSchemaNames='${flyway:defaultSchema}';
 
-/* SQL text to insert 9 new entity field(s) */
+/* SQL text to insert 4 new entity field(s) */
+/* SQL text to insert 33 new entity field(s) */
 
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'da0d18b1-678e-4c25-8108-6c693dc0478c' OR (EntityID = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND Name = 'Committee')) BEGIN
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '777c2d0a-58e6-4dc7-aee6-79408a73f1f3' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'SpaceTypeID')) BEGIN
          INSERT INTO [${mjSchema}].[EntityField]
          (
             [ID],
@@ -7491,14 +3622,14 @@ EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='', @Incl
          )
          VALUES
          (
-            'da0d18b1-678e-4c25-8108-6c693dc0478c',
-            'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', -- Entity: Committees: Comments
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF'),
-            'Committee',
-            'Committee',
+            '777c2d0a-58e6-4dc7-aee6-79408a73f1f3',
+            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
+            'SpaceTypeID',
+            'Space Type ID',
             NULL,
-            'nvarchar',
-            400,
+            'uniqueidentifier',
+            16,
             0,
             0,
             0,
@@ -7521,7 +3652,7 @@ EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='', @Incl
          )
       END;
 
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '1071c3bb-5024-446a-9f5d-7a73ebba85e5' OR (EntityID = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND Name = 'RootParentCommentID')) BEGIN
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '56d8ef59-ee56-4da8-9002-edb7c5d7c423' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'ParentID')) BEGIN
          INSERT INTO [${mjSchema}].[EntityField]
          (
             [ID],
@@ -7554,11 +3685,11 @@ EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='', @Incl
          )
          VALUES
          (
-            '1071c3bb-5024-446a-9f5d-7a73ebba85e5',
-            'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', -- Entity: Committees: Comments
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF'),
-            'RootParentCommentID',
-            'Root Parent Comment ID',
+            '56d8ef59-ee56-4da8-9002-edb7c5d7c423',
+            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
+            'ParentID',
+            'Parent ID',
             NULL,
             'uniqueidentifier',
             16,
@@ -7584,7 +3715,7 @@ EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='', @Incl
          )
       END;
 
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '704ae5c5-fbe2-426d-b973-b109e67d4670' OR (EntityID = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND Name = 'ParentCommentIDDepth')) BEGIN
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '73ae2fde-380b-4828-88b5-91c3c0346371' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'OwnerID')) BEGIN
          INSERT INTO [${mjSchema}].[EntityField]
          (
             [ID],
@@ -7617,7 +3748,1708 @@ EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='', @Incl
          )
          VALUES
          (
-            '704ae5c5-fbe2-426d-b973-b109e67d4670',
+            '73ae2fde-380b-4828-88b5-91c3c0346371',
+            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
+            'OwnerID',
+            'Owner ID',
+            NULL,
+            'uniqueidentifier',
+            16,
+            0,
+            0,
+            0,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '0e4a3e6a-d45c-4852-b785-a264b9383fc3' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'InheritsMembership')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            '0e4a3e6a-d45c-4852-b785-a264b9383fc3',
+            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
+            'InheritsMembership',
+            'Inherits Membership',
+            NULL,
+            'bit',
+            1,
+            1,
+            0,
+            0,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '02154acc-3aea-43de-9c82-acc956b64b10' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'AgentRetrieval')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            '02154acc-3aea-43de-9c82-acc956b64b10',
+            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
+            'AgentRetrieval',
+            'Agent Retrieval',
+            NULL,
+            'nvarchar',
+            60,
+            0,
+            0,
+            0,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '465f154a-d85f-455c-94fb-a15d7189c962' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'StartedAt')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            '465f154a-d85f-455c-94fb-a15d7189c962',
+            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
+            'StartedAt',
+            'Started At',
+            NULL,
+            'datetimeoffset',
+            10,
+            34,
+            7,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '884aae4f-0883-4ab7-83f6-e056817ce166' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'ClosedAt')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            '884aae4f-0883-4ab7-83f6-e056817ce166',
+            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
+            'ClosedAt',
+            'Closed At',
+            NULL,
+            'datetimeoffset',
+            10,
+            34,
+            7,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '18397653-b5f6-4867-a1ad-e0c7786da5ce' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'AllowParentAssignees')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            '18397653-b5f6-4867-a1ad-e0c7786da5ce',
+            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
+            'AllowParentAssignees',
+            'Allow Parent Assignees',
+            NULL,
+            'bit',
+            1,
+            1,
+            0,
+            0,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '7b6fbfee-3be1-4940-8bfc-890370c44285' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'PlannedCloseAt')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            '7b6fbfee-3be1-4940-8bfc-890370c44285',
+            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
+            'PlannedCloseAt',
+            'Planned Close At',
+            NULL,
+            'datetimeoffset',
+            10,
+            34,
+            7,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '289726ec-fdc8-43cd-9bd7-0bb63de23dfc' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'IconClass')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            '289726ec-fdc8-43cd-9bd7-0bb63de23dfc',
+            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
+            'IconClass',
+            'Icon Class',
+            NULL,
+            'nvarchar',
+            200,
+            0,
+            0,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '1c95ff3a-fbb2-4659-9a8e-6e5b5cd82a50' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'Color')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            '1c95ff3a-fbb2-4659-9a8e-6e5b5cd82a50',
+            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
+            'Color',
+            'Color',
+            NULL,
+            'nvarchar',
+            100,
+            0,
+            0,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'bb5d9674-fa09-42db-ba32-9e7e182e5141' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'BackgroundImageURL')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            'bb5d9674-fa09-42db-ba32-9e7e182e5141',
+            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
+            'BackgroundImageURL',
+            'Background Image URL',
+            NULL,
+            'nvarchar',
+            2000,
+            0,
+            0,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '8e2ce8ab-373a-4386-9189-aeeefb913d2a' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'Configuration')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            '8e2ce8ab-373a-4386-9189-aeeefb913d2a',
+            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
+            'Configuration',
+            'Configuration',
+            NULL,
+            'nvarchar',
+            -1,
+            0,
+            0,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '23ce41c0-7388-4f31-9cd5-bc9340c86d2b' OR (EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND Name = 'StatusID')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            '23ce41c0-7388-4f31-9cd5-bc9340c86d2b',
+            'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', -- Entity: Committees: Committees
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'),
+            'StatusID',
+            'Status ID',
+            NULL,
+            'uniqueidentifier',
+            16,
+            0,
+            0,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'c269b8ec-a05a-40ce-9f9e-7c2959c8ebc0' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'SpaceTypeID')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            'c269b8ec-a05a-40ce-9f9e-7c2959c8ebc0',
+            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
+            'SpaceTypeID',
+            'Space Type ID',
+            NULL,
+            'uniqueidentifier',
+            16,
+            0,
+            0,
+            0,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'fd84730c-f6a3-4103-9180-58fd37e2609e' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'ParentID')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            'fd84730c-f6a3-4103-9180-58fd37e2609e',
+            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
+            'ParentID',
+            'Parent ID',
+            NULL,
+            'uniqueidentifier',
+            16,
+            0,
+            0,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'e65dac9f-bb1d-46be-9045-4343dace80cc' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'Description')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            'e65dac9f-bb1d-46be-9045-4343dace80cc',
+            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
+            'Description',
+            'Description',
+            NULL,
+            'nvarchar',
+            -1,
+            0,
+            0,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'd26a4989-ee55-4115-ba56-6818fe635612' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'OwnerID')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            'd26a4989-ee55-4115-ba56-6818fe635612',
+            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
+            'OwnerID',
+            'Owner ID',
+            NULL,
+            'uniqueidentifier',
+            16,
+            0,
+            0,
+            0,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '4753a9bb-638a-46cb-a96c-1d99edb3a9db' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'InheritsMembership')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            '4753a9bb-638a-46cb-a96c-1d99edb3a9db',
+            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
+            'InheritsMembership',
+            'Inherits Membership',
+            NULL,
+            'bit',
+            1,
+            1,
+            0,
+            0,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '6771a866-6ad9-451d-b6ee-3f1400bfeed2' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'AgentRetrieval')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            '6771a866-6ad9-451d-b6ee-3f1400bfeed2',
+            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
+            'AgentRetrieval',
+            'Agent Retrieval',
+            NULL,
+            'nvarchar',
+            60,
+            0,
+            0,
+            0,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'e9b39ee1-bec8-4325-becf-77434f140167' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'StartedAt')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            'e9b39ee1-bec8-4325-becf-77434f140167',
+            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
+            'StartedAt',
+            'Started At',
+            NULL,
+            'datetimeoffset',
+            10,
+            34,
+            7,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '75fb82e1-5d99-4775-9fee-a2487a3fa70d' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'ClosedAt')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            '75fb82e1-5d99-4775-9fee-a2487a3fa70d',
+            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
+            'ClosedAt',
+            'Closed At',
+            NULL,
+            'datetimeoffset',
+            10,
+            34,
+            7,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'ec2b9ff2-6218-4e6b-9e91-4d6e68e51e43' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'AllowParentAssignees')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            'ec2b9ff2-6218-4e6b-9e91-4d6e68e51e43',
+            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
+            'AllowParentAssignees',
+            'Allow Parent Assignees',
+            NULL,
+            'bit',
+            1,
+            1,
+            0,
+            0,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '6ef0974c-eb56-4f55-bac6-65f9d4f0bf5c' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'PlannedCloseAt')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            '6ef0974c-eb56-4f55-bac6-65f9d4f0bf5c',
+            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
+            'PlannedCloseAt',
+            'Planned Close At',
+            NULL,
+            'datetimeoffset',
+            10,
+            34,
+            7,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'ccc3ce45-8ad8-4206-82d3-67e547c4b324' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'IconClass')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            'ccc3ce45-8ad8-4206-82d3-67e547c4b324',
+            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
+            'IconClass',
+            'Icon Class',
+            NULL,
+            'nvarchar',
+            200,
+            0,
+            0,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'e6c01f74-452c-474b-a45c-47e8f8bf1c70' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'Color')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            'e6c01f74-452c-474b-a45c-47e8f8bf1c70',
+            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
+            'Color',
+            'Color',
+            NULL,
+            'nvarchar',
+            100,
+            0,
+            0,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'ec7edf8a-e0f0-49b2-9f8d-18ba47da478d' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'BackgroundImageURL')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            'ec7edf8a-e0f0-49b2-9f8d-18ba47da478d',
+            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
+            'BackgroundImageURL',
+            'Background Image URL',
+            NULL,
+            'nvarchar',
+            2000,
+            0,
+            0,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'd976b72a-9d57-474c-bc0d-a3c54e74338d' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'Configuration')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            'd976b72a-9d57-474c-bc0d-a3c54e74338d',
+            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
+            'Configuration',
+            'Configuration',
+            NULL,
+            'nvarchar',
+            -1,
+            0,
+            0,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '683b817a-a0f1-4d85-aa0a-08390d2b5e19' OR (EntityID = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND Name = 'StatusID')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            '683b817a-a0f1-4d85-aa0a-08390d2b5e19',
+            '87BEDFA6-F149-4AF2-993C-81BD01169584', -- Entity: Committees: Terms
+            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584'),
+            'StatusID',
+            'Status ID',
+            NULL,
+            'uniqueidentifier',
+            16,
+            0,
+            0,
+            1,
+            NULL,
+            0,
+            0,
+            1,
+            0,
+            NULL,
+            NULL,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            'Search',
+            GETUTCDATE(),
+            GETUTCDATE()
+         )
+      END;
+
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '91d9dcf2-36cb-4999-a975-9c004ceea46e' OR (EntityID = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND Name = 'ParentCommentIDDepth')) BEGIN
+         INSERT INTO [${mjSchema}].[EntityField]
+         (
+            [ID],
+            [EntityID],
+            [Sequence],
+            [Name],
+            [DisplayName],
+            [Description],
+            [Type],
+            [Length],
+            [Precision],
+            [Scale],
+            [AllowsNull],
+            [DefaultValue],
+            [AutoIncrement],
+            [AllowUpdateAPI],
+            [IsVirtual],
+            [IsComputed],
+            [RelatedEntityID],
+            [RelatedEntityFieldName],
+            [IsNameField],
+            [IncludeInUserSearchAPI],
+            [IncludeRelatedEntityNameFieldInBaseView],
+            [DefaultInView],
+            [IsPrimaryKey],
+            [IsUnique],
+            [RelatedEntityDisplayType],
+            [__mj_CreatedAt],
+            [__mj_UpdatedAt]
+         )
+         VALUES
+         (
+            '91d9dcf2-36cb-4999-a975-9c004ceea46e',
             'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', -- Entity: Committees: Comments
             (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF'),
             'ParentCommentIDDepth',
@@ -7647,7 +5479,7 @@ EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='', @Incl
          )
       END;
 
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'b2bac3a0-7d5e-4e70-8cd6-e5bd67ba1a05' OR (EntityID = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND Name = 'ParentCommentIDPath')) BEGIN
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '6f186aa1-e1e3-4efc-b3fd-569a124a2a98' OR (EntityID = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND Name = 'ParentCommentIDPath')) BEGIN
          INSERT INTO [${mjSchema}].[EntityField]
          (
             [ID],
@@ -7680,7 +5512,7 @@ EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='', @Incl
          )
          VALUES
          (
-            'b2bac3a0-7d5e-4e70-8cd6-e5bd67ba1a05',
+            '6f186aa1-e1e3-4efc-b3fd-569a124a2a98',
             'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', -- Entity: Committees: Comments
             (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF'),
             'ParentCommentIDPath',
@@ -7710,7 +5542,7 @@ EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='', @Incl
          )
       END;
 
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '9e0aa59e-ecc0-4d11-a4b6-bd22ce558ba3' OR (EntityID = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND Name = 'ParentCommentIDIsLeaf')) BEGIN
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'b35a33e3-2497-4e15-9588-c8b62cd8d763' OR (EntityID = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND Name = 'ParentCommentIDIsLeaf')) BEGIN
          INSERT INTO [${mjSchema}].[EntityField]
          (
             [ID],
@@ -7743,7 +5575,7 @@ EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='', @Incl
          )
          VALUES
          (
-            '9e0aa59e-ecc0-4d11-a4b6-bd22ce558ba3',
+            'b35a33e3-2497-4e15-9588-c8b62cd8d763',
             'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', -- Entity: Committees: Comments
             (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF'),
             'ParentCommentIDIsLeaf',
@@ -7773,7 +5605,7 @@ EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='', @Incl
          )
       END;
 
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '7c6ef83c-47e4-4097-856b-fa55d608e458' OR (EntityID = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND Name = 'ParentCommentIDChildCount')) BEGIN
+      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '61144bb3-e01d-4226-9290-dcdf8c077889' OR (EntityID = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND Name = 'ParentCommentIDChildCount')) BEGIN
          INSERT INTO [${mjSchema}].[EntityField]
          (
             [ID],
@@ -7806,7 +5638,7 @@ EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='', @Incl
          )
          VALUES
          (
-            '7c6ef83c-47e4-4097-856b-fa55d608e458',
+            '61144bb3-e01d-4226-9290-dcdf8c077889',
             'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', -- Entity: Committees: Comments
             (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF'),
             'ParentCommentIDChildCount',
@@ -7836,197 +5668,574 @@ EXEC [${mjSchema}].[spDeleteUnneededEntityFields] @ExcludedSchemaNames='', @Incl
          )
       END;
 
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '69106528-5453-4efa-99dc-f3d4926c7039' OR (EntityID = 'F8FADBBE-A323-48FB-8395-3B543729F6E6' AND Name = 'Term')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '69106528-5453-4efa-99dc-f3d4926c7039',
-            'F8FADBBE-A323-48FB-8395-3B543729F6E6', -- Entity: Committees: Memberships
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = 'F8FADBBE-A323-48FB-8395-3B543729F6E6'),
-            'Term',
-            'Term',
-            NULL,
-            'nvarchar',
-            400,
-            0,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = '6d0f14f1-13d6-4980-9208-ed076f4688e5' OR (EntityID = '272BEFB5-727A-4525-B235-775A56B7ACBB' AND Name = 'Committee')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            '6d0f14f1-13d6-4980-9208-ed076f4688e5',
-            '272BEFB5-727A-4525-B235-775A56B7ACBB', -- Entity: Committees: Artifacts
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '272BEFB5-727A-4525-B235-775A56B7ACBB'),
-            'Committee',
-            'Committee',
-            NULL,
-            'nvarchar',
-            400,
-            0,
-            0,
-            1,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
-      IF NOT EXISTS (SELECT 1 FROM [${mjSchema}].[EntityField] WHERE ID = 'a712be52-4c7a-4a73-8979-db4eea6ad7e8' OR (EntityID = '194B3496-2829-4806-BC42-CF0724A1DD26' AND Name = 'Committee')) BEGIN
-         INSERT INTO [${mjSchema}].[EntityField]
-         (
-            [ID],
-            [EntityID],
-            [Sequence],
-            [Name],
-            [DisplayName],
-            [Description],
-            [Type],
-            [Length],
-            [Precision],
-            [Scale],
-            [AllowsNull],
-            [DefaultValue],
-            [AutoIncrement],
-            [AllowUpdateAPI],
-            [IsVirtual],
-            [IsComputed],
-            [RelatedEntityID],
-            [RelatedEntityFieldName],
-            [IsNameField],
-            [IncludeInUserSearchAPI],
-            [IncludeRelatedEntityNameFieldInBaseView],
-            [DefaultInView],
-            [IsPrimaryKey],
-            [IsUnique],
-            [RelatedEntityDisplayType],
-            [__mj_CreatedAt],
-            [__mj_UpdatedAt]
-         )
-         VALUES
-         (
-            'a712be52-4c7a-4a73-8979-db4eea6ad7e8',
-            '194B3496-2829-4806-BC42-CF0724A1DD26', -- Entity: Committees: Ballots
-            (SELECT COALESCE(MAX([Sequence]), 0) + 1 FROM [${mjSchema}].[EntityField] WHERE [EntityID] = '194B3496-2829-4806-BC42-CF0724A1DD26'),
-            'Committee',
-            'Committee',
-            NULL,
-            'nvarchar',
-            400,
-            0,
-            0,
-            0,
-            NULL,
-            0,
-            0,
-            1,
-            0,
-            NULL,
-            NULL,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            'Search',
-            GETUTCDATE(),
-            GETUTCDATE()
-         )
-      END;
-
 /* SQL text to update existing entity fields from schema (8 scoped entities) */
-EXEC [${mjSchema}].[spUpdateExistingEntityFieldsFromSchema] @ExcludedSchemaNames='', @EntityIDs='C1CEF804-AA80-47A0-9750-2A4C5227B6DF,F8FADBBE-A323-48FB-8395-3B543729F6E6,A5DA88A1-AA21-4A3F-B1C4-42652FB440CE,AAAEE71B-D7CF-4628-BED0-59D43256E46A,272BEFB5-727A-4525-B235-775A56B7ACBB,87BEDFA6-F149-4AF2-993C-81BD01169584,194B3496-2829-4806-BC42-CF0724A1DD26,0EC944F9-F908-4662-87B2-E57077A873FF', @IncludedSchemaNames='${flyway:defaultSchema}';
+EXEC [${mjSchema}].[spUpdateExistingEntityFieldsFromSchema] @ExcludedSchemaNames='', @IncludedSchemaNames='${flyway:defaultSchema}';
+
+/* Update IS-A parent field SpaceTypeID on Committees: Committees */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='uniqueidentifier',
+                      [Length]=16,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=0,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]='01596359-EC4B-449C-BA16-316DE4B92A4E',
+                      [RelatedEntityFieldName]='ID',
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='777C2D0A-58E6-4DC7-AEE6-79408A73F1F3';
+
+/* Update IS-A parent field ParentID on Committees: Committees */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='uniqueidentifier',
+                      [Length]=16,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]='3648DC35-1DC4-4ED6-A1A6-5D87271A54DB',
+                      [RelatedEntityFieldName]='ID',
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='56D8EF59-EE56-4DA8-9002-EDB7C5D7C423';
+
+/* Update IS-A parent field OwnerID on Committees: Committees */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='uniqueidentifier',
+                      [Length]=16,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=0,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]='E1238F34-2837-EF11-86D4-6045BDEE16E6',
+                      [RelatedEntityFieldName]='ID',
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='73AE2FDE-380B-4828-88B5-91C3C0346371';
+
+/* Update IS-A parent field InheritsMembership on Committees: Committees */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='bit',
+                      [Length]=1,
+                      [Precision]=1,
+                      [Scale]=0,
+                      [AllowsNull]=0,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='0E4A3E6A-D45C-4852-B785-A264B9383FC3';
+
+/* Update IS-A parent field AgentRetrieval on Committees: Committees */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='nvarchar',
+                      [Length]=60,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=0,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='02154ACC-3AEA-43DE-9C82-ACC956B64B10';
+
+/* Update IS-A parent field StartedAt on Committees: Committees */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='datetimeoffset',
+                      [Length]=10,
+                      [Precision]=34,
+                      [Scale]=7,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='465F154A-D85F-455C-94FB-A15D7189C962';
+
+/* Update IS-A parent field ClosedAt on Committees: Committees */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='datetimeoffset',
+                      [Length]=10,
+                      [Precision]=34,
+                      [Scale]=7,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='884AAE4F-0883-4AB7-83F6-E056817CE166';
+
+/* Update IS-A parent field AllowParentAssignees on Committees: Committees */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='bit',
+                      [Length]=1,
+                      [Precision]=1,
+                      [Scale]=0,
+                      [AllowsNull]=0,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='18397653-B5F6-4867-A1AD-E0C7786DA5CE';
+
+/* Update IS-A parent field PlannedCloseAt on Committees: Committees */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='datetimeoffset',
+                      [Length]=10,
+                      [Precision]=34,
+                      [Scale]=7,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='7B6FBFEE-3BE1-4940-8BFC-890370C44285';
+
+/* Update IS-A parent field IconClass on Committees: Committees */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='nvarchar',
+                      [Length]=200,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='289726EC-FDC8-43CD-9BD7-0BB63DE23DFC';
+
+/* Update IS-A parent field Color on Committees: Committees */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='nvarchar',
+                      [Length]=100,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='1C95FF3A-FBB2-4659-9A8E-6E5B5CD82A50';
+
+/* Update IS-A parent field BackgroundImageURL on Committees: Committees */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='nvarchar',
+                      [Length]=2000,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='BB5D9674-FA09-42DB-BA32-9E7E182E5141';
+
+/* Update IS-A parent field Configuration on Committees: Committees */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='nvarchar',
+                      [Length]=-1,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='8E2CE8AB-373A-4386-9189-AEEEFB913D2A';
+
+/* Update IS-A parent field StatusID on Committees: Committees */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='uniqueidentifier',
+                      [Length]=16,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]='106DF2B5-DF08-48EE-A0E1-26C329DC0343',
+                      [RelatedEntityFieldName]='ID',
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='23CE41C0-7388-4F31-9CD5-BC9340C86D2B';
+
+/* Update entity timestamp for Committees: Committees after IS-A field sync */
+UPDATE [${mjSchema}].[Entity] SET [__mj_UpdatedAt]=GETUTCDATE() WHERE ID='A5DA88A1-AA21-4A3F-B1C4-42652FB440CE';
+
+/* Update IS-A parent field SpaceTypeID on Committees: Terms */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='uniqueidentifier',
+                      [Length]=16,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=0,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]='01596359-EC4B-449C-BA16-316DE4B92A4E',
+                      [RelatedEntityFieldName]='ID',
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='C269B8EC-A05A-40CE-9F9E-7C2959C8EBC0';
+
+/* Update IS-A parent field ParentID on Committees: Terms */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='uniqueidentifier',
+                      [Length]=16,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]='3648DC35-1DC4-4ED6-A1A6-5D87271A54DB',
+                      [RelatedEntityFieldName]='ID',
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='FD84730C-F6A3-4103-9180-58FD37E2609E';
+
+/* Update IS-A parent field Description on Committees: Terms */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='nvarchar',
+                      [Length]=-1,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='E65DAC9F-BB1D-46BE-9045-4343DACE80CC';
+
+/* Update IS-A parent field OwnerID on Committees: Terms */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='uniqueidentifier',
+                      [Length]=16,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=0,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]='E1238F34-2837-EF11-86D4-6045BDEE16E6',
+                      [RelatedEntityFieldName]='ID',
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='D26A4989-EE55-4115-BA56-6818FE635612';
+
+/* Update IS-A parent field InheritsMembership on Committees: Terms */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='bit',
+                      [Length]=1,
+                      [Precision]=1,
+                      [Scale]=0,
+                      [AllowsNull]=0,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='4753A9BB-638A-46CB-A96C-1D99EDB3A9DB';
+
+/* Update IS-A parent field AgentRetrieval on Committees: Terms */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='nvarchar',
+                      [Length]=60,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=0,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='6771A866-6AD9-451D-B6EE-3F1400BFEED2';
+
+/* Update IS-A parent field StartedAt on Committees: Terms */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='datetimeoffset',
+                      [Length]=10,
+                      [Precision]=34,
+                      [Scale]=7,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='E9B39EE1-BEC8-4325-BECF-77434F140167';
+
+/* Update IS-A parent field ClosedAt on Committees: Terms */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='datetimeoffset',
+                      [Length]=10,
+                      [Precision]=34,
+                      [Scale]=7,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='75FB82E1-5D99-4775-9FEE-A2487A3FA70D';
+
+/* Update IS-A parent field AllowParentAssignees on Committees: Terms */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='bit',
+                      [Length]=1,
+                      [Precision]=1,
+                      [Scale]=0,
+                      [AllowsNull]=0,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='EC2B9FF2-6218-4E6B-9E91-4D6E68E51E43';
+
+/* Update IS-A parent field PlannedCloseAt on Committees: Terms */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='datetimeoffset',
+                      [Length]=10,
+                      [Precision]=34,
+                      [Scale]=7,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='6EF0974C-EB56-4F55-BAC6-65F9D4F0BF5C';
+
+/* Update IS-A parent field IconClass on Committees: Terms */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='nvarchar',
+                      [Length]=200,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='CCC3CE45-8AD8-4206-82D3-67E547C4B324';
+
+/* Update IS-A parent field Color on Committees: Terms */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='nvarchar',
+                      [Length]=100,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='E6C01F74-452C-474B-A45C-47E8F8BF1C70';
+
+/* Update IS-A parent field BackgroundImageURL on Committees: Terms */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='nvarchar',
+                      [Length]=2000,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='EC7EDF8A-E0F0-49B2-9F8D-18BA47DA478D';
+
+/* Update IS-A parent field Configuration on Committees: Terms */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='nvarchar',
+                      [Length]=-1,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]=NULL,
+                      [RelatedEntityFieldName]=NULL,
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='D976B72A-9D57-474C-BC0D-A3C54E74338D';
+
+/* Update IS-A parent field StatusID on Committees: Terms */
+UPDATE [${mjSchema}].[EntityField]
+                  SET [IsVirtual]=1,
+                      [Type]='uniqueidentifier',
+                      [Length]=16,
+                      [Precision]=0,
+                      [Scale]=0,
+                      [AllowsNull]=1,
+                      [AllowUpdateAPI]=1,
+                      [IncludeRelatedEntityNameFieldInBaseView]=0,
+                      [RelatedEntityID]='106DF2B5-DF08-48EE-A0E1-26C329DC0343',
+                      [RelatedEntityFieldName]='ID',
+                      [RelatedEntityDisplayType]='Search'
+                  WHERE [ID]='683B817A-A0F1-4D85-AA0A-08390D2B5E19';
+
+/* Update entity timestamp for Committees: Terms after IS-A field sync */
+UPDATE [${mjSchema}].[Entity] SET [__mj_UpdatedAt]=GETUTCDATE() WHERE ID='87BEDFA6-F149-4AF2-993C-81BD01169584';
 
 /* SQL text to set default column width where needed */
 EXEC [${mjSchema}].[spSetDefaultColumnWidthWhereNeeded] @ExcludedSchemaNames='', @IncludedSchemaNames='${flyway:defaultSchema}';
+
+
+/* Create Entity Relationship: MJ_BizApps_Tasks: Meeting Agenda Items -> Committees: Comments (One To Many via AgendaItemID) */
+   IF NOT EXISTS (
+      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '61054aae-cc04-4cf8-9182-d8ee0564350f' OR ([EntityID] = '9C171F1D-86F9-4630-8548-1DC6163272CA' AND [RelatedEntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND [RelatedEntityJoinField] = 'AgendaItemID')
+   )
+   BEGIN
+      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
+                    VALUES ('61054aae-cc04-4cf8-9182-d8ee0564350f', '9C171F1D-86F9-4630-8548-1DC6163272CA', 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', 'AgendaItemID', 'One To Many', 1, 1, 3, GETUTCDATE(), GETUTCDATE())
+   END;
+                    
+/* Create Entity Relationship: MJ_BizApps_Tasks: Meeting Agenda Items -> Committees: Motions (One To Many via AgendaItemID) */
+   IF NOT EXISTS (
+      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '0ff4fe63-6127-4794-9ba9-5440e7babbf6' OR ([EntityID] = '9C171F1D-86F9-4630-8548-1DC6163272CA' AND [RelatedEntityID] = 'AAAEE71B-D7CF-4628-BED0-59D43256E46A' AND [RelatedEntityJoinField] = 'AgendaItemID')
+   )
+   BEGIN
+      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
+                    VALUES ('0ff4fe63-6127-4794-9ba9-5440e7babbf6', '9C171F1D-86F9-4630-8548-1DC6163272CA', 'AAAEE71B-D7CF-4628-BED0-59D43256E46A', 'AgendaItemID', 'One To Many', 1, 1, 4, GETUTCDATE(), GETUTCDATE())
+   END;
+                    
+/* Create Entity Relationship: MJ_BizApps_Tasks: Meeting Agenda Items -> Committees: Artifacts (One To Many via AgendaItemID) */
+   IF NOT EXISTS (
+      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = 'ebe40c77-017e-4595-9a56-e68baf4937e4' OR ([EntityID] = '9C171F1D-86F9-4630-8548-1DC6163272CA' AND [RelatedEntityID] = '272BEFB5-727A-4525-B235-775A56B7ACBB' AND [RelatedEntityJoinField] = 'AgendaItemID')
+   )
+   BEGIN
+      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
+                    VALUES ('ebe40c77-017e-4595-9a56-e68baf4937e4', '9C171F1D-86F9-4630-8548-1DC6163272CA', '272BEFB5-727A-4525-B235-775A56B7ACBB', 'AgendaItemID', 'One To Many', 1, 1, 5, GETUTCDATE(), GETUTCDATE())
+   END;
+
+
+/* Create Entity Relationship: Committees: Committees -> Committees: Comments (One To Many via CommitteeID) */
+   IF NOT EXISTS (
+      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '4d0f8874-4855-40e3-a92a-f476a3fa5d7d' OR ([EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND [RelatedEntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND [RelatedEntityJoinField] = 'CommitteeID')
+   )
+   BEGIN
+      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
+                    VALUES ('4d0f8874-4855-40e3-a92a-f476a3fa5d7d', 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', 'CommitteeID', 'One To Many', 1, 1, 1, GETUTCDATE(), GETUTCDATE())
+   END;
+                    
+/* Create Entity Relationship: Committees: Committees -> Committees: Artifacts (One To Many via CommitteeID) */
+   IF NOT EXISTS (
+      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '5679460b-1f7d-4977-bf84-83491e2be12b' OR ([EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND [RelatedEntityID] = '272BEFB5-727A-4525-B235-775A56B7ACBB' AND [RelatedEntityJoinField] = 'CommitteeID')
+   )
+   BEGIN
+      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
+                    VALUES ('5679460b-1f7d-4977-bf84-83491e2be12b', 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', '272BEFB5-727A-4525-B235-775A56B7ACBB', 'CommitteeID', 'One To Many', 1, 1, 2, GETUTCDATE(), GETUTCDATE())
+   END;
+
+
+/* Create Entity Relationship: Committees: Committees -> Committees: Ballots (One To Many via CommitteeID) */
+   IF NOT EXISTS (
+      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '3b6bd477-5fae-422b-b46b-942c65761366' OR ([EntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND [RelatedEntityID] = '194B3496-2829-4806-BC42-CF0724A1DD26' AND [RelatedEntityJoinField] = 'CommitteeID')
+   )
+   BEGIN
+      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
+                    VALUES ('3b6bd477-5fae-422b-b46b-942c65761366', 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', '194B3496-2829-4806-BC42-CF0724A1DD26', 'CommitteeID', 'One To Many', 1, 1, 3, GETUTCDATE(), GETUTCDATE())
+   END;
+                    
+/* Create Entity Relationship: MJ_BizApps_Tasks: Meetings -> Committees: Comments (One To Many via MeetingID) */
+   IF NOT EXISTS (
+      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '6ac28120-f853-45e1-8502-29930e727986' OR ([EntityID] = 'D8B37817-4EB1-414C-9273-5977AB80DB63' AND [RelatedEntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND [RelatedEntityJoinField] = 'MeetingID')
+   )
+   BEGIN
+      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
+                    VALUES ('6ac28120-f853-45e1-8502-29930e727986', 'D8B37817-4EB1-414C-9273-5977AB80DB63', 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF', 'MeetingID', 'One To Many', 1, 1, 6, GETUTCDATE(), GETUTCDATE())
+   END;
+                    
+/* Create Entity Relationship: MJ_BizApps_Tasks: Meetings -> Committees: Motions (One To Many via MeetingID) */
+   IF NOT EXISTS (
+      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '82cc6b39-6bab-4c01-92ad-a05f56633939' OR ([EntityID] = 'D8B37817-4EB1-414C-9273-5977AB80DB63' AND [RelatedEntityID] = 'AAAEE71B-D7CF-4628-BED0-59D43256E46A' AND [RelatedEntityJoinField] = 'MeetingID')
+   )
+   BEGIN
+      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
+                    VALUES ('82cc6b39-6bab-4c01-92ad-a05f56633939', 'D8B37817-4EB1-414C-9273-5977AB80DB63', 'AAAEE71B-D7CF-4628-BED0-59D43256E46A', 'MeetingID', 'One To Many', 1, 1, 7, GETUTCDATE(), GETUTCDATE())
+   END;
+                    
+/* Create Entity Relationship: MJ_BizApps_Tasks: Meetings -> Committees: Artifacts (One To Many via MeetingID) */
+   IF NOT EXISTS (
+      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '72127cba-d63b-41a9-950c-558bca555550' OR ([EntityID] = 'D8B37817-4EB1-414C-9273-5977AB80DB63' AND [RelatedEntityID] = '272BEFB5-727A-4525-B235-775A56B7ACBB' AND [RelatedEntityJoinField] = 'MeetingID')
+   )
+   BEGIN
+      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
+                    VALUES ('72127cba-d63b-41a9-950c-558bca555550', 'D8B37817-4EB1-414C-9273-5977AB80DB63', '272BEFB5-727A-4525-B235-775A56B7ACBB', 'MeetingID', 'One To Many', 1, 1, 8, GETUTCDATE(), GETUTCDATE())
+   END;
+                    
+/* Create Entity Relationship: MJ_BizApps_Tasks: Meetings -> Committees: Minutes (One To Many via MeetingID) */
+   IF NOT EXISTS (
+      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '8dc176e2-62d3-4460-9d2e-ecc35507920b' OR ([EntityID] = 'D8B37817-4EB1-414C-9273-5977AB80DB63' AND [RelatedEntityID] = '0EC944F9-F908-4662-87B2-E57077A873FF' AND [RelatedEntityJoinField] = 'MeetingID')
+   )
+   BEGIN
+      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
+                    VALUES ('8dc176e2-62d3-4460-9d2e-ecc35507920b', 'D8B37817-4EB1-414C-9273-5977AB80DB63', '0EC944F9-F908-4662-87B2-E57077A873FF', 'MeetingID', 'One To Many', 1, 1, 9, GETUTCDATE(), GETUTCDATE())
+   END;
+                    
+/* Create Entity Relationship: MJ_BizApps_Tasks: Meetings -> Committees: Minutes (One To Many via ApprovedByMeetingID) */
+   IF NOT EXISTS (
+      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '0759db96-d2b8-44ef-8fad-c40f4dcf846d' OR ([EntityID] = 'D8B37817-4EB1-414C-9273-5977AB80DB63' AND [RelatedEntityID] = '0EC944F9-F908-4662-87B2-E57077A873FF' AND [RelatedEntityJoinField] = 'ApprovedByMeetingID')
+   )
+   BEGIN
+      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
+                    VALUES ('0759db96-d2b8-44ef-8fad-c40f4dcf846d', 'D8B37817-4EB1-414C-9273-5977AB80DB63', '0EC944F9-F908-4662-87B2-E57077A873FF', 'ApprovedByMeetingID', 'One To Many', 1, 1, 10, GETUTCDATE(), GETUTCDATE())
+   END;
+
+
+/* Create Entity Relationship: MJ_BizApps_Collaboration: Spaces -> Committees: Committees (One To Many via ID) */
+   IF NOT EXISTS (
+      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = 'd4781366-8acf-446b-8b05-015422ce6532' OR ([EntityID] = '3648DC35-1DC4-4ED6-A1A6-5D87271A54DB' AND [RelatedEntityID] = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE' AND [RelatedEntityJoinField] = 'ID')
+   )
+   BEGIN
+      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
+                    VALUES ('d4781366-8acf-446b-8b05-015422ce6532', '3648DC35-1DC4-4ED6-A1A6-5D87271A54DB', 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', 'ID', 'One To Many', 1, 1, 13, GETUTCDATE(), GETUTCDATE())
+   END;
+                    
+/* Create Entity Relationship: MJ_BizApps_Collaboration: Spaces -> Committees: Terms (One To Many via ID) */
+   IF NOT EXISTS (
+      SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '936b9518-3fa3-477a-a109-e06e853bcbad' OR ([EntityID] = '3648DC35-1DC4-4ED6-A1A6-5D87271A54DB' AND [RelatedEntityID] = '87BEDFA6-F149-4AF2-993C-81BD01169584' AND [RelatedEntityJoinField] = 'ID')
+   )
+   BEGIN
+      INSERT INTO [${mjSchema}].[EntityRelationship] ([ID], [EntityID], [RelatedEntityID], [RelatedEntityJoinField], [Type], [BundleInAPI], [DisplayInForm], [Sequence], [__mj_CreatedAt], [__mj_UpdatedAt])
+                    VALUES ('936b9518-3fa3-477a-a109-e06e853bcbad', '3648DC35-1DC4-4ED6-A1A6-5D87271A54DB', '87BEDFA6-F149-4AF2-993C-81BD01169584', 'ID', 'One To Many', 1, 1, 14, GETUTCDATE(), GETUTCDATE())
+   END;
+
+/* SQL text to sync schema info from database schemas */
+EXEC [${mjSchema}].[spUpdateSchemaInfoFromDatabase] @ExcludedSchemaNames='', @IncludedSchemaNames='${flyway:defaultSchema}';
+

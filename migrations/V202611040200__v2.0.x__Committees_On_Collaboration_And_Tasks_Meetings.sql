@@ -3732,6 +3732,9 @@ UPDATE [${mjSchema}].[EntityField]
          )
       END;
 
+/* SQL text to update existing entity fields from schema */
+EXEC [${mjSchema}].[spUpdateExistingEntityFieldsFromSchema] @ExcludedSchemaNames='', @IncludedSchemaNames='${flyway:defaultSchema}';
+
 /* Update IS-A parent field SpaceTypeID on Committees: Committees */
 UPDATE [${mjSchema}].[EntityField]
                   SET [IsVirtual]=1,
@@ -4217,6 +4220,9 @@ UPDATE [${mjSchema}].[EntityField]
 
 /* Update entity timestamp for Committees: Terms after IS-A field sync */
 UPDATE [${mjSchema}].[Entity] SET [__mj_UpdatedAt]=GETUTCDATE() WHERE ID='87BEDFA6-F149-4AF2-993C-81BD01169584';
+
+/* SQL text to set default column width where needed */
+EXEC [${mjSchema}].[spSetDefaultColumnWidthWhereNeeded] @ExcludedSchemaNames='', @IncludedSchemaNames='${flyway:defaultSchema}';
 
 /* Create Entity Relationship: MJ_BizApps_Tasks: Meetings -> Committees: Comments (One To Many via MeetingID) */
    IF NOT EXISTS (

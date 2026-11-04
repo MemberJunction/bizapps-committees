@@ -4215,17 +4215,6 @@ UPDATE [${mjSchema}].[Entity] SET [__mj_UpdatedAt]=GETUTCDATE() WHERE ID='87BEDF
 /* SQL text to set default column width where needed */
 EXEC [${mjSchema}].[spSetDefaultColumnWidthWhereNeeded] @ExcludedSchemaNames='', @IncludedSchemaNames='${flyway:defaultSchema}';
 
--- Ensure IsA subtypes of Spaces (Committees & Terms) carry the exact same ReadRLSFilterID as Spaces per role
-UPDATE subEp
-   SET subEp.[ReadRLSFilterID] = spaceEp.[ReadRLSFilterID]
-  FROM [${mjSchema}].[EntityPermission] subEp
-  INNER JOIN [${mjSchema}].[EntityPermission] spaceEp
-    ON spaceEp.[EntityID] = '3648DC35-1DC4-4ED6-A1A6-5D87271A54DB'
-   AND spaceEp.[RoleID] = subEp.[RoleID]
- WHERE subEp.[EntityID] IN ('A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', '87BEDFA6-F149-4AF2-993C-81BD01169584');
-GO
-
-
 /* Create Entity Relationship: MJ_BizApps_Tasks: Meetings -> Committees: Comments (One To Many via MeetingID) */
    IF NOT EXISTS (
       SELECT 1 FROM [${mjSchema}].[EntityRelationship] WHERE [ID] = '3d9c8f1b-d175-444f-b379-06390e5065b2' OR ([EntityID] = 'D8B37817-4EB1-414C-9273-5977AB80DB63' AND [RelatedEntityID] = 'C1CEF804-AA80-47A0-9750-2A4C5227B6DF' AND [RelatedEntityJoinField] = 'MeetingID')
@@ -8041,27 +8030,4 @@ UPDATE subEp
     ON spaceEp.[EntityID] = '3648DC35-1DC4-4ED6-A1A6-5D87271A54DB'
    AND spaceEp.[RoleID] = subEp.[RoleID]
  WHERE subEp.[EntityID] IN ('A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', '87BEDFA6-F149-4AF2-993C-81BD01169584');
-GO
-
-
--- -----------------------------------------------------------------------------
--- 9. Seed Collaboration Data Reach RLS Filters for Committees entities
--- -----------------------------------------------------------------------------
-MERGE INTO [${mjSchema}].[RowLevelSecurityFilter] AS tgt
-USING (VALUES
-    (CAST('C0300001-0000-4000-8000-000000000001' AS UNIQUEIDENTIFIER), N'Collaboration: Data Reach - Committees: Committees', N'Committees whose Space is in the caller''s Collaboration reach.', N'(ID IN (SELECT SpaceID FROM [__mj_BizAppsCollaboration].[fnCollaborationAccess](TRY_CAST(''{{UserID}}'' AS UNIQUEIDENTIFIER))))'),
-    (CAST('C0300001-0000-4000-8000-000000000002' AS UNIQUEIDENTIFIER), N'Collaboration: Data Reach - Committees: Terms', N'Terms whose Space is in the caller''s Collaboration reach.', N'(ID IN (SELECT SpaceID FROM [__mj_BizAppsCollaboration].[fnCollaborationAccess](TRY_CAST(''{{UserID}}'' AS UNIQUEIDENTIFIER))))'),
-    (CAST('C0300001-0000-4000-8000-000000000003' AS UNIQUEIDENTIFIER), N'Collaboration: Data Reach - Committees: Memberships', N'Memberships on a Term Space in the caller''s Collaboration reach.', N'(TermID IN (SELECT SpaceID FROM [__mj_BizAppsCollaboration].[fnCollaborationAccess](TRY_CAST(''{{UserID}}'' AS UNIQUEIDENTIFIER))))'),
-    (CAST('C0300001-0000-4000-8000-000000000004' AS UNIQUEIDENTIFIER), N'Collaboration: Data Reach - Committees: Ballots', N'Ballots on a Committee Space in the caller''s Collaboration reach.', N'(CommitteeID IN (SELECT SpaceID FROM [__mj_BizAppsCollaboration].[fnCollaborationAccess](TRY_CAST(''{{UserID}}'' AS UNIQUEIDENTIFIER))))'),
-    (CAST('C0300001-0000-4000-8000-000000000005' AS UNIQUEIDENTIFIER), N'Collaboration: Data Reach - Committees: Motions', N'Motions on a Meeting or Committee Space in the caller''s Collaboration reach.', N'(MeetingID IN (SELECT MeetingID FROM [__mj_BizAppsCollaboration].[fnCollaborationMeetingAccess](TRY_CAST(''{{UserID}}'' AS UNIQUEIDENTIFIER)) WHERE MeetingID IS NOT NULL) OR ID IN (SELECT b.MotionID FROM [__mj_BizAppsCommittees].[vwBallots] b WHERE b.MotionID IS NOT NULL AND b.CommitteeID IN (SELECT SpaceID FROM [__mj_BizAppsCollaboration].[fnCollaborationAccess](TRY_CAST(''{{UserID}}'' AS UNIQUEIDENTIFIER)))) OR MovedByMembershipID IN (SELECT mb.ID FROM [__mj_BizAppsCommittees].[vwMemberships] mb WHERE mb.TermID IN (SELECT SpaceID FROM [__mj_BizAppsCollaboration].[fnCollaborationAccess](TRY_CAST(''{{UserID}}'' AS UNIQUEIDENTIFIER)))))'),
-    (CAST('C0300001-0000-4000-8000-000000000006' AS UNIQUEIDENTIFIER), N'Collaboration: Data Reach - Committees: Minutes', N'Minutes on a Meeting in the caller''s Collaboration reach.', N'(MeetingID IN (SELECT MeetingID FROM [__mj_BizAppsCollaboration].[fnCollaborationMeetingAccess](TRY_CAST(''{{UserID}}'' AS UNIQUEIDENTIFIER)) WHERE MeetingID IS NOT NULL))'),
-    (CAST('C0300001-0000-4000-8000-000000000007' AS UNIQUEIDENTIFIER), N'Collaboration: Data Reach - Committees: Artifacts', N'Artifacts on a Committee Space or Meeting in the caller''s Collaboration reach.', N'(CommitteeID IN (SELECT SpaceID FROM [__mj_BizAppsCollaboration].[fnCollaborationAccess](TRY_CAST(''{{UserID}}'' AS UNIQUEIDENTIFIER))) OR MeetingID IN (SELECT MeetingID FROM [__mj_BizAppsCollaboration].[fnCollaborationMeetingAccess](TRY_CAST(''{{UserID}}'' AS UNIQUEIDENTIFIER)) WHERE MeetingID IS NOT NULL))'),
-    (CAST('C0300001-0000-4000-8000-000000000008' AS UNIQUEIDENTIFIER), N'Collaboration: Data Reach - Committees: Comments', N'Comments on a Committee Space or Meeting in the caller''s Collaboration reach.', N'(CommitteeID IN (SELECT SpaceID FROM [__mj_BizAppsCollaboration].[fnCollaborationAccess](TRY_CAST(''{{UserID}}'' AS UNIQUEIDENTIFIER))) OR MeetingID IN (SELECT MeetingID FROM [__mj_BizAppsCollaboration].[fnCollaborationMeetingAccess](TRY_CAST(''{{UserID}}'' AS UNIQUEIDENTIFIER)) WHERE MeetingID IS NOT NULL))')
-) AS src ([ID], [Name], [Description], [FilterText])
-ON tgt.[ID] = src.[ID] OR tgt.[Name] = src.[Name]
-WHEN MATCHED THEN
-    UPDATE SET [Description] = src.[Description], [FilterText] = src.[FilterText]
-WHEN NOT MATCHED THEN
-    INSERT ([ID], [Name], [Description], [FilterText])
-    VALUES (src.[ID], src.[Name], src.[Description], src.[FilterText]);
 GO

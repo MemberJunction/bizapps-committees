@@ -26,6 +26,7 @@ export class CommitteeEntityCustom extends mjBizAppsCommitteesCommitteeEntity {
     }
 
     override get Status(): mjBizAppsCommitteesCommitteeEntity['Status'] {
+        if (this.ClosedAt) return 'Dissolved';
         return this.Get('Status');
     }
 
@@ -77,6 +78,9 @@ export class CommitteeEntityCustom extends mjBizAppsCommitteesCommitteeEntity {
         if (wasClosed) {
             if (this.ClosedAt == null) {
                 this.ClosedAt = dbClosedAt as Date;
+            }
+            if (this.Get('Status') !== 'Dissolved') {
+                this.Set('Status', 'Dissolved');
             }
             return super.Save(options);
         }

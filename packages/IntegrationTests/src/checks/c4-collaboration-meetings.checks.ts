@@ -9,6 +9,7 @@ import {
     type IntegrationCheckContext,
     type NamedCheck,
 } from '@memberjunction/testing-integration/registry';
+import { UserInfo } from '@memberjunction/core';
 import { CommitteeEntityCustom, TermEntityCustom } from '@mj-biz-apps/committees-entities';
 import { COMMITTEE_MEMBERSHIP_SYNC_SOURCE } from '@mj-biz-apps/committees-core-entities-server';
 import {
@@ -186,14 +187,39 @@ export const C4CollaborationMeetingsChecks: NamedCheck[] = [
             await FindRowsAs<{ ID: string }>(ctx, marcus, 'Committees: Artifacts', 'ID IS NOT NULL', ['ID']);
             await FindRowsAs<{ ID: string }>(ctx, marcus, 'Committees: Comments', 'ID IS NOT NULL', ['ID']);
 
-            // Verify saving an already-closed Committee does not clear ClosedAt
+            // Negative case: Ruth sits on Abstracts, not Governance; as a Space Participant she is excluded from Governance records by RLS
+            const [spRole] = await FindRows<{ ID: string }>(ctx, 'MJ: Roles', `Name = 'Space Participant'`, ['ID']);
+            Assert(!!spRole, 'Space Participant role exists');
+            const ruth = await PersonaUser(ctx, WorldUserEmail('ruth'));
+            const ruthParticipant = new UserInfo(ctx.Provider, {
+                ID: ruth.ID,
+                Name: ruth.Name,
+                FirstName: ruth.FirstName,
+                LastName: ruth.LastName,
+                Email: ruth.Email,
+                Type: ruth.Type,
+                IsActive: ruth.IsActive,
+                UserRoles: [{ UserID: ruth.ID, RoleID: spRole.ID, Role: 'Space Participant' }],
+            });
+            const ruthGovernance = await FindRowsAs<{ ID: string }>(ctx, ruthParticipant, E_COMMITTEE, `ID = '${world.Committees.governance}'`, ['ID']);
+            Assert(ruthGovernance.length === 0, `Outsider Ruth must see 0 rows for Governance Committee through RLS, got ${ruthGovernance.length}`);
+            const ruthTerms = await FindRowsAs<{ ID: string }>(ctx, ruthParticipant, E_TERM, `ID = '${world.Terms.governance}'`, ['ID']);
+            Assert(ruthTerms.length === 0, `Outsider Ruth must see 0 rows for Governance Term through RLS, got ${ruthTerms.length}`);
+            const ruthMemberships = await FindRowsAs<{ ID: string }>(ctx, ruthParticipant, E_MEMBERSHIP, `TermID = '${world.Terms.governance}'`, ['ID']);
+            Assert(ruthMemberships.length === 0, `Outsider Ruth must see 0 rows for Governance Memberships through RLS, got ${ruthMemberships.length}`);
+            const ruthBallots = await FindRowsAs<{ ID: string }>(ctx, ruthParticipant, E_BALLOT, `CommitteeID = '${world.Committees.governance}'`, ['ID']);
+            Assert(ruthBallots.length === 0, `Outsider Ruth must see 0 rows for Governance Ballots through RLS, got ${ruthBallots.length}`);
+
+            // Verify saving an already-closed Committee does not clear ClosedAt and reports Status === 'Dissolved'
             const pandemic = await EntityOf(ctx, E_COMMITTEE);
             Assert(await LoadExisting(pandemic, world.Committees.pandemic), 'load dissolved Pandemic Committee');
             const originalClosedAt = pandemic.Get('ClosedAt');
             Assert(originalClosedAt != null, 'Pandemic Committee has ClosedAt before update');
+            Assert((pandemic as unknown as CommitteeEntityCustom).Status === 'Dissolved', 'Closed committee reports Status === Dissolved');
             pandemic.Set('MissionStatement', pandemic.Get('MissionStatement') ?? 'Archive mission');
             Assert(await pandemic.Save(), `Re-saving dissolved committee succeeds: ${pandemic.LatestResult?.CompleteMessage ?? ''}`);
             Assert(pandemic.Get('ClosedAt') != null, 'Re-saving dissolved committee preserves ClosedAt');
+            Assert((pandemic as unknown as CommitteeEntityCustom).Status === 'Dissolved', 'Re-saved closed committee still reports Status === Dissolved');
         },
     },
 ];

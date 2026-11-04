@@ -81,6 +81,9 @@ export class TermEntityCustom extends mjBizAppsCommitteesTermEntity {
             if (this.ClosedAt == null) {
                 this.ClosedAt = dbClosedAt as Date;
             }
+            if (this.Get('Status') !== 'Completed') {
+                this.Set('Status', 'Completed');
+            }
             return super.Save(options);
         }
 

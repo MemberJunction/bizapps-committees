@@ -35,4 +35,13 @@ describe('custom entity registrations', () => {
         expect(MJGlobal.Instance.ClassFactory.GetRegistration(BaseEntity, 'Memberships')?.SubClass).not.toBe(MembershipEntityCustom);
         expect(MJGlobal.Instance.ClassFactory.GetRegistration(BaseEntity, 'Committees: Meetings')).toBeNull();
     });
+
+    it('CommitteeEntityCustom.Status and TermEntityCustom.Status reflect Space.ClosedAt when closed', () => {
+        const statusDesc = Object.getOwnPropertyDescriptor(CommitteeEntityCustom.prototype, 'Status');
+        const termStatusDesc = Object.getOwnPropertyDescriptor(TermEntityCustom.prototype, 'Status');
+        expect(statusDesc?.get?.call({ ClosedAt: new Date(), Get: () => 'Active' })).toBe('Dissolved');
+        expect(statusDesc?.get?.call({ ClosedAt: null, Get: () => 'Active' })).toBe('Active');
+        expect(termStatusDesc?.get?.call({ ClosedAt: new Date(), Get: () => 'Active' })).toBe('Completed');
+        expect(termStatusDesc?.get?.call({ ClosedAt: null, Get: () => 'Active' })).toBe('Active');
+    });
 });

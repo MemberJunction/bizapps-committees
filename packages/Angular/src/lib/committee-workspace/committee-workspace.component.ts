@@ -140,7 +140,7 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
         const md = new Metadata();
         const spaceEntityId = md.EntityByName('MJ_BizApps_Collaboration: Spaces')?.ID ?? '';
         const [committee, terms, meetings, artifacts, motions, links] = await rv.RunViews([
-            { EntityName: 'Committees: Committees', ExtraFilter: `ID='${id}'`, Fields: ['ID', 'Name', 'Status', 'IsPublic', 'Type', 'MissionStatement', 'StartedAt', 'Parent'], ResultType: 'simple' },
+            { EntityName: 'Committees: Committees', ExtraFilter: `ID='${id}'`, Fields: ['ID', 'Name', 'Status', 'IsPublic', 'Type', 'MissionStatement', 'StartedAt', 'ParentID'], ResultType: 'simple' },
             { EntityName: 'Committees: Terms', ExtraFilter: `ParentID='${id}'`, Fields: ['ID', 'ParentID', 'Name', 'StartedAt', 'PlannedCloseAt', 'ClosedAt'], OrderBy: 'StartedAt DESC', ResultType: 'simple' },
             { EntityName: 'MJ_BizApps_Tasks: Meetings', Fields: ['ID', 'Name', 'StartsAt', 'EndsAt', 'LocationType', 'Location', 'Status'], OrderBy: 'StartsAt ASC', ResultType: 'simple' },
             { EntityName: 'Committees: Artifacts', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Name', 'Provider', 'URL', 'ArtifactType'], ResultType: 'simple' },

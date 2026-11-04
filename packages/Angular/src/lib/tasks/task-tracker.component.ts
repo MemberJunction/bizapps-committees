@@ -80,7 +80,7 @@ export class TaskTrackerComponent extends BaseResourceComponent implements OnIni
     /** Limits the assignee picker to members of the selected committee */
     get AssigneeScope(): string | null {
         if (!this.SelectedCommitteeID) return null;
-        return `ID IN (SELECT m.PersonID FROM [__mj_BizAppsCommittees].[vwMemberships] m JOIN [__mj_BizAppsCommittees].[vwTerms] t ON m.TermID = t.ID WHERE t.CommitteeID = '${this.SelectedCommitteeID}' AND m.Status = 'Active')`;
+        return `ID IN (SELECT m.PersonID FROM [__mj_BizAppsCommittees].[vwMemberships] m JOIN [__mj_BizAppsCommittees].[vwTerms] t ON m.TermID = t.ID WHERE t.ParentID = '${this.SelectedCommitteeID}' AND m.Status = 'Active')`;
     }
 
     private cdr = inject(ChangeDetectorRef);

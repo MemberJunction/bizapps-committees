@@ -111,7 +111,7 @@ export class CommitteeListComponent extends BaseResourceComponent implements OnI
             {
                 EntityName: 'Committees: Committees',
                 ExtraFilter: '',
-                Fields: ['ID', 'Name', 'Description', 'Type', 'Status', 'Parent', 'Organization'],
+                Fields: ['ID', 'Name', 'Description', 'Type', 'Status', 'ParentID', 'Organization'],
                 OrderBy: 'Name ASC',
                 ResultType: 'simple'
             },

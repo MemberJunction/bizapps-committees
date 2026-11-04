@@ -59,14 +59,23 @@ export class TermRenewalService {
     public async GetRenewalContext(committeeID: string, contextUser?: UserInfo, now: Date = new Date()): Promise<RenewalContext> {
         await CommitteesLookupEngine.Instance.Config(false, contextUser);
         const rv = new RunView();
-        const termsR = await rv.RunView({
-            EntityName: 'Committees: Terms',
-            ExtraFilter: `ParentID = '${committeeID}'`,
-            Fields: ['ID', 'ParentID', 'Parent', 'Name', 'StartedAt', 'PlannedCloseAt', 'ClosedAt'],
-            ResultType: 'simple',
-        }, contextUser);
+        const [termsR, committeeR] = await rv.RunViews([
+            {
+                EntityName: 'Committees: Terms',
+                ExtraFilter: `ParentID = '${committeeID}'`,
+                Fields: ['ID', 'ParentID', 'Name', 'StartedAt', 'PlannedCloseAt', 'ClosedAt'],
+                ResultType: 'simple',
+            },
+            {
+                EntityName: 'Committees: Committees',
+                ExtraFilter: `ID = '${committeeID}'`,
+                Fields: ['ID', 'Name'],
+                ResultType: 'simple',
+            },
+        ], contextUser);
+        const committeeName = ((committeeR?.Success ? committeeR.Results : []) as Array<{ Name: string }>)[0]?.Name ?? '';
         const rawTerms = (termsR.Success ? termsR.Results : []) as Array<{
-            ID: string; ParentID: string; Parent: string | null; Name: string;
+            ID: string; ParentID: string; Parent?: string | null; Name: string;
             StartedAt: string | Date | null; PlannedCloseAt: string | Date | null; ClosedAt: string | Date | null;
         }>;
         const terms: TermRow[] = rawTerms.map(t => {
@@ -76,7 +85,7 @@ export class TermRenewalService {
             return {
                 ID: t.ID,
                 CommitteeID: t.ParentID,
-                Committee: t.Parent ?? '',
+                Committee: t.Parent ?? committeeName,
                 Name: t.Name,
                 StartDate: start,
                 EndDate: end,

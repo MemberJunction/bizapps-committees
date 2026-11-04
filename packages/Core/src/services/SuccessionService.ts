@@ -116,15 +116,18 @@ export class SuccessionService {
         const rv = new RunView();
         const now = new Date();
         await CommitteesLookupEngine.Instance.Config(false, contextUser);
-        const [terms, memberships, meetings, links] = await rv.RunViews([
-            { EntityName: 'Committees: Terms', ExtraFilter: 'ParentID IS NOT NULL', Fields: ['ID', 'ParentID', 'Parent', 'Name', 'StartedAt', 'PlannedCloseAt', 'ClosedAt'], ResultType: 'simple' },
+        const [terms, committees, memberships, meetings, links] = await rv.RunViews([
+            { EntityName: 'Committees: Terms', ExtraFilter: 'ParentID IS NOT NULL', Fields: ['ID', 'ParentID', 'Name', 'StartedAt', 'PlannedCloseAt', 'ClosedAt'], ResultType: 'simple' },
+            { EntityName: 'Committees: Committees', Fields: ['ID', 'Name'], ResultType: 'simple' },
             // Ended memberships stay in: they are the timeline's past-service bars.
             { EntityName: 'Committees: Memberships', ExtraFilter: "Status IN ('Active', 'Ended')", Fields: ['ID', 'TermID', 'PersonID', 'Person', 'RoleID', 'Role', 'Status', 'RenewalIntent'], ResultType: 'simple' },
             { EntityName: 'MJ_BizApps_Tasks: Meetings', ExtraFilter: "Status = 'Completed'", Fields: ['ID', 'Status', 'StartsAt'], ResultType: 'simple' },
             { EntityName: 'MJ_BizApps_Tasks: Meeting Links', ExtraFilter: "EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'", Fields: ['MeetingID', 'RecordID'], ResultType: 'simple' },
         ], contextUser);
+        const rawCommittees = (committees?.Success ? committees.Results : []) as Array<{ ID: string; Name: string }>;
+        const committeeNameByID = new Map(rawCommittees.map(c => [c.ID.toLowerCase(), c.Name]));
         const rawTerms = (terms.Success ? terms.Results : []) as Array<{
-            ID: string; ParentID: string; Parent: string | null; Name: string;
+            ID: string; ParentID: string; Parent?: string | null; Name: string;
             StartedAt: string | Date | null; PlannedCloseAt: string | Date | null; ClosedAt: string | Date | null;
         }>;
         const termRows: TermRow[] = rawTerms.map(t => {
@@ -134,7 +137,7 @@ export class SuccessionService {
             return {
                 ID: t.ID,
                 CommitteeID: t.ParentID,
-                Committee: t.Parent ?? '',
+                Committee: t.Parent ?? committeeNameByID.get(t.ParentID.toLowerCase()) ?? '',
                 Name: t.Name,
                 StartDate: start,
                 EndDate: end,

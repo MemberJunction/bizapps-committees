@@ -48,32 +48,47 @@ export class CommitteeTaskService {
         if (!committeesEntityID) throw new Error("Entity 'Committees: Committees' not found in metadata");
 
         const statusFilter = scope.IncludeCompleted ? '' : OPEN_STATUS_FILTER;
-        const taskFilter = this.buildTaskFilter(statusFilter, scope.AssignedToPersonID);
-
         const rv = new RunView();
-        const [tasksR, linksR, committeesR, assignmentsR] = await rv.RunViews([
+        let assignedTaskIds: string[] | null = null;
+        if (scope.AssignedToPersonID) {
+            const myAssignmentsR = await rv.RunView<AssignmentRow>({
+                EntityName: 'MJ_BizApps_Tasks: Task Assignments',
+                ExtraFilter: `AssigneeRecordID = '${scope.AssignedToPersonID}'`,
+                Fields: ['TaskID', 'AssigneeRecordID'],
+                ResultType: 'simple',
+            }, contextUser);
+            const myAssignments = (myAssignmentsR?.Success ? myAssignmentsR.Results : []) ?? [];
+            assignedTaskIds = [...new Set(myAssignments.map(a => a.TaskID).filter(Boolean))];
+            if (assignedTaskIds.length === 0) return [];
+        }
+
+        const parts: string[] = [];
+        if (statusFilter) parts.push(statusFilter);
+        if (assignedTaskIds) {
+            parts.push(`ID IN (${assignedTaskIds.map(id => `'${id}'`).join(',')})`);
+        }
+        const taskFilter = parts.join(' AND ');
+
+        const [tasksR, linksR, committeesR] = await rv.RunViews([
             { EntityName: 'MJ_BizApps_Tasks: Tasks', ExtraFilter: taskFilter, Fields: ['ID', 'Name', 'Status', 'Priority', 'DueAt', 'Category'], OrderBy: 'DueAt ASC', ResultType: 'simple' },
             { EntityName: 'MJ_BizApps_Tasks: Task Links', ExtraFilter: `EntityID = '${committeesEntityID}'`, Fields: ['TaskID', 'RecordID'], ResultType: 'simple' },
             { EntityName: 'Committees: Committees', Fields: ['ID', 'Name'], ResultType: 'simple' },
-            { EntityName: 'MJ_BizApps_Tasks: Task Assignments', ExtraFilter: taskFilter ? `TaskID IN (SELECT ID FROM [__mj_BizAppsTasks].[vwTasks] WHERE ${taskFilter})` : '', Fields: ['TaskID', 'AssigneeRecordID'], ResultType: 'simple' },
         ], contextUser);
 
         const tasks = (tasksR?.Success ? tasksR.Results : []) as unknown as TaskQueryRow[];
+        if (tasks.length === 0) return [];
         const links = (linksR?.Success ? linksR.Results : []) as unknown as LinkRow[];
         const committees = (committeesR?.Success ? committeesR.Results : []) as unknown as CommitteeNameRow[];
+        const assignmentsR = await rv.RunView<AssignmentRow>({
+            EntityName: 'MJ_BizApps_Tasks: Task Assignments',
+            ExtraFilter: `TaskID IN (${tasks.map(t => `'${t.ID}'`).join(',')})`,
+            Fields: ['TaskID', 'AssigneeRecordID'],
+            ResultType: 'simple',
+        }, contextUser);
         const assignments = (assignmentsR?.Success ? assignmentsR.Results : []) as unknown as AssignmentRow[];
         const people = await this.loadAssigneeNames(rv, assignments, contextUser);
 
         return CommitteeTaskService.BuildRows(tasks, links, committees, assignments, people);
-    }
-
-    private buildTaskFilter(statusFilter: string, assignedToPersonID?: string): string {
-        const parts: string[] = [];
-        if (statusFilter) parts.push(statusFilter);
-        if (assignedToPersonID) {
-            parts.push(`ID IN (SELECT TaskID FROM [__mj_BizAppsTasks].[vwTaskAssignments] WHERE AssigneeRecordID = '${assignedToPersonID}')`);
-        }
-        return parts.join(' AND ');
     }
 
     private async loadAssigneeNames(rv: RunView, assignments: AssignmentRow[], contextUser?: UserInfo): Promise<PersonRow[]> {

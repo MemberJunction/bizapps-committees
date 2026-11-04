@@ -166,15 +166,21 @@ export async function LoadCommitteesForPerson(
 
     const termIDs = [...new Set(rows.map((r) => r.TermID).filter(Boolean))];
     const roleIDs = [...new Set(rows.map((r) => r.RoleID).filter(Boolean))];
-    const [termsRes, roles] = await Promise.all([
-        ViewOf(provider).RunView<{ ID: string; ParentID: string; Name: string; StartedAt: string | Date | null; PlannedCloseAt: string | Date | null; ClosedAt: string | Date | null; Parent: string }>({
+    const [termsRes, committeesRes, roles] = await Promise.all([
+        ViewOf(provider).RunView<{ ID: string; ParentID: string; Name: string; StartedAt: string | Date | null; PlannedCloseAt: string | Date | null; ClosedAt: string | Date | null; Parent?: string }>({
             EntityName: 'Committees: Terms',
             ExtraFilter: `ID IN (${InList(termIDs)})`,
-            Fields: ['ID', 'ParentID', 'Name', 'StartedAt', 'PlannedCloseAt', 'ClosedAt', 'Parent'],
+            Fields: ['ID', 'ParentID', 'Name', 'StartedAt', 'PlannedCloseAt', 'ClosedAt'],
+            ResultType: 'simple',
+        }),
+        ViewOf(provider).RunView<{ ID: string; Name: string }>({
+            EntityName: 'Committees: Committees',
+            Fields: ['ID', 'Name'],
             ResultType: 'simple',
         }),
         LoadRoles(provider, roleIDs),
     ]);
+    const committeeNames = new Map((committeesRes.Results ?? []).map((c) => [c.ID.toLowerCase(), c.Name]));
     const terms = new Map((termsRes.Results ?? []).map((t) => [t.ID, {
         ID: t.ID,
         CommitteeID: t.ParentID,
@@ -182,7 +188,7 @@ export async function LoadCommitteesForPerson(
         StartDate: t.StartedAt,
         EndDate: t.ClosedAt ?? t.PlannedCloseAt,
         Status: t.ClosedAt ? 'Completed' : (t.StartedAt ? 'Active' : 'Upcoming'),
-        Committee: t.Parent,
+        Committee: t.Parent ?? committeeNames.get(t.ParentID?.toLowerCase() ?? ''),
     } as TermRow]));
 
     const byCommittee = new Map<string, PersonCommitteeCard>();
@@ -217,10 +223,10 @@ export async function LoadMembersForCommittee(
     committeeID: string,
     provider?: IMetadataProvider,
 ): Promise<CommitteeMemberCard[]> {
-    const termsRes = await ViewOf(provider).RunView<{ ID: string; ParentID: string; Name: string; StartedAt: string | Date | null; PlannedCloseAt: string | Date | null; ClosedAt: string | Date | null; Parent: string }>({
+    const termsRes = await ViewOf(provider).RunView<{ ID: string; ParentID: string; Name: string; StartedAt: string | Date | null; PlannedCloseAt: string | Date | null; ClosedAt: string | Date | null; Parent?: string }>({
         EntityName: 'Committees: Terms',
         ExtraFilter: `ParentID = '${Quote(committeeID)}'`,
-        Fields: ['ID', 'ParentID', 'Name', 'StartedAt', 'PlannedCloseAt', 'ClosedAt', 'Parent'],
+        Fields: ['ID', 'ParentID', 'Name', 'StartedAt', 'PlannedCloseAt', 'ClosedAt'],
         ResultType: 'simple',
     });
     const terms: TermRow[] = (termsRes.Results ?? []).map((t) => ({

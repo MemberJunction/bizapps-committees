@@ -133,18 +133,26 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
     private async loadEverything(personID: string): Promise<void> {
         await CommitteesLookupEngine.Instance.Config();
         const rv = new RunView();
-        const [membershipsR, termsR] = await rv.RunViews([
+        const [membershipsR, termsR, committeesR] = await rv.RunViews([
             { EntityName: 'Committees: Memberships', ExtraFilter: `PersonID = '${personID}' AND Status = 'Active'`, Fields: ['ID', 'TermID', 'PersonID', 'Role', 'RoleID', 'RenewalIntent'], ResultType: 'simple' },
-            { EntityName: 'Committees: Terms', ExtraFilter: 'ParentID IS NOT NULL', Fields: ['ID', 'ParentID', 'Parent', 'PlannedCloseAt', 'ClosedAt'], ResultType: 'simple' },
+            { EntityName: 'Committees: Terms', ExtraFilter: 'ParentID IS NOT NULL', Fields: ['ID', 'ParentID', 'PlannedCloseAt', 'ClosedAt'], ResultType: 'simple' },
+            { EntityName: 'Committees: Committees', Fields: ['ID', 'Name'], ResultType: 'simple' },
         ]);
         const memberships = (membershipsR.Success ? membershipsR.Results : []) as unknown as MembershipRow[];
-        const terms = ((termsR.Success ? termsR.Results : []) as unknown as Array<Record<string, unknown>>).map(t => ({
-            ID: t['ID'] as string,
-            CommitteeID: ((t['CommitteeID'] ?? t['ParentID']) as string) || '',
-            Committee: ((t['Committee'] ?? t['Parent']) as string) || '',
-            EndDate: ((t['EndDate'] ?? t['PlannedCloseAt']) as string | null) ?? null,
-            Status: (t['Status'] as string) || (t['ClosedAt'] ? 'Completed' : 'Active'),
-        }));
+        const committeeNames = new Map(
+            ((committeesR?.Success ? committeesR.Results : []) as unknown as Array<{ ID: string; Name: string }>)
+                .map(c => [c.ID.toLowerCase(), c.Name]),
+        );
+        const terms = ((termsR.Success ? termsR.Results : []) as unknown as Array<Record<string, unknown>>).map(t => {
+            const cID = ((t['CommitteeID'] ?? t['ParentID']) as string) || '';
+            return {
+                ID: t['ID'] as string,
+                CommitteeID: cID,
+                Committee: ((t['Committee'] ?? t['Parent']) as string) || committeeNames.get(cID.toLowerCase()) || '',
+                EndDate: ((t['EndDate'] ?? t['PlannedCloseAt']) as string | null) ?? null,
+                Status: (t['Status'] as string) || (t['ClosedAt'] ? 'Completed' : 'Active'),
+            };
+        });
         // Roles come from the process-wide lookup engine — no per-load query.
         const roles: RoleRow[] = CommitteesLookupEngine.Instance.Roles.map(r => ({ ID: r.ID, IsVotingRole: r.IsVotingRole }));
 

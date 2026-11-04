@@ -134,7 +134,7 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
             {
                 EntityName: 'Committees: Committees',
                 ExtraFilter: '',
-                Fields: ['ID', 'Name', 'Description', 'Type', 'Status', 'Parent', 'Organization'],
+                Fields: ['ID', 'Name', 'Description', 'Type', 'Status', 'ParentID', 'Organization'],
                 OrderBy: 'Name ASC',
                 ResultType: 'simple'
             },

@@ -431,6 +431,15 @@ BEGIN
         N'Formal closing of the committee meeting', N'fa-solid fa-door-closed', 2, 1, 900
     );
 END;
+
+-- Ensure IsA subtypes of Spaces (Committees & Terms) carry the exact same ReadRLSFilterID as Spaces per role
+UPDATE subEp
+   SET subEp.[ReadRLSFilterID] = spaceEp.[ReadRLSFilterID]
+  FROM [${mjSchema}].[EntityPermission] subEp
+  INNER JOIN [${mjSchema}].[EntityPermission] spaceEp
+    ON spaceEp.[EntityID] = '3648DC35-1DC4-4ED6-A1A6-5D87271A54DB'
+   AND spaceEp.[RoleID] = subEp.[RoleID]
+ WHERE subEp.[EntityID] IN ('A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', '87BEDFA6-F149-4AF2-993C-81BD01169584');
 GO
 
 -- =============================================================================
@@ -3723,9 +3732,6 @@ UPDATE [${mjSchema}].[EntityField]
          )
       END;
 
-/* SQL text to update existing entity fields from schema */
-EXEC [${mjSchema}].[spUpdateExistingEntityFieldsFromSchema] @ExcludedSchemaNames='', @IncludedSchemaNames='${flyway:defaultSchema}';
-
 /* Update IS-A parent field SpaceTypeID on Committees: Committees */
 UPDATE [${mjSchema}].[EntityField]
                   SET [IsVirtual]=1,
@@ -4211,9 +4217,6 @@ UPDATE [${mjSchema}].[EntityField]
 
 /* Update entity timestamp for Committees: Terms after IS-A field sync */
 UPDATE [${mjSchema}].[Entity] SET [__mj_UpdatedAt]=GETUTCDATE() WHERE ID='87BEDFA6-F149-4AF2-993C-81BD01169584';
-
-/* SQL text to set default column width where needed */
-EXEC [${mjSchema}].[spSetDefaultColumnWidthWhereNeeded] @ExcludedSchemaNames='', @IncludedSchemaNames='${flyway:defaultSchema}';
 
 /* Create Entity Relationship: MJ_BizApps_Tasks: Meetings -> Committees: Comments (One To Many via MeetingID) */
    IF NOT EXISTS (
@@ -8021,13 +8024,3 @@ EXEC [${mjSchema}].[spUpdateExistingEntityFieldsFromSchema] @ExcludedSchemaNames
 
 /* SQL text to set default column width where needed */
 EXEC [${mjSchema}].[spSetDefaultColumnWidthWhereNeeded] @ExcludedSchemaNames='', @IncludedSchemaNames='${flyway:defaultSchema}';
-
--- Ensure IsA subtypes of Spaces (Committees & Terms) carry the exact same ReadRLSFilterID as Spaces per role
-UPDATE subEp
-   SET subEp.[ReadRLSFilterID] = spaceEp.[ReadRLSFilterID]
-  FROM [${mjSchema}].[EntityPermission] subEp
-  INNER JOIN [${mjSchema}].[EntityPermission] spaceEp
-    ON spaceEp.[EntityID] = '3648DC35-1DC4-4ED6-A1A6-5D87271A54DB'
-   AND spaceEp.[RoleID] = subEp.[RoleID]
- WHERE subEp.[EntityID] IN ('A5DA88A1-AA21-4A3F-B1C4-42652FB440CE', '87BEDFA6-F149-4AF2-993C-81BD01169584');
-GO

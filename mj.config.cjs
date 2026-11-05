@@ -122,6 +122,7 @@ module.exports = {
   // Unnamed schemas — core, siblings, never-seen client schemas — are excluded.
   includeSchemas: ['__mj_BizAppsCommittees'],
   excludeSchemas: [],
+  additionalSchemaInfo: './codegen-schema-info.json',
   // excludeTables: [
   //   { schema: '%', table: 'sys%' },
   //   { schema: '%', table: 'flyway_schema_history' }
@@ -181,6 +182,9 @@ module.exports = {
     omitRecurringScriptsFromLog: false,
     schemaPlaceholders: [
       { schema: '__mj_BizAppsCommittees', placeholder: '${flyway:defaultSchema}' },
+      { schema: '__mj_BizAppsCollaboration', placeholder: '__mj_BizAppsCollaboration' },
+      { schema: '__mj_BizAppsTasks', placeholder: '__mj_BizAppsTasks' },
+      { schema: '__mj_BizAppsCommon', placeholder: '__mj_BizAppsCommon' },
       { schema: '__mj', placeholder: '${mjSchema}' },
     ],
   },

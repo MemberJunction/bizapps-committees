@@ -12,7 +12,7 @@ import { loadEnvFrom } from './load-env.mjs';
 
 loadEnvFrom(import.meta.url);
 
-const ALL_BUNDLES = ['committees-world', 'ballot-sealing'];
+const ALL_BUNDLES = ['committees-world', 'ballot-sealing', 'c4-collaboration-meetings'];
 
 const args = process.argv.slice(2);
 const only = args.filter((a) => !a.startsWith('-'));

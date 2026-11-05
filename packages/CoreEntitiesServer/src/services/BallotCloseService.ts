@@ -196,7 +196,7 @@ export class BallotCloseService {
         const rv = new RunView();
         const terms = await rv.RunView<TermRow>({
             EntityName: 'Committees: Terms',
-            ExtraFilter: `CommitteeID = '${ballot.CommitteeID}' AND Status = 'Active'`,
+            ExtraFilter: `ParentID = '${ballot.CommitteeID}' AND ClosedAt IS NULL`,
             Fields: ['ID'],
             ResultType: 'simple',
         }, system);

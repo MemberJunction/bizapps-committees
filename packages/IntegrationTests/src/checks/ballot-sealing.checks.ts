@@ -15,15 +15,17 @@ import {
 import type { UserInfo } from '@memberjunction/core';
 import { BallotCloseService } from '@mj-biz-apps/committees-core-entities-server';
 import { CommitteeAuthorization } from '@mj-biz-apps/committees-server';
-import { MeetingEntityCustom, MembershipEntityCustom } from '@mj-biz-apps/committees-entities';
+import { CommitteeEntityCustom, TermEntityCustom, MembershipEntityCustom } from '@mj-biz-apps/committees-entities';
 import {
     DeleteRow,
     E_BALLOT,
+    E_COMMITTEE,
     E_MEETING,
     E_MEMBERSHIP,
     E_MOTION,
     E_PERSON,
     E_ROLE,
+    E_TERM,
     E_USER,
     E_VOTE,
     EntityOf,
@@ -295,13 +297,15 @@ export const BallotSealingChecks: NamedCheck[] = [
     },
     {
         Id: 'ballot-sealing.BS7',
-        Name: 'BS7 — the custom Membership and Meeting classes answer to their entity names through the class factory',
+        Name: 'BS7 — the custom Membership, Committee, and Term classes answer to their entity names through the class factory',
         RequiresMutation: false,
         Fn: async (ctx: IntegrationCheckContext) => {
             const membership = await ProviderOf(ctx).GetEntityObject(E_MEMBERSHIP, ctx.User);
             Assert(membership instanceof MembershipEntityCustom, `Committees: Memberships gives MembershipEntityCustom (${membership.constructor.name})`);
-            const meeting = await ProviderOf(ctx).GetEntityObject(E_MEETING, ctx.User);
-            Assert(meeting instanceof MeetingEntityCustom, `Committees: Meetings gives MeetingEntityCustom (${meeting.constructor.name})`);
+            const committee = await ProviderOf(ctx).GetEntityObject(E_COMMITTEE, ctx.User);
+            Assert(committee instanceof CommitteeEntityCustom, `Committees: Committees gives CommitteeEntityCustom (${committee.constructor.name})`);
+            const term = await ProviderOf(ctx).GetEntityObject(E_TERM, ctx.User);
+            Assert(term instanceof TermEntityCustom, `Committees: Terms gives TermEntityCustom (${term.constructor.name})`);
         },
     },
 ];

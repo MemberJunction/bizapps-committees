@@ -84,9 +84,21 @@ export class CommitteeAuthorization {
         }
     }
 
-    /** Resolves the owning CommitteeID for a meeting, or null if not found. */
+    /** Resolves the owning CommitteeID for a meeting via MJ_BizApps_Tasks: Meeting Links, or null if not found. */
     public static async GetMeetingCommitteeID(meetingID: string, contextUser: UserInfo): Promise<string | null> {
-        return this.lookupCommitteeID('Committees: Meetings', meetingID, contextUser);
+        if (!UUID_RE.test(meetingID)) return null;
+        const rv = new RunView();
+        const result = await rv.RunView<{ RecordID: string }>({
+            EntityName: 'MJ_BizApps_Tasks: Meeting Links',
+            ExtraFilter: `MeetingID = '${meetingID}' AND EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'`,
+            Fields: ['RecordID'],
+            MaxRows: 1,
+            ResultType: 'simple',
+        }, contextUser);
+        if (result.Success && result.Results && result.Results.length > 0) {
+            return result.Results[0].RecordID ?? null;
+        }
+        return null;
     }
 
     /** Resolves the owning CommitteeID for a ballot, or null if not found. */
@@ -150,12 +162,12 @@ export class CommitteeAuthorization {
         return null;
     }
 
-    /** Returns all Term IDs that belong to the given committee. */
+    /** Returns all Term IDs that belong to the given committee (IsA Space.ParentID). */
     private static async committeeTermIDs(committeeID: string, contextUser: UserInfo): Promise<string[]> {
         const rv = new RunView();
         const result = await rv.RunView<IdRow>({
             EntityName: 'Committees: Terms',
-            ExtraFilter: `CommitteeID = '${committeeID}'`,
+            ExtraFilter: `ParentID = '${committeeID}'`,
             Fields: ['ID'],
             ResultType: 'simple',
         }, contextUser);

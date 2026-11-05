@@ -59,13 +59,39 @@ export class TermRenewalService {
     public async GetRenewalContext(committeeID: string, contextUser?: UserInfo, now: Date = new Date()): Promise<RenewalContext> {
         await CommitteesLookupEngine.Instance.Config(false, contextUser);
         const rv = new RunView();
-        const termsR = await rv.RunView({
-            EntityName: 'Committees: Terms',
-            ExtraFilter: `CommitteeID = '${committeeID}'`,
-            Fields: ['ID', 'CommitteeID', 'Committee', 'Name', 'StartDate', 'EndDate', 'Status'],
-            ResultType: 'simple',
-        }, contextUser);
-        const terms = (termsR.Success ? termsR.Results : []) as unknown as TermRow[];
+        const [termsR, committeeR] = await rv.RunViews([
+            {
+                EntityName: 'Committees: Terms',
+                ExtraFilter: `ParentID = '${committeeID}'`,
+                Fields: ['ID', 'ParentID', 'Name', 'StartedAt', 'PlannedCloseAt', 'ClosedAt'],
+                ResultType: 'simple',
+            },
+            {
+                EntityName: 'Committees: Committees',
+                ExtraFilter: `ID = '${committeeID}'`,
+                Fields: ['ID', 'Name'],
+                ResultType: 'simple',
+            },
+        ], contextUser);
+        const committeeName = ((committeeR?.Success ? committeeR.Results : []) as Array<{ Name: string }>)[0]?.Name ?? '';
+        const rawTerms = (termsR.Success ? termsR.Results : []) as Array<{
+            ID: string; ParentID: string; Parent?: string | null; Name: string;
+            StartedAt: string | Date | null; PlannedCloseAt: string | Date | null; ClosedAt: string | Date | null;
+        }>;
+        const terms: TermRow[] = rawTerms.map(t => {
+            const start = t.StartedAt ?? now;
+            const end = t.ClosedAt ?? t.PlannedCloseAt ?? null;
+            const status = t.ClosedAt ? 'Completed' : (new Date(start) > now ? 'Upcoming' : 'Active');
+            return {
+                ID: t.ID,
+                CommitteeID: t.ParentID,
+                Committee: t.Parent ?? committeeName,
+                Name: t.Name,
+                StartDate: start,
+                EndDate: end,
+                Status: status,
+            };
+        });
         // Roles come from the process-wide lookup engine — no per-call query.
         const roles: RoleRow[] = [...CommitteesLookupEngine.Instance.Roles]
             .sort((a, b) => (a.Sequence ?? 0) - (b.Sequence ?? 0))

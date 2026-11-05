@@ -358,11 +358,13 @@ export class BulkImportService {
                 const endDate = row.EndDate ? this.parseDate(row.EndDate) : null;
 
                 const entity = await md.GetEntityObject<mjBizAppsCommitteesTermEntity>('Committees: Terms', contextUser);
-                entity.CommitteeID = committeeID;
+                entity.ParentID = committeeID;
                 entity.Name = row.Year ? String(row.Year) : `${startDate.getFullYear()}`;
-                entity.StartDate = startDate;
-                entity.EndDate = endDate;
-                entity.Status = this.deriveTermStatus(startDate, endDate);
+                entity.StartedAt = startDate;
+                entity.PlannedCloseAt = endDate;
+                if (this.deriveTermStatus(startDate, endDate) === 'Completed') {
+                    entity.ClosedAt = endDate ?? new Date();
+                }
 
                 const saved = await entity.Save();
                 if (!saved) {

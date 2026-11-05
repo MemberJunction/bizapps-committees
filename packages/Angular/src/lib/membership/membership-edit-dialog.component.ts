@@ -202,9 +202,9 @@ export class MembershipEditDialogComponent implements OnInit {
         const [termsResult] = await rv.RunViews([
             {
                 EntityName: 'Committees: Terms',
-                Fields: ['ID', 'Name', 'Status', 'StartDate', 'EndDate'],
-                ExtraFilter: this.CommitteeID ? `CommitteeID = '${this.CommitteeID}'` : '',
-                OrderBy: 'StartDate DESC',
+                Fields: ['ID', 'Name', 'StartedAt', 'PlannedCloseAt', 'ClosedAt'],
+                ExtraFilter: this.CommitteeID ? `ParentID = '${this.CommitteeID}'` : '',
+                OrderBy: 'StartedAt DESC',
                 ResultType: 'simple'
             }
         ]);
@@ -212,7 +212,13 @@ export class MembershipEditDialogComponent implements OnInit {
             .sort((a, b) => (a.Sequence ?? 0) - (b.Sequence ?? 0))
             .map(r => ({ ID: r.ID, Name: r.Name }));
         if (termsResult.Success) {
-            this.Terms = termsResult.Results as TermLookup[];
+            this.Terms = (termsResult.Results as { ID: string; Name: string; StartedAt?: string | null; PlannedCloseAt?: string | null; ClosedAt?: string | null }[]).map(t => ({
+                ID: t.ID,
+                Name: t.Name,
+                Status: t.ClosedAt ? 'Completed' : (t.StartedAt ? 'Active' : 'Upcoming'),
+                StartDate: t.StartedAt ?? null,
+                EndDate: (t.ClosedAt ?? t.PlannedCloseAt) ?? null,
+            })) as TermLookup[];
         }
     }
 }

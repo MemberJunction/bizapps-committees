@@ -48,16 +48,16 @@ async function main(): Promise<void> {
     const voteIDs: string[] = [];
 
     try {
-        // ── Resolve the demo workgroup + voting members ─────────
+        // ── Resolve the demo workgroup/committee + voting members ─────────
         const committee = await rv.RunView<{ ID: string }>({
-            EntityName: 'Committees: Committees', ExtraFilter: "Name = 'Data Interoperability Workgroup'",
+            EntityName: 'Committees: Committees', ExtraFilter: "Name IN ('Data Interoperability Workgroup', 'Publications Workgroup', 'Governance Committee')",
             Fields: ['ID'], MaxRows: 1, ResultType: 'simple',
         }, user);
-        assert(committee.Success && committee.Results.length === 1, 'demo Data Interoperability Workgroup not found — seed Demos/ first');
+        assert(committee.Success && committee.Results.length === 1, 'demo committee not found — run test:integration first');
         const wgID = committee.Results[0].ID;
 
         const [terms, roles] = await rv.RunViews([
-            { EntityName: 'Committees: Terms', ExtraFilter: `CommitteeID = '${wgID}' AND Status = 'Active'`, Fields: ['ID'], ResultType: 'simple' },
+            { EntityName: 'Committees: Terms', ExtraFilter: `ParentID = '${wgID}' AND ClosedAt IS NULL`, Fields: ['ID'], ResultType: 'simple' },
             { EntityName: 'Committees: Roles', ExtraFilter: 'IsVotingRole = 1', Fields: ['ID'], ResultType: 'simple' },
         ], user);
         const termIDs = (terms.Results as { ID: string }[]).map(t => `'${t.ID}'`);

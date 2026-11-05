@@ -72,15 +72,15 @@ export class MembershipListComponent extends BaseResourceComponent implements On
         const termIDsStr = termIDs.map(id => `'${id}'`).join(',');
 
         // Terms → Committees
-        const termResult = await rv.RunView<{ CommitteeID: string }>({
+        const termResult = await rv.RunView<{ ParentID: string }>({
             EntityName: 'Committees: Terms',
             ExtraFilter: `ID IN (${termIDsStr})`,
-            Fields: ['CommitteeID'],
+            Fields: ['ParentID'],
             ResultType: 'simple'
         });
         if (!termResult.Success || !termResult.Results) return;
 
-        const committeeIDs = [...new Set(termResult.Results.map(t => t.CommitteeID))];
+        const committeeIDs = [...new Set(termResult.Results.map(t => t.ParentID))];
         if (committeeIDs.length === 0) return;
 
         const committeeIDsStr = committeeIDs.map(id => `'${id}'`).join(',');

@@ -107,18 +107,18 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Committees: Meetings',
-                ExtraFilter: `StartDateTime >= '${today}' AND Status IN ('Scheduled', 'Draft') AND CommitteeID IN (${committeeFilter})`,
-                Fields: ['ID', 'Name', 'StartDateTime', 'Committee', 'Status', 'LocationType', 'VideoJoinURL'],
-                OrderBy: 'StartDateTime ASC',
+                EntityName: 'MJ_BizApps_Tasks: Meetings',
+                ExtraFilter: `StartsAt >= '${today}' AND Status IN ('Scheduled', 'Draft')`,
+                Fields: ['ID', 'Name', 'StartsAt', 'Status', 'LocationType', 'VideoJoinURL'],
+                OrderBy: 'StartsAt ASC',
                 MaxRows: 10,
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Committees: Meetings',
-                ExtraFilter: `Status = 'Completed' AND CommitteeID IN (${committeeFilter})`,
-                Fields: ['ID', 'Name', 'StartDateTime', 'Committee', 'Status'],
-                OrderBy: 'StartDateTime DESC',
+                EntityName: 'MJ_BizApps_Tasks: Meetings',
+                ExtraFilter: `Status = 'Completed'`,
+                Fields: ['ID', 'Name', 'StartsAt', 'Status'],
+                OrderBy: 'StartsAt DESC',
                 MaxRows: 5,
                 ResultType: 'simple'
             },
@@ -187,15 +187,15 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
         // Terms → Committees
         const termIDs = [...new Set(memberResult.Results.map(m => m.TermID))];
         const termIDsStr = termIDs.map(id => `'${id}'`).join(',');
-        const termResult = await rv.RunView<{ CommitteeID: string }>({
+        const termResult = await rv.RunView<{ ParentID: string }>({
             EntityName: 'Committees: Terms',
-            ExtraFilter: `ID IN (${termIDsStr})`,
-            Fields: ['CommitteeID'],
+            ExtraFilter: `ID IN (${termIDsStr}) AND ParentID IS NOT NULL`,
+            Fields: ['ParentID'],
             ResultType: 'simple'
         });
         if (!termResult.Success || !termResult.Results) return [];
 
-        return [...new Set(termResult.Results.map(t => t.CommitteeID))];
+        return [...new Set(termResult.Results.map(t => t.ParentID))];
     }
 
     private async loadRecentDocuments(rv: RunView, linksResult: RunViewBatchResult): Promise<void> {

@@ -112,16 +112,16 @@ export class CommitteePermissionHelper {
         const officerMap = new Map(CommitteesLookupEngine.Instance.Roles.map(r => [r.ID, r.IsOfficer]));
 
         const termIDs = [...new Set(rows.map(m => m.TermID))];
-        const termResult = await rv.RunView<{ ID: string; CommitteeID: string }>({
+        const termResult = await rv.RunView<{ ID: string; ParentID: string }>({
             EntityName: 'Committees: Terms',
             ExtraFilter: `ID IN (${termIDs.map(id => `'${id}'`).join(',')})`,
-            Fields: ['ID', 'CommitteeID'],
+            Fields: ['ID', 'ParentID'],
             ResultType: 'simple'
         });
         const termToCommittee = new Map<string, string>();
         if (termResult.Success && termResult.Results) {
             for (const t of termResult.Results) {
-                termToCommittee.set(t.ID, t.CommitteeID);
+                termToCommittee.set(t.ID, t.ParentID);
             }
         }
 

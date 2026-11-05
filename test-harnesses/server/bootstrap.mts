@@ -14,10 +14,10 @@ import { setupSQLServerClient, SQLServerProviderConfigData, UserCache } from '@m
 
 // Register core + committees entity subclasses on the ClassFactory so
 // GetEntityObject returns the real classes (matches MJAPI boot).
-import '@memberjunction/server-bootstrap-lite';
 import '@mj-biz-apps/common-entities';
 import '@mj-biz-apps/committees-entities';
 import '@mj-biz-apps/committees-core-entities-server';
+import '@mj-biz-apps/committees-server';
 
 export const SCHEMA = '__mj_BizAppsCommittees';
 
@@ -27,11 +27,11 @@ export interface HarnessCtx {
 }
 
 export async function bootstrap(): Promise<HarnessCtx> {
-    // override: the repo .env is the source of truth for harnesses — without it,
-    // a stale DB_DATABASE exported in the user's shell profile silently wins
-    // (dotenv never overwrites pre-existing env vars) and the harness reads a
-    // different database than sqlcmd/MJAPI. Bitten once; never again.
+    const explicitDb = process.env.DB_DATABASE;
     dotenv.config({ path: path.resolve(process.cwd(), '.env'), quiet: true, override: true });
+    if (explicitDb) {
+        process.env.DB_DATABASE = explicitDb;
+    }
     const host = process.env.DB_HOST;
     const database = process.env.DB_DATABASE;
     const user = process.env.DB_USERNAME;

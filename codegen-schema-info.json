@@ -1,0 +1,15 @@
+{
+  "ISARelationships": [
+    {
+      "ChildEntity": "Committees: Committees",
+      "ParentEntity": "MJ_BizApps_Collaboration: Spaces",
+      "SchemaName": "__mj_BizAppsCommittees"
+    },
+    {
+      "ChildEntity": "Committees: Terms",
+      "ParentEntity": "MJ_BizApps_Collaboration: Spaces",
+      "SchemaName": "__mj_BizAppsCommittees"
+    }
+  ]
+}
+

@@ -140,16 +140,21 @@ export class CommitteeOverviewPanel extends BaseFormPanel<mjBizAppsCommitteesCom
         if (!this.Record?.ID) return;
         try {
             const rv = new RunView();
-            const res = await rv.RunView<MeetingRow>({
-                EntityName: 'Committees: Meetings',
-                ExtraFilter: `CommitteeID = '${this.Record.ID}'`,
-                Fields: ['ID', 'Name', 'StartDateTime', 'LocationType'],
-                OrderBy: 'StartDateTime DESC',
+            const res = await rv.RunView<Record<string, unknown>>({
+                EntityName: 'MJ_BizApps_Tasks: Meetings',
+                ExtraFilter: `ID IN (SELECT MeetingID FROM [__mj_BizAppsTasks].[vwMeetingLinks] WHERE RecordID = '${this.Record.ID}')`,
+                Fields: ['ID', 'Name', 'StartsAt', 'LocationType'],
+                OrderBy: 'StartsAt DESC',
                 MaxRows: 10,
                 ResultType: 'simple'
             });
             if (res.Success && res.Results) {
-                this.Meetings = res.Results;
+                this.Meetings = res.Results.map(r => ({
+                    ID: r['ID'] as string,
+                    Name: r['Name'] as string,
+                    StartDateTime: String(r['StartDateTime'] ?? r['StartsAt'] ?? ''),
+                    LocationType: (r['LocationType'] as string) || 'Hybrid',
+                }));
                 this.cdr.markForCheck();
             }
         } catch (e) {

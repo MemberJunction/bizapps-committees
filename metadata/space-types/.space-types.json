@@ -1,0 +1,60 @@
+[
+  {
+    "primaryKey": {
+      "ID": "5FABEBE3-0207-4DB2-8B4C-8DAF0178A3C6"
+    },
+    "fields": {
+      "Code": "committee",
+      "Name": "Committee",
+      "Description": "Governance committee space with terms, rosters, meetings, motions, and ballots.",
+      "Vocabulary": "Committee",
+      "Discoverability": "Listed",
+      "JoinMode": "InviteOnly",
+      "MessagingPanel": true,
+      "LibraryPanel": true,
+      "WorkPanel": true,
+      "DefaultAgentRetrieval": "Included",
+      "DefaultBand": "Team",
+      "InviteApproval": "Approve",
+      "MemberCap": null,
+      "DisplayRank": 10,
+      "IsActive": true,
+      "DefaultAllowParentAssignees": true,
+      "IconClass": "fa-solid fa-users-rectangle",
+      "Color": "#1e40af",
+      "ServerDriverClass": "CommitteeSpaceServerDriver",
+      "UIDriverClass": "CommitteeSpaceUIDriver",
+      "SpaceExtensionEntity": "Committees: Committees",
+      "Configuration": "{\"Children\":{\"AllowedTypeCodes\":[\"committee\",\"committee-term\"]},\"Chats\":{\"AgentReplyMode\":\"MentionOnly\"}}"
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "B7CA4E22-91F3-4E04-A812-3C9F08D42E11"
+    },
+    "fields": {
+      "Code": "committee-term",
+      "Name": "Committee Term",
+      "Description": "Term cycle space under a Committee space; seats SyncSeats from active Memberships.",
+      "Vocabulary": "Term",
+      "Discoverability": "Hidden",
+      "JoinMode": "InviteOnly",
+      "MessagingPanel": true,
+      "LibraryPanel": true,
+      "WorkPanel": true,
+      "DefaultAgentRetrieval": "Included",
+      "DefaultBand": "Team",
+      "InviteApproval": "Approve",
+      "MemberCap": null,
+      "DisplayRank": 20,
+      "IsActive": true,
+      "DefaultAllowParentAssignees": true,
+      "IconClass": "fa-solid fa-calendar-days",
+      "Color": "#3730a3",
+      "ServerDriverClass": "TermSpaceServerDriver",
+      "UIDriverClass": "TermSpaceUIDriver",
+      "SpaceExtensionEntity": "Committees: Terms",
+      "Configuration": "{\"Children\":{\"AllowedTypeCodes\":[],\"MaxOpen\":0},\"Chats\":{\"AgentReplyMode\":\"MentionOnly\"}}"
+    }
+  }
+]

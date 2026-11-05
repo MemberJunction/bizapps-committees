@@ -3,11 +3,11 @@ import { CommonModule } from '@angular/common';
 import { RunView } from '@memberjunction/core';
 import { RegisterClassEx } from '@memberjunction/global';
 import { BaseFormPanel } from '@memberjunction/ng-base-forms';
-import { mjBizAppsCommitteesMeetingEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsTasksMeetingEntity } from '@mj-biz-apps/tasks-entities';
 
 interface AgendaItemRow {
     ID: string;
-    Name: string;
+    Name?: string;
     Title?: string;
     Sequence: number;
     DurationMinutes: number;
@@ -16,7 +16,7 @@ interface AgendaItemRow {
 @RegisterClassEx(BaseFormPanel, {
     key: 'form-panel:Meetings:overview',
     metadata: {
-        entity: 'Committees: Meetings',
+        entity: 'MJ_BizApps_Tasks: Meetings',
         slot: 'before-fields',
         sortKey: 10,
     },
@@ -61,7 +61,7 @@ interface AgendaItemRow {
                     </div>
                     <div class="mj-metric-row">
                         <span class="mj-metric-label">Location Type</span>
-                        <span class="mj-pill mj-pill-green">{{ Meeting?.LocationType || 'Hybrid' }}</span>
+                        <span class="mj-pill mj-pill-green">{{ Meeting?.VideoProvider || 'Hybrid' }}</span>
                     </div>
                     <div class="mj-metric-row">
                         <span class="mj-metric-label">Time Zone</span>
@@ -137,11 +137,11 @@ interface AgendaItemRow {
         .mj-pill-blue { background: rgba(56, 189, 248, 0.15); color: #38bdf8; }
     `]
 })
-export class MeetingOverviewPanel extends BaseFormPanel<mjBizAppsCommitteesMeetingEntity> implements OnInit {
+export class MeetingOverviewPanel extends BaseFormPanel<mjBizAppsTasksMeetingEntity> implements OnInit {
     private cdr = inject(ChangeDetectorRef);
     public AgendaItems: AgendaItemRow[] = [];
 
-    public get Meeting(): mjBizAppsCommitteesMeetingEntity | null {
+    public get Meeting(): mjBizAppsTasksMeetingEntity | null {
         return this.Record;
     }
 
@@ -154,7 +154,7 @@ export class MeetingOverviewPanel extends BaseFormPanel<mjBizAppsCommitteesMeeti
         try {
             const rv = new RunView();
             const res = await rv.RunView<AgendaItemRow>({
-                EntityName: 'Committees: Agenda Items',
+                EntityName: 'MJ_BizApps_Tasks: Meeting Agenda Items',
                 ExtraFilter: `MeetingID = '${this.Record.ID}'`,
                 Fields: ['ID', 'Name', 'Sequence', 'DurationMinutes'],
                 OrderBy: 'Sequence ASC',

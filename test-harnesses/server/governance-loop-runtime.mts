@@ -1,38 +1,26 @@
 /**
  * governance-loop-runtime.ts — live validation of the Phase 2 "Govern" loop
  * (UX v2 screen 03) against a REAL SQL Server instance through the REAL data
- * provider — the exact code path Live Meeting Mode runs.
- *
- *   G1  Meeting lifecycle: create Scheduled → InProgress → Completed
- *   G2  Agenda: items created in sequence; status progression Pending →
- *       Completed/Skipped/Tabled writes stick
- *   G3  Attendance: Expected → Present upsert (quorum bar's data source)
- *   G4  Motion on the floor: create with mover/seconder; roll-call Vote rows
- *       (one per membership, UQ enforced); vote CHANGE updates in place
- *   G5  Record result: Motion stamped Passed with final tally — and the tally
- *       matches BallotService.ForecastOutcome (VotesCast basis)
- *   G6  Minutes: section accepted into Minute.Content (Draft); Finalize flips
- *       ApprovalStatus → PendingApproval
- *
- * Everything created is torn down in a finally block (raw SQL, child→parent
- * order) so the run is idempotent and leaves the DB clean. Uses the demo
- * Board of Directors committee's active-term voting memberships as voters
- * (read-only on memberships — nothing membership-side is created).
- *
- * USAGE (from repo root):  npx tsx test-harnesses/server/governance-loop-runtime.ts
- * Exit code: 0 = all passed, 1 = failures, 2 = bootstrap error.
+ * provider — the exact code path Live Meeting Mode runs (C4 on Tasks Meetings).
  */
 import { Metadata, RunView } from '@memberjunction/core';
 import { BallotService } from '@mj-biz-apps/committees-core';
 import type {
-    mjBizAppsCommitteesMeetingEntity, mjBizAppsCommitteesAgendaItemEntity,
-    mjBizAppsCommitteesMotionEntity, mjBizAppsCommitteesVoteEntity,
-    mjBizAppsCommitteesAttendanceEntity, mjBizAppsCommitteesMinuteEntity,
+    mjBizAppsTasksMeetingEntity,
+    mjBizAppsTasksMeetingLinkEntity,
+    mjBizAppsTasksMeetingAgendaItemEntity,
+    mjBizAppsTasksMeetingAttendeeEntity,
+} from '@mj-biz-apps/tasks-entities';
+import type {
+    mjBizAppsCommitteesMotionEntity,
+    mjBizAppsCommitteesVoteEntity,
+    mjBizAppsCommitteesMinuteEntity,
 } from '@mj-biz-apps/committees-entities';
 import { bootstrap, test, assert, summary, count, SCHEMA, HarnessCtx } from './bootstrap.mjs';
 import { finishAndExit } from './harness-exit.mjs';
 
 const RUN_TAG = `GLOOP-${Date.now()}`;
+const TASKS_SCHEMA = '__mj_BizAppsTasks';
 
 interface VoterRow { ID: string; PersonID: string; Person: string; }
 
@@ -50,7 +38,7 @@ async function main(): Promise<void> {
     const md = new Metadata();
     const rv = new RunView();
     let meetingID = '';
-    let agendaIDs: string[] = [];
+    const agendaIDs: string[] = [];
     let motionID = '';
     let minuteID = '';
     const voteIDs: string[] = [];
@@ -62,11 +50,11 @@ async function main(): Promise<void> {
             EntityName: 'Committees: Committees', ExtraFilter: "Name = 'Board of Directors'",
             Fields: ['ID'], MaxRows: 1, ResultType: 'simple',
         }, user);
-        assert(committee.Success && committee.Results.length === 1, 'demo Board of Directors not found — seed Demos/ first');
+        assert(committee.Success && committee.Results.length === 1, 'demo Board of Directors not found — run test:integration first');
         const boardID = committee.Results[0].ID;
 
         const [terms, roles] = await rv.RunViews([
-            { EntityName: 'Committees: Terms', ExtraFilter: `CommitteeID = '${boardID}' AND Status = 'Active'`, Fields: ['ID'], ResultType: 'simple' },
+            { EntityName: 'Committees: Terms', ExtraFilter: `ParentID = '${boardID}' AND ClosedAt IS NULL`, Fields: ['ID'], ResultType: 'simple' },
             { EntityName: 'Committees: Roles', ExtraFilter: 'IsVotingRole = 1', Fields: ['ID'], ResultType: 'simple' },
         ], user);
         const termIDs = (terms.Results as { ID: string }[]).map(t => `'${t.ID}'`);
@@ -82,19 +70,27 @@ async function main(): Promise<void> {
         assert(voters.length >= 3, `need >=3 voting members, found ${voters.length}`);
 
         // ── G1: meeting lifecycle ───────────────────────────────
-        await test('G1.1 create Scheduled meeting', async () => {
-            const m = await md.GetEntityObject<mjBizAppsCommitteesMeetingEntity>('Committees: Meetings', user);
-            m.CommitteeID = boardID;
+        await test('G1.1 create Scheduled meeting and link to committee space', async () => {
+            const m = await md.GetEntityObject<mjBizAppsTasksMeetingEntity>('MJ_BizApps_Tasks: Meetings', user);
+            m.NewRecord();
             m.Name = `${RUN_TAG} Meeting`;
-            m.StartDateTime = new Date(Date.now() + 3600_000);
-            m.EndDateTime = new Date(Date.now() + 7200_000);
+            m.OrganizerPersonID = voters[0].PersonID;
+            m.StartsAt = new Date(Date.now() + 3600_000);
+            m.EndsAt = new Date(Date.now() + 7200_000);
             m.Status = 'Scheduled';
-            assert(await m.Save(), `Save failed: ${m.LatestResult?.Message}`);
+            assert(await m.Save(), `Save failed: ${m.LatestResult?.CompleteMessage ?? m.LatestResult?.Message}`);
             meetingID = m.ID;
+
+            const link = await md.GetEntityObject<mjBizAppsTasksMeetingLinkEntity>('MJ_BizApps_Tasks: Meeting Links', user);
+            link.NewRecord();
+            link.MeetingID = meetingID;
+            link.EntityID = '3648DC35-1DC4-4ED6-A1A6-5D87271A54DB';
+            link.RecordID = boardID;
+            assert(await link.Save(), `MeetingLink Save failed: ${link.LatestResult?.CompleteMessage ?? link.LatestResult?.Message}`);
         });
 
         await test('G1.2 Scheduled → InProgress', async () => {
-            const m = await md.GetEntityObject<mjBizAppsCommitteesMeetingEntity>('Committees: Meetings', user);
+            const m = await md.GetEntityObject<mjBizAppsTasksMeetingEntity>('MJ_BizApps_Tasks: Meetings', user);
             assert(await m.Load(meetingID), 'load failed');
             m.Status = 'InProgress';
             assert(await m.Save(), `Save failed: ${m.LatestResult?.Message}`);
@@ -103,40 +99,53 @@ async function main(): Promise<void> {
         // ── G2: agenda ──────────────────────────────────────────
         await test('G2.1 create 3 agenda items', async () => {
             for (let i = 1; i <= 3; i++) {
-                const a = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items', user);
+                const a = await md.GetEntityObject<mjBizAppsTasksMeetingAgendaItemEntity>('MJ_BizApps_Tasks: Meeting Agenda Items', user);
                 a.MeetingID = meetingID;
                 a.Sequence = i;
                 a.Name = `${RUN_TAG} Item ${i}`;
-                a.ItemType = i === 2 ? 'Vote' : 'Discussion';
-                a.Status = 'Pending';
+                a.Status = 'Planned';
                 assert(await a.Save(), `item ${i} save failed: ${a.LatestResult?.Message}`);
                 agendaIDs.push(a.ID);
             }
-            const n = await count(pool, `SELECT COUNT(*) AS n FROM ${SCHEMA}.AgendaItem WHERE MeetingID = @id`, meetingID);
+            const n = await count(pool, `SELECT COUNT(*) AS n FROM ${TASKS_SCHEMA}.MeetingAgendaItem WHERE MeetingID = @id`, meetingID);
             assert(n === 3, `raw SQL sees ${n} agenda items, expected 3`);
         });
 
-        await test('G2.2 agenda progression: item 1 Completed', async () => {
-            const a = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items', user);
+        await test('G2.2 agenda progression: item 1 Done', async () => {
+            const a = await md.GetEntityObject<mjBizAppsTasksMeetingAgendaItemEntity>('MJ_BizApps_Tasks: Meeting Agenda Items', user);
             assert(await a.Load(agendaIDs[0]), 'load failed');
-            a.Status = 'Completed';
+            a.Status = 'Done';
             assert(await a.Save(), `save failed: ${a.LatestResult?.Message}`);
-            const n = await count(pool, `SELECT COUNT(*) AS n FROM ${SCHEMA}.AgendaItem WHERE ID = @id AND Status = 'Completed'`, agendaIDs[0]);
+            const n = await count(pool, `SELECT COUNT(*) AS n FROM ${TASKS_SCHEMA}.MeetingAgendaItem WHERE ID = @id AND Status = 'Done'`, agendaIDs[0]);
             assert(n === 1, 'status did not persist');
         });
 
         // ── G3: attendance upsert ───────────────────────────────
         await test('G3 attendance: mark first 3 voters Present', async () => {
             for (const voter of voters.slice(0, 3)) {
-                const att = await md.GetEntityObject<mjBizAppsCommitteesAttendanceEntity>('Committees: Attendances', user);
-                att.MeetingID = meetingID;
-                att.PersonID = voter.PersonID;
+                const existingAtt = await rv.RunView<{ ID: string }>({
+                    EntityName: 'MJ_BizApps_Tasks: Meeting Attendees',
+                    ExtraFilter: `MeetingID = '${meetingID}' AND PersonID = '${voter.PersonID}'`,
+                    Fields: ['ID'],
+                    MaxRows: 1,
+                    ResultType: 'simple',
+                }, user);
+                const att = await md.GetEntityObject<mjBizAppsTasksMeetingAttendeeEntity>('MJ_BizApps_Tasks: Meeting Attendees', user);
+                if (existingAtt.Success && existingAtt.Results?.[0]?.ID) {
+                    assert(await att.Load(existingAtt.Results[0].ID), 'load existing attendee failed');
+                } else {
+                    att.NewRecord();
+                    att.MeetingID = meetingID;
+                    att.PersonID = voter.PersonID;
+                    att.Role = 'Required';
+                }
+                att.ResponseStatus = 'Accepted';
                 att.AttendanceStatus = 'Present';
                 att.JoinedAt = new Date();
-                assert(await att.Save(), `attendance save failed: ${att.LatestResult?.Message}`);
+                assert(await att.Save(), `attendance save failed: ${att.LatestResult?.CompleteMessage ?? att.LatestResult?.Message}`);
                 attendanceIDs.push(att.ID);
             }
-            const n = await count(pool, `SELECT COUNT(*) AS n FROM ${SCHEMA}.Attendance WHERE MeetingID = @id AND AttendanceStatus = 'Present'`, meetingID);
+            const n = await count(pool, `SELECT COUNT(*) AS n FROM ${TASKS_SCHEMA}.MeetingAttendee WHERE MeetingID = @id AND AttendanceStatus = 'Present'`, meetingID);
             assert(n === 3, `raw SQL sees ${n} Present rows, expected 3`);
         });
 
@@ -214,7 +223,7 @@ async function main(): Promise<void> {
         });
 
         await test('G1.3 InProgress → Completed (end meeting)', async () => {
-            const m = await md.GetEntityObject<mjBizAppsCommitteesMeetingEntity>('Committees: Meetings', user);
+            const m = await md.GetEntityObject<mjBizAppsTasksMeetingEntity>('MJ_BizApps_Tasks: Meetings', user);
             assert(await m.Load(meetingID), 'load failed');
             m.Status = 'Completed';
             assert(await m.Save(), `save failed: ${m.LatestResult?.Message}`);
@@ -226,9 +235,10 @@ async function main(): Promise<void> {
             if (minuteID) await pool.request().input('id', minuteID).query(`DELETE FROM ${SCHEMA}.Minute WHERE ID = @id`);
             if (motionID) await pool.request().input('id', motionID).query(`DELETE FROM ${SCHEMA}.Motion WHERE ID = @id`);
             if (meetingID) {
-                await pool.request().input('id', meetingID).query(`DELETE FROM ${SCHEMA}.Attendance WHERE MeetingID = @id`);
-                await pool.request().input('id', meetingID).query(`DELETE FROM ${SCHEMA}.AgendaItem WHERE MeetingID = @id`);
-                await pool.request().input('id', meetingID).query(`DELETE FROM ${SCHEMA}.Meeting WHERE ID = @id`);
+                await pool.request().input('id', meetingID).query(`DELETE FROM ${TASKS_SCHEMA}.MeetingLink WHERE MeetingID = @id`);
+                await pool.request().input('id', meetingID).query(`DELETE FROM ${TASKS_SCHEMA}.MeetingAttendee WHERE MeetingID = @id`);
+                await pool.request().input('id', meetingID).query(`DELETE FROM ${TASKS_SCHEMA}.MeetingAgendaItem WHERE MeetingID = @id`);
+                await pool.request().input('id', meetingID).query(`DELETE FROM ${TASKS_SCHEMA}.Meeting WHERE ID = @id`);
             }
             console.log('\n  teardown complete — all harness rows removed');
         } catch (e) {

@@ -18,7 +18,7 @@ import { mjBizAppsCommitteesCommitteeEntity } from '@mj-biz-apps/committees-enti
         slot: 'after-related',
         sortKey: 45,
         relatedEntity: 'Committees: Committees',
-        relatedJoinField: 'ParentCommitteeID'
+        relatedJoinField: 'ParentID'
     }
 })
 @Component({
@@ -55,7 +55,7 @@ export class CommitteeGovernanceTreePanel extends BaseFormPanel<mjBizAppsCommitt
     public get treeConfig(): HierarchyTreeConfig {
         return {
             EntityName: 'Committees: Committees',
-            ParentField: 'ParentCommitteeID',
+            ParentField: 'ParentID',
             SubtitleField: 'Type',
             DefaultIcon: 'fa-solid fa-people-group',
             DefaultColor: '#0284c7',

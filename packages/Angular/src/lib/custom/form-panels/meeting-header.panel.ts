@@ -3,14 +3,14 @@ import { CommonModule } from '@angular/common';
 import { RegisterClassEx } from '@memberjunction/global';
 import { BaseFormPanel } from '@memberjunction/ng-base-forms';
 import { UserInfoEngine } from '@memberjunction/core-entities';
-import { mjBizAppsCommitteesMeetingEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsTasksMeetingEntity } from '@mj-biz-apps/tasks-entities';
 
 const SETTING_KEY = 'mj.form.meetings.headerCollapsed';
 
 @RegisterClassEx(BaseFormPanel, {
     key: 'form-panel:Meetings:header',
     metadata: {
-        entity: 'Committees: Meetings',
+        entity: 'MJ_BizApps_Tasks: Meetings',
         slot: 'header',
         sortKey: 10,
     },
@@ -31,9 +31,9 @@ const SETTING_KEY = 'mj.form.meetings.headerCollapsed';
                         <div>
                             <h1 class="mj-hero-title">{{ Meeting.Name || 'Committee Meeting' }}</h1>
                             <div class="mj-hero-subline">
-                                <span>Date: {{ Meeting.StartDateTime | date:'medium' }}</span>
+                                <span>Date: {{ Meeting.StartsAt | date:'medium' }}</span>
                                 <span>•</span>
-                                <span>Format: {{ Meeting.LocationType || 'Hybrid' }}</span>
+                                <span>Format: {{ Meeting.VideoProvider || 'Hybrid' }}</span>
                             </div>
                         </div>
                     </div>
@@ -56,7 +56,7 @@ const SETTING_KEY = 'mj.form.meetings.headerCollapsed';
                         </div>
                         <div class="mj-hero-metric">
                             <span class="mj-hero-metric-label">Status</span>
-                            <span class="mj-hero-metric-val" style="color: #10b981;">Scheduled</span>
+                            <span class="mj-hero-metric-val" style="color: #10b981;">{{ Meeting.Status || 'Scheduled' }}</span>
                         </div>
                     </div>
                 }
@@ -94,7 +94,7 @@ const SETTING_KEY = 'mj.form.meetings.headerCollapsed';
         .mj-hero-metric-val { font-size: 14px; font-weight: 700; color: var(--mj-text-primary, #f8fafc); font-family: monospace; }
     `]
 })
-export class MeetingHeaderPanel extends BaseFormPanel<mjBizAppsCommitteesMeetingEntity> {
+export class MeetingHeaderPanel extends BaseFormPanel<mjBizAppsTasksMeetingEntity> {
     public IsCollapsed = false;
 
     public ngOnInit(): void {
@@ -102,7 +102,7 @@ export class MeetingHeaderPanel extends BaseFormPanel<mjBizAppsCommitteesMeeting
         if (raw) this.IsCollapsed = raw === 'true';
     }
 
-    public get Meeting(): mjBizAppsCommitteesMeetingEntity | null {
+    public get Meeting(): mjBizAppsTasksMeetingEntity | null {
         return this.Record;
     }
 

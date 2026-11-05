@@ -4,7 +4,6 @@ import { Metadata, RunView, RunViewParams, RunViewResult } from '@memberjunction
 import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
 import { MJFileEntity, MJFileEntityRecordLinkEntity } from '@memberjunction/core-entities';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
-import { uploadProxyUrl } from './upload-proxy-url';
 
 export interface DocumentDialogResult {
     Saved: boolean;
@@ -185,7 +184,8 @@ export class DocumentEditDialogComponent implements OnInit {
         // Upload via server proxy to avoid CORS issues with providers like Dropbox
         try {
             const provider = Metadata.Provider as GraphQLDataProvider;
-            const proxyResponse = await window.fetch(uploadProxyUrl(provider.ConfigData.URL), {
+            const apiUrl = provider.ConfigData.URL.replace(/\/graphql\/?$/, '');
+            const proxyResponse = await window.fetch(`${apiUrl}/api/upload-proxy`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${provider.ConfigData.Token}`,
@@ -357,10 +357,10 @@ export class DocumentEditDialogComponent implements OnInit {
                 ResultType: 'simple'
             },
             {
-                EntityName: 'Committees: Meetings',
+                EntityName: 'MJ_BizApps_Tasks: Meetings',
                 Fields: ['ID', 'Name'],
                 ExtraFilter: "Status NOT IN ('Cancelled')",
-                OrderBy: 'StartDateTime DESC',
+                OrderBy: 'StartsAt DESC',
                 MaxRows: 100,
                 ResultType: 'simple'
             },
@@ -438,7 +438,7 @@ export class DocumentEditDialogComponent implements OnInit {
                 const entityName = link.Entity;
                 if (entityName === 'Committees: Committees') {
                     this.SelectedCommitteeID = link.RecordID;
-                } else if (entityName === 'Committees: Meetings') {
+                } else if (entityName === 'MJ_BizApps_Tasks: Meetings') {
                     this.SelectedMeetingID = link.RecordID;
                 }
             }
@@ -469,7 +469,7 @@ export class DocumentEditDialogComponent implements OnInit {
             linkPromises.push(this.createLink(md, 'Committees: Committees', this.SelectedCommitteeID));
         }
         if (this.SelectedMeetingID) {
-            linkPromises.push(this.createLink(md, 'Committees: Meetings', this.SelectedMeetingID));
+            linkPromises.push(this.createLink(md, 'MJ_BizApps_Tasks: Meetings', this.SelectedMeetingID));
         }
 
         await Promise.all(linkPromises);

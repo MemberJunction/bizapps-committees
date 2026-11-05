@@ -4,7 +4,7 @@ import {
 } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RunView, Metadata, UserInfo } from '@memberjunction/core';
-import { mjBizAppsCommitteesMeetingEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsTasksMeetingEntity } from '@mj-biz-apps/tasks-entities';
 import { marked } from 'marked';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
@@ -180,7 +180,7 @@ export class MeetingDetailViewComponent implements OnInit {
         this.cdr.markForCheck();
         try {
             const md = new Metadata();
-            const entity = await md.GetEntityObject<mjBizAppsCommitteesMeetingEntity>('Committees: Meetings');
+            const entity = await md.GetEntityObject<mjBizAppsTasksMeetingEntity>('MJ_BizApps_Tasks: Meetings');
             await entity.Load(this.Meeting.ID);
             entity.Status = 'Completed';
             const saved = await entity.Save();
@@ -230,23 +230,23 @@ export class MeetingDetailViewComponent implements OnInit {
     private buildDetailQueries(): Parameters<RunView['RunViews']>[0] {
         return [
             {
-                EntityName: 'Committees: Meetings',
+                EntityName: 'MJ_BizApps_Tasks: Meetings',
                 ExtraFilter: `ID='${this.MeetingID}'`,
-                Fields: ['ID', 'CommitteeID', 'Name', 'StartDateTime', 'EndDateTime', 'Committee', 'Status',
-                         'LocationType', 'Location', 'VideoProvider', 'TranscriptURL'],
+                Fields: ['ID', 'Name', 'StartsAt', 'EndsAt', 'Status',
+                         'LocationType', 'Location', 'VideoProvider', 'TranscriptFile'],
                 ResultType: 'simple',
             },
             {
-                EntityName: 'Committees: Attendances',
+                EntityName: 'MJ_BizApps_Tasks: Meeting Attendees',
                 ExtraFilter: `MeetingID='${this.MeetingID}'`,
-                Fields: ['ID', 'Person', 'AttendanceStatus'],
+                Fields: ['ID', 'Person', 'DisplayName', 'ResponseStatus', 'AttendanceStatus'],
                 ResultType: 'simple',
             },
             {
-                EntityName: 'Committees: Agenda Items',
+                EntityName: 'MJ_BizApps_Tasks: Meeting Agenda Items',
                 ExtraFilter: `MeetingID='${this.MeetingID}'`,
                 OrderBy: 'Sequence ASC',
-                Fields: ['ID', 'Sequence', 'Name', 'ItemType', 'Status', 'Notes', 'DurationMinutes'],
+                Fields: ['ID', 'Sequence', 'Name', 'Type', 'Status', 'Outcome', 'Description', 'DurationMinutes'],
                 ResultType: 'simple',
             },
             {
@@ -271,10 +271,42 @@ export class MeetingDetailViewComponent implements OnInit {
         agendaResult: DetailBatchResult, motionResult: DetailBatchResult, minuteResult: DetailBatchResult
     ): void {
         if (meetingResult.Success && meetingResult.Results?.length) {
-            this.Meeting = meetingResult.Results[0] as unknown as MeetingRow;
+            const raw = meetingResult.Results[0];
+            this.Meeting = {
+                ID: raw['ID'] as string,
+                CommitteeID: (raw['CommitteeID'] as string | null) ?? null,
+                Name: raw['Name'] as string,
+                StartDateTime: (raw['StartDateTime'] ?? raw['StartsAt']) as Date,
+                EndDateTime: ((raw['EndDateTime'] ?? raw['EndsAt']) as Date | null) ?? null,
+                Committee: (raw['Committee'] as string | null) ?? null,
+                Status: raw['Status'] === 'Ended' ? 'Completed' : (raw['Status'] as string),
+                LocationType: raw['VideoProvider'] && raw['VideoProvider'] !== 'None'
+                    ? (raw['Location'] ? 'Hybrid' : 'Virtual')
+                    : 'InPerson',
+                Location: (raw['Location'] as string | null) ?? null,
+                VideoProvider: (raw['VideoProvider'] as string | null) ?? null,
+                TranscriptURL: ((raw['TranscriptURL'] ?? raw['TranscriptFile']) as string | null) ?? null,
+            };
         }
-        if (attendanceResult.Success) this.Attendance = (attendanceResult.Results ?? []) as unknown as AttendanceRow[];
-        if (agendaResult.Success) this.AgendaItems = (agendaResult.Results ?? []) as unknown as AgendaRow[];
+        if (attendanceResult.Success) {
+            this.Attendance = (attendanceResult.Results ?? []).map(a => ({
+                ID: a['ID'] as string,
+                Person: ((a['Person'] ?? a['DisplayName']) as string) || '',
+                AttendanceStatus: (a['AttendanceStatus'] as string)
+                    || (a['Attended'] ? 'Present' : (a['RSVPStatus'] === 'Declined' ? 'Absent' : 'Expected')),
+            }));
+        }
+        if (agendaResult.Success) {
+            this.AgendaItems = (agendaResult.Results ?? []).map(ag => ({
+                ID: ag['ID'] as string,
+                Sequence: ag['Sequence'] as number,
+                Name: ((ag['Name'] ?? ag['Title']) as string) || '',
+                ItemType: ((ag['ItemType'] ?? ag['AgendaItemType']) as string) || 'Discussion',
+                Status: (ag['Status'] as string) || 'Discussed',
+                Notes: ((ag['Notes'] ?? ag['Description']) as string | null) ?? null,
+                DurationMinutes: (ag['DurationMinutes'] as number | null) ?? null,
+            }));
+        }
         if (motionResult.Success) this.Motions = (motionResult.Results ?? []) as unknown as MotionRow[];
         if (minuteResult.Success && minuteResult.Results?.length) {
             this.Minute = minuteResult.Results[0] as unknown as MinuteRow;

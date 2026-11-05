@@ -134,13 +134,13 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
             {
                 EntityName: 'Committees: Committees',
                 ExtraFilter: '',
-                Fields: ['ID', 'Name', 'Description', 'Type', 'Status', 'ParentCommittee', 'Organization'],
+                Fields: ['ID', 'Name', 'Description', 'Type', 'Status', 'ParentID', 'Organization'],
                 OrderBy: 'Name ASC',
                 ResultType: 'simple'
             },
             {
                 EntityName: 'Committees: Terms',
-                Fields: ['ID', 'CommitteeID'],
+                Fields: ['ID', 'ParentID'],
                 ResultType: 'simple'
             },
             {
@@ -154,8 +154,8 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
         if (committeesResult.Success) {
             const termToCommittee = new Map<string, string>();
             if (termsResult.Success) {
-                for (const t of termsResult.Results as { ID: string; CommitteeID: string }[]) {
-                    termToCommittee.set(t.ID, t.CommitteeID);
+                for (const t of termsResult.Results as { ID: string; ParentID: string }[]) {
+                    termToCommittee.set(t.ID, t.ParentID);
                 }
             }
 
@@ -169,6 +169,7 @@ export class ManagementCommitteeListComponent extends BaseResourceComponent impl
 
             this.Committees = committeesResult.Results.map((c: Record<string, unknown>) => ({
                 ...c,
+                ParentCommittee: c['Parent'],
                 MemberCount: memberCounts.get(c['ID'] as string) ?? 0
             }));
             this.applyFilters();

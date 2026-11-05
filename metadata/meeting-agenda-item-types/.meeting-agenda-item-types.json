@@ -1,0 +1,128 @@
+[
+  {
+    "primaryKey": {
+      "ID": "C0200001-0000-4000-8000-000000000001"
+    },
+    "fields": {
+      "Name": "Vote",
+      "Code": "VOTE",
+      "Description": "Motion or ballot vote agenda item",
+      "IconClass": "fa-solid fa-check-to-slot",
+      "DefaultDurationMinutes": 10,
+      "IsActive": true,
+      "Sequence": 350
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "C0200001-0000-4000-8000-000000000002"
+    },
+    "fields": {
+      "Name": "Action Item",
+      "Code": "ACTION_ITEM",
+      "Description": "Committee action item review or assignment",
+      "IconClass": "fa-solid fa-list-check",
+      "DefaultDurationMinutes": 10,
+      "IsActive": true,
+      "Sequence": 650
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "C0200001-0000-4000-8000-000000000003"
+    },
+    "fields": {
+      "Name": "Other",
+      "Code": "OTHER",
+      "Description": "General or procedural agenda item",
+      "IconClass": "fa-solid fa-ellipsis",
+      "DefaultDurationMinutes": 5,
+      "IsActive": true,
+      "Sequence": 800
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "C0200001-0000-4000-8000-000000000004"
+    },
+    "fields": {
+      "Name": "Call to Order",
+      "Code": "CALL_TO_ORDER",
+      "Description": "Opening of a parliamentary committee meeting",
+      "IconClass": "fa-solid fa-gavel",
+      "DefaultDurationMinutes": 2,
+      "IsActive": true,
+      "Sequence": 10
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "C0200001-0000-4000-8000-000000000005"
+    },
+    "fields": {
+      "Name": "Roll Call",
+      "Code": "ROLL_CALL",
+      "Description": "Attendance and quorum verification",
+      "IconClass": "fa-solid fa-clipboard-user",
+      "DefaultDurationMinutes": 5,
+      "IsActive": true,
+      "Sequence": 20
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "C0200001-0000-4000-8000-000000000006"
+    },
+    "fields": {
+      "Name": "Approval of Minutes",
+      "Code": "APPROVAL_OF_MINUTES",
+      "Description": "Review and approval of prior meeting minutes",
+      "IconClass": "fa-solid fa-file-signature",
+      "DefaultDurationMinutes": 5,
+      "IsActive": true,
+      "Sequence": 30
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "C0200001-0000-4000-8000-000000000007"
+    },
+    "fields": {
+      "Name": "Motion",
+      "Code": "MOTION",
+      "Description": "Formal parliamentary motion for deliberation and vote",
+      "IconClass": "fa-solid fa-scale-balanced",
+      "DefaultDurationMinutes": 15,
+      "IsActive": true,
+      "Sequence": 360
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "C0200001-0000-4000-8000-000000000008"
+    },
+    "fields": {
+      "Name": "Executive Session",
+      "Code": "EXECUTIVE_SESSION",
+      "Description": "Closed session restricted to eligible committee members",
+      "IconClass": "fa-solid fa-user-shield",
+      "DefaultDurationMinutes": 20,
+      "IsActive": true,
+      "Sequence": 750
+    }
+  },
+  {
+    "primaryKey": {
+      "ID": "C0200001-0000-4000-8000-000000000009"
+    },
+    "fields": {
+      "Name": "Adjournment",
+      "Code": "ADJOURNMENT",
+      "Description": "Formal closing of the committee meeting",
+      "IconClass": "fa-solid fa-door-closed",
+      "DefaultDurationMinutes": 2,
+      "IsActive": true,
+      "Sequence": 900
+    }
+  }
+]

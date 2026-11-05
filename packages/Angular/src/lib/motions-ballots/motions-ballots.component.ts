@@ -147,7 +147,7 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
                     ResultType: 'simple',
                 }),
                 rv.RunViews([
-                    { EntityName: 'Committees: Terms', Fields: ['ID', 'CommitteeID', 'Status'], ResultType: 'simple' },
+                    { EntityName: 'Committees: Terms', Fields: ['ID', 'ParentID', 'StartedAt', 'ClosedAt'], ResultType: 'simple' },
                     { EntityName: 'Committees: Memberships', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'PersonID', 'Person', 'Role', 'RoleID', 'TermID', 'Status'], ResultType: 'simple' },
                 ]),
             ]);
@@ -157,10 +157,15 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
             // Roles come from the process-wide lookup engine — no per-load query.
             const roles: RoleRow[] = CommitteesLookupEngine.Instance.Roles
                 .map(r => ({ ID: r.ID, IsVotingRole: r.IsVotingRole }));
+            const mappedTerms: TermRow[] = (terms.Success ? (terms.Results as { ID: string; ParentID: string; StartedAt?: string | null; ClosedAt?: string | null }[]) : []).map(t => ({
+                ID: t.ID,
+                CommitteeID: t.ParentID,
+                Status: t.ClosedAt ? 'Completed' : (t.StartedAt ? 'Active' : 'Upcoming'),
+            }));
             await this.assemble(
                 register,
                 ballots,
-                (terms.Success ? terms.Results : []) as unknown as TermRow[],
+                mappedTerms,
                 (memberships.Success ? memberships.Results : []) as unknown as MembershipFullRow[],
                 roles,
                 progress,

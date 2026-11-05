@@ -1,18 +1,15 @@
 /**
- * Committee Notification Handler
+ * Committee Notification & Membership Seat Sync Handler
  *
- * Subscribes to MJGlobal entity events and creates in-app notifications
- * (MJ: User Notifications) for key committee events:
- *
- * - Meeting scheduled → notify all active committee members
- * - Comment created → notify parent comment author (replies) and @mentioned people
- *
- * Task notifications (assignment, completion, blocked) are handled by the
- * BizAppsTasks app's own TaskNotificationHandler (@mj-biz-apps/tasks-server).
+ * Subscribes to MJGlobal entity events and:
+ * - Meeting linked to a committee (MJ_BizApps_Tasks: Meeting Links) -> notify all active committee members
+ * - Comment created (Committees: Comments) -> notify parent comment author (replies) and @mentioned people
+ * - Membership created/updated (Committees: Memberships) -> sync SpaceMember seats via CommitteeSpaceServerDriver
  */
 import {
     BaseEntity,
     BaseEntityEvent,
+    type IMetadataProvider,
     LogError,
     LogStatus,
     Metadata,
@@ -20,27 +17,25 @@ import {
     UserInfo,
 } from '@memberjunction/core';
 import { MJUserNotificationEntity } from '@memberjunction/core-entities';
+import { ResolveUserIDForPerson } from '@mj-biz-apps/common-entities';
+import { mjBizAppsTasksMeetingEntity, mjBizAppsTasksMeetingLinkEntity } from '@mj-biz-apps/tasks-entities';
 import {
-    mjBizAppsCommitteesMeetingEntity,
     mjBizAppsCommitteesCommentEntity,
+    mjBizAppsCommitteesMembershipEntity,
 } from '@mj-biz-apps/committees-entities';
-import { MJEventType, MJGlobal, MJEvent , UUIDsEqual } from '@memberjunction/global';
+import { MJEventType, MJGlobal, MJEvent, UUIDsEqual } from '@memberjunction/global';
 import { Subscription } from 'rxjs';
+import { CommitteeSpaceServerDriver } from '../drivers/CommitteeSpaceServerDriver.js';
 
-/** Entity names we listen for */
-const MEETINGS_ENTITY = 'Committees: Meetings';
+const MEETING_LINKS_ENTITY = 'MJ_BizApps_Tasks: Meeting Links';
 const COMMENTS_ENTITY = 'Committees: Comments';
+const MEMBERSHIPS_ENTITY = 'Committees: Memberships';
+const COMMITTEES_ENTITY_ID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE';
 
-
-/**
- * Initializes the global event subscription for committee notifications.
- * Call once at server startup (from LoadCommitteesServer).
- */
 export function InitCommitteeNotificationHandler(): void {
     const storeKey = '___Committees___NotificationHandler___Subscription';
     const store = MJGlobal.Instance.GetGlobalObjectStore();
 
-    // Guard against double-subscription (bundler duplication / hot-reload)
     if (store[storeKey]) {
         return;
     }
@@ -61,10 +56,6 @@ export function InitCommitteeNotificationHandler(): void {
     LogStatus('[Committees] Notification handler initialized');
 }
 
-// ---------------------------------------------------------------------------
-// Event Router
-// ---------------------------------------------------------------------------
-
 function handleEntityEvent(event: BaseEntityEvent): void {
     if (event.type !== 'save' || !event.baseEntity) {
         return;
@@ -73,11 +64,14 @@ function handleEntityEvent(event: BaseEntityEvent): void {
     const entityName = event.baseEntity.EntityInfo.Name;
 
     switch (entityName) {
-        case MEETINGS_ENTITY:
-            handleMeetingSave(event).catch(logHandlerError('MeetingSave'));
+        case MEETING_LINKS_ENTITY:
+            handleMeetingLinkSave(event).catch(logHandlerError('MeetingLinkSave'));
             break;
         case COMMENTS_ENTITY:
             handleCommentSave(event).catch(logHandlerError('CommentSave'));
+            break;
+        case MEMBERSHIPS_ENTITY:
+            handleMembershipSave(event).catch(logHandlerError('MembershipSave'));
             break;
     }
 }
@@ -90,66 +84,93 @@ function logHandlerError(handler: string): (err: unknown) => void {
 }
 
 // ---------------------------------------------------------------------------
-// Meeting Notifications
+// Membership -> SpaceMember Seat Sync
 // ---------------------------------------------------------------------------
 
-/**
- * When a NEW meeting is created with Status=Scheduled, notify all
- * active committee members who have a linked MJ User.
- *
- * Note: We only notify on create (not update) because BaseEntity's
- * finalizeSave() resets dirty flags before the 'save' event fires,
- * making field-level change detection impossible from this event.
- */
-async function handleMeetingSave(event: BaseEntityEvent): Promise<void> {
-    // Only notify on create, not every update
+async function handleMembershipSave(event: BaseEntityEvent): Promise<void> {
+    const membership = event.baseEntity! as mjBizAppsCommitteesMembershipEntity;
+    const contextUser = membership.ContextCurrentUser;
+    if (!contextUser || !membership.TermID) {
+        return;
+    }
+
+    const provider = (membership.ProviderToUse ?? Metadata.Provider) as unknown as IMetadataProvider;
+    const rv = RunView.FromMetadataProvider(provider);
+    const termRes = await rv.RunView<{ ParentID: string | null }>(
+        {
+            EntityName: 'Committees: Terms',
+            ExtraFilter: `ID = '${membership.TermID}'`,
+            Fields: ['ParentID'],
+            MaxRows: 1,
+            ResultType: 'simple',
+        },
+        contextUser
+    );
+    const committeeID = termRes.Success ? termRes.Results?.[0]?.ParentID ?? null : null;
+    if (!committeeID) {
+        return;
+    }
+
+    const driver = new CommitteeSpaceServerDriver();
+    await driver.SyncCommitteeSeats(committeeID, contextUser, provider);
+}
+
+// ---------------------------------------------------------------------------
+// Meeting Notifications (via MJ_BizApps_Tasks: Meeting Links)
+// ---------------------------------------------------------------------------
+
+async function handleMeetingLinkSave(event: BaseEntityEvent): Promise<void> {
     if (event.saveSubType !== 'create') {
         return;
     }
 
-    const meeting = event.baseEntity! as mjBizAppsCommitteesMeetingEntity;
-    const status = meeting.Status;
-
-    // Only notify when meeting is actively scheduled
-    if (status !== 'Scheduled') {
+    const link = event.baseEntity! as mjBizAppsTasksMeetingLinkEntity;
+    if (!UUIDsEqual(link.EntityID, COMMITTEES_ENTITY_ID)) {
         return;
     }
 
-    const contextUser = meeting.ContextCurrentUser;
+    const contextUser = link.ContextCurrentUser;
     if (!contextUser) {
         return;
     }
 
-    const committeeID = meeting.CommitteeID;
-    const title = meeting.Name;
-    const startDateTime = meeting.StartDateTime;
-    const committeeName = meeting.Committee ?? '';
+    const md = new Metadata();
+    const meeting = await md.GetEntityObject<mjBizAppsTasksMeetingEntity>('MJ_BizApps_Tasks: Meetings', contextUser);
+    if (!(await meeting.Load(link.MeetingID)) || meeting.Status !== 'Scheduled') {
+        return;
+    }
 
-    // Get all active members of this committee who have a linked User
+    const committeeID = link.RecordID;
+    const rv = new RunView();
+    const comRes = await rv.RunView<{ Name: string }>(
+        {
+            EntityName: 'Committees: Committees',
+            ExtraFilter: `ID = '${committeeID}'`,
+            Fields: ['Name'],
+            MaxRows: 1,
+            ResultType: 'simple',
+        },
+        contextUser
+    );
+    const committeeName = comRes.Success ? comRes.Results?.[0]?.Name ?? '' : '';
+
     const userIDs = await getCommitteeMemberUserIDs(committeeID, contextUser);
     if (userIDs.length === 0) {
         return;
     }
 
-    const dateStr = formatDate(startDateTime);
-    const notifTitle = `Meeting Scheduled: ${title}`;
-    const notifMessage = `A meeting "${title}" has been scheduled for ${dateStr} in ${committeeName}.`;
+    const dateStr = formatDate(meeting.StartsAt);
+    const notifTitle = `Meeting Scheduled: ${meeting.Name}`;
+    const notifMessage = `A meeting "${meeting.Name}" has been scheduled for ${dateStr} in ${committeeName}.`;
 
     await createNotificationsForUsers(userIDs, notifTitle, notifMessage, contextUser);
-    LogStatus(`[Committees] Sent meeting notification to ${userIDs.length} member(s) for "${title}"`);
+    LogStatus(`[Committees] Sent meeting notification to ${userIDs.length} member(s) for "${meeting.Name}"`);
 }
 
 // ---------------------------------------------------------------------------
 // Comment Notifications
 // ---------------------------------------------------------------------------
 
-/**
- * When a NEW comment is created, notify:
- * 1. The author of the parent comment (if this is a reply)
- * 2. Any @mentioned people (via MentionedPersonIDs JSON array)
- *
- * Skips notifying the comment author themselves.
- */
 async function handleCommentSave(event: BaseEntityEvent): Promise<void> {
     if (event.saveSubType !== 'create') {
         return;
@@ -168,7 +189,6 @@ async function handleCommentSave(event: BaseEntityEvent): Promise<void> {
 
     const userIDsToNotify = new Set<string>();
 
-    // 1. Notify parent comment author on replies
     const parentCommentID = comment.ParentCommentID;
     if (parentCommentID) {
         const parentAuthorPersonID = await getCommentAuthorPersonID(parentCommentID, contextUser);
@@ -178,7 +198,6 @@ async function handleCommentSave(event: BaseEntityEvent): Promise<void> {
         }
     }
 
-    // 2. Notify @mentioned people (one batched lookup — RunView is expensive)
     const mentionedJSON = comment.MentionedPersonIDs;
     if (mentionedJSON) {
         const mentionedIDs = parseMentionedPersonIDs(mentionedJSON).filter(id => !UUIDsEqual(id, authorPersonID));
@@ -199,9 +218,6 @@ async function handleCommentSave(event: BaseEntityEvent): Promise<void> {
     LogStatus(`[Committees] Sent comment notification to ${userIDsToNotify.size} user(s)`);
 }
 
-/**
- * Gets the PersonID of the author of a given comment.
- */
 async function getCommentAuthorPersonID(commentID: string, contextUser: UserInfo): Promise<string | null> {
     const rv = new RunView();
     const result = await rv.RunView<{ PersonID: string }>({
@@ -218,16 +234,12 @@ async function getCommentAuthorPersonID(commentID: string, contextUser: UserInfo
     return result.Results[0].PersonID;
 }
 
-/**
- * Safely parses the MentionedPersonIDs JSON array.
- */
 const GUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function parseMentionedPersonIDs(json: string): string[] {
     try {
         const parsed: unknown = JSON.parse(json);
         if (Array.isArray(parsed)) {
-            // Client-authored payload: only well-formed GUIDs may reach a SQL filter.
             return parsed.filter((id): id is string => typeof id === 'string' && GUID_PATTERN.test(id));
         }
     } catch {
@@ -236,74 +248,51 @@ function parseMentionedPersonIDs(json: string): string[] {
     return [];
 }
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Returns the MJ UserIDs for all active members of a committee.
- * Two-step: get PersonIDs from Memberships, then resolve LinkedUserIDs from People.
- */
 async function getCommitteeMemberUserIDs(committeeID: string, contextUser: UserInfo): Promise<string[]> {
     const rv = new RunView();
+    const terms = await rv.RunView<{ ID: string }>({
+        EntityName: 'Committees: Terms',
+        ExtraFilter: `ParentID='${committeeID}' AND ClosedAt IS NULL`,
+        Fields: ['ID'],
+        ResultType: 'simple',
+    }, contextUser);
+    const termIDs = (terms.Success ? terms.Results ?? [] : []).map(t => t.ID);
+    if (termIDs.length === 0) {
+        return [];
+    }
 
-    // Step 1: Get all active member PersonIDs
     const memberships = await rv.RunView<{ PersonID: string }>({
         EntityName: 'Committees: Memberships',
-        ExtraFilter: `CommitteeID='${committeeID}' AND Status='Active'`,
+        ExtraFilter: `TermID IN (${termIDs.map(id => `'${id}'`).join(',')}) AND Status='Active'`,
         Fields: ['ID', 'PersonID'],
         ResultType: 'simple',
     }, contextUser);
 
     if (!memberships.Success || memberships.Results.length === 0) {
-        if (!memberships.Success) {
-            LogError(`[Committees] Failed to load memberships for committee ${committeeID}: ${memberships.ErrorMessage}`);
-        }
         return [];
     }
 
     const personIDs = memberships.Results.map(m => m.PersonID);
-
-    // Step 2: Resolve PersonIDs → LinkedUserIDs
-    const inClause = personIDs.map(id => `'${id}'`).join(',');
-    const people = await rv.RunView<{ ID: string; LinkedUserID: string | null }>({
-        EntityName: 'MJ_BizApps_Common: People',
-        ExtraFilter: `ID IN (${inClause}) AND LinkedUserID IS NOT NULL`,
-        Fields: ['ID', 'LinkedUserID'],
-        ResultType: 'simple',
-    }, contextUser);
-
-    if (!people.Success) {
-        LogError(`[Committees] Failed to resolve people for committee ${committeeID}: ${people.ErrorMessage}`);
-        return [];
-    }
-
-    return people.Results
-        .map(p => p.LinkedUserID)
-        .filter((id): id is string => id != null);
+    return getLinkedUserIDsForPeople(personIDs, contextUser);
 }
 
-/**
- * Resolves many PersonIDs to their linked MJ UserIDs in a single query.
- * Inputs must already be GUID-validated (parseMentionedPersonIDs).
- */
 async function getLinkedUserIDsForPeople(personIDs: string[], contextUser: UserInfo): Promise<string[]> {
     if (personIDs.length === 0) return [];
-    const rv = new RunView();
-    const result = await rv.RunView<{ ID: string; LinkedUserID: string | null }>({
-        EntityName: 'MJ_BizApps_Common: People',
-        ExtraFilter: `ID IN (${personIDs.map(id => `'${id}'`).join(',')})`,
-        Fields: ['ID', 'LinkedUserID'],
-        ResultType: 'simple',
-    }, contextUser);
-    if (!result.Success) return [];
-    return result.Results.map(p => p.LinkedUserID).filter((id): id is string => id != null);
+    const resolved: string[] = [];
+    for (const pid of personIDs) {
+        const uid = await getPersonLinkedUserID(pid, contextUser);
+        if (uid) resolved.push(uid);
+    }
+    return [...new Set(resolved)];
 }
 
-/**
- * Resolves a PersonID to their linked MJ UserID (if any).
- */
 async function getPersonLinkedUserID(personID: string, contextUser: UserInfo): Promise<string | null> {
+    try {
+        const resolved = await ResolveUserIDForPerson(personID, Metadata.Provider, contextUser);
+        if (resolved) return resolved;
+    } catch {
+        // Fallback to People view below
+    }
     const rv = new RunView();
     const result = await rv.RunView<{ ID: string; LinkedUserID: string | null }>({
         EntityName: 'MJ_BizApps_Common: People',
@@ -319,9 +308,6 @@ async function getPersonLinkedUserID(personID: string, contextUser: UserInfo): P
     return result.Results[0].LinkedUserID ?? null;
 }
 
-/**
- * Creates an in-app notification for each UserID in the list.
- */
 async function createNotificationsForUsers(
     userIDs: string[],
     title: string,
@@ -349,9 +335,6 @@ async function createNotificationsForUsers(
     await Promise.all(saves);
 }
 
-/**
- * Formats a Date to a readable string like "Mar 12, 2026 at 2:00 PM"
- */
 function formatDate(date: Date): string {
     if (!(date instanceof Date) || isNaN(date.getTime())) {
         return 'TBD';

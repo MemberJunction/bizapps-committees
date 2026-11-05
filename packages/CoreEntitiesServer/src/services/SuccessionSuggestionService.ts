@@ -87,14 +87,36 @@ export class SuccessionSuggestionService {
 
     private async buildEvidence(committeeID: string, contextUser: UserInfo) {
         const rv = new RunView();
-        const [termsR, membershipsR, meetingsR] = await rv.RunViews([
-            { EntityName: 'Committees: Terms', Fields: ['ID', 'CommitteeID', 'Committee', 'Status', 'StartDate', 'EndDate'], ResultType: 'simple' },
+        const [termsR, membershipsR, meetingsR, linksR] = await rv.RunViews([
+            { EntityName: 'Committees: Terms', ExtraFilter: 'ParentID IS NOT NULL', Fields: ['ID', 'ParentID', 'Parent', 'StartedAt', 'PlannedCloseAt', 'ClosedAt'], ResultType: 'simple' },
             { EntityName: 'Committees: Memberships', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'TermID', 'PersonID', 'Person', 'Role', 'RoleID', 'Status', 'RenewalIntent'], ResultType: 'simple' },
-            { EntityName: 'Committees: Meetings', ExtraFilter: "Status = 'Completed'", Fields: ['ID', 'CommitteeID'], ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Meetings', ExtraFilter: "Status = 'Completed'", Fields: ['ID'], ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Meeting Links', ExtraFilter: "EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'", Fields: ['MeetingID', 'RecordID'], ResultType: 'simple' },
         ], contextUser);
-        const terms = (termsR.Success ? termsR.Results : []) as unknown as TermRow[];
+        const rawTerms = (termsR.Success ? termsR.Results : []) as Array<{
+            ID: string; ParentID: string; Parent: string | null; StartedAt: string | null; PlannedCloseAt: string | null; ClosedAt: string | null;
+        }>;
+        const now = new Date();
+        const terms: TermRow[] = rawTerms.map(t => {
+            const start = t.StartedAt ?? now.toISOString();
+            const end = t.ClosedAt ?? t.PlannedCloseAt ?? null;
+            const status = t.ClosedAt ? 'Completed' : (new Date(start) > now ? 'Upcoming' : 'Active');
+            return {
+                ID: t.ID,
+                CommitteeID: t.ParentID,
+                Committee: t.Parent ?? '',
+                Status: status,
+                StartDate: start,
+                EndDate: end,
+            };
+        });
         const memberships = (membershipsR.Success ? membershipsR.Results : []) as unknown as MembershipRow[];
-        const meetings = (meetingsR.Success ? meetingsR.Results : []) as unknown as MeetingRow[];
+        const rawMeetings = (meetingsR.Success ? meetingsR.Results : []) as Array<{ ID: string }>;
+        const rawLinks = (linksR.Success ? linksR.Results : []) as Array<{ MeetingID: string; RecordID: string }>;
+        const committeeByMeeting = new Map(rawLinks.map(l => [l.MeetingID.toLowerCase(), l.RecordID]));
+        const meetings: MeetingRow[] = rawMeetings
+            .filter(m => committeeByMeeting.has(m.ID.toLowerCase()))
+            .map(m => ({ ID: m.ID, CommitteeID: committeeByMeeting.get(m.ID.toLowerCase())! }));
 
         const termsByID = new Map(terms.map(t => [t.ID.toLowerCase(), t]));
         const committeeName = terms.find(t => t.CommitteeID.toLowerCase() === committeeID.toLowerCase())?.Committee ?? 'the committee';
@@ -142,12 +164,17 @@ export class SuccessionSuggestionService {
         if (meetingIDs.length === 0) return [];
         const rv = new RunView();
         const result = await rv.RunView({
-            EntityName: 'Committees: Attendances',
-            ExtraFilter: `MeetingID IN (${meetingIDs.map(id => `'${id}'`).join(',')})`,
+            EntityName: 'MJ_BizApps_Tasks: Meeting Attendees',
+            ExtraFilter: `MeetingID IN (${meetingIDs.map(id => `'${id}'`).join(',')}) AND PersonID IS NOT NULL`,
             Fields: ['MeetingID', 'PersonID', 'AttendanceStatus'],
             ResultType: 'simple',
         }, contextUser);
-        return (result.Success ? result.Results : []) as unknown as AttendanceRow[];
+        const rows = (result.Success ? result.Results : []) as Array<{ MeetingID: string; PersonID: string; AttendanceStatus: string | null }>;
+        return rows.map(r => ({
+            MeetingID: r.MeetingID,
+            PersonID: r.PersonID,
+            AttendanceStatus: r.AttendanceStatus === 'Present' || r.AttendanceStatus === 'Late' || r.AttendanceStatus === 'LeftEarly' ? 'Present' : 'Absent',
+        }));
     }
 
     private attendanceRates(attendance: AttendanceRow[]): Map<string, number> {

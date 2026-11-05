@@ -26,7 +26,7 @@ import { Metadata, RunView } from '@memberjunction/core';
 import { bootstrap, test, assert, summary, SCHEMA, HarnessCtx } from './bootstrap.mjs';
 import { finishAndExit } from './harness-exit.mjs';
 
-const EXPECTED_ENTITY_COUNT = 16;
+const EXPECTED_ENTITY_COUNT = 12;
 const APP_MEMBER = 'Committees';
 const APP_STAFF = 'Committee Management';
 

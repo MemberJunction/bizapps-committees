@@ -154,33 +154,95 @@ export class CommitteeHealthService {
         // Open tasks come from BizAppsTasks via the shared committee-scope service,
         // concurrently with the committees batch below.
         const tasksPromise = new CommitteeTaskService().GetTasks({}, contextUser);
-        const [committees, terms, memberships, meetings, minutes, agendaItems] = await rv.RunViews([
-            { EntityName: 'Committees: Committees', Fields: ['ID', 'Name', 'Status', 'IsPublic', 'Type', 'FormationDate', '__mj_CreatedAt'], ResultType: 'simple' },
-            { EntityName: 'Committees: Terms', Fields: ['ID', 'CommitteeID', 'Status', 'StartDate', 'EndDate'], ResultType: 'simple' },
+        const [committees, terms, memberships, meetings, links, minutes, agendaItems] = await rv.RunViews([
+            { EntityName: 'Committees: Committees', Fields: ['ID', 'Name', 'Status', 'IsPublic', 'Type', 'StartedAt', '__mj_CreatedAt'], ResultType: 'simple' },
+            { EntityName: 'Committees: Terms', ExtraFilter: 'ParentID IS NOT NULL', Fields: ['ID', 'ParentID', 'StartedAt', 'PlannedCloseAt', 'ClosedAt'], ResultType: 'simple' },
             { EntityName: 'Committees: Memberships', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'TermID', 'PersonID', 'RoleID', 'Status', 'Role', 'Person'], ResultType: 'simple' },
-            { EntityName: 'Committees: Meetings', ExtraFilter: `StartDateTime >= '${lookbackISO}'`, Fields: ['ID', 'CommitteeID', 'Committee', 'Name', 'StartDateTime', 'EndDateTime', 'Status', 'LocationType', 'LocationText', 'VideoProvider_Virtual'], OrderBy: 'StartDateTime ASC', ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Meetings', ExtraFilter: `StartsAt >= '${lookbackISO}'`, Fields: ['ID', 'Name', 'StartsAt', 'EndsAt', 'Status', 'Location', 'VideoProvider'], OrderBy: 'StartsAt ASC', ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Meeting Links', ExtraFilter: "EntityID = 'A5DA88A1-AA21-4A3F-B1C4-42652FB440CE'", Fields: ['MeetingID', 'RecordID'], ResultType: 'simple' },
             { EntityName: 'Committees: Minutes', ExtraFilter: "ApprovalStatus IN ('Draft', 'PendingApproval')", Fields: ['ID', 'MeetingID', 'ApprovalStatus', '__mj_CreatedAt'], ResultType: 'simple' },
-            { EntityName: 'Committees: Agenda Items', Fields: ['ID', 'MeetingID'], ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Meeting Agenda Items', Fields: ['ID', 'MeetingID'], ResultType: 'simple' },
         ], contextUser);
         const taskRows = await tasksPromise;
 
+        const rawCommittees = (committees.Success ? committees.Results : []) as Array<{
+            ID: string; Name: string; Status: string; IsPublic: boolean; Type: string; StartedAt: string | null; __mj_CreatedAt: string;
+        }>;
+        const committeeRows: CommitteeRow[] = rawCommittees.map(c => ({
+            ID: c.ID,
+            Name: c.Name,
+            Status: c.Status,
+            IsPublic: c.IsPublic,
+            Type: c.Type,
+            FormationDate: c.StartedAt,
+            __mj_CreatedAt: c.__mj_CreatedAt,
+        }));
+        const committeeNameByID = new Map(committeeRows.map(c => [c.ID.toLowerCase(), c.Name]));
+
+        const rawTerms = (terms.Success ? terms.Results : []) as Array<{
+            ID: string; ParentID: string; StartedAt: string | null; PlannedCloseAt: string | null; ClosedAt: string | null;
+        }>;
+        const termRows: TermRow[] = rawTerms.map(t => {
+            const start = t.StartedAt ?? now.toISOString();
+            const end = t.ClosedAt ?? t.PlannedCloseAt ?? null;
+            const status = t.ClosedAt ? 'Completed' : (new Date(start) > now ? 'Upcoming' : 'Active');
+            return {
+                ID: t.ID,
+                CommitteeID: t.ParentID,
+                Status: status,
+                StartDate: start,
+                EndDate: end,
+            };
+        });
+
+        const rawLinks = (links.Success ? links.Results : []) as Array<{ MeetingID: string; RecordID: string }>;
+        const committeeByMeeting = new Map(rawLinks.map(l => [l.MeetingID.toLowerCase(), l.RecordID]));
+        const rawMeetings = (meetings.Success ? meetings.Results : []) as Array<{
+            ID: string; Name: string; StartsAt: string; EndsAt: string | null; Status: string; Location: string | null; VideoProvider: string | null;
+        }>;
+        const meetingRows: MeetingRow[] = rawMeetings
+            .filter(m => committeeByMeeting.has(m.ID.toLowerCase()))
+            .map(m => {
+                const cid = committeeByMeeting.get(m.ID.toLowerCase())!;
+                const hasVideo = m.VideoProvider != null && m.VideoProvider !== 'None';
+                const locationType = hasVideo ? (m.Location ? 'Hybrid' : 'Virtual') : (m.Location ? 'InPerson' : null);
+                return {
+                    ID: m.ID,
+                    CommitteeID: cid,
+                    Committee: committeeNameByID.get(cid.toLowerCase()) ?? '',
+                    Name: m.Name,
+                    StartDateTime: m.StartsAt,
+                    EndDateTime: m.EndsAt,
+                    Status: m.Status === 'Ended' ? 'Completed' : m.Status,
+                    LocationType: locationType,
+                    LocationText: m.Location,
+                    VideoProvider_Virtual: hasVideo ? m.VideoProvider : null,
+                };
+            });
+
         // Attendance is loaded second because it is scoped to the meetings above.
-        const meetingRows = (meetings.Success ? meetings.Results : []) as unknown as MeetingRow[];
         const completedIDs = meetingRows.filter(m => m.Status === 'Completed').map(m => `'${m.ID}'`);
         let attendanceRows: AttendanceRow[] = [];
         if (completedIDs.length > 0) {
             const attendance = await rv.RunView({
-                EntityName: 'Committees: Attendances',
-                ExtraFilter: `MeetingID IN (${completedIDs.join(',')})`,
+                EntityName: 'MJ_BizApps_Tasks: Meeting Attendees',
+                ExtraFilter: `MeetingID IN (${completedIDs.join(',')}) AND PersonID IS NOT NULL`,
                 Fields: ['MeetingID', 'PersonID', 'AttendanceStatus'],
                 ResultType: 'simple',
             }, contextUser);
-            if (attendance.Success) attendanceRows = attendance.Results as unknown as AttendanceRow[];
+            if (attendance.Success) {
+                const rawAtt = attendance.Results as Array<{ MeetingID: string; PersonID: string; AttendanceStatus: string | null }>;
+                attendanceRows = rawAtt.map(a => ({
+                    MeetingID: a.MeetingID,
+                    PersonID: a.PersonID,
+                    AttendanceStatus: a.AttendanceStatus === 'Present' || a.AttendanceStatus === 'Late' || a.AttendanceStatus === 'LeftEarly' ? 'Present' : 'Absent',
+                }));
+            }
         }
 
         return {
-            Committees: (committees.Success ? committees.Results : []) as unknown as CommitteeRow[],
-            Terms: (terms.Success ? terms.Results : []) as unknown as TermRow[],
+            Committees: committeeRows,
+            Terms: termRows,
             Memberships: (memberships.Success ? memberships.Results : []) as unknown as MembershipRoleRow[],
             // Roles come from the process-wide lookup engine — no per-call query.
             Roles: CommitteesLookupEngine.Instance.Roles.map(r => ({ ID: r.ID, Name: r.Name, IsVotingRole: r.IsVotingRole, IsOfficer: r.IsOfficer })) as RoleRow[],

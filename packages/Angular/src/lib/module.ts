@@ -52,6 +52,7 @@ import { BallotCloseDialogComponent } from './motions-ballots/ballot-close-dialo
 import { AgendaBuilderComponent } from './meeting-detail/agenda-builder.component';
 import { PersonCreateDialogComponent } from './shared/person-create-dialog.component';
 import { MemberHomeComponent, LoadMemberHome } from './member-home/member-home.component';
+import { LoadCommitteeSpaceUIDrivers } from './drivers/committee-space-ui-driver';
 
 @NgModule({
     declarations: [
@@ -172,6 +173,7 @@ export function LoadCommitteesModule() {
     LoadMinutesReview();
     LoadPeopleTerms();
     LoadMemberHome();
+    LoadCommitteeSpaceUIDrivers();
 }
 
 /** Alias matching the mj-app.json manifest startupExport convention */

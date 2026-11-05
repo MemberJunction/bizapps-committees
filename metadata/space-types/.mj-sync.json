@@ -1,0 +1,19 @@
+{
+  "entity": "MJ_BizApps_Collaboration: Space Types",
+  "filePattern": ".*.json",
+  "defaults": {},
+  "pull": {
+    "createNewFileIfNotFound": true,
+    "newFileName": ".space-types.json",
+    "appendRecordsToExistingFile": true,
+    "updateExistingRecords": true,
+    "preserveFields": [],
+    "excludeFields": [],
+    "mergeStrategy": "merge",
+    "backupBeforeUpdate": true,
+    "backupDirectory": ".backups",
+    "filter": "ID IN ('5FABEBE3-0207-4DB2-8B4C-8DAF0178A3C6', 'B7CA4E22-91F3-4E04-A812-3C9F08D42E11')",
+    "externalizeFields": [],
+    "lookupFields": {}
+  }
+}

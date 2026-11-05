@@ -1,10 +1,10 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
-import { mjBizAppsCommitteesAgendaItemEntity } from '@mj-biz-apps/committees-entities';
+import { mjBizAppsTasksMeetingAgendaItemEntity } from '@mj-biz-apps/tasks-entities';
 
 export interface AgendaItemDialogResult {
     Saved: boolean;
-    AgendaItem: mjBizAppsCommitteesAgendaItemEntity | null;
+    AgendaItem: mjBizAppsTasksMeetingAgendaItemEntity | null;
 }
 
 @Component({
@@ -20,7 +20,11 @@ export class AgendaItemEditDialogComponent implements OnInit {
     @Input() NextSequence = 1;
     @Output() DialogClosed = new EventEmitter<AgendaItemDialogResult>();
 
-    AgendaItem: mjBizAppsCommitteesAgendaItemEntity | null = null;
+    AgendaItem: mjBizAppsTasksMeetingAgendaItemEntity | null = null;
+    ItemType: string = 'Discussion';
+    Status: string = 'Pending';
+    RelatedDocumentURL: string | null = null;
+    Notes: string | null = null;
     IsLoading = true;
     IsSaving = false;
     ErrorMessage = '';
@@ -125,14 +129,16 @@ export class AgendaItemEditDialogComponent implements OnInit {
     private async loadOrCreateItem(): Promise<void> {
         const md = new Metadata();
         if (this.IsNew) {
-            this.AgendaItem = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items');
+            this.AgendaItem = await md.GetEntityObject<mjBizAppsTasksMeetingAgendaItemEntity>('MJ_BizApps_Tasks: Meeting Agenda Items');
             this.AgendaItem.MeetingID = this.MeetingID!;
             this.AgendaItem.Sequence = this.NextSequence;
-            this.AgendaItem.ItemType = 'Discussion';
-            this.AgendaItem.Status = 'Pending';
+            this.AgendaItem.Status = 'Planned';
+            this.ItemType = 'Discussion';
+            this.Status = 'Pending';
         } else {
-            this.AgendaItem = await md.GetEntityObject<mjBizAppsCommitteesAgendaItemEntity>('Committees: Agenda Items');
+            this.AgendaItem = await md.GetEntityObject<mjBizAppsTasksMeetingAgendaItemEntity>('MJ_BizApps_Tasks: Meeting Agenda Items');
             await this.AgendaItem.Load(this.AgendaItemID!);
+            this.ItemType = this.AgendaItem.Type || 'Discussion';
         }
     }
 

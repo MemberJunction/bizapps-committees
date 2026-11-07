@@ -4,7 +4,7 @@
   "name": "mj-committees",
   "displayName": "Committees",
   "description": "Unified governance platform for managing committees, memberships, meetings, action items, and documents — with AI-powered minutes generation and health analytics",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "license": "BUSL-1.1",
   "icon": "fa-solid fa-users-rectangle",
   "publisher": {
@@ -43,6 +43,14 @@
         "name": "@mj-biz-apps/committees-server",
         "role": "bootstrap",
         "startupExport": "LoadCommitteesServer"
+      },
+      {
+        "name": "@mj-biz-apps/committees-core-entities-server",
+        "role": "library"
+      },
+      {
+        "name": "@mj-biz-apps/committees-actions",
+        "role": "library"
       }
     ],
     "client": [
@@ -58,15 +66,7 @@
         "role": "library"
       },
       {
-        "name": "@mj-biz-apps/committees-core-entities-server",
-        "role": "library"
-      },
-      {
         "name": "@mj-biz-apps/committees-core",
-        "role": "library"
-      },
-      {
-        "name": "@mj-biz-apps/committees-actions",
         "role": "library"
       }
     ]

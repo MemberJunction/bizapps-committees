@@ -60,3 +60,6 @@ report.json
 .tasks-tarballs/
 temp_sql_scripts/
 metadata/sql_logging
+
+# Browser-pass sessions (docs/screenshots/*/take-screenshots.mjs --save-staff-session)
+docs/screenshots/**/staff-session.json

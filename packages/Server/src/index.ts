@@ -36,6 +36,9 @@ export type {
     MeetingAttendee,
 } from '@mj-biz-apps/committees-core-entities-server';
 
+// The committee-scoped authorization the resolvers apply; the integration harness drives it the way the resolvers do.
+export { CommitteeAuthorization } from './authorization/CommitteeAuthorization.js';
+
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 /**

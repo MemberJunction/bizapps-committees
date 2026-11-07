@@ -9,9 +9,9 @@ import { mjBizAppsCommitteesMembershipEntity } from '../generated/entity_subclas
  * - Status='Active' requires a Role to be assigned
  * - Auto-sets EndDate when Status changes to 'Ended'
  *
- * Registered with priority 1 to override the generated class.
+ * Registered with auto-incremented priority above the generated class.
  */
-@RegisterClass(BaseEntity, 'Memberships', 1)
+@RegisterClass(BaseEntity, 'Committees: Memberships')
 export class MembershipEntityCustom extends mjBizAppsCommitteesMembershipEntity {
 
     // Override Status setter to auto-set EndDate when membership is ended.

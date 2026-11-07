@@ -3,6 +3,7 @@
  *
  *   node test-harnesses/integration.mjs
  *   node test-harnesses/integration.mjs committees-world
+ *   node test-harnesses/integration.mjs ballot-sealing
  *
  * committees-world COMMITS COM-WORLD so Explorer has rows. Exit 0 pass · 1 fail · 2 bootstrap.
  */
@@ -11,7 +12,7 @@ import { loadEnvFrom } from './load-env.mjs';
 
 loadEnvFrom(import.meta.url);
 
-const ALL_BUNDLES = ['committees-world'];
+const ALL_BUNDLES = ['committees-world', 'ballot-sealing'];
 
 const args = process.argv.slice(2);
 const only = args.filter((a) => !a.startsWith('-'));
@@ -32,7 +33,7 @@ const { setupSQLServerClient, SQLServerProviderConfigData, UserCache } = await i
 const provider = await setupSQLServerClient(
     new SQLServerProviderConfigData(pool, process.env.MJ_CORE_SCHEMA || '__mj'),
 );
-await UserCache.Instance.Refresh(pool);
+await UserCache.Instance.Refresh(provider); // MJ 6.2: the cache refreshes through the provider, not the pool
 const user = UserCache.Users.find((u) => u?.Type?.trim().toLowerCase() === 'owner') ?? UserCache.Users[0];
 if (!user) {
     console.error('BOOTSTRAP: no context user in UserCache');

@@ -211,7 +211,7 @@ comments and drop run logs — restore/remove them; they are not part of the
 install:
 
 ```bash
-git checkout -- packages/GeneratedEntities packages/GeneratedActions
+git checkout -- packages/Entities packages/GeneratedActions
 rm -rf temp_sql_scripts migrations/codegen/CodeGen_Run_<today>*.sql
 ```
 

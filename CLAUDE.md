@@ -13,7 +13,7 @@ committees/
     MJAPI/         - GraphQL API server (port 4101)
     MJExplorer/    - Angular UI application (port 4301)
   packages/
-    GeneratedEntities/  - CodeGen-generated entity subclasses
+    Entities/           - CodeGen-generated entity subclasses
     GeneratedActions/   - CodeGen-generated action subclasses
 ```
 
@@ -21,12 +21,14 @@ committees/
 
 ## CRITICAL RULES - VIOLATIONS ARE UNACCEPTABLE
 
-### 1. NO COMMITS WITHOUT EXPLICIT APPROVAL
-- **NEVER run `git commit` without the user explicitly asking you to**
-- **Each commit requires ONE-TIME explicit approval** - don't assume ongoing permission
-- **NEVER ask to commit** - wait for the user to request it
-- **ONLY commit what is staged** - never modify or add to staged changes
-- **NEVER commit work-in-progress** that isn't staged by the user
+### 1. COMMIT AND PUSH ONLY WHAT IS FULLY TESTED
+- **Commit on the feature branch when the work is tested**: the package builds, its unit tests pass, and the integration harness
+  passes on a fresh world. A push carries only that; nothing half-done goes up.
+- **Read the pull request's comments before every push**, and answer what they ask in the push or in the push's note.
+- **Never rebase or force-push** a shared branch. Merge the remote branch before pushing.
+- **Never commit local configuration** (`.env*`, a host's `mj.config.cjs` edits, a dev workspace's package links).
+- **Each push gets a note on the pull request** that reports evidence, not intent: the test counts, the harness tallies after a
+  purge and a fresh load, and which items it closes.
 
 ### 2. NO `any` TYPES - EVER
 - **NEVER use `any` types in TypeScript code**
@@ -291,7 +293,7 @@ get myInput(): string | null { return this._myInput; }
 ## CodeGen
 
 This repo uses MemberJunction's CodeGen system to generate entity and action subclasses. The generated code lives in:
-- `packages/GeneratedEntities/` - Entity TypeScript classes with Zod schemas
+- `packages/Entities/` - Entity TypeScript classes with Zod schemas
 - `packages/GeneratedActions/` - Action TypeScript classes
 
 **Key rules:**
@@ -316,7 +318,7 @@ This repo uses MemberJunction's CodeGen system to generate entity and action sub
 - **Full Stack**: Compound configuration running both MJAPI + MJExplorer
 
 ### Source Map Scoping
-Source maps are scoped to local packages only (`apps/MJAPI/**`, `packages/GeneratedEntities/**`, `packages/GeneratedActions/**`). Third-party packages and node_modules are excluded to avoid noise.
+Source maps are scoped to local packages only (`apps/MJAPI/**`, `packages/Entities/**`, `packages/GeneratedActions/**`). Third-party packages and node_modules are excluded to avoid noise.
 
 ---
 
@@ -337,9 +339,9 @@ Source maps are scoped to local packages only (`apps/MJAPI/**`, `packages/Genera
 ---
 
 ## GitHub Repository
-- Repository: https://github.com/MemberJunction/committees
-- Default branch: `main`
-- PRs target `main`
+- Repository: https://github.com/MemberJunction/bizapps-committees
+- Default branch: `next`
+- PRs target `next`
 
 ## Metadata ships as release migrations
 

@@ -33,21 +33,20 @@
         </div>
 
         @if (Mode === 'close') {
-          <!-- threshold math -->
+          <!-- threshold -->
           <div class="fact">
             <span class="k">Threshold</span>
-            <b>{{ View.Forecast.RequiredYes }} Yes needed ({{ ThresholdLabel() }} of {{ View.VotingMemberCount }}) · {{ View.Tally.Yes }} Yes so far</b>
-            <small>Outcome to be stamped: <b class="oc" [class.pass]="ProjectedResult === 'Passed'" [class.fail]="ProjectedResult === 'Failed'">{{ ProjectedResult }}</b>
-              — {{ View.Tally.Yes }}-{{ View.Tally.No }}-{{ View.Tally.Abstain }}</small>
+            <b>{{ View.Forecast.RequiredYes }} Yes needed ({{ ThresholdLabel() }} of {{ View.VotingMemberCount }})</b>
+            <small>The server counts the recorded votes when you confirm, stamps the outcome on the motion and reveals the tally here.</small>
           </div>
 
           @if (IsRisky) {
             <div class="callout warning"><i class="fa-solid fa-triangle-exclamation"></i>
               Closing early: {{ View.Tally.Outstanding }} outstanding vote{{ View.Tally.Outstanding === 1 ? '' : 's' }}
-              could still change this result. The scheduled close is {{ View.Ballot.ClosesAt | date:'MMM d, h:mm a' }}.</div>
+              could still change the result. The scheduled close is {{ View.Ballot.ClosesAt | date:'MMM d, h:mm a' }}.</div>
           } @else if (IsEarly) {
             <div class="callout info"><i class="fa-solid fa-circle-info"></i>
-              Closing early, but the outcome is already mathematically decided — outstanding votes cannot change it.</div>
+              Closing early, but every voting member has cast a vote — nothing outstanding can change the result.</div>
           }
           @if (View.Sealed) {
             <div class="callout info"><i class="fa-solid fa-shield-halved"></i>
@@ -60,7 +59,7 @@
         }
 
         <label class="fld">
-          <span>{{ Mode === 'close' ? 'Result notes (stamped on the ballot)' : 'Reason for cancelling (required)' }}</span>
+          <span>{{ Mode === 'close' ? 'Result notes (stamped on the ballot; the tally summary when left empty)' : 'Reason for cancelling (required)' }}</span>
           <textarea rows="2" [(ngModel)]="Notes"></textarea>
         </label>
       </div>
@@ -68,7 +67,7 @@
       <footer class="bcd-f">
         <button type="button" class="btn primary" [class.danger]="Mode === 'cancel'" [disabled]="ConfirmDisabled" (click)="OnConfirm()">
           <i class="fa-solid fa-gavel"></i>
-          {{ IsSaving ? 'Recording…' : (Mode === 'close' ? 'Close ballot & stamp ' + ProjectedResult.toLowerCase() : 'Cancel ballot') }}
+          {{ IsSaving ? 'Recording…' : (Mode === 'close' ? 'Close ballot & stamp the result' : 'Cancel ballot') }}
         </button>
         <span class="spacer"></span>
         <button type="button" class="btn ghost" [disabled]="IsSaving" (click)="Cancel()">Keep it open</button>
@@ -89,19 +88,19 @@
         </h2>
         <p class="sub">{{ View.MotionTitle }}</p>
 
-        @if (FinalResult !== 'Cancelled') {
+        @if (FinalResult !== 'Cancelled' && Revealed) {
           <div class="tally">
             <div class="t-bar" aria-hidden="true">
               <span class="yes" [style.width.%]="YesPct"></span>
               <span class="no" [style.width.%]="NoPct"></span>
             </div>
             <div class="t-nums">
-              <span class="y">{{ View.Tally.Yes }} Yes</span>
-              <span class="n">{{ View.Tally.No }} No</span>
-              <span class="a">{{ View.Tally.Abstain }} Abstain</span>
+              <span class="y">{{ Revealed.Tally.Yes }} Yes</span>
+              <span class="n">{{ Revealed.Tally.No }} No</span>
+              <span class="a">{{ Revealed.Tally.Abstain }} Abstain</span>
             </div>
-            <small class="muted">{{ View.Tally.Cast }} of {{ View.VotingMemberCount }} voting members ·
-              {{ ThresholdLabel() }} required {{ View.Forecast.RequiredYes }} Yes
+            <small class="muted">{{ Revealed.Tally.Cast }} of {{ Revealed.VotingMemberCount }} voting members ·
+              {{ ThresholdLabel() }} required {{ Revealed.RequiredYes }} Yes
               @if (View.Sealed) { · individual choices remain sealed }</small>
           </div>
         } @else {

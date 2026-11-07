@@ -4,6 +4,7 @@ import { Metadata, RunView, RunViewParams, RunViewResult } from '@memberjunction
 import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
 import { MJFileEntity, MJFileEntityRecordLinkEntity } from '@memberjunction/core-entities';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
+import { uploadProxyUrl } from './upload-proxy-url';
 
 export interface DocumentDialogResult {
     Saved: boolean;
@@ -184,8 +185,7 @@ export class DocumentEditDialogComponent implements OnInit {
         // Upload via server proxy to avoid CORS issues with providers like Dropbox
         try {
             const provider = Metadata.Provider as GraphQLDataProvider;
-            const apiUrl = provider.ConfigData.URL.replace(/\/graphql\/?$/, '');
-            const proxyResponse = await window.fetch(`${apiUrl}/api/upload-proxy`, {
+            const proxyResponse = await window.fetch(uploadProxyUrl(provider.ConfigData.URL), {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${provider.ConfigData.Token}`,

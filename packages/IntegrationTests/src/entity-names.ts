@@ -22,3 +22,7 @@ export const WORLD_MARK = 'COM-WORLD';
 export function WorldAvatarURL(email: string): string {
     return `https://api.dicebear.com/9.x/lorelei/png?seed=${encodeURIComponent(email)}&size=256`;
 }
+
+export const E_USER = 'MJ: Users';
+export const E_USER_ROLE = 'MJ: User Roles';
+export const E_MJ_ROLE = 'MJ: Roles';

@@ -45,7 +45,7 @@ module.exports = {
     // Generated GraphQL resolvers ship inside committees-server for the same reason.
     { type: 'GraphQLServer', directory: './packages/Server/src/generated' },
     { type: 'ActionSubclasses', directory: './packages/Actions/src/generated' },
-    { type: 'EntitySubclasses', directory: './packages/GeneratedEntities/src/generated' },
+    { type: 'EntitySubclasses', directory: './packages/Entities/src/generated' },
     { type: 'DBSchemaJSON', directory: './Schema Files' },
   ],
 
@@ -55,7 +55,7 @@ module.exports = {
    */
   commands: [
     {
-      workingDirectory: './packages/GeneratedEntities',
+      workingDirectory: './packages/Entities',
       command: 'npm',
       args: ['run', 'build'],
       when: 'after',

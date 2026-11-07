@@ -24,6 +24,7 @@ import {
     mjBizAppsCommitteesMeetingEntity,
     mjBizAppsCommitteesCommentEntity,
 } from '@mj-biz-apps/committees-entities';
+import { ResolveUserIDForPerson, ResolveUserIDsForPeople } from '@mj-biz-apps/committees-core';
 import { MJEventType, MJGlobal, MJEvent , UUIDsEqual } from '@memberjunction/global';
 import { Subscription } from 'rxjs';
 
@@ -173,7 +174,7 @@ async function handleCommentSave(event: BaseEntityEvent): Promise<void> {
     if (parentCommentID) {
         const parentAuthorPersonID = await getCommentAuthorPersonID(parentCommentID, contextUser);
         if (parentAuthorPersonID && !UUIDsEqual(parentAuthorPersonID, authorPersonID)) {
-            const userID = await getPersonLinkedUserID(parentAuthorPersonID, contextUser);
+            const userID = await getPersonUserID(parentAuthorPersonID, contextUser);
             if (userID) userIDsToNotify.add(userID);
         }
     }
@@ -182,7 +183,7 @@ async function handleCommentSave(event: BaseEntityEvent): Promise<void> {
     const mentionedJSON = comment.MentionedPersonIDs;
     if (mentionedJSON) {
         const mentionedIDs = parseMentionedPersonIDs(mentionedJSON).filter(id => !UUIDsEqual(id, authorPersonID));
-        for (const userID of await getLinkedUserIDsForPeople(mentionedIDs, contextUser)) {
+        for (const userID of await getUserIDsForPeople(mentionedIDs, contextUser)) {
             userIDsToNotify.add(userID);
         }
     }
@@ -242,7 +243,7 @@ function parseMentionedPersonIDs(json: string): string[] {
 
 /**
  * Returns the MJ UserIDs for all active members of a committee.
- * Two-step: get PersonIDs from Memberships, then resolve LinkedUserIDs from People.
+ * Two-step: get PersonIDs from Memberships, then resolve each Person's user.
  */
 async function getCommitteeMemberUserIDs(committeeID: string, contextUser: UserInfo): Promise<string[]> {
     const rv = new RunView();
@@ -264,59 +265,41 @@ async function getCommitteeMemberUserIDs(committeeID: string, contextUser: UserI
 
     const personIDs = memberships.Results.map(m => m.PersonID);
 
-    // Step 2: Resolve PersonIDs → LinkedUserIDs
-    const inClause = personIDs.map(id => `'${id}'`).join(',');
-    const people = await rv.RunView<{ ID: string; LinkedUserID: string | null }>({
-        EntityName: 'MJ_BizApps_Common: People',
-        ExtraFilter: `ID IN (${inClause}) AND LinkedUserID IS NOT NULL`,
-        Fields: ['ID', 'LinkedUserID'],
-        ResultType: 'simple',
-    }, contextUser);
-
-    if (!people.Success) {
-        LogError(`[Committees] Failed to resolve people for committee ${committeeID}: ${people.ErrorMessage}`);
+    // Step 2: Resolve PersonIDs → UserIDs
+    try {
+        return [...(await ResolveUserIDsForPeople(personIDs, Metadata.Provider, contextUser)).values()];
+    } catch (error) {
+        LogError(`[Committees] Failed to resolve people for committee ${committeeID}: ${errorText(error)}`);
         return [];
     }
-
-    return people.Results
-        .map(p => p.LinkedUserID)
-        .filter((id): id is string => id != null);
 }
 
 /**
- * Resolves many PersonIDs to their linked MJ UserIDs in a single query.
- * Inputs must already be GUID-validated (parseMentionedPersonIDs).
+ * Resolves many PersonIDs to their MJ UserIDs in one batch (see ResolveUserIDsForPeople).
  */
-async function getLinkedUserIDsForPeople(personIDs: string[], contextUser: UserInfo): Promise<string[]> {
-    if (personIDs.length === 0) return [];
-    const rv = new RunView();
-    const result = await rv.RunView<{ ID: string; LinkedUserID: string | null }>({
-        EntityName: 'MJ_BizApps_Common: People',
-        ExtraFilter: `ID IN (${personIDs.map(id => `'${id}'`).join(',')})`,
-        Fields: ['ID', 'LinkedUserID'],
-        ResultType: 'simple',
-    }, contextUser);
-    if (!result.Success) return [];
-    return result.Results.map(p => p.LinkedUserID).filter((id): id is string => id != null);
+async function getUserIDsForPeople(personIDs: string[], contextUser: UserInfo): Promise<string[]> {
+    try {
+        return [...(await ResolveUserIDsForPeople(personIDs, Metadata.Provider, contextUser)).values()];
+    } catch (error) {
+        LogError(`[Committees] Failed to resolve mentioned people: ${errorText(error)}`);
+        return [];
+    }
 }
 
 /**
- * Resolves a PersonID to their linked MJ UserID (if any).
+ * Resolves a PersonID to its MJ UserID (if any).
  */
-async function getPersonLinkedUserID(personID: string, contextUser: UserInfo): Promise<string | null> {
-    const rv = new RunView();
-    const result = await rv.RunView<{ ID: string; LinkedUserID: string | null }>({
-        EntityName: 'MJ_BizApps_Common: People',
-        ExtraFilter: `ID='${personID}'`,
-        Fields: ['ID', 'LinkedUserID'],
-        ResultType: 'simple',
-    }, contextUser);
-
-    if (!result.Success || result.Results.length === 0) {
+async function getPersonUserID(personID: string, contextUser: UserInfo): Promise<string | null> {
+    try {
+        return await ResolveUserIDForPerson(personID, Metadata.Provider, contextUser);
+    } catch (error) {
+        LogError(`[Committees] Failed to resolve person ${personID}: ${errorText(error)}`);
         return null;
     }
+}
 
-    return result.Results[0].LinkedUserID ?? null;
+function errorText(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
 }
 
 /**

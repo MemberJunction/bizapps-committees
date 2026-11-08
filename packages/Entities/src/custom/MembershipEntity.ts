@@ -2,6 +2,11 @@ import { BaseEntity, IRunViewProvider, ValidationResult, ValidationErrorInfo, Va
 import { RegisterClass } from '@memberjunction/global';
 import { mjBizAppsCommitteesMembershipEntity } from '../generated/entity_subclasses';
 
+// Strict UUID shape. Local on purpose: the UUID_RE in CommitteeAuthorization.ts and the
+// GUID_PATTERN in MinutesService.ts are non-exported consts in server-only packages, and this
+// shared Entities package must not import from them.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /**
  * Custom Membership entity with business rule validation:
  * - No duplicate active memberships (same person + same term)
@@ -80,6 +85,25 @@ export class MembershipEntityCustom extends mjBizAppsCommitteesMembershipEntity 
      */
     private async ValidateNoDuplicateActiveMembership(result: ValidationResult): Promise<void> {
         if (this.Status !== 'Active' || !this.PersonID || !this.TermID) {
+            return;
+        }
+
+        // SECURITY: PersonID, TermID and ID are interpolated into the ExtraFilter below. Every
+        // legitimate value is a UUID, so anything else is refused outright (and the query is
+        // skipped) rather than passed into SQL text.
+        let hasInvalidKey = false;
+        for (const [field, value] of [['PersonID', this.PersonID], ['TermID', this.TermID], ['ID', this.ID]] as const) {
+            if (!UUID_RE.test(value)) {
+                result.Errors.push(new ValidationErrorInfo(
+                    field,
+                    `${field} must be a valid UUID.`,
+                    value,
+                    ValidationErrorType.Failure
+                ));
+                hasInvalidKey = true;
+            }
+        }
+        if (hasInvalidKey) {
             return;
         }
 

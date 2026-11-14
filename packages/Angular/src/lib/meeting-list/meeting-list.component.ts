@@ -5,6 +5,7 @@ import { ResourceData } from '@memberjunction/core-entities';
 import { RunView } from '@memberjunction/core';
 import { MeetingDialogResult } from './meeting-edit-dialog.component';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
+import { OpenExternalUrl } from '../shared/open-external-url';
 
 @RegisterClass(BaseResourceComponent, 'MeetingListComponent')
 @Component({
@@ -67,7 +68,8 @@ export class MeetingListComponent extends BaseResourceComponent implements OnIni
 
     OnJoinMeeting(event: Event, url: string): void {
         event.stopPropagation();
-        window.open(url, '_blank', 'noopener');
+        // SECURITY: VideoJoinURL is a user-editable field — only http(s) may open (see OpenExternalUrl).
+        OpenExternalUrl(url);
     }
 
     OnCreateMeeting(): void {

@@ -6,6 +6,7 @@ import { EntityInfo, Metadata, RunView } from '@memberjunction/core';
 import { DocumentDialogResult } from './document-edit-dialog.component';
 import { DocumentPreviewClosedEvent } from './document-preview-panel.component';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
+import { OpenExternalUrl } from '../shared/open-external-url';
 import { CommitteeTaskService } from '@mj-biz-apps/committees-core';
 
 type DateRangeFilter = 'all' | '7d' | '30d' | '90d' | 'year';
@@ -123,7 +124,8 @@ export class DocumentBrowserComponent extends BaseResourceComponent implements O
 
     OnOpenDocument(url: string, event: MouseEvent): void {
         event.stopPropagation();
-        window.open(url, '_blank');
+        // SECURITY: ProviderKey is a user-set field — only http(s) may open (see OpenExternalUrl).
+        OpenExternalUrl(url);
     }
 
     /** Card click → open the inline preview panel (anyone can view). */

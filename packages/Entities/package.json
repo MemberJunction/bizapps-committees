@@ -17,8 +17,8 @@
   "author": "MemberJunction.com",
   "license": "BUSL-1.1",
   "peerDependencies": {
-    "@memberjunction/core": "^6.1.0-edge.6",
-    "@memberjunction/global": "^6.1.0-edge.6"
+    "@memberjunction/core": "^6.3.0-edge.1",
+    "@memberjunction/global": "^6.3.0-edge.1"
   },
   "dependencies": {
     "zod": "^3.25.28"

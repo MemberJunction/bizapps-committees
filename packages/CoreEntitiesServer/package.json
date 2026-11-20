@@ -26,12 +26,12 @@
     "@memberjunction/credentials": "^6.3.0-edge.1",
     "@memberjunction/generic-database-provider": "^6.3.0-edge.1",
     "@memberjunction/global": "^6.3.0-edge.1",
-    "@memberjunction/server": "^6.3.0-edge.1"
+    "@memberjunction/server": "^6.3.0-edge.1",
+    "@mj-biz-apps/common-entities": "^5.34.0"
   },
   "dependencies": {
     "@mj-biz-apps/committees-core": "1.5.0",
     "@mj-biz-apps/committees-entities": "1.5.0",
-    "@mj-biz-apps/common-entities": "^5.34.0",
     "class-validator": "^0.14.3",
     "rxjs": "^7.8.2"
   },

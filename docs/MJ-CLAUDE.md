@@ -2,6 +2,7 @@
 > from ~/Projects/MJ/MJ). Relative links refer to the MJ repo, not this one.
 > This is the authoritative reference for MJ patterns — entity access, BaseEngine
 > caching, singletons, Angular rules. Re-copy when upgrading the MJ dependency.
+> Patched 2026-10-23: the `primaryKey` rule below follows MemberJunction/MJ#6006.
 
 # GENERAL RULE
 Don't say "You're absolutely right" each time I correct you. Mix it up, that's so boring!
@@ -2067,7 +2068,7 @@ When a migration creates a new lookup or reference table (e.g., `AIAgentRequestT
      }
    }
    ```
-3. Create the seed data file (e.g., `.agent-request-types.json`) as a JSON array of records. Each record has a `"fields"` object with the column values. **Omit `primaryKey` and `sync`** — these are auto-populated by mj-sync on first push.
+3. Create the seed data file (e.g., `.agent-request-types.json`) as a JSON array of records. Each record has a `"fields"` object with the column values and a `primaryKey` UUID from CLI `uuidgen`; omit `sync`, which the release-time `mj sync push` writes. A record without a `primaryKey` is inserted as a new row on every push (MJ's `metadata/CLAUDE.md` rule 1).
 4. Push with: `npx mj sync push --dir=metadata --include="agent-request-types"`
 
 **Why metadata files over SQL INSERTs:**
@@ -2087,7 +2088,7 @@ When creating new applications with custom dashboards:
    - `ResourceType`: Usually `"Custom"` for dashboard resources
    - `DriverClass`: Class name registered with `@RegisterClass(BaseResourceComponent, 'ClassName')`
    - `isDefault`: Set to `true` for the default tab (only one per app)
-4. For new apps, omit `primaryKey` and `sync` sections - they're populated by mj-sync
+4. For new apps, include a `primaryKey` from CLI `uuidgen` and omit `sync` (MJ's `metadata/CLAUDE.md` rule 1)
 5. Include `"relatedEntities": { "Application Entities": [] }` for the sync structure
 
 ### Resource Components for Custom Dashboards

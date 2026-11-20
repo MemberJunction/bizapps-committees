@@ -306,6 +306,7 @@ This repo uses MemberJunction's CodeGen system to generate entity and action sub
 - See MJ documentation for migration file format and conventions
 - Never include `__mj_CreatedAt`/`__mj_UpdatedAt` columns in CREATE TABLE - CodeGen handles them
 - Never create indexes for foreign key columns - CodeGen creates them automatically
+- Write plain DDL with no existence guards (`IF OBJECT_ID`, `IF COL_LENGTH`, `IF NOT EXISTS`): each migration runs exactly once, in order, so a guard only turns a schema mismatch into silence. This rule and the others MJ and every BizApps repo share are in MJ's [Schema and Code Authoring Guide](https://github.com/MemberJunction/MJ/blob/next/guides/SCHEMA_AND_CODE_AUTHORING_GUIDE.md), each with its reason.
 
 ---
 
@@ -348,6 +349,7 @@ Source maps are scoped to local packages only (`apps/MJAPI/**`, `packages/Entiti
 `mj app install` and upgrades run migrations only. There is no metadata phase, by design. A record that exists only as JSON under `metadata/` reaches no host until a release ships it inside a migration.
 
 - **PRs carry metadata JSON only.** Never hand-write or generate a `*__Metadata_Sync.sql` in a feature PR.
+- **Every record has a `primaryKey`**, nested `relatedEntities` children included: a CLI `uuidgen` UUID for a row the file creates, or an `@lookup` for one a migration or CodeGen already created. Push creates a new row for any record without one.
 - **The build engineer** generates one differential `Metadata_Sync` migration per release, from a fresh database.
 - **Rows missing after a fresh install** usually mean a release shipped without its metadata migration. Hand that to the build engineer rather than changing the installer.
 

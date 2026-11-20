@@ -7,23 +7,33 @@ in `.github/workflows/repo-checks.yml`.
 
 ## Branch model
 
+This repo follows release lines (`guides/RELEASE_LINES.md`):
+
 ```
-feature branch ──PR──▶ next ──(App opens Version Packages PR)──▶ main ──(publish.yml)──▶ npm
+feature ──PR──▶ next ──backport label──▶ lts/6.1 ──(App opens Version Packages PR)──▶ main ──(publish.yml)──▶ npm
 ```
 
-- PRs land on **`next`** with a changeset (`pnpm run change`). A migration or `metadata/`
-  change needs at least a **`minor`** changeset (`migration changeset` check).
-- Every push to `next` refreshes **one Version Packages PR** (`changeset-release/main` → `main`),
-  opened by the `blue-cypress-ci-bot` GitHub App (`version.yml`). It runs
-  `pnpm run version:prepare`: `changeset version`, the `mj-app.json` version and MJ range sync
-  (`ci/sync-mj-app-version.mjs`), the upstream dependency range sync
-  (`scripts/sync-mj-app-dependency-ranges.mjs`), and a lockfile refresh.
-- **Merging that PR is the release.** `release-readiness.yml` gates it (`rr:` checks: no pending
-  changesets, bump level, metadata shipped, Postgres counterparts, release base current,
-  migration immutability, packages on npm). The push to `main` runs `publish.yml`, which
-  publishes over npm OIDC, tags `vX.Y.Z`, then the App opens and merges a
-  `release-back-merge/vX.Y.Z` PR into `next`.
-- There is no hand-opened `next` → `main` PR, and nothing commits to `main` directly.
+- `next` is built on MJ Edge and **never versions or publishes**. PRs land there first, with a
+  changeset (`pnpm run change`). A migration or `metadata/` change needs at least a **`minor`**
+  changeset (`migration changeset` check).
+- A `backport lts/X.Y` label on the PR into `next` makes `backport.yml` open the cherry-pick PR
+  into that line once it merges. The changeset travels with it.
+- Every push to a line runs `version.yml`, which refreshes that line's **Version Packages PR**,
+  opened by the `blue-cypress-ci-bot` App. It runs `pnpm run version:prepare`: `changeset
+  version`, the `mj-app.json` version and MJ range sync (`ci/sync-mj-app-version.mjs`), the
+  upstream dependency range sync (`scripts/sync-mj-app-dependency-ranges.mjs`), and a lockfile
+  refresh.
+  - The newest line (`releasesThrough: main` in `release-lines.json`): `changeset-release/main`
+    → `main`. Publishes as `latest`; afterwards the App opens and merges a
+    `release-back-merge/vX.Y.Z` PR into the line.
+  - An older line (`releasesThrough: branch`): `changeset-release/lts/X.Y` → `lts/X.Y`.
+    Publishes under the dist-tag `lts-X.Y`; no back-merge.
+- **Merging that PR is the release** (`Cut the Release` dispatch, `line` input empty for the
+  newest line). `release-readiness.yml` gates it (`rr:` checks: no pending changesets, bump
+  level, metadata shipped, Postgres counterparts, release base current, migration immutability,
+  packages on npm). `publish.yml` publishes over npm OIDC under the line's dist-tag, tags
+  `vX.Y.Z`, checks the dist-tag, and opens a PR into `next` removing the changesets it released.
+- There is no hand-opened PR into `main`, and nothing commits to `main` directly.
 
 ## npm authentication — OIDC (no NPM_TOKEN secret)
 
@@ -36,7 +46,10 @@ time. Each package's **Settings → Trusted Publisher** on npmjs.com must name
 - The `blue-cypress-ci-bot` App is installed on this repo, and the org `APP_CLIENT_ID` variable
   and `APP_PRIVATE_KEY` secret reach it.
 - Rulesets: `protect-next` (PR required, the four door checks, strict; App bypass for pull
-  requests only) and `protect-main` (the seven `rr:` checks plus `build`, one approval).
+  requests only), `protect-main` (the seven `rr:` checks plus `build`, one approval) and
+  `protect-lts` on `lts/*` (PR required, one approval, code-owner review, the `lines:` checks,
+  the door checks and `build`; App bypass for pull requests only, for the back-merge and an
+  older line's release PR).
 
 ## Notes
 

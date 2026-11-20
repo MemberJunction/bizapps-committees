@@ -5,3 +5,4 @@ export * from './services/BallotService.js';
 export * from './services/MotionService.js';
 export * from './services/SuccessionService.js';
 export * from './services/TermRenewalService.js';
+export * from './person-user-link.js';

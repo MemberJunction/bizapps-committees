@@ -176,12 +176,13 @@ function handlePinnedResponse(
         reject(new Error(`Unexpected redirect (HTTP ${status}) blocked by SSRF guard`));
         return;
     }
-    const chunks: Uint8Array[] = [];
-    res.on('data', (chunk: Buffer | string) => {
-        chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+    const chunks: string[] = [];
+    res.setEncoding('utf8');
+    res.on('data', (chunk: string) => {
+        chunks.push(chunk);
     });
     res.on('end', () => {
-        const bodyText = Buffer.concat(chunks).toString('utf8');
+        const bodyText = chunks.join('');
         resolve({
             ok: status >= 200 && status < 300,
             status,

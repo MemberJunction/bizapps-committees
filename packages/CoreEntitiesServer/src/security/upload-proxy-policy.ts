@@ -101,18 +101,34 @@ export function parseMaxUploadBytes(rawEnv: string | undefined = process.env['UP
  * Destroys the stream and throws `PayloadTooLargeError` the moment the body exceeds the cap.
  */
 export async function readBoundedStream(stream: Readable, maxBytes: number): Promise<Uint8Array<ArrayBuffer>> {
+    const encoder = new TextEncoder();
     const chunks: Uint8Array[] = [];
     let totalBytes = 0;
     for await (const chunk of stream) {
-        const buffer: Uint8Array = typeof chunk === 'string' ? Buffer.from(chunk) : (chunk as Uint8Array);
-        totalBytes += buffer.length;
+        const bytes: Uint8Array = typeof chunk === 'string'
+            ? encoder.encode(chunk)
+            : copyToUint8Array(chunk as ArrayLike<number>);
+        totalBytes += bytes.byteLength;
         if (totalBytes > maxBytes) {
             stream.destroy(); // stop reading immediately — never buffer an unbounded body
             throw new PayloadTooLargeError(maxBytes);
         }
-        chunks.push(buffer);
+        chunks.push(bytes);
     }
-    return new Uint8Array(Buffer.concat(chunks));
+    const merged = new Uint8Array(totalBytes);
+    let offset = 0;
+    for (const chunk of chunks) {
+        merged.set(chunk, offset);
+        offset += chunk.byteLength;
+    }
+    return merged;
+}
+
+/** Copies a Buffer/Uint8Array chunk into a plain ArrayBuffer-backed Uint8Array. */
+function copyToUint8Array(chunk: ArrayLike<number>): Uint8Array<ArrayBuffer> {
+    const out = new Uint8Array(chunk.length);
+    out.set(chunk);
+    return out;
 }
 
 /**

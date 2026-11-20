@@ -154,7 +154,7 @@ importers:
         specifier: '>=6.1.5 <6.2.0'
         version: 6.1.5(ec52225f2410ff57d6949c929f192d33)
       '@memberjunction/ng-hierarchy-tree':
-        specifier: 6.1.5
+        specifier: '>=6.1.5 <6.2.0'
         version: 6.1.5(bc0c87e3e56300f56b27bf172751a218)
       '@memberjunction/ng-link-directives':
         specifier: '>=6.1.5 <6.2.0'

@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "build": "tsc && tsc-alias -f",
-    "test": "echo \"No tests configured yet\""
+    "test": "node --test src/security/__tests__/*.spec.mjs"
   },
   "author": "MemberJunction.com",
   "license": "BUSL-1.1",

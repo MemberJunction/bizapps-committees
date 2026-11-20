@@ -11,6 +11,7 @@ import {
 } from '@mj-biz-apps/committees-entities';
 import { mjBizAppsTasksTaskEntity } from '@mj-biz-apps/tasks-entities';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
+import { OpenExternalUrl } from '../shared/open-external-url';
 
 interface TermRow { ID: string; CommitteeID: string; Committee: string; EndDate: string | null; Status: string; }
 interface MembershipRow { ID: string; TermID: string; PersonID: string; Role: string; RoleID: string; RenewalIntent: RenewalIntentValue; }
@@ -442,7 +443,8 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
     }
 
     OnJoin(): void {
-        if (this.NextMeeting?.VideoJoinURL) window.open(this.NextMeeting.VideoJoinURL, '_blank', 'noopener');
+        // SECURITY: VideoJoinURL is a user-editable field — only http(s) may open (see OpenExternalUrl).
+        OpenExternalUrl(this.NextMeeting?.VideoJoinURL);
     }
 
     IntentButtons(): Array<'Yes' | 'No' | 'Undecided'> { return ['Yes', 'No', 'Undecided']; }

@@ -1,18 +1,18 @@
 import type { Application, NextFunction, Request, RequestHandler, Response } from 'express';
+import { LogError } from '@memberjunction/core';
 import { RegisterClass } from '@memberjunction/global';
 import { BaseServerMiddleware } from '@memberjunction/server';
-import { assertPublicHttpsTarget } from '../security/ssrf-guard.js';
+import { assertPublicHttpsTarget, pinnedHttpsRequest, type PinnedHttpsResponse } from '../security/ssrf-guard.js';
+import {
+    applyFallbackCorsHeaders,
+    parseMaxUploadBytes,
+    PayloadTooLargeError,
+    readBoundedStream,
+    validateUploadTarget,
+    type UploadTargetCheckResult,
+} from '../security/upload-proxy-policy.js';
 
-/** Default cap on a proxied upload body (100 MB). Override with UPLOAD_PROXY_MAX_BYTES. */
-const DEFAULT_MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
-
-/** Thrown by readRequestBody when the buffered body exceeds the cap; mapped to HTTP 413. */
-class PayloadTooLargeError extends Error {
-    constructor(maxBytes: number) {
-        super(`Request body exceeds the ${maxBytes}-byte upload limit`);
-        this.name = 'PayloadTooLargeError';
-    }
-}
+const UPLOAD_PROXY_PATH = '/api/upload-proxy';
 
 /**
  * Upload proxy middleware for storage providers that don't support CORS.
@@ -29,7 +29,7 @@ export class UploadProxyMiddleware extends BaseServerMiddleware {
     }
 
     ConfigureExpressApp(app: Application): void {
-        console.log('[upload-proxy] Registering /api/upload-proxy preflight route');
+        console.log('[upload-proxy] Registering /api/upload-proxy preflight route (upload handlers mount post-auth)');
 
         // Only the credential-less OPTIONS preflight is registered pre-auth here. The PUT/POST
         // upload routes are handled in GetPostAuthMiddleware() — see the comment there.
@@ -57,20 +57,29 @@ export class UploadProxyMiddleware extends BaseServerMiddleware {
         ];
     }
 
+    /** Delegates to the shared pure upload-target allowlist validator. */
+    public static ValidateUploadTarget(
+        targetUrl: string,
+        extraAllowedHostsEnv?: string,
+    ): UploadTargetCheckResult {
+        return validateUploadTarget(targetUrl, extraAllowedHostsEnv);
+    }
+
     /**
      * True when the request is a PUT/POST to /api/upload-proxy (trailing slash tolerated,
      * matching Express's default non-strict routing that the old app.put/app.post gave us).
      */
     private isUploadProxyRequest(req: Request): boolean {
         const path = req.path.endsWith('/') ? req.path.slice(0, -1) : req.path;
-        return path === '/api/upload-proxy' && (req.method === 'PUT' || req.method === 'POST');
+        return path === UPLOAD_PROXY_PATH && (req.method === 'PUT' || req.method === 'POST');
     }
 
     /**
-     * CORS preflight (before auth middleware runs).
+     * CORS preflight (pre-auth by design: preflight requests never carry
+     * credentials, and the unified auth middleware skips OPTIONS anyway).
      */
     private registerPreflightRoute(app: Application): void {
-        app.options('/api/upload-proxy', (_req: Request, res: Response) => {
+        app.options(UPLOAD_PROXY_PATH, (_req: Request, res: Response) => {
             res.set({
                 'Access-Control-Allow-Origin': '*',
                 'Access-Control-Allow-Methods': 'POST, PUT, OPTIONS',
@@ -82,71 +91,96 @@ export class UploadProxyMiddleware extends BaseServerMiddleware {
     }
 
     /**
-     * Handles a proxied upload: reads the raw request body and forwards it to
-     * the target URL specified in the x-upload-url header.
+     * Handles a proxied upload: validates auth, upload target allowlist, and size cap,
+     * reads the raw request body, vets DNS immediately before dispatch, and forwards
+     * to the pinned IP.
      */
     private async handleUpload(req: Request, res: Response): Promise<void> {
-        res.set({
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Authorization, Content-Type, x-upload-url, x-upload-method',
-        });
+        applyFallbackCorsHeaders(res);
+
         // SECURITY (auth): defense in depth — this handler must only ever run behind MJServer's
-        // unified auth middleware (see GetPostAuthMiddleware), which sets req.userPayload. If a
-        // future refactor re-registers it pre-auth, the payload is absent and we refuse rather
-        // than relay for an anonymous caller.
+        // unified auth middleware (see GetPostAuthMiddleware), which sets req.userPayload.
         if (!req.userPayload) {
             res.status(401).json({ error: 'Authentication required' });
             return;
         }
+        const validated = this.validateRequestHeaders(req, res);
+        if (!validated) {
+            return;
+        }
+        await this.bufferAndForwardUpload(req, res, validated.targetUrl, validated.method, validated.maxBytes);
+    }
+
+    /**
+     * Validates x-upload-url, x-upload-method, storage-provider host allowlist, and declared
+     * Content-Length before buffering any request bytes. Writes the 4xx response on failure.
+     */
+    private validateRequestHeaders(
+        req: Request,
+        res: Response,
+    ): { targetUrl: string; method: 'POST' | 'PUT'; maxBytes: number } | null {
         const targetUrl = req.headers['x-upload-url'] as string;
         const method = ((req.headers['x-upload-method'] as string) || 'POST').toUpperCase();
         if (!targetUrl) {
             res.status(400).json({ error: 'Missing x-upload-url header' });
-            return;
+            return null;
         }
-        // SECURITY: only upload verbs — never allow this proxy to be used as a GET reader.
         if (method !== 'POST' && method !== 'PUT') {
             res.status(400).json({ error: 'Unsupported x-upload-method' });
-            return;
+            return null;
         }
-        // SECURITY (SSRF): x-upload-url is fully client-controlled and its response body is relayed
-        // back to the caller. Restrict it to public HTTPS storage endpoints and reject any host that
-        // resolves to a private/loopback/link-local address (blocks cloud metadata, localhost, and
-        // internal services). Without this the endpoint is an authenticated read-SSRF / open proxy.
-        try {
-            await assertPublicHttpsTarget(targetUrl, 'x-upload-url');
-        } catch (err: unknown) {
-            res.status(403).json({ error: err instanceof Error ? err.message : 'Blocked upload target' });
-            return;
+        const targetCheck = validateUploadTarget(targetUrl);
+        if (!targetCheck.Allowed) {
+            if (targetCheck.Host) {
+                LogError(`[upload-proxy] Blocked upload target host '${targetCheck.Host}' — not in the storage-provider allowlist`);
+            }
+            res.status(targetCheck.Status).json({ error: targetCheck.Error });
+            return null;
         }
-
-        // SECURITY (DoS): never buffer an unbounded body. Reject an oversized declared
-        // Content-Length up front; readRequestBody enforces the same cap while streaming,
-        // for chunked requests and clients whose declared length lies.
-        const maxBytes = this.maxUploadBytes();
+        const maxBytes = parseMaxUploadBytes();
         const declaredLength = Number(req.headers['content-length']);
         if (Number.isFinite(declaredLength) && declaredLength > maxBytes) {
+            res.set('Connection', 'close');
             res.status(413).json({ error: `Request body exceeds the ${maxBytes}-byte upload limit` });
-            return;
+            return null;
         }
+        return { targetUrl, method, maxBytes };
+    }
 
+    /**
+     * Buffers the bounded request body, runs the SSRF DNS check immediately before
+     * forwarding, and relays the upstream response via an IP-pinned HTTPS connection.
+     */
+    private async bufferAndForwardUpload(
+        req: Request,
+        res: Response,
+        targetUrl: string,
+        method: 'POST' | 'PUT',
+        maxBytes: number,
+    ): Promise<void> {
         try {
-            const body = await this.readRequestBody(req, maxBytes);
+            const body = await readBoundedStream(req, maxBytes);
             console.log(`[upload-proxy] ${method} ${targetUrl.substring(0, 80)}... (${body.length} bytes)`);
 
-            const response = await fetch(targetUrl, {
+            let vetted;
+            try {
+                vetted = await assertPublicHttpsTarget(targetUrl, 'x-upload-url');
+            } catch (err: unknown) {
+                res.status(403).json({ error: err instanceof Error ? err.message : 'Blocked upload target' });
+                return;
+            }
+
+            const response = await pinnedHttpsRequest(vetted, {
                 method,
                 headers: { 'Content-Type': 'application/octet-stream' },
                 body,
-                // SECURITY: do not follow redirects — a redirect to an internal address would
-                // otherwise slip past the pre-flight SSRF check above.
-                redirect: 'error',
             });
 
             await this.relayProviderResponse(response, res);
         } catch (err: unknown) {
             if (err instanceof PayloadTooLargeError) {
                 console.error(`[upload-proxy] Rejected: ${err.message}`);
+                res.set('Connection', 'close');
                 res.status(413).json({ error: err.message });
                 return;
             }
@@ -157,39 +191,9 @@ export class UploadProxyMiddleware extends BaseServerMiddleware {
     }
 
     /**
-     * The maximum proxied body size in bytes: UPLOAD_PROXY_MAX_BYTES when set to a positive
-     * number, otherwise DEFAULT_MAX_UPLOAD_BYTES (100 MB).
-     */
-    private maxUploadBytes(): number {
-        const fromEnv = Number(process.env.UPLOAD_PROXY_MAX_BYTES);
-        return Number.isFinite(fromEnv) && fromEnv > 0 ? Math.floor(fromEnv) : DEFAULT_MAX_UPLOAD_BYTES;
-    }
-
-    /**
-     * Buffers the raw request stream into a single Uint8Array, enforcing `maxBytes`. Aborts the
-     * stream and throws PayloadTooLargeError the moment the buffered body exceeds the cap.
-     */
-    private async readRequestBody(req: Request, maxBytes: number): Promise<Uint8Array<ArrayBuffer>> {
-        const chunks: Uint8Array[] = [];
-        let totalBytes = 0;
-        for await (const chunk of req) {
-            const buffer: Uint8Array = typeof chunk === 'string' ? Buffer.from(chunk) : chunk;
-            totalBytes += buffer.length;
-            if (totalBytes > maxBytes) {
-                req.destroy(); // stop the client stream — don't keep buffering an oversized body
-                throw new PayloadTooLargeError(maxBytes);
-            }
-            chunks.push(buffer);
-        }
-        // Use Uint8Array (not Buffer) so the body satisfies fetch's BodyInit type
-        // under @types/node 20+, which models Buffer's backing store as ArrayBufferLike.
-        return new Uint8Array(Buffer.concat(chunks));
-    }
-
-    /**
      * Relays the storage provider's response back to the client.
      */
-    private async relayProviderResponse(providerResponse: globalThis.Response, res: Response): Promise<void> {
+    private async relayProviderResponse(providerResponse: PinnedHttpsResponse, res: Response): Promise<void> {
         if (providerResponse.ok) {
             const text = await providerResponse.text();
             console.log(`[upload-proxy] Success: ${providerResponse.status}`);

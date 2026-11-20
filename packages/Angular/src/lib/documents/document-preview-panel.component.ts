@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { RunView } from '@memberjunction/core';
+import { OpenExternalUrl } from '../shared/open-external-url';
 
 export interface DocumentPreviewClosedEvent {
     /** True if the user clicked "Edit" — the parent should open the edit dialog. */
@@ -76,9 +77,8 @@ export class DocumentPreviewPanelComponent implements OnInit {
     }
 
     OnOpenInNewTab(): void {
-        if (this.FileURL) {
-            window.open(this.FileURL, '_blank', 'noopener');
-        }
+        // SECURITY: ProviderKey is a user-set field — only http(s) may open (see OpenExternalUrl).
+        OpenExternalUrl(this.FileURL);
     }
 
     OnIframeError(): void {

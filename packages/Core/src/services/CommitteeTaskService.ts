@@ -37,6 +37,17 @@ interface PersonRow { ID: string; DisplayName: string | null; }
 
 const OPEN_STATUS_FILTER = "Status IN ('Open', 'InProgress')";
 
+/** Shape guard for caller-supplied IDs that reach ExtraFilter SQL text. */
+const UUID_SHAPE = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+/** A quoted UUID literal safe for a filter, or an error: every id here reaches SQL text. */
+function guidLiteral(id: string, label: string): string {
+    if (!UUID_SHAPE.test(id)) {
+        throw new Error(`${label} '${id}' is not a valid ID.`);
+    }
+    return `'${id}'`;
+}
+
 /**
  * Loads BizAppsTasks tasks with committee scope resolved, in one batched
  * query set (plus one follow-up for assignee names). Replaces the legacy
@@ -48,12 +59,12 @@ export class CommitteeTaskService {
         if (!committeesEntityID) throw new Error("Entity 'Committees: Committees' not found in metadata");
 
         const statusFilter = scope.IncludeCompleted ? '' : OPEN_STATUS_FILTER;
-        const taskFilter = this.buildTaskFilter(statusFilter, scope.AssignedToPersonID);
+        const taskFilter = CommitteeTaskService.BuildTaskFilter(statusFilter, scope.AssignedToPersonID);
 
         const rv = new RunView();
         const [tasksR, linksR, committeesR, assignmentsR] = await rv.RunViews([
             { EntityName: 'MJ_BizApps_Tasks: Tasks', ExtraFilter: taskFilter, Fields: ['ID', 'Name', 'Status', 'Priority', 'DueAt', 'Category'], OrderBy: 'DueAt ASC', ResultType: 'simple' },
-            { EntityName: 'MJ_BizApps_Tasks: Task Links', ExtraFilter: `EntityID = '${committeesEntityID}'`, Fields: ['TaskID', 'RecordID'], ResultType: 'simple' },
+            { EntityName: 'MJ_BizApps_Tasks: Task Links', ExtraFilter: `EntityID = ${guidLiteral(committeesEntityID, 'CommitteesEntityID')}`, Fields: ['TaskID', 'RecordID'], ResultType: 'simple' },
             { EntityName: 'Committees: Committees', Fields: ['ID', 'Name'], ResultType: 'simple' },
             { EntityName: 'MJ_BizApps_Tasks: Task Assignments', ExtraFilter: taskFilter ? `TaskID IN (SELECT ID FROM [__mj_BizAppsTasks].[vwTasks] WHERE ${taskFilter})` : '', Fields: ['TaskID', 'AssigneeRecordID'], ResultType: 'simple' },
         ], contextUser);
@@ -67,17 +78,24 @@ export class CommitteeTaskService {
         return CommitteeTaskService.BuildRows(tasks, links, committees, assignments, people);
     }
 
-    private buildTaskFilter(statusFilter: string, assignedToPersonID?: string): string {
+    /**
+     * Builds the ExtraFilter for BizAppsTasks queries, UUID-guarding any caller-supplied
+     * `assignedToPersonID` before it reaches SQL filter text.
+     */
+    public static BuildTaskFilter(statusFilter: string, assignedToPersonID?: string): string {
         const parts: string[] = [];
         if (statusFilter) parts.push(statusFilter);
         if (assignedToPersonID) {
-            parts.push(`ID IN (SELECT TaskID FROM [__mj_BizAppsTasks].[vwTaskAssignments] WHERE AssigneeRecordID = '${assignedToPersonID}')`);
+            parts.push(`ID IN (SELECT TaskID FROM [__mj_BizAppsTasks].[vwTaskAssignments] WHERE AssigneeRecordID = ${guidLiteral(assignedToPersonID, 'AssignedToPersonID')})`);
         }
         return parts.join(' AND ');
     }
 
     private async loadAssigneeNames(rv: RunView, assignments: AssignmentRow[], contextUser?: UserInfo): Promise<PersonRow[]> {
-        const personIDs = [...new Set(assignments.map(a => a.AssigneeRecordID))];
+        // SECURITY: AssigneeRecordID is polymorphic nvarchar; People.ID is uniqueidentifier.
+        // Filter to valid UUIDs so malformed/non-UUID values can never reach SQL IN (...) text.
+        const personIDs = [...new Set(assignments.map(a => a.AssigneeRecordID))]
+            .filter(id => UUID_SHAPE.test(id));
         if (personIDs.length === 0) return [];
         const result = await rv.RunView({
             EntityName: 'MJ_BizApps_Common: People',

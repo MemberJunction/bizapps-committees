@@ -1,6 +1,7 @@
 import { Arg, Ctx, Field, InputType, Int, Mutation, ObjectType, Resolver } from '@memberjunction/server';
 import { AppContext, ResolverBase } from '@memberjunction/server';
-import { RunView, UserInfo } from '@memberjunction/core';
+import { UserInfo } from '@memberjunction/core';
+import { CommitteeAuthorization } from '../authorization/CommitteeAuthorization.js';
 import {
     BulkImportService,
     ImportPlan,
@@ -198,16 +199,13 @@ export class BulkImportResolver extends ResolverBase {
         };
     }
 
+    /**
+     * SECURITY: a single definition of "staff" lives in CommitteeAuthorization.IsStaffUser.
+     * This resolver previously carried its own copy of the check; any future tightening of
+     * the staff authority model (see CommitteeAuthorization) must apply here automatically.
+     */
     private async isStaffUser(contextUser: UserInfo): Promise<boolean> {
-        const rv = new RunView();
-        const result = await rv.RunView({
-            EntityName: 'MJ: User Applications',
-            ExtraFilter: `UserID = '${contextUser.ID}' AND Application = 'Committee Management'`,
-            Fields: ['ID'],
-            MaxRows: 1,
-            ResultType: 'simple',
-        }, contextUser);
-        return result.Success === true && Array.isArray(result.Results) && result.Results.length > 0;
+        return CommitteeAuthorization.IsStaffUser(contextUser);
     }
 
     private unauthorizedConfirmResponse(message: string): ConfirmCommitteeImportResponse {

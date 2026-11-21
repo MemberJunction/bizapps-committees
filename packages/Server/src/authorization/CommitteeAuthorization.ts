@@ -41,7 +41,17 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 export class CommitteeAuthorization {
     private constructor() { /* static-only utility */ }
 
-    /** True if the user has "Committee Management" application access (staff). */
+    /**
+     * True if the user has "Committee Management" application access (staff).
+     *
+     * ⚠️ SECURITY LIMITATION (needs a product decision): an `MJ: User Applications` row means
+     * "this app is in my nav", and MJ Explorer's settings UI lets every user add one for
+     * themselves — so on hosts with the standard Explorer UX this check is self-grantable, and
+     * staff status short-circuits every committee authorization below. The durable fix is to key
+     * staff on an MJ Role or an MJ Authorization record instead of application membership. This
+     * method is the single definition of staff (BulkImportResolver delegates here), so that
+     * change lands in exactly one place.
+     */
     public static async IsStaffUser(contextUser: UserInfo): Promise<boolean> {
         const rv = new RunView();
         const result = await rv.RunView<IdRow>({

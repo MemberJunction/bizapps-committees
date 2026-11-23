@@ -52,8 +52,9 @@ export { ZoomVideoProvider } from './drivers/ZoomVideoProvider.js';
 export { TeamsVideoProvider } from './drivers/TeamsVideoProvider.js';
 export { GoogleMeetVideoProvider } from './drivers/GoogleMeetVideoProvider.js';
 
-// Express middleware — self-registers via @RegisterClass and contributes
-// the /api/upload-proxy routes through ConfigureExpressApp.
+// Express middleware — self-registers via @RegisterClass; contributes the /api/upload-proxy
+// preflight through ConfigureExpressApp and the authenticated PUT/POST upload routes through
+// GetPostAuthMiddleware (behind MJServer's unified auth).
 export { UploadProxyMiddleware } from './middleware/UploadProxyMiddleware.js';
 
 // Entity event handlers (committee notifications)

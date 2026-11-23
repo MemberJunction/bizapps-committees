@@ -13,25 +13,25 @@
   ],
   "scripts": {
     "build": "tsc && tsc-alias -f",
-    "test": "echo \"No tests configured yet\""
+    "test": "node --test src/security/__tests__/*.spec.mjs"
   },
   "author": "MemberJunction.com",
   "license": "BUSL-1.1",
   "peerDependencies": {
-    "@memberjunction/ai-agents": "^6.1.0-edge.6",
-    "@memberjunction/ai-core-plus": "^6.1.0-edge.6",
-    "@memberjunction/aiengine": "^6.1.0-edge.6",
-    "@memberjunction/core": "^6.1.0-edge.6",
-    "@memberjunction/core-entities": "^6.1.0-edge.6",
-    "@memberjunction/credentials": "^6.1.0-edge.6",
-    "@memberjunction/generic-database-provider": "^6.1.0-edge.6",
-    "@memberjunction/global": "^6.1.0-edge.6",
-    "@memberjunction/server": "^6.1.0-edge.6"
+    "@memberjunction/ai-agents": "^6.3.0-edge.1",
+    "@memberjunction/ai-core-plus": "^6.3.0-edge.1",
+    "@memberjunction/aiengine": "^6.3.0-edge.1",
+    "@memberjunction/core": "^6.3.0-edge.1",
+    "@memberjunction/core-entities": "^6.3.0-edge.1",
+    "@memberjunction/credentials": "^6.3.0-edge.1",
+    "@memberjunction/generic-database-provider": "^6.3.0-edge.1",
+    "@memberjunction/global": "^6.3.0-edge.1",
+    "@memberjunction/server": "^6.3.0-edge.1",
+    "@mj-biz-apps/common-entities": "^5.34.0"
   },
   "dependencies": {
     "@mj-biz-apps/committees-core": "1.5.0",
     "@mj-biz-apps/committees-entities": "1.5.0",
-    "@mj-biz-apps/common-entities": "^5.34.0",
     "class-validator": "^0.14.3",
     "rxjs": "^7.8.2"
   },

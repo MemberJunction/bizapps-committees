@@ -1,7 +1,7 @@
 import { Metadata, RunView, UserInfo, LogError } from '@memberjunction/core';
 import { AIEngine } from '@memberjunction/aiengine';
 import { CompletionWithFallback } from './aiModel.js';
-import { assertPublicHttpsTarget } from '../security/ssrf-guard.js';
+import { assertPublicHttpsTarget, pinnedHttpsRequest } from '../security/ssrf-guard.js';
 import {
     mjBizAppsCommitteesMeetingEntity,
     mjBizAppsCommitteesMinuteEntity,
@@ -222,9 +222,9 @@ export class MinutesService {
      */
     private async fetchTranscript(url: string | null): Promise<string | null> {
         if (!url) return null;
-        await assertPublicHttpsTarget(url, 'transcript URL');
+        const vetted = await assertPublicHttpsTarget(url, 'transcript URL');
         try {
-            const response = await fetch(url, { redirect: 'error' });
+            const response = await pinnedHttpsRequest(vetted, { method: 'GET', timeoutMs: 30_000 });
             if (!response.ok) {
                 LogError(`[MinutesService] Failed to fetch transcript from ${url}: HTTP ${response.status}`);
                 return null;

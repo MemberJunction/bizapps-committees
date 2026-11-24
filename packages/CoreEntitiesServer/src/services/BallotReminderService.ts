@@ -1,5 +1,5 @@
 import { Metadata, RunView, UserInfo, LogError } from '@memberjunction/core';
-import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core';
+import { CommitteesLookupEngine, ResolveUserIDsForPeople } from '@mj-biz-apps/committees-core';
 import { MJUserNotificationEntity } from '@memberjunction/core-entities';
 
 /**
@@ -30,7 +30,6 @@ interface TermRow { ID: string; CommitteeID: string; Status: string; }
 interface MembershipRow { ID: string; TermID: string; PersonID: string; Person: string; RoleID: string; }
 interface RoleRow { ID: string; IsVotingRole: boolean; }
 interface VoteRow { MembershipID: string; }
-interface PersonRow { ID: string; LinkedUserID: string | null; }
 
 export class BallotReminderService {
     private static readonly guidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -105,17 +104,14 @@ export class BallotReminderService {
         return rows[0] ?? null;
     }
 
+    /** Each Person's user, keyed by lower-cased Person ID (see ResolveUserIDsForPeople). */
     private async loadLinkedUsers(personIDs: string[], contextUser: UserInfo): Promise<Map<string, string>> {
-        if (personIDs.length === 0) return new Map();
-        const rv = new RunView();
-        const result = await rv.RunView({
-            EntityName: 'MJ_BizApps_Common: People',
-            ExtraFilter: `ID IN (${personIDs.map(id => `'${id}'`).join(',')})`,
-            Fields: ['ID', 'LinkedUserID'],
-            ResultType: 'simple',
-        }, contextUser);
-        const people = (result.Success ? result.Results : []) as unknown as PersonRow[];
-        return new Map(people.filter(p => p.LinkedUserID).map(p => [p.ID.toLowerCase(), p.LinkedUserID!]));
+        try {
+            return await ResolveUserIDsForPeople(personIDs, Metadata.Provider, contextUser);
+        } catch (error) {
+            LogError(`[Committees] Ballot reminder user lookup failed: ${error instanceof Error ? error.message : String(error)}`);
+            return new Map();
+        }
     }
 
     private async notify(userIDs: string[], ballot: BallotRow, contextUser: UserInfo): Promise<void> {

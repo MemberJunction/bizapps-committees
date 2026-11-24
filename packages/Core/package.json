@@ -1,7 +1,7 @@
 {
   "name": "@mj-biz-apps/committees-core",
   "type": "module",
-  "version": "1.5.0",
+  "version": "6.3.0-edge.1",
   "description": "Core business logic services for the Committees OpenApp",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -35,10 +35,10 @@
   "peerDependencies": {
     "@memberjunction/core": "^6.3.0-edge.1",
     "@memberjunction/global": "^6.3.0-edge.1",
-    "@mj-biz-apps/common-entities": "^5.34.0"
+    "@mj-biz-apps/common-entities": ">=5.34.0 <7.0.0"
   },
   "dependencies": {
-    "@mj-biz-apps/committees-entities": "1.5.0"
+    "@mj-biz-apps/committees-entities": "6.3.0-edge.1"
   },
   "repository": {
     "type": "git",

@@ -1,7 +1,7 @@
 {
   "name": "@mj-biz-apps/committees-core-entities-server",
   "type": "module",
-  "version": "1.5.0",
+  "version": "6.3.0-edge.1",
   "description": "Server-only business logic for the Committees OpenApp — AI-backed bulk import + minutes generation, video-conferencing providers, notification handlers, and upload-proxy middleware. Kept out of the browser-safe committees-core package.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -27,11 +27,11 @@
     "@memberjunction/generic-database-provider": "^6.3.0-edge.1",
     "@memberjunction/global": "^6.3.0-edge.1",
     "@memberjunction/server": "^6.3.0-edge.1",
-    "@mj-biz-apps/common-entities": "^5.34.0"
+    "@mj-biz-apps/common-entities": ">=5.34.0 <7.0.0"
   },
   "dependencies": {
-    "@mj-biz-apps/committees-core": "1.5.0",
-    "@mj-biz-apps/committees-entities": "1.5.0",
+    "@mj-biz-apps/committees-core": "6.3.0-edge.1",
+    "@mj-biz-apps/committees-entities": "6.3.0-edge.1",
     "class-validator": "^0.14.3",
     "rxjs": "^7.8.2"
   },

@@ -1,0 +1,55 @@
+[
+  {
+    "fields": {
+      "Name": "Committee Governance Mastery",
+      "PathKey": "committees.essentials",
+      "Description": "Learn committee member self-service, formal motions and e-ballots, and governance command-center oversight across terms and charters.",
+      "ApplicationID": "@lookup:MJ: Applications.Name=Committees",
+      "Status": "Active",
+      "Configuration": {
+        "AllowSkipOptional": true,
+        "ShowNextConcreteStep": true
+      }
+    },
+    "primaryKey": {
+      "ID": "E84CE934-41BA-410A-B502-F447DE901C65"
+    },
+    "relatedEntities": {
+      "MJ: Learning Path Tours": [
+        {
+          "fields": {
+            "LearningPathID": "@parent:ID",
+            "TourID": "@lookup:MJ: Tours.TourKey=committees.member-home",
+            "Sequence": 1,
+            "IsRequired": true
+          },
+          "primaryKey": {
+            "ID": "266EF740-45A3-4B68-8F66-70F6728A23A5"
+          }
+        },
+        {
+          "fields": {
+            "LearningPathID": "@parent:ID",
+            "TourID": "@lookup:MJ: Tours.TourKey=committees.motions-ballots",
+            "Sequence": 2,
+            "IsRequired": true
+          },
+          "primaryKey": {
+            "ID": "909511E5-C01A-4D96-BFC3-B005E395DC80"
+          }
+        },
+        {
+          "fields": {
+            "LearningPathID": "@parent:ID",
+            "TourID": "@lookup:MJ: Tours.TourKey=committees.command-governance",
+            "Sequence": 3,
+            "IsRequired": true
+          },
+          "primaryKey": {
+            "ID": "B209998B-E810-4AE0-AAFF-DF11BE9B1243"
+          }
+        }
+      ]
+    }
+  }
+]

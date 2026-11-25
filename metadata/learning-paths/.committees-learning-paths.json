@@ -15,13 +15,13 @@
       "ID": "E84CE934-41BA-410A-B502-F447DE901C65"
     },
     "relatedEntities": {
-      "MJ: Learning Path Tours": [
+      "MJ: Tour Learning Path Tour Links": [
         {
           "fields": {
-            "LearningPathID": "@parent:ID",
             "TourID": "@lookup:MJ: Tours.TourKey=committees.member-home",
             "Sequence": 1,
-            "IsRequired": true
+            "IsRequired": true,
+            "TourLearningPathID": "@parent:ID"
           },
           "primaryKey": {
             "ID": "266EF740-45A3-4B68-8F66-70F6728A23A5"
@@ -29,10 +29,10 @@
         },
         {
           "fields": {
-            "LearningPathID": "@parent:ID",
             "TourID": "@lookup:MJ: Tours.TourKey=committees.motions-ballots",
             "Sequence": 2,
-            "IsRequired": true
+            "IsRequired": true,
+            "TourLearningPathID": "@parent:ID"
           },
           "primaryKey": {
             "ID": "909511E5-C01A-4D96-BFC3-B005E395DC80"
@@ -40,10 +40,10 @@
         },
         {
           "fields": {
-            "LearningPathID": "@parent:ID",
             "TourID": "@lookup:MJ: Tours.TourKey=committees.command-governance",
             "Sequence": 3,
-            "IsRequired": true
+            "IsRequired": true,
+            "TourLearningPathID": "@parent:ID"
           },
           "primaryKey": {
             "ID": "B209998B-E810-4AE0-AAFF-DF11BE9B1243"

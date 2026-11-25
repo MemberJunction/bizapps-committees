@@ -68,7 +68,7 @@
       }
 
       <!-- ── Needs you ──────────────────────────────────────── -->
-      <section class="panel" aria-labelledby="need-title">
+      <section class="panel" aria-labelledby="need-title" data-mj-tour-anchor="committees.member-home.needs-you">
         <div class="panel-h">
           <i class="fa-solid fa-flag"></i><h2 id="need-title">Needs you</h2>
           <span class="badge" [class.warning]="NeedsCount > 0" [class.success]="NeedsCount === 0">{{ NeedsCount }}</span>
@@ -117,7 +117,7 @@
       </section>
 
       <!-- ── Your committees ────────────────────────────────── -->
-      <section class="panel" aria-labelledby="mc-title">
+      <section class="panel" aria-labelledby="mc-title" data-mj-tour-anchor="committees.member-home.your-committees">
         <div class="panel-h"><i class="fa-solid fa-users"></i><h2 id="mc-title">Your committees</h2></div>
         @for (c of Committees; track c.MembershipID) {
           <div class="mycmt">

@@ -29,7 +29,10 @@
     "record-processes",
     "ml-training-pipelines",
     "ml-models",
-    "ml-model-scoring-bindings"
+    "ml-model-scoring-bindings",
+    "tours",
+    "learning-paths",
+    "tour-publications"
   ],
   "emitSyncNotes": false
 }

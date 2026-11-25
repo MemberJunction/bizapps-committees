@@ -1,0 +1,452 @@
+[
+  {
+    "fields": {
+      "Name": "Committee Member Roster, Agendas & Minutes",
+      "TourKey": "committees.member-home",
+      "Description": "Explore My Committees to RSVP for upcoming meetings, review agendas, vote on open items, approve minutes, and submit term renewal intent.",
+      "ApplicationID": "@lookup:MJ: Applications.Name=Committees",
+      "RunInAuthenticatedHosts": true,
+      "Status": "Draft",
+      "EstimatedMinutes": 2,
+      "Priority": 85,
+      "DefaultGuideMode": "Visual",
+      "AllowAgentActions": false,
+      "Goal": {
+        "Type": "Navigation",
+        "AppName": "Committees",
+        "Description": "Member learns My Committees home: upcoming meeting RSVP, Needs You feed, minutes approval, and term renewal intent."
+      },
+      "StartLocation": {
+        "Application": "Committees",
+        "DriverClass": "MemberHomeComponent"
+      }
+    },
+    "primaryKey": {
+      "ID": "631FE4D0-3FE8-4F0C-8BB2-15A531A5E720"
+    },
+    "relatedEntities": {
+      "MJ: Tour Steps": [
+        {
+          "fields": {
+            "TourID": "@parent:ID",
+            "StepKey": "committees-mh-welcome",
+            "Sequence": 1,
+            "StepTypeID": "@lookup:MJ: Tour Step Types.Name=Modal",
+            "Title": "Welcome to My Committees",
+            "Body": "Your **My Committees** workspace brings together upcoming meetings, agenda and vote counts, RSVP controls, and your active committee seats in one view.",
+            "Configuration": {
+              "Variant": "welcome",
+              "PrimaryButtonText": "Explore My Committees",
+              "ShowProgress": true
+            },
+            "Placement": "Center",
+            "Mode": "Show",
+            "Completion": {
+              "Type": "NextButton"
+            },
+            "OnMissing": "Center",
+            "IsOptional": false
+          },
+          "primaryKey": {
+            "ID": "8DB4A11E-A201-43E5-B355-DF864FE560C3"
+          }
+        },
+        {
+          "fields": {
+            "TourID": "@parent:ID",
+            "StepKey": "committees-mh-needs-you",
+            "Sequence": 2,
+            "StepTypeID": "@lookup:MJ: Tour Step Types.Name=Spotlight",
+            "Title": "Needs You: Ballots, Actions & Minutes",
+            "Body": "Complete assigned tasks, cast **Yes / No / Abstain** e-ballot votes inline, and open pending meeting **Minutes** for formal approval without leaving your home screen.",
+            "Configuration": {
+              "ShowProgress": true
+            },
+            "Anchor": {
+              "Strategy": "Registered",
+              "Key": "committees.member-home.needs-you"
+            },
+            "Placement": "Bottom",
+            "Mode": "Guide",
+            "Completion": {
+              "Type": "NextButton"
+            },
+            "OnMissing": "Center",
+            "IsOptional": false
+          },
+          "primaryKey": {
+            "ID": "B1F273D6-A8B8-4D1F-9523-A44315922A13"
+          }
+        },
+        {
+          "fields": {
+            "TourID": "@parent:ID",
+            "StepKey": "committees-mh-roster",
+            "Sequence": 3,
+            "StepTypeID": "@lookup:MJ: Tour Step Types.Name=Spotlight",
+            "Title": "Your Committee Seats & Renewal Intent",
+            "Body": "Review each committee membership, voting status, term end date, and attendance rate. When your term nears renewal, submit your renewal intent directly to feed succession planning.",
+            "Configuration": {
+              "ShowProgress": true
+            },
+            "Anchor": {
+              "Strategy": "Registered",
+              "Key": "committees.member-home.your-committees"
+            },
+            "Placement": "Top",
+            "Mode": "Guide",
+            "Completion": {
+              "Type": "NextButton"
+            },
+            "OnMissing": "Center",
+            "IsOptional": false
+          },
+          "primaryKey": {
+            "ID": "ABC8F3EF-6A19-43EE-A791-6F17C05745BC"
+          }
+        },
+        {
+          "fields": {
+            "TourID": "@parent:ID",
+            "StepKey": "committees-mh-summary",
+            "Sequence": 4,
+            "StepTypeID": "@lookup:MJ: Tour Step Types.Name=Modal",
+            "Title": "Recent Decisions & Next Steps",
+            "Body": "Scroll down anytime to review **Recent decisions you were part of** along with your recorded vote — next, explore formal parliamentary motions and between-meeting e-ballots.",
+            "Configuration": {
+              "Variant": "summary",
+              "PrimaryButtonText": "Finish",
+              "NextTourKey": "committees.motions-ballots",
+              "ShowProgress": true
+            },
+            "Placement": "Center",
+            "Mode": "Show",
+            "Completion": {
+              "Type": "NextButton"
+            },
+            "OnMissing": "Center",
+            "IsOptional": false
+          },
+          "primaryKey": {
+            "ID": "50C6FD02-E2D9-4022-8A8A-7D0EFF0EF4AE"
+          }
+        }
+      ],
+      "MJ: Tour Triggers": [
+        {
+          "fields": {
+            "TourID": "@parent:ID",
+            "TriggerType": "FirstVisit",
+            "Configuration": {
+              "Application": "Committees"
+            },
+            "Delivery": "Offer",
+            "CooldownDays": 30,
+            "Priority": 85,
+            "Status": "Active"
+          },
+          "primaryKey": {
+            "ID": "262E3BF6-C583-413B-B82D-C3361A4C497A"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "fields": {
+      "Name": "Parliamentary Motions, Quorum & Formal Ballots",
+      "TourKey": "committees.motions-ballots",
+      "Description": "Track the cross-committee motion register, launch between-meeting e-ballots, monitor participation and quorum thresholds, and audit recorded roll-call votes.",
+      "ApplicationID": "@lookup:MJ: Applications.Name=Committees",
+      "RunInAuthenticatedHosts": true,
+      "Status": "Draft",
+      "EstimatedMinutes": 2,
+      "Priority": 80,
+      "DefaultGuideMode": "Visual",
+      "AllowAgentActions": false,
+      "Goal": {
+        "Type": "Navigation",
+        "AppName": "Committees",
+        "Description": "User learns MotionsBallotsComponent: opening e-ballots, checking quorum and threshold requirements, and inspecting roll-call votes."
+      },
+      "StartLocation": {
+        "Application": "Committees",
+        "DriverClass": "MotionsBallotsComponent"
+      }
+    },
+    "primaryKey": {
+      "ID": "903E9185-00BC-426E-9B41-83E2E96414FB"
+    },
+    "relatedEntities": {
+      "MJ: Tour Steps": [
+        {
+          "fields": {
+            "TourID": "@parent:ID",
+            "StepKey": "committees-mb-welcome",
+            "Sequence": 1,
+            "StepTypeID": "@lookup:MJ: Tour Step Types.Name=Modal",
+            "Title": "Motions & Between-Meeting Ballots",
+            "Body": "The **Motions & Ballots** workspace manages seconded parliamentary motions alongside asynchronous e-ballots with configurable thresholds and sealed-ballot support.",
+            "Configuration": {
+              "Variant": "welcome",
+              "PrimaryButtonText": "Explore Motions & Ballots",
+              "ShowProgress": true
+            },
+            "Placement": "Center",
+            "Mode": "Show",
+            "Completion": {
+              "Type": "NextButton"
+            },
+            "OnMissing": "Center",
+            "IsOptional": false
+          },
+          "primaryKey": {
+            "ID": "5FF3F918-8241-438C-899A-3B2C813368D1"
+          }
+        },
+        {
+          "fields": {
+            "TourID": "@parent:ID",
+            "StepKey": "committees-mb-new-ballot",
+            "Sequence": 2,
+            "StepTypeID": "@lookup:MJ: Tour Step Types.Name=Spotlight",
+            "Title": "Launch & Monitor E-Ballots",
+            "Body": "Click **New E-Ballot** to open a between-meeting vote for any committee. Open ballot cards track voter participation, deadline countdowns, reminder dispatches, and early close controls.",
+            "Configuration": {
+              "ShowProgress": true
+            },
+            "Anchor": {
+              "Strategy": "Registered",
+              "Key": "committees.motions-ballots.new-ballot"
+            },
+            "Placement": "Bottom",
+            "Mode": "Guide",
+            "Completion": {
+              "Type": "NextButton"
+            },
+            "OnMissing": "Center",
+            "IsOptional": false
+          },
+          "primaryKey": {
+            "ID": "040FC1B9-5C4B-4507-801F-868342F58BA2"
+          }
+        },
+        {
+          "fields": {
+            "TourID": "@parent:ID",
+            "StepKey": "committees-mb-quorum",
+            "Sequence": 3,
+            "StepTypeID": "@lookup:MJ: Tour Step Types.Name=Spotlight",
+            "Title": "Quorum Checks & Motion Register",
+            "Body": "Each ballot verifies voting-role eligibility and calculates required **Yes** votes for its threshold type. Expand any row in the **Motion Register** to inspect its full roll call and vote tally.",
+            "Configuration": {
+              "ShowProgress": true
+            },
+            "Anchor": {
+              "Strategy": "Registered",
+              "Key": "committees.motions-ballots.register"
+            },
+            "Placement": "Top",
+            "Mode": "Guide",
+            "Completion": {
+              "Type": "NextButton"
+            },
+            "OnMissing": "Center",
+            "IsOptional": false
+          },
+          "primaryKey": {
+            "ID": "A25ED99F-F134-4104-97BE-E956A9545E8A"
+          }
+        },
+        {
+          "fields": {
+            "TourID": "@parent:ID",
+            "StepKey": "committees-mb-summary",
+            "Sequence": 4,
+            "StepTypeID": "@lookup:MJ: Tour Step Types.Name=Modal",
+            "Title": "Immutable Ballot Audit Trail",
+            "Body": "Every vote and ballot lifecycle event is recorded in **MJ Record Changes** for counsel and accreditation review — next, explore the Governance Command Center for portfolio health and charters.",
+            "Configuration": {
+              "Variant": "summary",
+              "PrimaryButtonText": "Finish",
+              "NextTourKey": "committees.command-governance",
+              "ShowProgress": true
+            },
+            "Placement": "Center",
+            "Mode": "Show",
+            "Completion": {
+              "Type": "NextButton"
+            },
+            "OnMissing": "Center",
+            "IsOptional": false
+          },
+          "primaryKey": {
+            "ID": "6D9A0715-5CAF-4A10-84CF-0C4B390BF942"
+          }
+        }
+      ],
+      "MJ: Tour Prerequisites": [
+        {
+          "fields": {
+            "TourID": "@parent:ID",
+            "PrerequisiteType": "Tour",
+            "RequiredTourID": "@lookup:MJ: Tours.TourKey=committees.member-home",
+            "Strength": "Recommended",
+            "Sequence": 1
+          },
+          "primaryKey": {
+            "ID": "C294B36A-3B57-4858-AB4F-F41A061D2FDE"
+          }
+        }
+      ]
+    }
+  },
+  {
+    "fields": {
+      "Name": "Governance Command Center, Terms & Charters",
+      "TourKey": "committees.command-governance",
+      "Description": "Monitor portfolio-wide committee health in the Command Center, manage seat terms and succession pipelines in People & Terms, and browse charters in Documents.",
+      "ApplicationID": "@lookup:MJ: Applications.Name=Committees",
+      "RunInAuthenticatedHosts": true,
+      "Status": "Draft",
+      "EstimatedMinutes": 3,
+      "Priority": 75,
+      "DefaultGuideMode": "Visual",
+      "AllowAgentActions": false,
+      "Goal": {
+        "Type": "Navigation",
+        "AppName": "Committees",
+        "Description": "User learns CommandCenterComponent, term and succession management, and committee charter/document governance."
+      },
+      "StartLocation": {
+        "Application": "Committees",
+        "DriverClass": "CommandCenterComponent"
+      }
+    },
+    "primaryKey": {
+      "ID": "3A3D9A55-23B6-4566-89EB-8EF2763DC8B3"
+    },
+    "relatedEntities": {
+      "MJ: Tour Steps": [
+        {
+          "fields": {
+            "TourID": "@parent:ID",
+            "StepKey": "committees-cc-welcome",
+            "Sequence": 1,
+            "StepTypeID": "@lookup:MJ: Tour Step Types.Name=Modal",
+            "Title": "Governance Portfolio Command Center",
+            "Body": "The **Command Center** gives staff and governance leads a single portfolio view across active committees, upcoming meetings this week, and committees needing attention.",
+            "Configuration": {
+              "Variant": "welcome",
+              "PrimaryButtonText": "Explore Command Center",
+              "ShowProgress": true
+            },
+            "Placement": "Center",
+            "Mode": "Show",
+            "Completion": {
+              "Type": "NextButton"
+            },
+            "OnMissing": "Center",
+            "IsOptional": false
+          },
+          "primaryKey": {
+            "ID": "3FE091D8-D4F8-4B1F-9985-B217597C6E98"
+          }
+        },
+        {
+          "fields": {
+            "TourID": "@parent:ID",
+            "StepKey": "committees-cc-new-committee",
+            "Sequence": 2,
+            "StepTypeID": "@lookup:MJ: Tour Step Types.Name=Spotlight",
+            "Title": "Create Committees & Track Health",
+            "Body": "Use **New Committee** to stand up a new governance body, or inspect the portfolio health grid alongside the **This Week** meeting rail and **Needs Attention** alerts.",
+            "Configuration": {
+              "ShowProgress": true
+            },
+            "Anchor": {
+              "Strategy": "Registered",
+              "Key": "committees.command-center.new-committee"
+            },
+            "Placement": "Bottom",
+            "Mode": "Guide",
+            "Completion": {
+              "Type": "NextButton"
+            },
+            "OnMissing": "Center",
+            "IsOptional": false
+          },
+          "primaryKey": {
+            "ID": "0898E48B-B6C8-47F6-A73D-D196B5FCEDD3"
+          }
+        },
+        {
+          "fields": {
+            "TourID": "@parent:ID",
+            "StepKey": "committees-cc-terms",
+            "Sequence": 3,
+            "StepTypeID": "@lookup:MJ: Tour Step Types.Name=Spotlight",
+            "Title": "Seat Terms & Succession Pipelines",
+            "Body": "In **People & Terms**, a 90-day expiration lens and roster timeline track term-anchored memberships, attendance rates, renewal intent, and AI succession suggestions.",
+            "Configuration": {
+              "ShowProgress": true
+            },
+            "Anchor": {
+              "Strategy": "Registered",
+              "Key": "committees.people-terms.renew-term"
+            },
+            "Placement": "Bottom",
+            "Mode": "Guide",
+            "Completion": {
+              "Type": "NextButton"
+            },
+            "OnMissing": "Center",
+            "IsOptional": false
+          },
+          "primaryKey": {
+            "ID": "58FCC374-1AA0-4B46-8B78-5EA189038F67"
+          }
+        },
+        {
+          "fields": {
+            "TourID": "@parent:ID",
+            "StepKey": "committees-cc-summary",
+            "Sequence": 4,
+            "StepTypeID": "@lookup:MJ: Tour Step Types.Name=Modal",
+            "Title": "Charters, Policies & Document Repository",
+            "Body": "Visit **Documents** to filter charters, policies, and approved minutes by committee, category, or date range — completing your end-to-end committee governance workflow.",
+            "Configuration": {
+              "Variant": "summary",
+              "PrimaryButtonText": "Finish",
+              "ShowProgress": true
+            },
+            "Placement": "Center",
+            "Mode": "Show",
+            "Completion": {
+              "Type": "NextButton"
+            },
+            "OnMissing": "Center",
+            "IsOptional": false
+          },
+          "primaryKey": {
+            "ID": "70AAD64E-6F6F-41AA-9327-2060C3DB8DD3"
+          }
+        }
+      ],
+      "MJ: Tour Prerequisites": [
+        {
+          "fields": {
+            "TourID": "@parent:ID",
+            "PrerequisiteType": "Tour",
+            "RequiredTourID": "@lookup:MJ: Tours.TourKey=committees.motions-ballots",
+            "Strength": "Recommended",
+            "Sequence": 1
+          },
+          "primaryKey": {
+            "ID": "FAC757C1-6388-49ED-A735-DAE632FDA043"
+          }
+        }
+      ]
+    }
+  }
+]

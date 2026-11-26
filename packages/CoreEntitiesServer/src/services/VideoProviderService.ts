@@ -1,11 +1,12 @@
 import { Metadata, RunView, UserInfo } from '@memberjunction/core';
 import { MJGlobal } from '@memberjunction/global';
 import { CredentialEngine } from '@memberjunction/credentials';
-import { mjBizAppsCommitteesMeetingEntity } from '@mj-biz-apps/committees-entities';
+import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core';
+import { mjBizAppsCommitteesMeetingEntity, mjBizAppsCommitteesVideoProviderEntity } from '@mj-biz-apps/committees-entities';
 import { VideoProviderBase, VideoProviderCredentials, MeetingAttendee } from '../drivers/VideoProviderBase.js';
 
 /**
- * Shape of a VideoProvider record returned by RunView (simple result).
+ * Shape of a VideoProvider record returned by lookup engine or RunView.
  * Entity name: 'Committees: Video Providers' (after CodeGen is run).
  */
 interface VideoProviderRecord {
@@ -15,6 +16,17 @@ interface VideoProviderRecord {
     IsActive: boolean;
     IsDefault: boolean;
     CredentialID: string | null;
+}
+
+function toProviderRecord(entity: mjBizAppsCommitteesVideoProviderEntity): VideoProviderRecord {
+    return {
+        ID: entity.ID,
+        Name: entity.Name,
+        ServerDriverKey: entity.ServerDriverKey,
+        IsActive: entity.IsActive,
+        IsDefault: entity.IsDefault,
+        CredentialID: entity.CredentialID ?? null,
+    };
 }
 
 /**
@@ -33,39 +45,21 @@ export interface ProvisionVideoMeetingResult {
  * - Provisioning (auto-creating) a video meeting URL for a given meeting
  */
 export class VideoProviderService {
-    private static readonly entityName = 'Committees: Video Providers';
-
     /**
-     * Loads the default active VideoProvider record, or null if none is configured.
+     * Loads the default active VideoProvider record from CommitteesLookupEngine, or null if none is configured.
      */
     public async GetDefaultProvider(contextUser: UserInfo): Promise<VideoProviderRecord | null> {
-        const rv = new RunView();
-        const result = await rv.RunView<VideoProviderRecord>({
-            EntityName: VideoProviderService.entityName,
-            ExtraFilter: `IsDefault = 1 AND IsActive = 1`,
-            MaxRows: 1,
-            ResultType: 'simple',
-        }, contextUser);
-
-        if (!result.Success || !result.Results || result.Results.length === 0) {
-            return null;
-        }
-        return result.Results[0];
+        await CommitteesLookupEngine.Instance.Config(false, contextUser);
+        const provider = CommitteesLookupEngine.Instance.DefaultVideoProvider;
+        return provider ? toProviderRecord(provider) : null;
     }
 
     /**
-     * Loads all active VideoProvider records.
+     * Loads all active VideoProvider records from CommitteesLookupEngine.
      */
     public async GetActiveProviders(contextUser: UserInfo): Promise<VideoProviderRecord[]> {
-        const rv = new RunView();
-        const result = await rv.RunView<VideoProviderRecord>({
-            EntityName: VideoProviderService.entityName,
-            ExtraFilter: `IsActive = 1`,
-            OrderBy: 'Name ASC',
-            ResultType: 'simple',
-        }, contextUser);
-
-        return result.Success ? (result.Results ?? []) : [];
+        await CommitteesLookupEngine.Instance.Config(false, contextUser);
+        return CommitteesLookupEngine.Instance.ActiveVideoProviders.map(toProviderRecord);
     }
 
     /**
@@ -194,15 +188,9 @@ export class VideoProviderService {
     }
 
     private async loadProvider(providerID: string, contextUser: UserInfo): Promise<VideoProviderRecord | null> {
-        const rv = new RunView();
-        const result = await rv.RunView<VideoProviderRecord>({
-            EntityName: VideoProviderService.entityName,
-            ExtraFilter: `ID = '${providerID}'`,
-            MaxRows: 1,
-            ResultType: 'simple',
-        }, contextUser);
-
-        return result.Success && result.Results?.length ? result.Results[0] : null;
+        await CommitteesLookupEngine.Instance.Config(false, contextUser);
+        const provider = CommitteesLookupEngine.Instance.VideoProviderById(providerID);
+        return provider ? toProviderRecord(provider) : null;
     }
 
     private instantiateDriver(serverDriverKey: string): VideoProviderBase | null {

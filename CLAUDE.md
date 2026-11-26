@@ -322,15 +322,37 @@ Source maps are scoped to local packages only (`apps/MJAPI/**`, `packages/Entiti
 
 ---
 
-## Performance Best Practices
+## Performance & Caching — 5-Rule BizApps Standard
 
-### Batch Database Operations
-- Use `RunViews` (plural) instead of multiple `RunView` calls
-- Group related queries together in a single batch operation
+> Also summarized in [`AGENTS.md`](AGENTS.md) for all coding agents working in this repository.
 
-### Avoid Per-Item Queries in Loops
-- **NEVER** make RunView calls inside loops
-- Load all data once, then process client-side
+Every `RunView` is a network + database round trip. All new and modified code in `bizapps-committees` **MUST** follow the **5-Rule BizApps Performance & Caching Standard**:
+
+1. **`BaseEngine` Taxonomy & Lookup Caching (`CommitteesLookupEngine`):**
+   - Never re-query bounded, slow-changing taxonomy/lookup tables (`Committees: Roles`, `Committees: Types`, `Committees: Artifact Types`, `Committees: Video Providers`) in Angular components, dialogs, or server services.
+   - Always read from `CommitteesLookupEngine.Instance` (`@mj-biz-apps/committees-core/lookup` in browser packages, `@mj-biz-apps/committees-core` on server) using its O(1) lookup helpers (`RoleById`, `RoleByName`, `IsOfficerRole`, `IsVotingRole`, `CommitteeTypeById`, `CommitteeTypeByName`, `ArtifactTypeById`, `VideoProviderById`, `DefaultVideoProvider`, `ActiveVideoProviders`).
+   - Use `CacheLocal: true` ONLY on shared, non-RLS reference tables (`Roles`, `Types`, `Artifact Types`).
+
+2. **Multi-Provider, Impersonation & RLS `CacheLocal` Safety:**
+   - Every `BaseEngine` subclass **MUST** override `public override get ProviderToUse(): IMetadataProvider` to return the active provider passed to `Config()` (falling back to `Metadata.Provider`), preventing `BaseEngine`'s first-wins `_provider` latch from serving stale-user data during impersonation or multi-provider requests.
+   - Track `_loadedForUserId` and force a reload whenever the effective user changes; expose `InvalidateCache()` for mutations and persona switches.
+   - Set **`CacheLocal: false`** on any RLS-scoped, user-scoped, or role-restricted entity (such as `Committees: Video Providers`) so IndexedDB never leaks rows across personas.
+   - Gate optional/restricted entities on `EntityInfo.GetUserPermisions(user)?.CanRead` before adding them to `BaseEngine.Load()` configs so restricted roles never fail engine startup.
+   - Session caches (like `CommitteePermissionHelper`) MUST reset on user change and deduplicate concurrent in-flight promises.
+
+3. **Batch Independent Queries with `rv.RunViews([...])`:**
+   - **NEVER** wrap multiple independent `rv.RunView(...)` calls in `Promise.all([...])` or await independent `rv.RunView(...)` calls sequentially — collapse them into a single **`rv.RunViews([...])`** GraphQL/DB batch call.
+   - Route `RunView` through the active provider (`RunView.FromMetadataProvider(this.ProviderToUse)` inside entity subclasses/engines instead of casting `as unknown as IRunViewProvider` or calling bare `new RunView()`).
+   - Use `ResultType: 'simple'` with explicit `Fields: [...]` whenever mutation/save is not needed; reserve `ResultType: 'entity_object'` for write paths.
+   - **NEVER** issue `RunView` calls inside loops — batch upfront and join in memory.
+
+4. **`ConversationEngine`-Style Bounded Container Caching (No Unbounded/Filtered List Caches):**
+   - For hot, bounded parent containers (such as a single active form/committee/meeting structure loaded across tabs), cache by container ID with an explicit entry cap (LRU), in-flight promise deduplication, user-switch clearing, and automatic invalidation on `BaseEntity` save/delete events.
+   - **NEVER** cache unbounded transactional tables (`Meetings`, `Votes`, `Comments`, `Attendances`, `Ballots`, `Memberships`) globally in a `BaseEngine`, and **NEVER** cache arbitrary filtered list queries.
+
+5. **RLS-Safe Two-Step Entity Reads (Zero Raw Cross-View SQL Subqueries):**
+   - **NEVER** bypass entity row-level security with raw SQL subqueries inside `ExtraFilter` (e.g. `ID IN (SELECT ... FROM [__mj_BizAppsCommittees].[vwMeetings] ...)` or `[__mj_BizAppsTasks].[vwTaskAssignments]`).
+   - Instead, resolve accessible parent IDs via a first-class `RunView` (with fast-path empty return when 0 rows), chunk `ID IN (...)` filters (e.g. 400 IDs per batch via `rv.RunViews`), UUID-validate any interpolated ID, and explicitly check `result.Success`.
 
 ### Use View Fields Instead of Lookups
 - Most MJ views include denormalized fields from related entities

@@ -131,27 +131,22 @@ export class TaskTrackerComponent extends BaseResourceComponent implements OnIni
     }
 
     private async loadContext(): Promise<void> {
-        this.CurrentPersonID = await CommitteePermissionHelper.GetCurrentPersonID();
-        this.IsStaff = await CommitteePermissionHelper.IsStaffUser();
+        const [personID, isStaff] = await Promise.all([
+            CommitteePermissionHelper.GetCurrentPersonID(),
+            CommitteePermissionHelper.IsStaffUser(),
+        ]);
+        this.CurrentPersonID = personID;
+        this.IsStaff = isStaff;
 
         // Staff users skip the My/All distinction — they always see All Tasks
         if (this.IsStaff) {
             this.ActiveTab = 'all';
-        }
-
-        let committeeMap: Map<string, boolean>;
-
-        if (this.IsStaff) {
-            // Staff sees all active committees
-            committeeMap = await this.loadAllCommitteeIDs();
+            await this.loadStaffCommitteeOptions();
         } else {
-            // Members see only their committees
-            committeeMap = await this.loadMemberCommitteeIDs();
+            const committeeMap = await this.loadMemberCommitteeIDs();
+            if (committeeMap.size === 0) return;
+            await this.loadCommitteeOptions(committeeMap);
         }
-
-        if (committeeMap.size === 0) return;
-
-        await this.loadCommitteeOptions(committeeMap);
 
         // If only one committee, auto-select it
         if (this.Committees.length === 1) {
@@ -159,21 +154,29 @@ export class TaskTrackerComponent extends BaseResourceComponent implements OnIni
         }
     }
 
-    private async loadAllCommitteeIDs(): Promise<Map<string, boolean>> {
+    /** Single batched load of active committees + task categories for staff users. */
+    private async loadStaffCommitteeOptions(): Promise<void> {
         const rv = new RunView();
-        const result = await rv.RunView<{ ID: string }>({
-            EntityName: 'Committees: Committees',
-            ExtraFilter: "Status = 'Active'",
-            Fields: ['ID'],
-            ResultType: 'simple',
-        });
-        const map = new Map<string, boolean>();
-        if (result.Success) {
-            for (const c of result.Results) {
-                map.set(c.ID, true); // Staff = officer-level for all
+        const [committeesResult, categoriesResult] = await rv.RunViews([
+            {
+                EntityName: 'Committees: Committees',
+                ExtraFilter: "Status = 'Active'",
+                Fields: ['ID', 'Name'],
+                OrderBy: 'Name ASC',
+                ResultType: 'simple',
+            },
+            {
+                EntityName: 'MJ_BizApps_Tasks: Task Categories',
+                ExtraFilter: 'IsActive = 1',
+                Fields: ['ID', 'Name'],
+                ResultType: 'simple',
             }
-        }
-        return map;
+        ]);
+
+        const committees = committeesResult?.Success ? (committeesResult.Results as { ID: string; Name: string }[]) ?? [] : [];
+        const categories = categoriesResult?.Success ? (categoriesResult.Results as { ID: string; Name: string }[]) ?? [] : [];
+        const committeeMap = new Map<string, boolean>(committees.map(c => [c.ID, true]));
+        this.applyCommitteeOptions(committees, categories, committeeMap);
     }
 
     private async loadMemberCommitteeIDs(): Promise<Map<string, boolean>> {
@@ -206,15 +209,23 @@ export class TaskTrackerComponent extends BaseResourceComponent implements OnIni
             }
         ]);
 
-        const committees = committeesResult?.Success ? committeesResult.Results ?? [] : [];
-        const categories = categoriesResult?.Success ? categoriesResult.Results ?? [] : [];
+        const committees = committeesResult?.Success ? (committeesResult.Results as { ID: string; Name: string }[]) ?? [] : [];
+        const categories = categoriesResult?.Success ? (categoriesResult.Results as { ID: string; Name: string }[]) ?? [] : [];
+        this.applyCommitteeOptions(committees, categories, committeeMap);
+    }
+
+    private applyCommitteeOptions(
+        committees: { ID: string; Name: string }[],
+        categories: { ID: string; Name: string }[],
+        committeeMap: Map<string, boolean>
+    ): void {
         const categoryByName = new Map<string, string>();
-        for (const cat of categories as { ID: string; Name: string }[]) {
+        for (const cat of categories) {
             categoryByName.set(cat.Name, cat.ID);
         }
 
         this.Committees = [];
-        for (const c of committees as { ID: string; Name: string }[]) {
+        for (const c of committees) {
             const catID = categoryByName.get(c.Name);
             if (catID) {
                 this.Committees.push({

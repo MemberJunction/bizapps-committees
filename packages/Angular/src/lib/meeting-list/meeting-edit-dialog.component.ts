@@ -1,6 +1,7 @@
 import { UUIDsEqual } from '@memberjunction/global';
 import { Component, EventEmitter, Input, Output, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
-import { Metadata, RunView } from '@memberjunction/core';
+import { Metadata, RunView, type RunViewParams } from '@memberjunction/core';
+import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
 import { GraphQLDataProvider } from '@memberjunction/graphql-dataprovider';
 import { mjBizAppsCommitteesMeetingEntity, mjBizAppsCommitteesAttendanceEntity, mjBizAppsCommitteesAgendaItemEntity } from '@mj-biz-apps/committees-entities';
 import { AgendaItemDialogResult } from '../agenda/agenda-item-edit-dialog.component';
@@ -90,16 +91,9 @@ export class MeetingEditDialogComponent implements OnInit {
 
     async ngOnInit(): Promise<void> {
         await Promise.all([
-            this.loadLookups(),
+            this.loadLookupsAndDetails(),
             this.loadOrCreateMeeting()
         ]);
-        if (!this.IsNew) {
-            await Promise.all([
-                this.loadAttendees(),
-                this.loadAgendaItems(),
-                this.loadMotions()
-            ]);
-        }
         this.IsLoading = false;
         this.cdr.markForCheck();
     }
@@ -358,9 +352,9 @@ export class MeetingEditDialogComponent implements OnInit {
         }
     }
 
-    private async loadLookups(): Promise<void> {
+    private async loadLookupsAndDetails(): Promise<void> {
         const rv = new RunView();
-        const [committeesResult, peopleResult, providerResult] = await rv.RunViews([
+        const queries: RunViewParams[] = [
             {
                 EntityName: 'Committees: Committees',
                 Fields: ['ID', 'Name'],
@@ -375,20 +369,46 @@ export class MeetingEditDialogComponent implements OnInit {
                 MaxRows: 500,
                 ResultType: 'simple'
             },
-            {
-                EntityName: 'Committees: Video Providers',
-                Fields: ['ID', 'Name'],
-                ExtraFilter: `IsDefault = 1 AND IsActive = 1`,
-                MaxRows: 1,
-                ResultType: 'simple'
-            }
+        ];
+
+        if (!this.IsNew && this.MeetingID) {
+            queries.push(
+                {
+                    EntityName: 'Committees: Attendances',
+                    Fields: ['ID', 'PersonID', 'Person', 'AttendanceStatus'],
+                    ExtraFilter: `MeetingID = '${this.MeetingID}'`,
+                    OrderBy: 'Person ASC',
+                    ResultType: 'simple'
+                },
+                {
+                    EntityName: 'Committees: Agenda Items',
+                    Fields: ['ID', 'Sequence', 'Name', 'ItemType', 'DurationMinutes', 'Status', 'Presenter', 'PresenterPersonID'],
+                    ExtraFilter: `MeetingID = '${this.MeetingID}'`,
+                    OrderBy: 'Sequence ASC',
+                    ResultType: 'simple'
+                },
+                {
+                    EntityName: 'Committees: Motions',
+                    Fields: ['ID', 'Sequence', 'Name', 'Result', 'ResultSummary', 'MovedByMembership', 'SecondedByMembership', 'YesCount', 'NoCount', 'AbstainCount'],
+                    ExtraFilter: `MeetingID = '${this.MeetingID}'`,
+                    OrderBy: 'Sequence ASC',
+                    ResultType: 'simple'
+                }
+            );
+        }
+
+        const [, results, isStaff] = await Promise.all([
+            CommitteesLookupEngine.Instance.Config(),
+            rv.RunViews(queries),
+            CommitteePermissionHelper.IsStaffUser(),
         ]);
 
-        const allCommittees = committeesResult.Success
+        const [committeesResult, peopleResult, attendeesResult, agendaResult, motionsResult] = results;
+
+        const allCommittees = committeesResult?.Success
             ? committeesResult.Results as { ID: string; Name: string }[]
             : [];
 
-        const isStaff = await CommitteePermissionHelper.IsStaffUser();
         if (isStaff) {
             this.Committees = allCommittees;
         } else {
@@ -398,27 +418,17 @@ export class MeetingEditDialogComponent implements OnInit {
                 : allCommittees;
         }
 
-        if (peopleResult.Success) {
+        if (peopleResult?.Success) {
             this.AllPeople = peopleResult.Results as { ID: string; DisplayName: string }[];
         }
 
-        if (providerResult.Success && providerResult.Results.length > 0) {
-            this.DefaultProvider = providerResult.Results[0] as { ID: string; Name: string };
+        const defaultProvider = CommitteesLookupEngine.Instance.DefaultVideoProvider;
+        if (defaultProvider) {
+            this.DefaultProvider = { ID: defaultProvider.ID, Name: defaultProvider.Name };
         }
-    }
 
-
-    private async loadAttendees(): Promise<void> {
-        const rv = new RunView();
-        const result = await rv.RunView({
-            EntityName: 'Committees: Attendances',
-            Fields: ['ID', 'PersonID', 'Person', 'AttendanceStatus'],
-            ExtraFilter: `MeetingID = '${this.MeetingID}'`,
-            OrderBy: 'Person ASC',
-            ResultType: 'simple'
-        });
-        if (result.Success) {
-            this.Attendees = result.Results.map((r: Record<string, unknown>) => ({
+        if (attendeesResult?.Success) {
+            this.Attendees = attendeesResult.Results.map((r: Record<string, unknown>) => ({
                 ID: r['ID'] as string,
                 PersonID: r['PersonID'] as string,
                 DisplayName: (r['Person'] as string) || '',
@@ -426,6 +436,12 @@ export class MeetingEditDialogComponent implements OnInit {
                 IsNew: false,
                 IsRemoved: false
             }));
+        }
+        if (agendaResult?.Success) {
+            this.AgendaItems = agendaResult.Results;
+        }
+        if (motionsResult?.Success) {
+            this.Motions = motionsResult.Results;
         }
     }
 

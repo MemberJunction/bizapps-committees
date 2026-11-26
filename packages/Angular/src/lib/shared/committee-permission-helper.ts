@@ -37,70 +37,106 @@ export class CommitteePermissionHelper {
     private static lastUserID: string | null = null;
     private static staffCache: boolean | undefined = undefined;
 
-    /**
-     * Returns the current user's PersonID, resolved via LinkedUserID.
-     * Cached after first call.
-     */
-    static async GetCurrentPersonID(): Promise<string | null> {
+    private static personIDInFlight: Promise<string | null> | null = null;
+    private static membershipInFlight: Promise<MembershipRoleRow[]> | null = null;
+    private static staffInFlight: Promise<boolean> | null = null;
+
+    /** Ensures session caches reset immediately whenever the active user changes (e.g. impersonation). */
+    private static syncCurrentUser(): string | null {
         const md = new Metadata();
         const userID = md.CurrentUser?.ID ?? null;
-
         if (userID !== this.lastUserID) {
             this.ClearCache();
             this.lastUserID = userID;
         }
+        return userID;
+    }
 
+    /**
+     * Returns the current user's PersonID, resolved via LinkedUserID.
+     * Cached after first call with in-flight deduplication.
+     */
+    static async GetCurrentPersonID(): Promise<string | null> {
+        const userID = this.syncCurrentUser();
         if (this.personID !== undefined) return this.personID;
-
         if (!userID) {
             this.personID = null;
             return null;
         }
+        if (this.personIDInFlight) return this.personIDInFlight;
 
-        const rv = new RunView();
-        const result = await rv.RunView<{ ID: string }>({
-            EntityName: 'MJ_BizApps_Common: People',
-            ExtraFilter: `LinkedUserID = '${userID}'`,
-            Fields: ['ID'],
-            MaxRows: 1,
-            ResultType: 'simple'
-        });
+        const request = (async (): Promise<string | null> => {
+            const rv = new RunView();
+            const result = await rv.RunView<{ ID: string }>({
+                EntityName: 'MJ_BizApps_Common: People',
+                ExtraFilter: `LinkedUserID = '${userID}'`,
+                Fields: ['ID'],
+                MaxRows: 1,
+                ResultType: 'simple'
+            });
+            const resolved = result.Success && result.Results && result.Results.length > 0
+                ? result.Results[0].ID
+                : null;
+            if (this.lastUserID === userID) {
+                this.personID = resolved;
+            }
+            return resolved;
+        })();
 
-        this.personID = result.Success && result.Results && result.Results.length > 0
-            ? result.Results[0].ID
-            : null;
-
-        return this.personID;
+        this.personIDInFlight = request;
+        try {
+            return await request;
+        } finally {
+            if (this.personIDInFlight === request) {
+                this.personIDInFlight = null;
+            }
+        }
     }
 
     /**
      * Returns all active memberships for the current user with role and committee info.
-     * Cached after first call.
+     * Cached after first call with in-flight deduplication.
      */
     static async GetCurrentUserMemberships(): Promise<MembershipRoleRow[]> {
+        const userID = this.syncCurrentUser();
         if (this.membershipCache !== null) return this.membershipCache;
+        if (this.membershipInFlight) return this.membershipInFlight;
 
-        const personID = await this.GetCurrentPersonID();
-        if (!personID) {
-            this.membershipCache = [];
-            return [];
+        const request = (async (): Promise<MembershipRoleRow[]> => {
+            const personID = await this.GetCurrentPersonID();
+            if (!personID) {
+                if (this.lastUserID === userID) this.membershipCache = [];
+                return [];
+            }
+
+            const rv = new RunView();
+            const memberResult = await rv.RunView<{ RoleID: string; TermID: string }>({
+                EntityName: 'Committees: Memberships',
+                ExtraFilter: `PersonID = '${personID}' AND Status = 'Active'`,
+                Fields: ['RoleID', 'TermID'],
+                ResultType: 'simple'
+            });
+
+            if (!memberResult.Success || !memberResult.Results || memberResult.Results.length === 0) {
+                if (this.lastUserID === userID) this.membershipCache = [];
+                return [];
+            }
+
+            const resolved = await this.resolveMembershipRoles(rv, memberResult.Results);
+            if (this.lastUserID === userID) {
+                this.membershipCache = resolved;
+            }
+            return resolved;
+        })();
+
+        this.membershipInFlight = request;
+        try {
+            return await request;
+        } finally {
+            if (this.membershipInFlight === request) {
+                this.membershipInFlight = null;
+            }
         }
-
-        const rv = new RunView();
-        const memberResult = await rv.RunView<{ RoleID: string; TermID: string }>({
-            EntityName: 'Committees: Memberships',
-            ExtraFilter: `PersonID = '${personID}' AND Status = 'Active'`,
-            Fields: ['RoleID', 'TermID'],
-            ResultType: 'simple'
-        });
-
-        if (!memberResult.Success || !memberResult.Results || memberResult.Results.length === 0) {
-            this.membershipCache = [];
-            return [];
-        }
-
-        this.membershipCache = await this.resolveMembershipRoles(rv, memberResult.Results);
-        return this.membershipCache;
     }
 
     /** Joins membership rows to officer flags (lookup engine) and committee IDs (terms). */
@@ -109,7 +145,6 @@ export class CommitteePermissionHelper {
     ): Promise<MembershipRoleRow[]> {
         // Roles come from the process-wide lookup engine — no per-call query.
         await CommitteesLookupEngine.Instance.Config();
-        const officerMap = new Map(CommitteesLookupEngine.Instance.Roles.map(r => [r.ID, r.IsOfficer]));
 
         const termIDs = [...new Set(rows.map(m => m.TermID))];
         const termResult = await rv.RunView<{ ID: string; CommitteeID: string }>({
@@ -129,35 +164,47 @@ export class CommitteePermissionHelper {
             RoleID: m.RoleID,
             TermID: m.TermID,
             CommitteeID: termToCommittee.get(m.TermID) ?? '',
-            IsOfficer: officerMap.get(m.RoleID) ?? false,
+            IsOfficer: CommitteesLookupEngine.Instance.IsOfficerRole(m.RoleID),
         }));
     }
 
     /**
      * Returns whether the current user is a staff member (has access to the
-     * "Committee Management" application). Cached after first call.
+     * "Committee Management" application). Cached after first call with in-flight deduplication.
      */
     static async IsStaffUser(): Promise<boolean> {
+        const userID = this.syncCurrentUser();
         if (this.staffCache !== undefined) return this.staffCache;
-
-        const md = new Metadata();
-        const userID = md.CurrentUser?.ID ?? null;
         if (!userID) {
             this.staffCache = false;
             return false;
         }
+        if (this.staffInFlight) return this.staffInFlight;
 
-        const rv = new RunView();
-        const result = await rv.RunView<{ ID: string }>({
-            EntityName: 'MJ: User Applications',
-            ExtraFilter: `UserID = '${userID}' AND Application = 'Committee Management'`,
-            Fields: ['ID'],
-            MaxRows: 1,
-            ResultType: 'simple'
-        });
+        const request = (async (): Promise<boolean> => {
+            const rv = new RunView();
+            const result = await rv.RunView<{ ID: string }>({
+                EntityName: 'MJ: User Applications',
+                ExtraFilter: `UserID = '${userID}' AND Application = 'Committee Management'`,
+                Fields: ['ID'],
+                MaxRows: 1,
+                ResultType: 'simple'
+            });
+            const isStaff = result.Success && result.Results != null && result.Results.length > 0;
+            if (this.lastUserID === userID) {
+                this.staffCache = isStaff;
+            }
+            return isStaff;
+        })();
 
-        this.staffCache = result.Success && result.Results != null && result.Results.length > 0;
-        return this.staffCache;
+        this.staffInFlight = request;
+        try {
+            return await request;
+        } finally {
+            if (this.staffInFlight === request) {
+                this.staffInFlight = null;
+            }
+        }
     }
 
     /**
@@ -243,6 +290,9 @@ export class CommitteePermissionHelper {
         this.personID = undefined;
         this.membershipCache = null;
         this.staffCache = undefined;
+        this.personIDInFlight = null;
+        this.membershipInFlight = null;
+        this.staffInFlight = null;
     }
 }
 

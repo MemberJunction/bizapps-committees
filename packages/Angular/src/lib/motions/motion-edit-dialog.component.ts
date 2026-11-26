@@ -60,12 +60,12 @@ export class MotionEditDialogComponent implements OnInit {
     }
 
     async ngOnInit(): Promise<void> {
-        await Promise.all([
+        const [preloadedVotes] = await Promise.all([
             this.loadLookups(),
             this.loadOrCreateMotion()
         ]);
         if (!this.IsNew) {
-            await this.loadVotes();
+            this.applyVotes(preloadedVotes);
         } else {
             this.initVoterRows();
         }
@@ -150,7 +150,7 @@ export class MotionEditDialogComponent implements OnInit {
         }
     }
 
-    private async loadLookups(): Promise<void> {
+    private async loadLookups(): Promise<{ ID: string; MembershipID: string; VoteValue: string }[]> {
         // Roles come from the process-wide lookup engine — no per-open query.
         await CommitteesLookupEngine.Instance.Config();
         const votingRoleIDs = new Set(
@@ -158,7 +158,12 @@ export class MotionEditDialogComponent implements OnInit {
 
         const rv = new RunView();
         const queries: Parameters<typeof rv.RunViews>[0] = [];
+        let agendaIdx = -1;
+        let termsIdx = -1;
+        let votesIdx = -1;
+
         if (this.MeetingID) {
+            agendaIdx = queries.length;
             queries.push({
                 EntityName: 'Committees: Agenda Items',
                 Fields: ['ID', 'Name'],
@@ -168,6 +173,7 @@ export class MotionEditDialogComponent implements OnInit {
             });
         }
         if (this.CommitteeID) {
+            termsIdx = queries.length;
             queries.push({
                 EntityName: 'Committees: Terms',
                 ExtraFilter: `CommitteeID = '${this.CommitteeID}'`,
@@ -175,14 +181,28 @@ export class MotionEditDialogComponent implements OnInit {
                 ResultType: 'simple'
             });
         }
+        if (!this.IsNew && this.MotionID) {
+            votesIdx = queries.length;
+            queries.push({
+                EntityName: 'Committees: Votes',
+                ExtraFilter: `MotionID = '${this.MotionID}'`,
+                Fields: ['ID', 'MembershipID', 'VoteValue'],
+                ResultType: 'simple'
+            });
+        }
+
         const results = queries.length > 0 ? await rv.RunViews(queries) : [];
-        const agendaResult = this.MeetingID ? results[0] : undefined;
-        const termsResult = this.CommitteeID ? results[this.MeetingID ? 1 : 0] : undefined;
+        const agendaResult = agendaIdx >= 0 ? results[agendaIdx] : undefined;
+        const termsResult = termsIdx >= 0 ? results[termsIdx] : undefined;
+        const votesResult = votesIdx >= 0 ? results[votesIdx] : undefined;
 
         if (agendaResult?.Success) {
             this.AgendaItems = agendaResult.Results as { ID: string; Name: string }[];
         }
         await this.loadMembersForTerms(rv, termsResult, votingRoleIDs);
+        return votesResult?.Success
+            ? (votesResult.Results as { ID: string; MembershipID: string; VoteValue: string }[])
+            : [];
     }
 
     /** Committee members resolve through terms — dependent on the terms read above. */
@@ -223,24 +243,13 @@ export class MotionEditDialogComponent implements OnInit {
         }));
     }
 
-    private async loadVotes(): Promise<void> {
+    private applyVotes(votes: { ID: string; MembershipID: string; VoteValue: string }[]): void {
         this.initVoterRows();
-
-        const rv = new RunView();
-        const result = await rv.RunView<{ ID: string; MembershipID: string; VoteValue: string }>({
-            EntityName: 'Committees: Votes',
-            ExtraFilter: `MotionID = '${this.MotionID}'`,
-            Fields: ['ID', 'MembershipID', 'VoteValue'],
-            ResultType: 'simple'
-        });
-
-        if (result.Success) {
-            for (const vote of result.Results) {
-                const voter = this.Voters.find(v => UUIDsEqual(v.MembershipID, vote.MembershipID));
-                if (voter) {
-                    voter.VoteID = vote.ID;
-                    voter.VoteValue = vote.VoteValue as VoterRow['VoteValue'];
-                }
+        for (const vote of votes) {
+            const voter = this.Voters.find(v => UUIDsEqual(v.MembershipID, vote.MembershipID));
+            if (voter) {
+                voter.VoteID = vote.ID;
+                voter.VoteValue = vote.VoteValue as VoterRow['VoteValue'];
             }
         }
     }

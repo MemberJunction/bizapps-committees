@@ -166,26 +166,30 @@ async function handleCommentSave(event: BaseEntityEvent): Promise<void> {
     const committeeName = comment.Committee ?? '';
     const preview = commentText.length > 80 ? commentText.substring(0, 80) + '...' : commentText;
 
-    const userIDsToNotify = new Set<string>();
+    const personIDsToResolve = new Set<string>();
 
-    // 1. Notify parent comment author on replies
+    // 1. Collect parent comment author on replies
     const parentCommentID = comment.ParentCommentID;
     if (parentCommentID) {
         const parentAuthorPersonID = await getCommentAuthorPersonID(parentCommentID, contextUser);
         if (parentAuthorPersonID && !UUIDsEqual(parentAuthorPersonID, authorPersonID)) {
-            const userID = await getPersonLinkedUserID(parentAuthorPersonID, contextUser);
-            if (userID) userIDsToNotify.add(userID);
+            personIDsToResolve.add(parentAuthorPersonID);
         }
     }
 
-    // 2. Notify @mentioned people (one batched lookup — RunView is expensive)
+    // 2. Collect @mentioned people and resolve all linked MJ users in one batched query
     const mentionedJSON = comment.MentionedPersonIDs;
     if (mentionedJSON) {
-        const mentionedIDs = parseMentionedPersonIDs(mentionedJSON).filter(id => !UUIDsEqual(id, authorPersonID));
-        for (const userID of await getLinkedUserIDsForPeople(mentionedIDs, contextUser)) {
-            userIDsToNotify.add(userID);
+        for (const id of parseMentionedPersonIDs(mentionedJSON)) {
+            if (!UUIDsEqual(id, authorPersonID)) {
+                personIDsToResolve.add(id);
+            }
         }
     }
+
+    const userIDsToNotify = new Set<string>(
+        await getLinkedUserIDsForPeople([...personIDsToResolve], contextUser)
+    );
 
     if (userIDsToNotify.size === 0) {
         return;
@@ -298,25 +302,6 @@ async function getLinkedUserIDsForPeople(personIDs: string[], contextUser: UserI
     }, contextUser);
     if (!result.Success) return [];
     return result.Results.map(p => p.LinkedUserID).filter((id): id is string => id != null);
-}
-
-/**
- * Resolves a PersonID to their linked MJ UserID (if any).
- */
-async function getPersonLinkedUserID(personID: string, contextUser: UserInfo): Promise<string | null> {
-    const rv = new RunView();
-    const result = await rv.RunView<{ ID: string; LinkedUserID: string | null }>({
-        EntityName: 'MJ_BizApps_Common: People',
-        ExtraFilter: `ID='${personID}'`,
-        Fields: ['ID', 'LinkedUserID'],
-        ResultType: 'simple',
-    }, contextUser);
-
-    if (!result.Success || result.Results.length === 0) {
-        return null;
-    }
-
-    return result.Results[0].LinkedUserID ?? null;
 }
 
 /**

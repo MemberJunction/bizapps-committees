@@ -77,19 +77,19 @@ export class MinutesReviewComponent implements OnInit {
         this.cdr.detectChanges();
         try {
             const rv = new RunView();
-            const [meeting, minutes, attendance] = await rv.RunViews([
-                { EntityName: 'Committees: Meetings', ExtraFilter: `ID = '${this._meetingID}'`, Fields: ['ID', 'Name', 'Committee', 'StartDateTime', 'Status'], ResultType: 'simple' },
-                { EntityName: 'Committees: Minutes', ExtraFilter: `MeetingID = '${this._meetingID}'`, ResultType: 'simple' },
-                { EntityName: 'Committees: Attendances', ExtraFilter: `MeetingID = '${this._meetingID}' AND AttendanceStatus IN ('Present','Partial')`, Fields: ['ID'], ResultType: 'simple' },
+            const [[meeting, minutes, attendance], isOfficer, isStaff] = await Promise.all([
+                rv.RunViews([
+                    { EntityName: 'Committees: Meetings', ExtraFilter: `ID = '${this._meetingID}'`, Fields: ['ID', 'Name', 'Committee', 'StartDateTime', 'Status'], ResultType: 'simple' },
+                    { EntityName: 'Committees: Minutes', ExtraFilter: `MeetingID = '${this._meetingID}'`, ResultType: 'simple' },
+                    { EntityName: 'Committees: Attendances', ExtraFilter: `MeetingID = '${this._meetingID}' AND AttendanceStatus IN ('Present','Partial')`, Fields: ['ID'], ResultType: 'simple' },
+                ]),
+                CommitteePermissionHelper.IsOfficerInAny(),
+                CommitteePermissionHelper.IsStaffUser(),
             ]);
             this.Meeting = ((meeting.Success ? meeting.Results : []) as unknown as MeetingRow[])[0] ?? null;
             this.Minute = ((minutes.Success ? minutes.Results : []) as unknown as MinuteRow[])[0] ?? null;
             this.AttendanceCount = attendance.Success ? attendance.Results.length : 0;
             this.Sections = this.Minute?.Content ? MinutesReviewComponent.ParseSections(this.Minute.Content) : [];
-            const [isOfficer, isStaff] = await Promise.all([
-                CommitteePermissionHelper.IsOfficerInAny(),
-                CommitteePermissionHelper.IsStaffUser(),
-            ]);
             this.CanEdit = (isOfficer || isStaff) && !this.IsLocked;
             this.ViewAs = this.CanEdit ? 'secretary' : 'member';
         } catch (err) {

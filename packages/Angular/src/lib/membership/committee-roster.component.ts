@@ -83,8 +83,8 @@ export class CommitteeRosterComponent implements OnInit, OnChanges {
         try {
             const rv = new RunView();
 
-            // Run views in parallel for memberships and meeting attendance
-            const results = await rv.RunViews([
+            // Stage 1: batch memberships and committee meetings (RLS-safe two-step read for attendance)
+            const [membershipResult, meetingsResult] = await rv.RunViews([
                 {
                     EntityName: 'Committees: Committee Memberships',
                     ExtraFilter: `CommitteeID='${this.CommitteeID}'`,
@@ -92,14 +92,12 @@ export class CommitteeRosterComponent implements OnInit, OnChanges {
                     ResultType: 'simple'
                 },
                 {
-                    EntityName: 'Committees: Meeting Attendance',
-                    ExtraFilter: `Meeting IN (SELECT ID FROM [__mj_BizAppsCommittees].[vwMeetings] WHERE CommitteeID='${this.CommitteeID}')`,
+                    EntityName: 'Committees: Meetings',
+                    ExtraFilter: `CommitteeID='${this.CommitteeID}'`,
+                    Fields: ['ID'],
                     ResultType: 'simple'
                 }
             ]);
-
-            const membershipResult = results[0];
-            const attendanceResult = results[1];
 
             if (!membershipResult?.Success) {
                 this.ErrorMessage = membershipResult?.ErrorMessage || 'Failed to load committee memberships.';
@@ -107,7 +105,18 @@ export class CommitteeRosterComponent implements OnInit, OnChanges {
             }
 
             const rawMemberships = (membershipResult.Results as Record<string, unknown>[]) || [];
-            const rawAttendance = attendanceResult?.Success ? (attendanceResult.Results as Record<string, unknown>[]) || [] : [];
+            const meetingIDs = meetingsResult?.Success
+                ? ((meetingsResult.Results as { ID: string }[]) || []).map(m => m.ID).filter(Boolean)
+                : [];
+            let rawAttendance: Record<string, unknown>[] = [];
+            if (meetingIDs.length > 0) {
+                const attendanceResult = await rv.RunView<Record<string, unknown>>({
+                    EntityName: 'Committees: Meeting Attendance',
+                    ExtraFilter: `MeetingID IN (${meetingIDs.map(id => `'${id}'`).join(',')})`,
+                    ResultType: 'simple'
+                });
+                rawAttendance = attendanceResult?.Success ? (attendanceResult.Results ?? []) : [];
+            }
 
             // Compute attendance metrics map by PersonID
             const attendanceMap = new Map<string, { total: number; attended: number }>();

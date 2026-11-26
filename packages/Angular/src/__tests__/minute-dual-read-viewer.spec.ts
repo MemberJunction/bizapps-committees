@@ -1,7 +1,13 @@
+import '@angular/compiler';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { ChangeDetectorRef, Injector, runInInjectionContext } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
+import { ActivatedRoute, Router } from '@angular/router';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { Metadata, RunView } from '@memberjunction/core';
 import { UserInfoEngine } from '@memberjunction/core-entities';
+import { NavigationService } from '@memberjunction/ng-shared';
 import {
     ArtifactBundleMap,
     CommitteeArtifactBridgeInput,
@@ -16,12 +22,15 @@ import {
     MEMBER_HOME_VIEW_MODE_SETTING_KEY,
     MINUTE_VIEWER_SHOW_TABS_SETTING_KEY,
     NormalizeSafeExternalUrl,
+    NormalizeValidUuid,
     ReadUserBooleanPreference,
     ReadUserStringPreference,
     StripMarkdownToPlainText,
     WriteUserBooleanPreference,
     WriteUserStringPreference,
 } from '../lib/minutes/minute-dual-read.model';
+import { MeetingDetailViewComponent } from '../lib/meeting-detail/meeting-detail-view.component';
+import { CommitteeWorkspaceComponent } from '../lib/committee-workspace/committee-workspace.component';
 
 const ARTIFACT_ID = '11111111-1111-4111-8111-111111111111';
 const OTHER_ARTIFACT_ID = '22222222-2222-4222-8222-222222222222';
@@ -400,5 +409,99 @@ describe('Markdown stripping, UserInfoEngine preferences & viewer template wirin
         expect(artifactHtml).toContain('<mj-artifact-viewer-panel');
         expect(artifactHtml).toContain('[artifactId]="state.MJArtifactID"');
         expect(artifactHtml).toContain('[VersionNumber]="state.LatestVersionNumber"');
+    });
+});
+
+describe('UUID filter guard defence-in-depth for MeetingDetailView & CommitteeWorkspace', () => {
+    beforeEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('accepts valid RFC 4122 UUIDs and rejects malformed or injection inputs', () => {
+        expect(NormalizeValidUuid(`  ${MEETING_ID}  `)).toBe(MEETING_ID);
+        expect(NormalizeValidUuid(MEETING_ID.toUpperCase())).toBe(MEETING_ID.toUpperCase());
+
+        expect(NormalizeValidUuid(null)).toBeNull();
+        expect(NormalizeValidUuid(undefined)).toBeNull();
+        expect(NormalizeValidUuid('')).toBeNull();
+        expect(NormalizeValidUuid('   ')).toBeNull();
+        expect(NormalizeValidUuid('not-a-uuid')).toBeNull();
+        expect(NormalizeValidUuid("' OR 1=1 --")).toBeNull();
+        expect(NormalizeValidUuid(`${MEETING_ID}' OR '1'='1`)).toBeNull();
+    });
+
+    it('returns clean empty state without querying RunView when MeetingDetailViewComponent receives an invalid MeetingID', async () => {
+        const runViewsSpy = vi.spyOn(RunView.prototype, 'RunViews');
+        const runViewSpy = vi.spyOn(RunView.prototype, 'RunView');
+        vi.spyOn(Metadata.prototype, 'CurrentUser', 'get').mockReturnValue(undefined);
+
+        const mockCdr: Pick<ChangeDetectorRef, 'markForCheck' | 'detectChanges'> = {
+            markForCheck: vi.fn(),
+            detectChanges: vi.fn(),
+        };
+        const mockSanitizer: Pick<DomSanitizer, 'sanitize' | 'bypassSecurityTrustHtml'> = {
+            sanitize: (_ctx, val) => (typeof val === 'string' ? val : ''),
+            bypassSecurityTrustHtml: (val) => val,
+        };
+        const injector = Injector.create({
+            providers: [
+                { provide: ChangeDetectorRef, useValue: mockCdr },
+                { provide: DomSanitizer, useValue: mockSanitizer },
+            ],
+        });
+
+        const component = runInInjectionContext(injector, () => new MeetingDetailViewComponent());
+        component.MeetingID = "' OR 1=1 --";
+        await component.ngOnInit();
+
+        expect(runViewsSpy).not.toHaveBeenCalled();
+        expect(runViewSpy).not.toHaveBeenCalled();
+        expect(component.IsLoading).toBe(false);
+        expect(component.Meeting).toBeNull();
+        expect(component.Minute).toBeNull();
+        expect(component.ResolvedMinute).toBeNull();
+        expect(component.ResolvedArtifacts).toEqual([]);
+    });
+
+    it('returns clean empty state without querying RunView when CommitteeWorkspaceComponent receives an invalid CommitteeID', async () => {
+        const runViewsSpy = vi.spyOn(RunView.prototype, 'RunViews');
+        const runViewSpy = vi.spyOn(RunView.prototype, 'RunView');
+
+        const mockCdr: Pick<ChangeDetectorRef, 'markForCheck' | 'detectChanges'> = {
+            markForCheck: vi.fn(),
+            detectChanges: vi.fn(),
+        };
+        const mockRoute = {
+            snapshot: {
+                queryParamMap: {
+                    get: (_key: string): string | null => "' OR 1=1 --",
+                },
+            },
+        };
+        const mockRouter: Pick<Router, 'navigate'> = {
+            navigate: vi.fn().mockResolvedValue(true),
+        };
+        const injector = Injector.create({
+            providers: [
+                { provide: ChangeDetectorRef, useValue: mockCdr },
+                { provide: ActivatedRoute, useValue: mockRoute },
+                { provide: Router, useValue: mockRouter },
+                { provide: NavigationService, useValue: {} },
+            ],
+        });
+
+        const component = runInInjectionContext(injector, () => new CommitteeWorkspaceComponent());
+        vi.spyOn(component, 'NotifyLoadStarted').mockImplementation(() => {});
+        vi.spyOn(component, 'NotifyLoadComplete').mockImplementation(() => {});
+
+        await component.ngOnInit();
+
+        expect(runViewsSpy).not.toHaveBeenCalled();
+        expect(runViewSpy).not.toHaveBeenCalled();
+        expect(component.IsLoading).toBe(false);
+        expect(component.Committee).toBeNull();
+        expect(component.Artifacts).toEqual([]);
+        expect(component.ResolvedArtifacts).toEqual([]);
+        expect(component.Meetings).toEqual([]);
     });
 });

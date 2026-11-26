@@ -17,6 +17,7 @@ import {
 import { marked } from 'marked';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 import { OpenExternalUrl } from '../shared/open-external-url';
+import { NormalizeValidUuid } from '../minutes/minute-dual-read.model';
 
 interface MeetingRow {
     ID: string;
@@ -262,9 +263,14 @@ export class MeetingDetailViewComponent implements OnInit {
     }
 
     private async loadData(): Promise<void> {
+        const meetingId = NormalizeValidUuid(this.MeetingID);
+        if (!meetingId) {
+            this.resetDetailState();
+            return;
+        }
         const rv = new RunView();
         const [meetingResult, attendanceResult, agendaResult, motionResult, minuteResult, artifactResult] =
-            await rv.RunViews(this.buildDetailQueries());
+            await rv.RunViews(this.buildDetailQueries(meetingId));
         const rawArtifacts = this.applyDetailResults(
             meetingResult as DetailBatchResult<MeetingRow>,
             attendanceResult as DetailBatchResult<AttendanceRow>,
@@ -276,32 +282,43 @@ export class MeetingDetailViewComponent implements OnInit {
         await this.resolveArtifactLinkedRecords(rawArtifacts);
     }
 
+    private resetDetailState(): void {
+        this.Meeting = null;
+        this.Attendance = [];
+        this.AgendaItems = [];
+        this.Motions = [];
+        this.Minute = null;
+        this.ResolvedMinute = null;
+        this.ResolvedArtifacts = [];
+        this.PreviewArtifact = null;
+    }
+
     /** All per-meeting reads collapsed into one RunViews round trip. */
-    private buildDetailQueries(): Parameters<RunView['RunViews']>[0] {
+    private buildDetailQueries(meetingId: string): Parameters<RunView['RunViews']>[0] {
         return [
             {
                 EntityName: 'Committees: Meetings',
-                ExtraFilter: `ID='${this.MeetingID}'`,
+                ExtraFilter: `ID='${meetingId}'`,
                 Fields: ['ID', 'CommitteeID', 'Name', 'StartDateTime', 'EndDateTime', 'Committee', 'Status',
                          'LocationType', 'Location', 'VideoProvider', 'TranscriptURL'],
                 ResultType: 'simple',
             },
             {
                 EntityName: 'Committees: Attendances',
-                ExtraFilter: `MeetingID='${this.MeetingID}'`,
+                ExtraFilter: `MeetingID='${meetingId}'`,
                 Fields: ['ID', 'Person', 'AttendanceStatus'],
                 ResultType: 'simple',
             },
             {
                 EntityName: 'Committees: Agenda Items',
-                ExtraFilter: `MeetingID='${this.MeetingID}'`,
+                ExtraFilter: `MeetingID='${meetingId}'`,
                 OrderBy: 'Sequence ASC',
                 Fields: ['ID', 'Sequence', 'Name', 'ItemType', 'Status', 'Notes', 'DurationMinutes'],
                 ResultType: 'simple',
             },
             {
                 EntityName: 'Committees: Motions',
-                ExtraFilter: `MeetingID='${this.MeetingID}'`,
+                ExtraFilter: `MeetingID='${meetingId}'`,
                 OrderBy: 'Sequence ASC',
                 Fields: ['ID', 'Sequence', 'Name', 'Description', 'Result', 'ResultSummary',
                          'YesCount', 'NoCount', 'AbstainCount'],
@@ -309,7 +326,7 @@ export class MeetingDetailViewComponent implements OnInit {
             },
             {
                 EntityName: 'Committees: Minutes',
-                ExtraFilter: `MeetingID='${this.MeetingID}'`,
+                ExtraFilter: `MeetingID='${meetingId}'`,
                 Fields: [
                     'ID', 'MeetingID', 'Content', 'ApprovalStatus', 'ApprovedAt',
                     'ApprovedByMeetingID', 'MJArtifactID', 'ApprovedArtifactVersionID',
@@ -318,7 +335,7 @@ export class MeetingDetailViewComponent implements OnInit {
             },
             {
                 EntityName: 'Committees: Artifacts',
-                ExtraFilter: `MeetingID='${this.MeetingID}'`,
+                ExtraFilter: `MeetingID='${meetingId}'`,
                 Fields: [
                     'ID', 'Name', 'Description', 'CommitteeID', 'MeetingID', 'AgendaItemID',
                     'TaskID', 'ArtifactTypeID', 'Provider', 'ExternalID', 'URL', 'MimeType',
@@ -364,10 +381,17 @@ export class MeetingDetailViewComponent implements OnInit {
     }
 
     private async reloadMinutes(): Promise<void> {
+        const meetingId = NormalizeValidUuid(this.MeetingID);
+        if (!meetingId) {
+            this.Minute = null;
+            this.ResolvedMinute = null;
+            this.cdr.markForCheck();
+            return;
+        }
         const rv = new RunView();
         const result = await rv.RunView<MinuteRow>({
             EntityName: 'Committees: Minutes',
-            ExtraFilter: `MeetingID='${this.MeetingID}'`,
+            ExtraFilter: `MeetingID='${meetingId}'`,
             Fields: [
                 'ID', 'MeetingID', 'Content', 'ApprovalStatus', 'ApprovedAt',
                 'ApprovedByMeetingID', 'MJArtifactID', 'ApprovedArtifactVersionID',

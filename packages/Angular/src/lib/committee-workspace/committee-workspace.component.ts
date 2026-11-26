@@ -17,6 +17,7 @@ import {
     TermHygiene,
 } from '@mj-biz-apps/committees-core';
 import { OpenExternalUrl } from '../shared/open-external-url';
+import { NormalizeValidUuid } from '../minutes/minute-dual-read.model';
 
 export type WorkspaceTab = 'overview' | 'roster' | 'meetings' | 'motions' | 'actions' | 'documents';
 
@@ -153,10 +154,16 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
 
     private async reload(): Promise<void> {
         try {
-            if (!this._committeeID) { this.IsLoading = false; this.cdr.markForCheck(); return; }
+            const committeeId = NormalizeValidUuid(this._committeeID);
+            if (!committeeId) {
+                this.resetWorkspaceState();
+                this.IsLoading = false;
+                this.cdr.markForCheck();
+                return;
+            }
             this.IsLoading = true;
             this.cdr.markForCheck();
-            await this.loadWorkspaceData(this._committeeID);
+            await this.loadWorkspaceData(committeeId);
             this.IsLoading = false;
             this.cdr.markForCheck();
         } finally {
@@ -165,7 +172,30 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
         }
     }
 
-    private async loadWorkspaceData(id: string): Promise<void> {
+    private resetWorkspaceState(): void {
+        this.Committee = null;
+        this.Term = null;
+        this.Terms = [];
+        this.Members = [];
+        this.Officers = [];
+        this.VotingCount = 0;
+        this.Meetings = [];
+        this.OpenActions = [];
+        this.Artifacts = [];
+        this.ResolvedArtifacts = [];
+        this.ArtifactTypeById = new Map<string, string>();
+        this.PreviewArtifact = null;
+        this.MotionCount = 0;
+        this.MotionRows = [];
+        this.OpenBallotCount = 0;
+    }
+
+    private async loadWorkspaceData(rawId: string): Promise<void> {
+        const id = NormalizeValidUuid(rawId);
+        if (!id) {
+            this.resetWorkspaceState();
+            return;
+        }
         const rv = new RunView();
         await CommitteesLookupEngine.Instance.Config();
         const tasksPromise = new CommitteeTaskService().GetTasks({});
@@ -225,8 +255,17 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
     }
 
     private async loadMembers(roles: RoleRow[]): Promise<void> {
-        const activeTermIDs = this.Terms.filter(t => t.Status === 'Active').map(t => `'${t.ID}'`);
-        const termIDs = activeTermIDs.length > 0 ? activeTermIDs : this.Terms.slice(0, 1).map(t => `'${t.ID}'`);
+        const activeTermIDs = this.Terms
+            .filter(t => t.Status === 'Active')
+            .map(t => NormalizeValidUuid(t.ID))
+            .filter((termId): termId is string => termId !== null)
+            .map(termId => `'${termId}'`);
+        const fallbackTermIDs = this.Terms
+            .slice(0, 1)
+            .map(t => NormalizeValidUuid(t.ID))
+            .filter((termId): termId is string => termId !== null)
+            .map(termId => `'${termId}'`);
+        const termIDs = activeTermIDs.length > 0 ? activeTermIDs : fallbackTermIDs;
         if (termIDs.length === 0) { this.Members = []; this.Officers = []; this.VotingCount = 0; return; }
 
         const rv = new RunView();

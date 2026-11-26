@@ -46,6 +46,16 @@ const ALL_COMMITTEES_ENTITIES = [
     'Committees: Votes',
 ] as const;
 
+const SLICE2_HTML_FILES = [
+    'src/lib/minutes/minute-document-viewer.component.html',
+    'src/lib/documents/committee-artifact-preview.component.html',
+    'src/lib/minutes-review/minutes-review.component.html',
+    'src/lib/meeting-detail/meeting-detail-view.component.html',
+    'src/lib/committee-workspace/committee-workspace.component.html',
+    'src/lib/dashboard/committee-dashboard.component.html',
+    'src/lib/member-home/member-home.component.html',
+] as const;
+
 const SLICE2_TOKEN_ENFORCED_FILES = [
     'src/lib/minutes/minute-document-viewer.component.css',
     'src/lib/minutes/minute-document-viewer.component.html',
@@ -240,5 +250,45 @@ describe('Design Token, Print Hygiene & Strict TypeScript Enforcement', () => {
             expect(content, `Forbidden explicit any in ${relPath}`).not.toMatch(/:\s*any\b|\bas\s+any\b|<any>/);
             expect(content, `Forbidden unknown cast in ${relPath}`).not.toMatch(/\bas\s+unknown\s+as\b/);
         }
+    });
+
+    it('enforces WCAG ARIA role and keyboard activation on clickable <div>/<span> elements in touched Angular HTML templates', () => {
+        const clickableNonInteractiveTagPattern = /<(div|span)\b[^>]*\(click\)=[^>]*>/g;
+
+        for (const relPath of SLICE2_HTML_FILES) {
+            const html = readFileSync(join(ANGULAR_ROOT, relPath), 'utf8');
+            const matches = html.match(clickableNonInteractiveTagPattern) ?? [];
+            for (const tag of matches) {
+                const hasRole = /\b(?:role|\[attr\.role\])=/.test(tag);
+                expect(
+                    hasRole,
+                    `Clickable <div|span> without explicit ARIA role in ${relPath}: ${tag}`
+                ).toBe(true);
+
+                if (/\brole="button"/.test(tag)) {
+                    expect(tag, `role="button" element missing tabindex in ${relPath}: ${tag}`).toMatch(/\btabindex="0"/);
+                    expect(tag, `role="button" element missing (keydown.enter) in ${relPath}: ${tag}`).toMatch(/\(keydown\.enter\)=/);
+                    expect(tag, `role="button" element missing (keydown.space) in ${relPath}: ${tag}`).toMatch(/\(keydown\.space\)=/);
+                }
+            }
+        }
+
+        const dashboardHtml = readFileSync(
+            join(ANGULAR_ROOT, 'src/lib/dashboard/committee-dashboard.component.html'),
+            'utf8'
+        );
+        const joinBtnMatch = /<a\b[^>]*class="join-btn"[^>]*>/.exec(dashboardHtml);
+        expect(joinBtnMatch, 'Expected .join-btn anchor in committee-dashboard.component.html').not.toBeNull();
+        const joinBtnTag = joinBtnMatch?.[0] ?? '';
+        expect(joinBtnTag).toContain('(click)="$event.stopPropagation()"');
+        expect(joinBtnTag).toContain('(keydown.enter)="$event.stopPropagation()"');
+        expect(joinBtnTag).toContain('(keydown.space)="$event.stopPropagation()"');
+
+        const dashboardCss = readFileSync(
+            join(ANGULAR_ROOT, 'src/lib/dashboard/committee-dashboard.component.css'),
+            'utf8'
+        );
+        expect(dashboardCss).toMatch(/\.row-item\s*\{[^}]*cursor:\s*pointer/);
+        expect(dashboardCss).toMatch(/\.row-item:focus-visible\s*\{[^}]*outline:[^}]*var\(--mj-/);
     });
 });

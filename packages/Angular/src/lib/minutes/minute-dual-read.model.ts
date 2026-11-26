@@ -10,6 +10,18 @@ import type {
 export const MINUTE_VIEWER_SHOW_TABS_SETTING_KEY = 'mj.committees.minuteViewer.showTabs';
 export const MEMBER_HOME_VIEW_MODE_SETTING_KEY = 'mj.committees.memberHome.viewMode';
 
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Validates and trims a UUID string matching `MinuteArtifactBridgeService`'s strict
+ * RFC 4122 hex format before interpolation into `RunView` `ExtraFilter` expressions.
+ * Returns `null` for missing or malformed inputs.
+ */
+export function NormalizeValidUuid(value: string | null | undefined): string | null {
+    const trimmed = value?.trim() ?? '';
+    return UUID_PATTERN.test(trimmed) ? trimmed : null;
+}
+
 export type MinuteDualReadViewMode =
     | 'mj-doc-pinned'
     | 'mj-doc-latest'

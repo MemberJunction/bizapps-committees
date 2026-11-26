@@ -51,7 +51,14 @@
                 } @else {
                     <div class="panel-body">
                         @for (meeting of UpcomingMeetings; track meeting.ID) {
-                            <div class="row-item" (click)="OpenMeetingRecord(meeting.ID)">
+                            <div
+                                class="row-item"
+                                role="button"
+                                tabindex="0"
+                                (click)="OpenMeetingRecord(meeting.ID)"
+                                (keydown.enter)="OpenMeetingRecord(meeting.ID)"
+                                (keydown.space)="OpenMeetingRecord(meeting.ID); $event.preventDefault()"
+                            >
                                 <div class="date-chip">
                                     <span class="date-month">{{ meeting.StartDateTime | date:'MMM' }}</span>
                                     <span class="date-day">{{ meeting.StartDateTime | date:'d' }}</span>
@@ -74,7 +81,15 @@
                                     </div>
                                 </div>
                                 @if (meeting.VideoJoinURL) {
-                                    <a class="join-btn" [href]="meeting.VideoJoinURL" target="_blank" rel="noopener" (click)="$event.stopPropagation()">
+                                    <a
+                                        class="join-btn"
+                                        [href]="meeting.VideoJoinURL"
+                                        target="_blank"
+                                        rel="noopener"
+                                        (click)="$event.stopPropagation()"
+                                        (keydown.enter)="$event.stopPropagation()"
+                                        (keydown.space)="$event.stopPropagation()"
+                                    >
                                         Join
                                     </a>
                                 }
@@ -128,7 +143,14 @@
                 </div>
                 <div class="panel-body">
                     @for (meeting of RecentMeetings; track meeting.ID) {
-                        <div class="row-item row-muted" (click)="OpenMeetingRecord(meeting.ID)">
+                        <div
+                            class="row-item row-muted"
+                            role="button"
+                            tabindex="0"
+                            (click)="OpenMeetingRecord(meeting.ID)"
+                            (keydown.enter)="OpenMeetingRecord(meeting.ID)"
+                            (keydown.space)="OpenMeetingRecord(meeting.ID); $event.preventDefault()"
+                        >
                             <div class="date-chip date-past">
                                 <span class="date-month">{{ meeting.StartDateTime | date:'MMM' }}</span>
                                 <span class="date-day">{{ meeting.StartDateTime | date:'d' }}</span>

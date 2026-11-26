@@ -214,11 +214,17 @@
     gap: var(--mj-space-4);
     padding: 14px var(--mj-space-6);
     border-bottom: 1px solid var(--mj-border-subtle);
+    cursor: pointer;
     transition: background 0.15s ease;
 }
 
 .row-item:last-child { border-bottom: none; }
 .row-item:hover { background: var(--mj-bg-surface-card); }
+.row-item:focus-visible {
+    outline: 2px solid var(--mj-brand-primary);
+    outline-offset: -2px;
+    background: var(--mj-bg-surface-card);
+}
 
 .row-muted { opacity: 0.55; }
 .row-muted:hover { opacity: 0.75; }
@@ -311,6 +317,11 @@
     background: var(--mj-status-success-text);
     box-shadow: 0 4px 12px color-mix(in srgb, var(--mj-status-success) 30%, transparent);
     transform: translateY(-1px);
+}
+
+.join-btn:focus-visible {
+    outline: 2px solid var(--mj-brand-primary);
+    outline-offset: 2px;
 }
 
 /* ─── Priority Dots ─── */

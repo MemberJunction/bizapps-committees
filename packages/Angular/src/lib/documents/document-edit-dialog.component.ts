@@ -342,13 +342,12 @@ export class DocumentEditDialogComponent implements OnInit {
             // in ProviderKey; anything else is an uploaded file in a storage backend.
             const isExternal = this.ExternalProviders.some(p => UUIDsEqual(p.ID, this.FileRecord!.ProviderID));
             this.DocumentMode = isExternal ? 'link' : 'upload';
-            // Load existing context links
-            await this.loadExistingLinks();
+            // Context links were already batched into loadLookups()
         }
     }
 
     private buildLookupQueries(): RunViewParams[] {
-        return [
+        const queries: RunViewParams[] = [
             {
                 EntityName: 'Committees: Committees',
                 Fields: ['ID', 'Name'],
@@ -372,19 +371,23 @@ export class DocumentEditDialogComponent implements OnInit {
             },
             {
                 EntityName: 'MJ: File Storage Providers',
-                Fields: ['ID', 'Name'],
-                ExtraFilter: "ServerDriverKey = 'ExternalURL' AND IsActive = 1",
-                OrderBy: 'Name ASC',
-                ResultType: 'simple'
-            },
-            {
-                EntityName: 'MJ: File Storage Providers',
-                Fields: ['ID', 'Name'],
-                ExtraFilter: "ServerDriverKey != 'ExternalURL' AND IsActive = 1",
+                Fields: ['ID', 'Name', 'ServerDriverKey'],
+                ExtraFilter: 'IsActive = 1',
                 OrderBy: 'Name ASC',
                 ResultType: 'simple'
             }
         ];
+
+        if (!this.IsNew && this.FileID) {
+            queries.push({
+                EntityName: 'MJ: File Entity Record Links',
+                Fields: ['EntityID', 'RecordID', 'Entity'],
+                ExtraFilter: `FileID = '${this.FileID}'`,
+                ResultType: 'simple'
+            });
+        }
+
+        return queries;
     }
 
     /** Scopes the committee dropdown: staff sees all; officers see their committees (or all if none resolved). */
@@ -406,7 +409,7 @@ export class DocumentEditDialogComponent implements OnInit {
 
     private async loadLookups(): Promise<void> {
         const rv = new RunView();
-        const [committeesResult, meetingsResult, categoriesResult, externalProvidersResult, storageProvidersResult] =
+        const [committeesResult, meetingsResult, categoriesResult, providersResult, existingLinksResult] =
             await rv.RunViews(this.buildLookupQueries());
 
         await this.applyCommitteeScope(committeesResult);
@@ -417,24 +420,17 @@ export class DocumentEditDialogComponent implements OnInit {
         if (categoriesResult.Success) {
             this.Categories = categoriesResult.Results as { ID: string; Name: string }[];
         }
-        if (externalProvidersResult.Success) {
-            this.ExternalProviders = externalProvidersResult.Results as { ID: string; Name: string }[];
+        if (providersResult.Success) {
+            const providers = providersResult.Results as { ID: string; Name: string; ServerDriverKey: string }[];
+            this.ExternalProviders = providers
+                .filter(p => p.ServerDriverKey === 'ExternalURL')
+                .map(p => ({ ID: p.ID, Name: p.Name }));
+            this.StorageProviders = providers
+                .filter(p => p.ServerDriverKey !== 'ExternalURL')
+                .map(p => ({ ID: p.ID, Name: p.Name }));
         }
-        if (storageProvidersResult.Success) {
-            this.StorageProviders = storageProvidersResult.Results as { ID: string; Name: string }[];
-        }
-    }
-
-    private async loadExistingLinks(): Promise<void> {
-        const rv = new RunView();
-        const result = await rv.RunView<{ EntityID: string; RecordID: string; Entity: string }>({
-            EntityName: 'MJ: File Entity Record Links',
-            Fields: ['EntityID', 'RecordID', 'Entity'],
-            ExtraFilter: `FileID = '${this.FileID}'`,
-            ResultType: 'simple'
-        });
-        if (result.Success) {
-            for (const link of result.Results) {
+        if (existingLinksResult?.Success) {
+            for (const link of existingLinksResult.Results as { EntityID: string; RecordID: string; Entity: string }[]) {
                 const entityName = link.Entity;
                 if (entityName === 'Committees: Committees') {
                     this.SelectedCommitteeID = link.RecordID;

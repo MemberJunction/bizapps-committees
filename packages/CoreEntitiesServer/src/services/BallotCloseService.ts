@@ -80,8 +80,7 @@ export class BallotCloseService {
             if (!ballot) return this.progressFailure(ballotID, 'Ballot not found');
             const system = await this.systemUser();
             if (!system) return this.progressFailure(ballotID, 'No system user is configured; the ballot cannot be read');
-            const voters = await this.votingMembers(ballot, system);
-            const votes = await this.loadVotes(ballot.MotionID, system);
+            const { voters, votes } = await this.loadBallotParticipation(ballot, system);
             const tally = BallotService.ComputeTally(votes, voters.length);
             return {
                 Success: true,
@@ -112,8 +111,7 @@ export class BallotCloseService {
             const system = await this.systemUser();
             if (!system) return this.failure('No system user is configured; the ballot cannot be tallied');
 
-            const voters = await this.votingMembers(ballot, system);
-            const votes = await this.loadVotes(ballot.MotionID, system);
+            const { voters, votes } = await this.loadBallotParticipation(ballot, system);
             const tally = BallotService.ComputeTally(votes, voters.length);
             const requiredYes = BallotService.RequiredYes(ballot.ThresholdType, voters.length);
 
@@ -190,19 +188,34 @@ export class BallotCloseService {
         return result.Results?.[0] ?? null;
     }
 
-    /** Active memberships in the committee's active terms whose role votes. */
-    private async votingMembers(ballot: BallotRow, system: UserInfo): Promise<MembershipRow[]> {
+    /** Batches active terms and motion votes in one RunViews round trip, then loads voting memberships. */
+    private async loadBallotParticipation(
+        ballot: BallotRow,
+        system: UserInfo
+    ): Promise<{ voters: MembershipRow[]; votes: VoteRow[] }> {
         await CommitteesLookupEngine.Instance.Config(false, system);
         const rv = new RunView();
-        const terms = await rv.RunView<TermRow>({
-            EntityName: 'Committees: Terms',
-            ExtraFilter: `CommitteeID = '${ballot.CommitteeID}' AND Status = 'Active'`,
-            Fields: ['ID'],
-            ResultType: 'simple',
-        }, system);
+        const [terms, votesRes] = await rv.RunViews([
+            {
+                EntityName: 'Committees: Terms',
+                ExtraFilter: `CommitteeID = '${ballot.CommitteeID}' AND Status = 'Active'`,
+                Fields: ['ID'],
+                ResultType: 'simple',
+            },
+            {
+                EntityName: 'Committees: Votes',
+                ExtraFilter: `MotionID = '${ballot.MotionID}'`,
+                Fields: ['MembershipID', 'VoteValue', '__mj_CreatedAt'],
+                ResultType: 'simple',
+            },
+        ], system);
         if (!terms.Success) throw new Error(terms.ErrorMessage ?? 'The committee terms could not be read');
-        const termIDs = (terms.Results ?? []).map((t) => t.ID);
-        if (termIDs.length === 0) return [];
+        if (!votesRes.Success) throw new Error(votesRes.ErrorMessage ?? 'The votes could not be read');
+
+        const votes = (votesRes.Results ?? []) as VoteRow[];
+        const termIDs = ((terms.Results ?? []) as TermRow[]).map((t) => t.ID);
+        if (termIDs.length === 0) return { voters: [], votes };
+
         const memberships = await rv.RunView<MembershipRow>({
             EntityName: 'Committees: Memberships',
             ExtraFilter: `Status = 'Active' AND TermID IN (${termIDs.map((id) => `'${id}'`).join(',')})`,
@@ -210,20 +223,8 @@ export class BallotCloseService {
             ResultType: 'simple',
         }, system);
         if (!memberships.Success) throw new Error(memberships.ErrorMessage ?? 'The memberships could not be read');
-        const votingRoles = new Set(CommitteesLookupEngine.Instance.Roles.filter((r) => r.IsVotingRole).map((r) => r.ID.toLowerCase()));
-        return (memberships.Results ?? []).filter((m) => votingRoles.has(m.RoleID.toLowerCase()));
-    }
-
-    private async loadVotes(motionID: string, system: UserInfo): Promise<VoteRow[]> {
-        const rv = new RunView();
-        const result = await rv.RunView<VoteRow>({
-            EntityName: 'Committees: Votes',
-            ExtraFilter: `MotionID = '${motionID}'`,
-            Fields: ['MembershipID', 'VoteValue', '__mj_CreatedAt'],
-            ResultType: 'simple',
-        }, system);
-        if (!result.Success) throw new Error(result.ErrorMessage ?? 'The votes could not be read');
-        return result.Results ?? [];
+        const voters = (memberships.Results ?? []).filter((m) => CommitteesLookupEngine.Instance.IsVotingRole(m.RoleID));
+        return { voters, votes };
     }
 
     /** The MJ system user from the process-wide user cache (every server host refreshes it at startup); null when the host has none. */

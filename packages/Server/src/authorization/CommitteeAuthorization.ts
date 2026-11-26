@@ -1,4 +1,5 @@
 import { RunView, UserInfo, LogError } from '@memberjunction/core';
+import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core';
 
 /** Read-only shape for a single-column ID lookup. */
 interface IdRow {
@@ -13,12 +14,6 @@ interface CommitteeIdRow {
 /** Read-only shape for an active-membership role lookup. */
 interface MembershipRoleRow {
     RoleID: string;
-}
-
-/** Read-only shape for a committee role's officer flag. */
-interface RoleOfficerRow {
-    ID: string;
-    IsOfficer: boolean;
 }
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -61,8 +56,7 @@ export class CommitteeAuthorization {
     public static async CanActOnCommittee(committeeID: string | null, contextUser: UserInfo): Promise<boolean> {
         if (!committeeID || !UUID_RE.test(committeeID)) return false;
         try {
-            if (await this.IsStaffUser(contextUser)) return true;
-            return await this.isActiveOfficer(committeeID, contextUser);
+            return await this.checkCommitteeAccess(committeeID, true, contextUser);
         } catch (error) {
             LogError(`[CommitteeAuthorization] CanActOnCommittee failed for committee ${committeeID}: ${errorMessage(error)}`);
             return false;
@@ -76,8 +70,7 @@ export class CommitteeAuthorization {
     public static async CanViewCommittee(committeeID: string | null, contextUser: UserInfo): Promise<boolean> {
         if (!committeeID || !UUID_RE.test(committeeID)) return false;
         try {
-            if (await this.IsStaffUser(contextUser)) return true;
-            return await this.isActiveMember(committeeID, contextUser);
+            return await this.checkCommitteeAccess(committeeID, false, contextUser);
         } catch (error) {
             LogError(`[CommitteeAuthorization] CanViewCommittee failed for committee ${committeeID}: ${errorMessage(error)}`);
             return false;
@@ -111,68 +104,68 @@ export class CommitteeAuthorization {
         return null;
     }
 
-    /** True if the user is an active officer of the committee. */
-    private static async isActiveOfficer(committeeID: string, contextUser: UserInfo): Promise<boolean> {
-        const personID = await this.resolvePersonID(contextUser);
+    /**
+     * Batches the three independent access prerequisites (staff app access, linked PersonID,
+     * and committee TermIDs) into one `RunViews` round trip, then checks active membership
+     * and (when required) officer role via `CommitteesLookupEngine`. Fails closed.
+     */
+    private static async checkCommitteeAccess(
+        committeeID: string,
+        requireOfficer: boolean,
+        contextUser: UserInfo
+    ): Promise<boolean> {
+        const rv = new RunView();
+        const [staffRes, personRes, termsRes] = await rv.RunViews([
+            {
+                EntityName: 'MJ: User Applications',
+                ExtraFilter: `UserID = '${contextUser.ID}' AND Application = 'Committee Management'`,
+                Fields: ['ID'],
+                MaxRows: 1,
+                ResultType: 'simple',
+            },
+            {
+                EntityName: 'MJ_BizApps_Common: People',
+                ExtraFilter: `LinkedUserID = '${contextUser.ID}'`,
+                Fields: ['ID'],
+                MaxRows: 1,
+                ResultType: 'simple',
+            },
+            {
+                EntityName: 'Committees: Terms',
+                ExtraFilter: `CommitteeID = '${committeeID}'`,
+                Fields: ['ID'],
+                ResultType: 'simple',
+            },
+        ], contextUser);
+
+        if (staffRes?.Success === true && Array.isArray(staffRes.Results) && staffRes.Results.length > 0) {
+            return true;
+        }
+
+        const personRows = (personRes?.Success ? personRes.Results : []) as IdRow[];
+        const personID = personRows[0]?.ID ?? null;
         if (!personID) return false;
 
-        const termIDs = await this.committeeTermIDs(committeeID, contextUser);
+        const termRows = (termsRes?.Success ? termsRes.Results : []) as IdRow[];
+        const termIDs = termRows.map(r => r.ID).filter(id => !!id);
         if (termIDs.length === 0) return false;
 
-        const roleIDs = await this.activeMembershipRoleIDs(personID, termIDs, contextUser);
+        const roleIDs = await this.activeMembershipRoleIDs(rv, personID, termIDs, contextUser);
         if (roleIDs.length === 0) return false;
+        if (!requireOfficer) return true;
 
-        return this.anyRoleIsOfficer(roleIDs, contextUser);
-    }
-
-    /** True if the user holds an active membership, in any role, in one of the committee's terms. */
-    private static async isActiveMember(committeeID: string, contextUser: UserInfo): Promise<boolean> {
-        const personID = await this.resolvePersonID(contextUser);
-        if (!personID) return false;
-        const termIDs = await this.committeeTermIDs(committeeID, contextUser);
-        if (termIDs.length === 0) return false;
-        return (await this.activeMembershipRoleIDs(personID, termIDs, contextUser)).length > 0;
-    }
-
-    /** Resolves the Person linked to the current user via LinkedUserID, or null. */
-    private static async resolvePersonID(contextUser: UserInfo): Promise<string | null> {
-        const rv = new RunView();
-        const result = await rv.RunView<IdRow>({
-            EntityName: 'MJ_BizApps_Common: People',
-            ExtraFilter: `LinkedUserID = '${contextUser.ID}'`,
-            Fields: ['ID'],
-            MaxRows: 1,
-            ResultType: 'simple',
-        }, contextUser);
-        if (result.Success && result.Results && result.Results.length > 0) {
-            return result.Results[0].ID;
-        }
-        return null;
-    }
-
-    /** Returns all Term IDs that belong to the given committee. */
-    private static async committeeTermIDs(committeeID: string, contextUser: UserInfo): Promise<string[]> {
-        const rv = new RunView();
-        const result = await rv.RunView<IdRow>({
-            EntityName: 'Committees: Terms',
-            ExtraFilter: `CommitteeID = '${committeeID}'`,
-            Fields: ['ID'],
-            ResultType: 'simple',
-        }, contextUser);
-        if (result.Success && result.Results) {
-            return result.Results.map(r => r.ID);
-        }
-        return [];
+        await CommitteesLookupEngine.Instance.Config(false, contextUser);
+        return roleIDs.some(roleID => CommitteesLookupEngine.Instance.IsOfficerRole(roleID));
     }
 
     /** Returns the role IDs of the person's ACTIVE memberships within the given terms. */
     private static async activeMembershipRoleIDs(
+        rv: RunView,
         personID: string,
         termIDs: string[],
         contextUser: UserInfo
     ): Promise<string[]> {
         const termList = termIDs.map(id => `'${id}'`).join(',');
-        const rv = new RunView();
         const result = await rv.RunView<MembershipRoleRow>({
             EntityName: 'Committees: Memberships',
             ExtraFilter: `PersonID = '${personID}' AND Status = 'Active' AND TermID IN (${termList})`,
@@ -183,20 +176,6 @@ export class CommitteeAuthorization {
             return result.Results.map(r => r.RoleID).filter(id => !!id);
         }
         return [];
-    }
-
-    /** True if any of the given role IDs is an officer role. */
-    private static async anyRoleIsOfficer(roleIDs: string[], contextUser: UserInfo): Promise<boolean> {
-        const roleList = [...new Set(roleIDs)].map(id => `'${id}'`).join(',');
-        const rv = new RunView();
-        const result = await rv.RunView<RoleOfficerRow>({
-            EntityName: 'Committees: Roles',
-            ExtraFilter: `ID IN (${roleList}) AND IsOfficer = 1`,
-            Fields: ['ID', 'IsOfficer'],
-            MaxRows: 1,
-            ResultType: 'simple',
-        }, contextUser);
-        return result.Success === true && Array.isArray(result.Results) && result.Results.length > 0;
     }
 }
 

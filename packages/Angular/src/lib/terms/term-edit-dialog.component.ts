@@ -160,20 +160,21 @@ export class TermEditDialogComponent implements OnInit {
             this.EndDateLocal = `${year + 1}-06-30`;
         } else {
             this.Term = await md.GetEntityObject<mjBizAppsCommitteesTermEntity>('Committees: Terms');
-            await this.Term.Load(this.TermID!);
+            const rv = new RunView();
+            const [, memberResult] = await Promise.all([
+                this.Term.Load(this.TermID!),
+                rv.RunView<{ ID: string }>({
+                    EntityName: 'Committees: Memberships',
+                    ExtraFilter: `TermID = '${this.TermID}'`,
+                    Fields: ['ID'],
+                    MaxRows: 1,
+                    ResultType: 'simple'
+                })
+            ]);
             this.StartDateLocal = this.toLocalDateString(this.Term.StartDate);
             if (this.Term.EndDate) {
                 this.EndDateLocal = this.toLocalDateString(this.Term.EndDate);
             }
-            // Check if term has members (can't delete if so)
-            const rv = new RunView();
-            const memberResult = await rv.RunView<{ ID: string }>({
-                EntityName: 'Committees: Memberships',
-                ExtraFilter: `TermID = '${this.TermID}'`,
-                Fields: ['ID'],
-                MaxRows: 1,
-                ResultType: 'simple'
-            });
             this.HasMembers = memberResult.Success && memberResult.Results != null && memberResult.Results.length > 0;
         }
     }

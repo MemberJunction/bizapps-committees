@@ -139,31 +139,29 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
         try {
             await CommitteesLookupEngine.Instance.Config();
             const rv = new RunView();
-            const [register, ballotsResult, extras] = await Promise.all([
+            const [register, batchResults, currentPersonID] = await Promise.all([
                 this.motionService.GetRegister(),
-                rv.RunView({
-                    EntityName: 'Committees: Ballots',
-                    OrderBy: 'ClosesAt ASC',
-                    ResultType: 'simple',
-                }),
                 rv.RunViews([
+                    { EntityName: 'Committees: Ballots', OrderBy: 'ClosesAt ASC', ResultType: 'simple' },
                     { EntityName: 'Committees: Terms', Fields: ['ID', 'CommitteeID', 'Status'], ResultType: 'simple' },
                     { EntityName: 'Committees: Memberships', ExtraFilter: "Status = 'Active'", Fields: ['ID', 'PersonID', 'Person', 'Role', 'RoleID', 'TermID', 'Status'], ResultType: 'simple' },
                 ]),
+                CommitteePermissionHelper.GetCurrentPersonID(),
             ]);
+            const [ballotsResult, terms, memberships] = batchResults;
             const ballots = (ballotsResult.Success ? ballotsResult.Results : []) as unknown as BallotRow[];
-            const [terms, memberships] = extras;
             const progress = await this.loadProgress(ballots.filter(b => b.Status === 'Open').map(b => b.ID));
             // Roles come from the process-wide lookup engine — no per-load query.
             const roles: RoleRow[] = CommitteesLookupEngine.Instance.Roles
                 .map(r => ({ ID: r.ID, IsVotingRole: r.IsVotingRole }));
-            await this.assemble(
+            this.assemble(
                 register,
                 ballots,
                 (terms.Success ? terms.Results : []) as unknown as TermRow[],
                 (memberships.Success ? memberships.Results : []) as unknown as MembershipFullRow[],
                 roles,
                 progress,
+                currentPersonID?.toLowerCase() ?? null,
             );
         } catch (err) {
             this.ErrorMessage = err instanceof Error ? err.message : 'Failed to load motions and ballots';
@@ -192,11 +190,12 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
         return progress;
     }
 
-    private async assemble(
+    private assemble(
         register: MotionRegisterData, ballots: BallotRow[],
         terms: TermRow[], memberships: MembershipFullRow[], roles: RoleRow[],
         progress: Map<string, BallotProgressPayload>,
-    ): Promise<void> {
+        myPersonID: string | null,
+    ): void {
         this.Register = register;
         const votingRoleIDs = new Set(roles.filter(r => r.IsVotingRole).map(r => r.ID.toLowerCase()));
         const activeTermsByCommittee = new Map<string, Set<string>>();
@@ -206,7 +205,6 @@ export class MotionsBallotsComponent extends BaseResourceComponent implements On
             set.add(t.ID.toLowerCase());
             activeTermsByCommittee.set(key, set);
         }
-        const myPersonID = (await CommitteePermissionHelper.GetCurrentPersonID())?.toLowerCase() ?? null;
 
         this.ballotCommitteeByMotion.clear();
         this.sealedByMotion.clear();

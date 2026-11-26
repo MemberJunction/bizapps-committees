@@ -3,6 +3,7 @@
  * so Person and Committee forms can show seats without a CommitteeID on Membership.
  */
 import { RunView, type IMetadataProvider } from '@memberjunction/core';
+import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
 
 export interface SeatTerm {
     MembershipID: string;
@@ -108,14 +109,17 @@ async function LoadPersonPhotos(
 async function LoadRoles(provider: IMetadataProvider | undefined, ids: string[]): Promise<Map<string, RoleRow>> {
     const map = new Map<string, RoleRow>();
     if (ids.length === 0) return map;
-    const res = await ViewOf(provider).RunView<RoleRow>({
-        EntityName: 'Committees: Roles',
-        ExtraFilter: `ID IN (${InList(ids)})`,
-        Fields: ['ID', 'Name', 'IsOfficer', 'IsVotingRole'],
-        ResultType: 'simple',
-    });
-    for (const row of res.Results ?? []) {
-        map.set(row.ID, row);
+    await CommitteesLookupEngine.Instance.Config(false, undefined, provider);
+    for (const id of ids) {
+        const role = CommitteesLookupEngine.Instance.RoleById(id);
+        if (role) {
+            map.set(id, {
+                ID: role.ID,
+                Name: role.Name,
+                IsOfficer: role.IsOfficer,
+                IsVotingRole: role.IsVotingRole,
+            });
+        }
     }
     return map;
 }

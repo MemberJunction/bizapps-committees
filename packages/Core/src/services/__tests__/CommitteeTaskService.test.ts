@@ -37,6 +37,23 @@ describe('CommitteeTaskService.BuildTaskFilter', () => {
     });
 });
 
+describe('CommitteeTaskService.BuildScopedTaskFilter', () => {
+    it('builds an RLS-safe IN clause from pre-resolved TaskIDs with no SQL subquery', () => {
+        const filter = CommitteeTaskService.BuildScopedTaskFilter(
+            "Status IN ('Open', 'InProgress')",
+            [VALID_UUID, VALID_UPPER_UUID]
+        );
+        expect(filter).toBe(
+            `Status IN ('Open', 'InProgress') AND ID IN ('${VALID_UUID}','${VALID_UPPER_UUID}')`
+        );
+        expect(filter).not.toMatch(/SELECT/i);
+    });
+
+    it('rejects non-UUID task IDs', () => {
+        expect(() => CommitteeTaskService.BuildScopedTaskFilter('', ['not-a-uuid'])).toThrow(/not a valid ID/i);
+    });
+});
+
 describe('CommitteeTaskService.BuildRows', () => {
     it('unions TaskLink committees and Category matches without duplicating', () => {
         const rows = CommitteeTaskService.BuildRows(

@@ -4,6 +4,7 @@ import { RegisterClass } from '@memberjunction/global';
 import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { Metadata, RunView } from '@memberjunction/core';
+import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 import { UUIDsEqual } from '@memberjunction/global';
 import { CommitteeTaskService, CommitteeTaskRow } from '@mj-biz-apps/committees-core';
 
@@ -153,49 +154,11 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
     }
 
     /**
-     * Resolves the current user's committee IDs through:
-     * User → Person (LinkedUserID) → Membership (active) → Term → Committee
+     * Resolves the current user's committee IDs through cached CommitteePermissionHelper.
      */
     private async resolveUserCommitteeIDs(): Promise<string[]> {
-        const md = new Metadata();
-        const userID = md.CurrentUser?.ID;
-        if (!userID) return [];
-
-        const rv = new RunView();
-
-        // User → Person
-        const personResult = await rv.RunView<{ ID: string }>({
-            EntityName: 'MJ_BizApps_Common: People',
-            ExtraFilter: `LinkedUserID = '${userID}'`,
-            Fields: ['ID'],
-            MaxRows: 1,
-            ResultType: 'simple'
-        });
-        if (!personResult.Success || !personResult.Results || personResult.Results.length === 0) return [];
-
-        const personID = personResult.Results[0].ID;
-
-        // Person → Active Memberships
-        const memberResult = await rv.RunView<{ TermID: string }>({
-            EntityName: 'Committees: Memberships',
-            ExtraFilter: `PersonID = '${personID}' AND Status = 'Active'`,
-            Fields: ['TermID'],
-            ResultType: 'simple'
-        });
-        if (!memberResult.Success || !memberResult.Results || memberResult.Results.length === 0) return [];
-
-        // Terms → Committees
-        const termIDs = [...new Set(memberResult.Results.map(m => m.TermID))];
-        const termIDsStr = termIDs.map(id => `'${id}'`).join(',');
-        const termResult = await rv.RunView<{ CommitteeID: string }>({
-            EntityName: 'Committees: Terms',
-            ExtraFilter: `ID IN (${termIDsStr})`,
-            Fields: ['CommitteeID'],
-            ResultType: 'simple'
-        });
-        if (!termResult.Success || !termResult.Results) return [];
-
-        return [...new Set(termResult.Results.map(t => t.CommitteeID))];
+        const memberships = await CommitteePermissionHelper.GetCurrentUserMemberships();
+        return [...new Set(memberships.map(m => m.CommitteeID).filter(Boolean))];
     }
 
     private async loadRecentDocuments(rv: RunView, linksResult: RunViewBatchResult): Promise<void> {

@@ -15,7 +15,6 @@ interface MembershipRow { ID: string; TermID: string; PersonID: string; RoleID: 
 interface RoleRow { ID: string; Name: string; IsVotingRole: boolean; IsOfficer: boolean; }
 interface MeetingRow { ID: string; Name: string; StartDateTime: string; EndDateTime: string | null; LocationType: string | null; LocationText: string | null; Status: string; }
 interface ArtifactRow { ID: string; Name: string; Provider: string | null; URL: string | null; ArtifactType: string | null; }
-interface MotionRow { ID: string; Name: string; Result: string | null; }
 
 /**
  * Committee Workspace — one coherent surface per committee (UX v2 screen 02).
@@ -135,47 +134,40 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
     private async loadWorkspaceData(id: string): Promise<void> {
         const rv = new RunView();
         await CommitteesLookupEngine.Instance.Config();
-        // Open tasks come from BizAppsTasks, concurrently with the batch below.
+        // Open tasks and motion register run concurrently with the single batched RunViews below.
         const tasksPromise = new CommitteeTaskService().GetTasks({});
-        const [committee, terms, meetings, artifacts, motions] = await rv.RunViews([
+        const registerPromise = new MotionService().GetRegister();
+        const [committee, terms, meetings, artifacts, ballots] = await rv.RunViews([
             { EntityName: 'Committees: Committees', ExtraFilter: `ID='${id}'`, Fields: ['ID', 'Name', 'Status', 'IsPublic', 'Type', 'MissionStatement', 'FormationDate', 'ParentCommittee'], ResultType: 'simple' },
             { EntityName: 'Committees: Terms', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'CommitteeID', 'Name', 'Status', 'StartDate', 'EndDate'], OrderBy: 'StartDate DESC', ResultType: 'simple' },
             { EntityName: 'Committees: Meetings', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Name', 'StartDateTime', 'EndDateTime', 'LocationType', 'LocationText', 'Status'], OrderBy: 'StartDateTime ASC', ResultType: 'simple' },
             { EntityName: 'Committees: Artifacts', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Name', 'Provider', 'URL', 'ArtifactType'], ResultType: 'simple' },
-            { EntityName: 'Committees: Motions', ExtraFilter: `MeetingID IN (SELECT ID FROM [__mj_BizAppsCommittees].[vwMeetings] WHERE CommitteeID='${id}')`, Fields: ['ID', 'Name', 'Result'], ResultType: 'simple' },
+            { EntityName: 'Committees: Ballots', ExtraFilter: `CommitteeID = '${id}'`, Fields: ['ID', 'MotionID', 'Status'], ResultType: 'simple' },
         ]);
 
+        const [allTasks, register] = await Promise.all([tasksPromise, registerPromise]);
+        const committeeKey = id.toLowerCase();
         this.Committee = committee.Success && committee.Results.length > 0 ? committee.Results[0] as unknown as CommitteeRow : null;
         this.Terms = terms.Success ? terms.Results as unknown as TermRow[] : [];
         this.Meetings = meetings.Success ? meetings.Results as unknown as MeetingRow[] : [];
-        this.OpenActions = (await tasksPromise).filter(t => t.CommitteeIDs.some(cid => cid.toLowerCase() === id.toLowerCase()));
+        this.OpenActions = allTasks.filter(t => t.CommitteeIDs.some(cid => cid.toLowerCase() === committeeKey));
         this.Artifacts = artifacts.Success ? artifacts.Results as unknown as ArtifactRow[] : [];
-        this.MotionCount = motions.Success ? (motions.Results as unknown as MotionRow[]).length : 0;
-        await this.loadMotionRegister(id);
+
+        const ballotRows = (ballots.Success ? ballots.Results : []) as unknown as { MotionID: string; Status: string }[];
+        const ballotMotionIDs = new Set(ballotRows.map(b => b.MotionID.toLowerCase()));
+        this.OpenBallotCount = ballotRows.filter(b => b.Status === 'Open').length;
+        const meetingMotions = register.Rows.filter(r => r.CommitteeID != null && r.CommitteeID.toLowerCase() === committeeKey);
+        this.MotionCount = meetingMotions.length;
+        this.MotionRows = register.Rows.filter(r =>
+            (r.CommitteeID != null && r.CommitteeID.toLowerCase() === committeeKey)
+            || ballotMotionIDs.has(r.MotionID.toLowerCase()));
+
         this.Term = CommitteeHealthService.ComputeTermHygiene(
             this.Terms.map(t => ({ ID: t.ID, CommitteeID: t.CommitteeID, Status: t.Status, StartDate: t.StartDate, EndDate: t.EndDate })),
             new Date()
         );
         // Roles come from the process-wide lookup engine — no per-load query.
         await this.loadMembers(CommitteesLookupEngine.Instance.Roles.map(r => ({ ID: r.ID, Name: r.Name, IsVotingRole: r.IsVotingRole, IsOfficer: r.IsOfficer })));
-    }
-
-    /** Committee-scoped register: meeting motions plus this committee's ballot motions. */
-    private async loadMotionRegister(committeeID: string): Promise<void> {
-        const register = await new MotionService().GetRegister();
-        const rv = new RunView();
-        const ballots = await rv.RunView<{ MotionID: string; Status: string }>({
-            EntityName: 'Committees: Ballots',
-            ExtraFilter: `CommitteeID = '${committeeID}'`,
-            Fields: ['ID', 'MotionID', 'Status'],
-            ResultType: 'simple',
-        });
-        const ballotRows = ballots.Success ? ballots.Results : [];
-        const ballotMotionIDs = new Set(ballotRows.map(b => b.MotionID.toLowerCase()));
-        this.OpenBallotCount = ballotRows.filter(b => b.Status === 'Open').length;
-        this.MotionRows = register.Rows.filter(r =>
-            (r.CommitteeID != null && r.CommitteeID.toLowerCase() === committeeID.toLowerCase())
-            || ballotMotionIDs.has(r.MotionID.toLowerCase()));
     }
 
     OnEBallotDialogClosed(created: boolean): void {

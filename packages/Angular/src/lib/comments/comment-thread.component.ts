@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { Metadata, RunView } from '@memberjunction/core';
 import { mjBizAppsCommitteesCommentEntity } from '@mj-biz-apps/committees-entities';
+import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 
 interface CommentNode {
     Comment: mjBizAppsCommitteesCommentEntity;
@@ -114,25 +115,10 @@ export class CommentThreadComponent implements OnInit {
     // -----------------------------------------------------------------------
 
     /**
-     * Resolves current MJ user → Person via People.LinkedUserID
+     * Resolves current MJ user → Person via cached CommitteePermissionHelper
      */
     private async resolveCurrentPersonID(): Promise<void> {
-        const md = new Metadata();
-        const userID = md.CurrentUser?.ID;
-        if (!userID) return;
-
-        const rv = new RunView();
-        const result = await rv.RunView<{ ID: string }>({
-            EntityName: 'MJ_BizApps_Common: People',
-            ExtraFilter: `LinkedUserID='${userID}'`,
-            Fields: ['ID'],
-            ResultType: 'simple',
-            MaxRows: 1,
-        });
-
-        if (result.Success && result.Results.length > 0) {
-            this.CurrentPersonID = result.Results[0].ID;
-        }
+        this.CurrentPersonID = await CommitteePermissionHelper.GetCurrentPersonID();
     }
 
     private async saveComment(text: string, parentCommentID: string | null): Promise<void> {

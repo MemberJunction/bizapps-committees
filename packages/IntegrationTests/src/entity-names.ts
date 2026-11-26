@@ -10,6 +10,11 @@ export const E_MOTION = 'Committees: Motions';
 export const E_BALLOT = 'Committees: Ballots';
 export const E_VOTE = 'Committees: Votes';
 export const E_MINUTE = 'Committees: Minutes';
+export const E_ARTIFACT = 'Committees: Artifacts';
+export const E_ARTIFACT_TYPE = 'Committees: Artifact Types';
+export const E_MJ_ARTIFACT = 'MJ: Artifacts';
+export const E_MJ_ARTIFACT_VERSION = 'MJ: Artifact Versions';
+export const E_MJ_ARTIFACT_TYPE = 'MJ: Artifact Types';
 export const E_PERSON = 'MJ_BizApps_Common: People';
 export const E_ORGANIZATION = 'MJ_BizApps_Common: Organizations';
 

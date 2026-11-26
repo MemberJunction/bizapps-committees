@@ -59,7 +59,11 @@ async function motionID(ctx: IntegrationCheckContext, name: string): Promise<str
 async function governanceVotingCount(ctx: IntegrationCheckContext): Promise<number> {
     const world = World();
     const seats = await FindRows<{ RoleID: string }>(ctx, E_MEMBERSHIP, `TermID = '${world.Terms.governance}' AND Status = 'Active'`, ['RoleID']);
-    const voting = new Set((await FindRows<{ ID: string }>(ctx, E_ROLE, 'IsVotingRole = 1', ['ID'])).map((role) => role.ID.toLowerCase()));
+    const voting = new Set(
+        (await FindRows<{ ID: string; IsVotingRole: boolean | number }>(ctx, E_ROLE, '', ['ID', 'IsVotingRole']))
+            .filter((role) => Boolean(role.IsVotingRole))
+            .map((role) => role.ID.toLowerCase()),
+    );
     return seats.filter((seat) => voting.has(seat.RoleID.toLowerCase())).length;
 }
 

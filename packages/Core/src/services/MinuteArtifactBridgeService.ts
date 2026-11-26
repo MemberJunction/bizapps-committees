@@ -1109,7 +1109,6 @@ export class MinuteArtifactBridgeService {
         const result = await rv.RunView<ArtifactTypeLookupRow>(
             {
                 EntityName: 'MJ: Artifact Types',
-                ExtraFilter: 'IsEnabled=1',
                 Fields: ['ID', 'Name', 'ContentType', 'IsEnabled'],
                 ResultType: 'simple',
             },
@@ -1118,11 +1117,15 @@ export class MinuteArtifactBridgeService {
         if (!result.Success || result.Results.length === 0) {
             return null;
         }
+        const enabled = result.Results.filter((t) => Boolean(t.IsEnabled));
+        if (enabled.length === 0) {
+            return null;
+        }
         const preferred =
-            result.Results.find((t) => t.Name.toLowerCase() === 'markdown') ??
-            result.Results.find((t) => t.ContentType.toLowerCase().includes('markdown')) ??
-            result.Results.find((t) => t.Name.toLowerCase() === 'document') ??
-            result.Results[0];
+            enabled.find((t) => t.Name.toLowerCase() === 'markdown') ??
+            enabled.find((t) => t.ContentType.toLowerCase().includes('markdown')) ??
+            enabled.find((t) => t.Name.toLowerCase() === 'document') ??
+            enabled[0];
         return preferred?.ID ?? null;
     }
 

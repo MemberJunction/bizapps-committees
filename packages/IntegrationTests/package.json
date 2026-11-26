@@ -19,12 +19,14 @@
     "url": "https://github.com/MemberJunction/bizapps-committees"
   },
   "dependencies": {
+    "@mj-biz-apps/committees-core": "6.3.0-edge.1",
     "@mj-biz-apps/committees-core-entities-server": "6.3.0-edge.1",
     "@mj-biz-apps/committees-entities": "6.3.0-edge.1",
     "@mj-biz-apps/committees-server": "6.3.0-edge.1"
   },
   "peerDependencies": {
     "@memberjunction/core": "^6.3.0-edge.1",
+    "@memberjunction/core-entities": "^6.3.0-edge.1",
     "@memberjunction/global": "^6.3.0-edge.1",
     "@memberjunction/testing-integration": "^6.3.0-edge.1"
   },

@@ -9,6 +9,8 @@ import { CommitteeRosterPanel } from './form-panels/committee-roster.panel';
 import { PersonCommitteesPanel } from './form-panels/person-committees.panel';
 import { MeetingHeaderPanel } from './form-panels/meeting-header.panel';
 import { MeetingOverviewPanel } from './form-panels/meeting-overview.panel';
+import { MinuteDocumentFormPanel } from './form-panels/minute-document.panel';
+import { ArtifactDocumentFormPanel } from './form-panels/artifact-document.panel';
 
 const PANELS = [
     CommitteeHeaderPanel,
@@ -18,6 +20,8 @@ const PANELS = [
     PersonCommitteesPanel,
     MeetingHeaderPanel,
     MeetingOverviewPanel,
+    MinuteDocumentFormPanel,
+    ArtifactDocumentFormPanel,
 ];
 
 @NgModule({
@@ -29,3 +33,7 @@ const PANELS = [
     exports: [...PANELS],
 })
 export class CustomFormsModule {}
+
+export function LoadCustomFormsModule(): void {
+    void PANELS;
+}

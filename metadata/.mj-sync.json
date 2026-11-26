@@ -14,7 +14,6 @@
     "filterType": "exclude"
   },
   "directoryOrder": [
-    "credential-types",
     "committee-types",
     "roles",
     "artifact-types",

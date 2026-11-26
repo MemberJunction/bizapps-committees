@@ -12,6 +12,13 @@ import {
 import { mjBizAppsTasksTaskEntity } from '@mj-biz-apps/tasks-entities';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
 import { OpenExternalUrl } from '../shared/open-external-url';
+import {
+    MEMBER_HOME_VIEW_MODE_SETTING_KEY,
+    ReadUserStringPreference,
+    WriteUserStringPreference,
+} from '../minutes/minute-dual-read.model';
+
+export type MemberHomeViewMode = 'home' | 'dashboard';
 
 interface TermRow { ID: string; CommitteeID: string; Committee: string; EndDate: string | null; Status: string; }
 interface MembershipRow { ID: string; TermID: string; PersonID: string; Role: string; RoleID: string; RenewalIntent: RenewalIntentValue; }
@@ -25,6 +32,7 @@ interface AgendaCountRow { ID: string; MeetingID: string; ItemType: string; }
 interface BallotRow { ID: string; CommitteeID: string; Committee: string; MotionID: string; Motion: string; ClosesAt: string; IsSealed: boolean; Status: string; }
 interface VoteRow { ID: string; MotionID: string; MembershipID: string; VoteValue: string; }
 interface MinuteRow { ID: string; MeetingID: string | null; Meeting: string | null; ApprovalStatus: string; }
+interface AttendanceSummaryRow { ID: string; MeetingID: string; AttendanceStatus: string; }
 interface MotionRow { ID: string; Name: string; Result: string; YesCount: number | null; NoCount: number | null; AbstainCount: number | null; __mj_CreatedAt: string; }
 
 /** One card in "Your committees". */
@@ -92,6 +100,7 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
     Committees: MyCommittee[] = [];
     Decisions: RecentDecision[] = [];
     MinutesReviewMeetingID: string | null = null;
+    ViewMode: MemberHomeViewMode = 'home';
 
     private personID: string | null = null;
     private myMembershipIDs = new Set<string>();
@@ -102,9 +111,22 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
     async GetResourceIconClass(_data: ResourceData): Promise<string> { return 'fa-solid fa-user'; }
 
     async ngOnInit(): Promise<void> {
+        queueMicrotask(() => this.NotifyLoadStarted());
+        this.ViewMode = ReadUserStringPreference<MemberHomeViewMode>(
+            MEMBER_HOME_VIEW_MODE_SETTING_KEY,
+            ['home', 'dashboard'],
+            'home'
+        );
         await this.Load();
         // Required by the shell: clears the app loading screen on direct URL loads.
         this.NotifyLoadComplete();
+    }
+
+    SetViewMode(mode: MemberHomeViewMode): void {
+        if (this.ViewMode === mode) return;
+        this.ViewMode = mode;
+        WriteUserStringPreference(MEMBER_HOME_VIEW_MODE_SETTING_KEY, mode);
+        this.cdr.markForCheck();
     }
 
     // ── Load ────────────────────────────────────────────────────
@@ -137,8 +159,8 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
             { EntityName: 'Committees: Memberships', ExtraFilter: `PersonID = '${personID}' AND Status = 'Active'`, Fields: ['ID', 'TermID', 'PersonID', 'Role', 'RoleID', 'RenewalIntent'], ResultType: 'simple' },
             { EntityName: 'Committees: Terms', Fields: ['ID', 'CommitteeID', 'Committee', 'EndDate', 'Status'], ResultType: 'simple' },
         ]);
-        const memberships = (membershipsR.Success ? membershipsR.Results : []) as unknown as MembershipRow[];
-        const terms = (termsR.Success ? termsR.Results : []) as unknown as TermRow[];
+        const memberships: MembershipRow[] = membershipsR.Success ? (membershipsR.Results as MembershipRow[]) : [];
+        const terms: TermRow[] = termsR.Success ? (termsR.Results as TermRow[]) : [];
         // Roles come from the process-wide lookup engine — no per-load query.
         const roles: RoleRow[] = CommitteesLookupEngine.Instance.Roles.map(r => ({ ID: r.ID, IsVotingRole: r.IsVotingRole }));
 
@@ -159,12 +181,12 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
             { EntityName: 'Committees: Votes', ExtraFilter: `MembershipID IN (${[...this.myMembershipIDs].map(id => `'${id}'`).join(',')})`, Fields: ['ID', 'MotionID', 'MembershipID', 'VoteValue'], ResultType: 'simple' },
             { EntityName: 'Committees: Attendances', ExtraFilter: `PersonID = '${personID}'`, Fields: ['ID', 'MeetingID', 'PersonID', 'AttendanceStatus'], ResultType: 'simple' },
         ]);
-        const meetings = (meetingsR.Success ? meetingsR.Results : []) as unknown as MeetingRow[];
+        const meetings: MeetingRow[] = meetingsR.Success ? (meetingsR.Results as MeetingRow[]) : [];
         const actions = await myTasksPromise;
-        const ballots = (ballotsR.Success ? ballotsR.Results : []) as unknown as BallotRow[];
-        const minutes = (minutesR.Success ? minutesR.Results : []) as unknown as MinuteRow[];
-        const myVotes = (myVotesR.Success ? myVotesR.Results : []) as unknown as VoteRow[];
-        const myAttendance = (myAttR.Success ? myAttR.Results : []) as unknown as ({ ID: string } & { MeetingID: string; AttendanceStatus: string })[];
+        const ballots: BallotRow[] = ballotsR.Success ? (ballotsR.Results as BallotRow[]) : [];
+        const minutes: MinuteRow[] = minutesR.Success ? (minutesR.Results as MinuteRow[]) : [];
+        const myVotes: VoteRow[] = myVotesR.Success ? (myVotesR.Results as VoteRow[]) : [];
+        const myAttendance: AttendanceSummaryRow[] = myAttR.Success ? (myAttR.Results as AttendanceSummaryRow[]) : [];
 
         this.pickNextMeeting(meetings, myAttendance, now);
         await this.loadNextMeetingAgenda();
@@ -213,13 +235,13 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
     private async loadNextMeetingAgenda(): Promise<void> {
         if (!this.NextMeeting) return;
         const rv = new RunView();
-        const result = await rv.RunView({
+        const result = await rv.RunView<AgendaCountRow>({
             EntityName: 'Committees: Agenda Items',
             ExtraFilter: `MeetingID = '${this.NextMeeting.ID}'`,
             Fields: ['ID', 'MeetingID', 'ItemType'],
             ResultType: 'simple',
         });
-        const items = (result.Success ? result.Results : []) as unknown as AgendaCountRow[];
+        const items: AgendaCountRow[] = result.Success ? (result.Results ?? []) : [];
         this.NextMeetingAgendaCount = items.length;
         this.NextMeetingVoteCount = items.filter(i => i.ItemType === 'Vote').length;
     }
@@ -288,14 +310,14 @@ export class MemberHomeComponent extends BaseResourceComponent implements OnInit
     private async loadDecisions(myVotes: VoteRow[]): Promise<void> {
         if (myVotes.length === 0) { this.Decisions = []; return; }
         const rv = new RunView();
-        const result = await rv.RunView({
+        const result = await rv.RunView<MotionRow>({
             EntityName: 'Committees: Motions',
             ExtraFilter: `ID IN (${myVotes.map(v => `'${v.MotionID}'`).join(',')}) AND Result <> 'Pending'`,
             Fields: ['ID', 'Name', 'Result', 'YesCount', 'NoCount', 'AbstainCount', '__mj_CreatedAt'],
             OrderBy: '__mj_CreatedAt DESC',
             ResultType: 'simple',
         });
-        const motions = (result.Success ? result.Results : []) as unknown as MotionRow[];
+        const motions: MotionRow[] = result.Success ? (result.Results ?? []) : [];
         const voteByMotion = new Map(myVotes.map(v => [v.MotionID.toLowerCase(), v.VoteValue]));
         this.Decisions = motions.slice(0, 4).map(m => ({
             When: new Date(m.__mj_CreatedAt),

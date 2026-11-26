@@ -5,7 +5,18 @@ import { BaseResourceComponent } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
 import { RunView } from '@memberjunction/core';
 import { CommitteesLookupEngine } from '@mj-biz-apps/committees-core/lookup';
-import { CommitteeHealthService, CommitteeTaskService, CommitteeTaskRow, TermHygiene, MotionService, MotionRegisterRow } from '@mj-biz-apps/committees-core';
+import {
+    CommitteeArtifactBridgeInput,
+    CommitteeHealthService,
+    CommitteeTaskService,
+    CommitteeTaskRow,
+    MinuteArtifactBridgeService,
+    MotionService,
+    MotionRegisterRow,
+    ResolvedCommitteeArtifact,
+    TermHygiene,
+} from '@mj-biz-apps/committees-core';
+import { OpenExternalUrl } from '../shared/open-external-url';
 
 export type WorkspaceTab = 'overview' | 'roster' | 'meetings' | 'motions' | 'actions' | 'documents';
 
@@ -14,7 +25,8 @@ interface TermRow { ID: string; CommitteeID: string; Name: string; Status: strin
 interface MembershipRow { ID: string; TermID: string; PersonID: string; RoleID: string; Status: string; Role: string; Person: string; StartDate: string; }
 interface RoleRow { ID: string; Name: string; IsVotingRole: boolean; IsOfficer: boolean; }
 interface MeetingRow { ID: string; Name: string; StartDateTime: string; EndDateTime: string | null; LocationType: string | null; LocationText: string | null; Status: string; }
-interface ArtifactRow { ID: string; Name: string; Provider: string | null; URL: string | null; ArtifactType: string | null; }
+interface WorkspaceArtifactRow extends CommitteeArtifactBridgeInput { ArtifactType: string | null; }
+interface BallotSummaryRow { ID: string; MotionID: string; Status: string; }
 
 /**
  * Committee Workspace — one coherent surface per committee (UX v2 screen 02).
@@ -41,7 +53,10 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
     VotingCount = 0;
     Meetings: MeetingRow[] = [];
     OpenActions: CommitteeTaskRow[] = [];
-    Artifacts: ArtifactRow[] = [];
+    Artifacts: WorkspaceArtifactRow[] = [];
+    ResolvedArtifacts: ResolvedCommitteeArtifact[] = [];
+    ArtifactTypeById = new Map<string, string>();
+    PreviewArtifact: ResolvedCommitteeArtifact | null = null;
     MotionCount = 0;
     /** Committee-scoped motion register (meetings + this committee's e-ballots). */
     MotionRows: MotionRegisterRow[] = [];
@@ -59,12 +74,13 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
     }
     get CommitteeID(): string | null { return this._committeeID; }
 
-    private cdr = inject(ChangeDetectorRef);
-    private route = inject(ActivatedRoute);
-    private router = inject(Router);
+    private readonly cdr = inject(ChangeDetectorRef);
+    private readonly route = inject(ActivatedRoute);
+    private readonly router = inject(Router);
+    private readonly bridgeService = new MinuteArtifactBridgeService();
 
     async ngOnInit(): Promise<void> {
-        this.NotifyLoadStarted();
+        queueMicrotask(() => this.NotifyLoadStarted());
         const fromRoute = this.route.snapshot.queryParamMap.get('committeeId');
         if (!this._committeeID && fromRoute) this._committeeID = fromRoute;
         await this.reload();
@@ -92,6 +108,24 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
     OnLiveMeetingExited(): void {
         this.LiveMeetingID = null;
         void this.reload();
+    }
+
+    OnPreviewArtifact(artifact: ResolvedCommitteeArtifact): void {
+        this.PreviewArtifact = artifact;
+        this.cdr.markForCheck();
+    }
+
+    OnCloseArtifactPreview(): void {
+        this.PreviewArtifact = null;
+        this.cdr.markForCheck();
+    }
+
+    OnOpenExternalArtifact(url: string): void {
+        OpenExternalUrl(url);
+    }
+
+    GetArtifactTypeLabel(artifactId: string): string {
+        return this.ArtifactTypeById.get(artifactId) ?? 'Document';
     }
 
     get TermLapsed(): boolean {
@@ -134,26 +168,41 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
     private async loadWorkspaceData(id: string): Promise<void> {
         const rv = new RunView();
         await CommitteesLookupEngine.Instance.Config();
-        // Open tasks and motion register run concurrently with the single batched RunViews below.
         const tasksPromise = new CommitteeTaskService().GetTasks({});
         const registerPromise = new MotionService().GetRegister();
         const [committee, terms, meetings, artifacts, ballots] = await rv.RunViews([
             { EntityName: 'Committees: Committees', ExtraFilter: `ID='${id}'`, Fields: ['ID', 'Name', 'Status', 'IsPublic', 'Type', 'MissionStatement', 'FormationDate', 'ParentCommittee'], ResultType: 'simple' },
             { EntityName: 'Committees: Terms', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'CommitteeID', 'Name', 'Status', 'StartDate', 'EndDate'], OrderBy: 'StartDate DESC', ResultType: 'simple' },
             { EntityName: 'Committees: Meetings', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Name', 'StartDateTime', 'EndDateTime', 'LocationType', 'LocationText', 'Status'], OrderBy: 'StartDateTime ASC', ResultType: 'simple' },
-            { EntityName: 'Committees: Artifacts', ExtraFilter: `CommitteeID='${id}'`, Fields: ['ID', 'Name', 'Provider', 'URL', 'ArtifactType'], ResultType: 'simple' },
+            {
+                EntityName: 'Committees: Artifacts',
+                ExtraFilter: `CommitteeID='${id}'`,
+                Fields: [
+                    'ID', 'Name', 'Description', 'CommitteeID', 'MeetingID', 'AgendaItemID',
+                    'TaskID', 'ArtifactTypeID', 'Provider', 'ExternalID', 'URL', 'MimeType',
+                    'FileSize', 'MJArtifactID', 'ArtifactType',
+                ],
+                ResultType: 'simple',
+            },
             { EntityName: 'Committees: Ballots', ExtraFilter: `CommitteeID = '${id}'`, Fields: ['ID', 'MotionID', 'Status'], ResultType: 'simple' },
         ]);
 
         const [allTasks, register] = await Promise.all([tasksPromise, registerPromise]);
         const committeeKey = id.toLowerCase();
-        this.Committee = committee.Success && committee.Results.length > 0 ? committee.Results[0] as unknown as CommitteeRow : null;
-        this.Terms = terms.Success ? terms.Results as unknown as TermRow[] : [];
-        this.Meetings = meetings.Success ? meetings.Results as unknown as MeetingRow[] : [];
-        this.OpenActions = allTasks.filter(t => t.CommitteeIDs.some(cid => cid.toLowerCase() === committeeKey));
-        this.Artifacts = artifacts.Success ? artifacts.Results as unknown as ArtifactRow[] : [];
+        const committeeRows: CommitteeRow[] = committee.Success ? (committee.Results as CommitteeRow[]) : [];
+        const termRows: TermRow[] = terms.Success ? (terms.Results as TermRow[]) : [];
+        const meetingRows: MeetingRow[] = meetings.Success ? (meetings.Results as MeetingRow[]) : [];
+        const artifactRows: WorkspaceArtifactRow[] = artifacts.Success ? (artifacts.Results as WorkspaceArtifactRow[]) : [];
+        const ballotRows: BallotSummaryRow[] = ballots.Success ? (ballots.Results as BallotSummaryRow[]) : [];
 
-        const ballotRows = (ballots.Success ? ballots.Results : []) as unknown as { MotionID: string; Status: string }[];
+        this.Committee = committeeRows[0] ?? null;
+        this.Terms = termRows;
+        this.Meetings = meetingRows;
+        this.OpenActions = allTasks.filter(t => t.CommitteeIDs.some(cid => cid.toLowerCase() === committeeKey));
+        this.Artifacts = artifactRows;
+        this.ArtifactTypeById = new Map(artifactRows.map(a => [a.ID, a.ArtifactType ?? 'Document']));
+        this.ResolvedArtifacts = await this.bridgeService.LoadAndResolveCommitteeArtifacts(artifactRows);
+
         const ballotMotionIDs = new Set(ballotRows.map(b => b.MotionID.toLowerCase()));
         this.OpenBallotCount = ballotRows.filter(b => b.Status === 'Open').length;
         const meetingMotions = register.Rows.filter(r => r.CommitteeID != null && r.CommitteeID.toLowerCase() === committeeKey);
@@ -166,7 +215,6 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
             this.Terms.map(t => ({ ID: t.ID, CommitteeID: t.CommitteeID, Status: t.Status, StartDate: t.StartDate, EndDate: t.EndDate })),
             new Date()
         );
-        // Roles come from the process-wide lookup engine — no per-load query.
         await this.loadMembers(CommitteesLookupEngine.Instance.Roles.map(r => ({ ID: r.ID, Name: r.Name, IsVotingRole: r.IsVotingRole, IsOfficer: r.IsOfficer })));
     }
 
@@ -178,18 +226,17 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
 
     private async loadMembers(roles: RoleRow[]): Promise<void> {
         const activeTermIDs = this.Terms.filter(t => t.Status === 'Active').map(t => `'${t.ID}'`);
-        // Fall back to the most recent term when lapsed so the roster stays visible
         const termIDs = activeTermIDs.length > 0 ? activeTermIDs : this.Terms.slice(0, 1).map(t => `'${t.ID}'`);
         if (termIDs.length === 0) { this.Members = []; this.Officers = []; this.VotingCount = 0; return; }
 
         const rv = new RunView();
-        const result = await rv.RunView({
+        const result = await rv.RunView<MembershipRow>({
             EntityName: 'Committees: Memberships',
             ExtraFilter: `TermID IN (${termIDs.join(',')}) AND Status = 'Active'`,
             Fields: ['ID', 'TermID', 'PersonID', 'RoleID', 'Status', 'Role', 'Person', 'StartDate'],
             ResultType: 'simple',
         });
-        this.Members = result.Success ? result.Results as unknown as MembershipRow[] : [];
+        this.Members = result.Success ? (result.Results ?? []) : [];
         const officerRoleIDs = new Set(roles.filter(r => r.IsOfficer).map(r => r.ID));
         const votingRoleIDs = new Set(roles.filter(r => r.IsVotingRole).map(r => r.ID));
         this.Officers = this.Members
@@ -198,14 +245,12 @@ export class CommitteeWorkspaceComponent extends BaseResourceComponent implement
         this.VotingCount = this.Members.filter(m => votingRoleIDs.has(m.RoleID)).length;
     }
 
-    /** Chair first, then Vice Chair, Secretary, Treasurer; unknown officer roles last. */
     private officerRank(roleName: string): number {
         const order = ['chair', 'vice chair', 'secretary', 'treasurer'];
         const idx = order.indexOf((roleName ?? '').toLowerCase());
         return idx === -1 ? order.length : idx;
     }
 
-    /** The active Chair's display name, if one is seated. */
     get ChairName(): string | null {
         const chair = this.Officers.find(o => (o.Role ?? '').toLowerCase() === 'chair');
         return chair?.Person ?? null;

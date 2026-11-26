@@ -1,8 +1,8 @@
 :host {
     /* App-scoped AI provisional tokens, derived from MJ violet primitives */
-    --cmt-ai: var(--mj-color-violet-600, #7c3aed);
-    --cmt-ai-bg: color-mix(in srgb, var(--mj-color-violet-500, #8b5cf6) 10%, transparent);
-    --cmt-ai-border: color-mix(in srgb, var(--mj-color-violet-400, #a78bfa) 55%, transparent);
+    --cmt-ai: var(--mj-color-violet-600);
+    --cmt-ai-bg: color-mix(in srgb, var(--mj-color-violet-500) 10%, transparent);
+    --cmt-ai-border: color-mix(in srgb, var(--mj-color-violet-400) 55%, transparent);
 }
 
 /* Meeting Detail View — uses MJ design tokens (--mj-*) */
@@ -553,7 +553,7 @@
 .btn-primary {
     background: var(--mj-brand-primary);
     border-color: var(--mj-brand-primary);
-    color: var(--mj-brand-on-primary, #fff);
+    color: var(--mj-brand-on-primary);
 }
 .btn-primary:hover:not(:disabled) { background: var(--mj-brand-primary-hover); }
 .btn-secondary {
@@ -562,3 +562,71 @@
     color: var(--mj-text-secondary);
 }
 .btn-secondary:hover:not(:disabled) { color: var(--mj-text-primary); background: var(--mj-bg-surface-hover); }
+
+.minutes-viewer-body {
+    padding: var(--mj-space-4);
+}
+
+/* ── Artifacts ── */
+.artifacts-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--mj-space-2-5);
+}
+
+.artifact-row {
+    display: flex;
+    align-items: center;
+    gap: var(--mj-space-3);
+    padding: var(--mj-space-3) var(--mj-space-4);
+    background: var(--mj-bg-surface);
+    border: 1px solid var(--mj-border-default);
+    border-radius: var(--mj-radius-lg);
+}
+
+.artifact-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: var(--mj-radius-md);
+    display: grid;
+    place-items: center;
+    background: var(--mj-bg-surface-sunken);
+    color: var(--mj-brand-primary);
+    flex-shrink: 0;
+}
+
+.artifact-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.artifact-name {
+    font-size: var(--mj-text-sm);
+    font-weight: var(--mj-font-semibold);
+    color: var(--mj-text-primary);
+}
+
+.artifact-desc {
+    font-size: var(--mj-text-xs);
+    color: var(--mj-text-muted);
+    margin-top: 2px;
+}
+
+.artifact-source-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 9px;
+    border-radius: var(--mj-radius-full);
+    font-size: 11px;
+    font-weight: var(--mj-font-semibold);
+    background: var(--mj-bg-surface-sunken);
+    color: var(--mj-text-secondary);
+    border: 1px solid var(--mj-border-subtle);
+    white-space: nowrap;
+}
+
+.artifact-source-badge--mjdoc {
+    background: var(--mj-status-info-bg);
+    color: var(--mj-status-info-text);
+    border-color: color-mix(in srgb, var(--mj-status-info-border) 35%, transparent);
+}

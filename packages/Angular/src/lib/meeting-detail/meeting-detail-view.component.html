@@ -81,6 +81,11 @@
                     <span class="tab-count tab-count-dot"></span>
                 }
             </button>
+            <button class="section-tab" [class.active]="ActiveSection === 'artifacts'"
+                (click)="ActiveSection = 'artifacts'">
+                <i class="fa-solid fa-paperclip"></i> Artifacts
+                <span class="tab-count">{{ ResolvedArtifacts.length }}</span>
+            </button>
         </div>
 
         <!-- Overview -->
@@ -148,6 +153,10 @@
                                         <span class="minutes-none">None</span>
                                     }
                                 </span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Artifacts</span>
+                                <span class="stat-value">{{ ResolvedArtifacts.length }}</span>
                             </div>
                         </div>
                     </div>
@@ -249,7 +258,7 @@
             </div>
         }
 
-        <!-- Minutes -->
+        <!-- Minutes (dual-read MJ Docs & legacy Minute.Content) -->
         @if (ActiveSection === 'minutes') {
             <div class="section-body">
                 @if (!Minute) {
@@ -275,13 +284,69 @@
                             <button class="btn btn-primary btn-sm" (click)="ShowMinutesReview = true">
                                 <i class="fa-solid fa-file-signature"></i> Review &amp; Approve
                             </button>
-                            @if (IsOfficer) {
+                            @if (IsOfficer && !Minute.MJArtifactID) {
                                 <button class="btn btn-secondary btn-sm" (click)="ShowMinutesPanel = true">
                                     <i class="fa-solid fa-rotate"></i> Regenerate
                                 </button>
                             }
                         </div>
-                        <div class="markdown-preview" [innerHTML]="RenderedMinutes"></div>
+                        <div class="minutes-viewer-body">
+                            <committees-minute-document-viewer
+                                [Minute]="Minute"
+                                [ResolvedMinute]="ResolvedMinute"
+                                [MeetingTitle]="Meeting.Name"
+                                [CanEdit]="IsOfficer && Minute.ApprovalStatus !== 'Approved'"
+                                (MinuteBridged)="OnMinuteBridged($event)"
+                                (VersionPinned)="OnVersionPinned($event)"
+                            ></committees-minute-document-viewer>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Artifacts (native MJ Docs vs external URL links) -->
+        @if (ActiveSection === 'artifacts') {
+            <div class="section-body">
+                @if (ResolvedArtifacts.length === 0) {
+                    <div class="section-empty">
+                        <i class="fa-solid fa-paperclip"></i>
+                        <p>No artifacts linked to this meeting.</p>
+                    </div>
+                } @else {
+                    <div class="artifacts-list">
+                        @for (art of ResolvedArtifacts; track art.CommitteeArtifactID) {
+                            <div class="artifact-row" [attr.data-artifact-kind]="art.Kind">
+                                <div class="artifact-icon">
+                                    @if (art.Kind === 'mj-doc') {
+                                        <i class="fa-solid fa-layer-group"></i>
+                                    } @else {
+                                        <i class="fa-solid fa-link"></i>
+                                    }
+                                </div>
+                                <div class="artifact-info">
+                                    <div class="artifact-name">{{ art.Name }}</div>
+                                    @if (art.Description) {
+                                        <div class="artifact-desc">{{ art.Description }}</div>
+                                    }
+                                </div>
+                                @if (art.Kind === 'mj-doc') {
+                                    <span class="artifact-source-badge artifact-source-badge--mjdoc">
+                                        MJ Doc{{ art.LatestVersion ? ' · v' + art.LatestVersion.VersionNumber : '' }}
+                                    </span>
+                                    <button type="button" class="btn btn-primary btn-sm" (click)="OnPreviewArtifact(art)">
+                                        <i class="fa-solid fa-eye"></i> Preview
+                                    </button>
+                                } @else {
+                                    <span class="artifact-source-badge">{{ art.Provider }}</span>
+                                    @if (art.URL) {
+                                        <button type="button" class="btn btn-secondary btn-sm" (click)="OnOpenExternalArtifact(art.URL)">
+                                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Link
+                                        </button>
+                                    }
+                                }
+                            </div>
+                        }
                     </div>
                 }
             </div>
@@ -307,4 +372,13 @@
 <!-- Minutes Review overlay (UX v2 screen 07) -->
 @if (ShowMinutesReview) {
     <committees-minutes-review [MeetingID]="MeetingID" (Exited)="OnMinutesReviewExited()"></committees-minutes-review>
+}
+
+<!-- Committee Artifact MJ Docs Preview Drawer -->
+@if (PreviewArtifact) {
+    <committees-artifact-preview
+        [Artifact]="PreviewArtifact"
+        Mode="drawer"
+        (Closed)="OnCloseArtifactPreview()">
+    </committees-artifact-preview>
 }

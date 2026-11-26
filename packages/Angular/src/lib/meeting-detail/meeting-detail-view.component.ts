@@ -5,8 +5,19 @@ import {
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RunView, Metadata, UserInfo } from '@memberjunction/core';
 import { mjBizAppsCommitteesMeetingEntity } from '@mj-biz-apps/committees-entities';
+import {
+    BridgeLegacyMinuteResult,
+    CommitteeArtifactBridgeInput,
+    MinuteApprovalStatus,
+    MinuteArtifactBridgeService,
+    PinApprovedMinuteVersionResult,
+    ResolvedCommitteeArtifact,
+    ResolvedMinuteDocument,
+} from '@mj-biz-apps/committees-core';
 import { marked } from 'marked';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
+import { OpenExternalUrl } from '../shared/open-external-url';
+import { NormalizeValidUuid } from '../minutes/minute-dual-read.model';
 
 interface MeetingRow {
     ID: string;
@@ -52,11 +63,19 @@ interface MotionRow {
 
 interface MinuteRow {
     ID: string;
+    MeetingID: string | null;
     Content: string | null;
-    ApprovalStatus: string;
+    ApprovalStatus: MinuteApprovalStatus;
+    ApprovedAt: Date | string | null;
+    ApprovedByMeetingID: string | null;
+    MJArtifactID: string | null;
+    ApprovedArtifactVersionID: string | null;
 }
 
-interface DetailBatchResult { Success: boolean; Results: Record<string, unknown>[]; }
+interface DetailBatchResult<T> {
+    Success: boolean;
+    Results: T[];
+}
 
 @Component({
     standalone: false,
@@ -75,6 +94,9 @@ export class MeetingDetailViewComponent implements OnInit {
     AgendaItems: AgendaRow[] = [];
     Motions: MotionRow[] = [];
     Minute: MinuteRow | null = null;
+    ResolvedMinute: ResolvedMinuteDocument | null = null;
+    ResolvedArtifacts: ResolvedCommitteeArtifact[] = [];
+    PreviewArtifact: ResolvedCommitteeArtifact | null = null;
 
     IsOfficer = false;
     ShowMinutesPanel = false;
@@ -83,10 +105,11 @@ export class MeetingDetailViewComponent implements OnInit {
     ShowLiveMeeting = false;
     /** Minutes Review overlay (UX v2 screen 07). */
     ShowMinutesReview = false;
-    ActiveSection: 'overview' | 'agenda' | 'motions' | 'minutes' = 'overview';
+    ActiveSection: 'overview' | 'agenda' | 'motions' | 'minutes' | 'artifacts' = 'overview';
 
-    private cdr = inject(ChangeDetectorRef);
-    private sanitizer = inject(DomSanitizer);
+    private readonly cdr = inject(ChangeDetectorRef);
+    private readonly sanitizer = inject(DomSanitizer);
+    private readonly bridgeService = new MinuteArtifactBridgeService();
 
     async ngOnInit(): Promise<void> {
         await Promise.all([this.loadData(), this.loadPermissions()]);
@@ -111,8 +134,6 @@ export class MeetingDetailViewComponent implements OnInit {
     get RenderedMinutes(): SafeHtml {
         if (!this.Minute?.Content) return '';
         const html = marked.parse(this.Minute.Content) as string;
-        // marked does NOT sanitize — run the output through Angular's sanitizer
-        // before trusting it to strip any XSS injected via the stored content.
         const safe = this.sanitizer.sanitize(SecurityContext.HTML, html) ?? '';
         return this.sanitizer.bypassSecurityTrustHtml(safe);
     }
@@ -156,8 +177,30 @@ export class MeetingDetailViewComponent implements OnInit {
 
     OnMinutesPanelClose(): void {
         this.ShowMinutesPanel = false;
-        this.reloadMinutes();
+        void this.reloadMinutes();
         this.cdr.markForCheck();
+    }
+
+    async OnMinuteBridged(_result: BridgeLegacyMinuteResult): Promise<void> {
+        await this.reloadMinutes();
+    }
+
+    async OnVersionPinned(_result: PinApprovedMinuteVersionResult): Promise<void> {
+        await this.reloadMinutes();
+    }
+
+    OnPreviewArtifact(artifact: ResolvedCommitteeArtifact): void {
+        this.PreviewArtifact = artifact;
+        this.cdr.markForCheck();
+    }
+
+    OnCloseArtifactPreview(): void {
+        this.PreviewArtifact = null;
+        this.cdr.markForCheck();
+    }
+
+    OnOpenExternalArtifact(url: string): void {
+        OpenExternalUrl(url);
     }
 
     /** Exit from Minutes Review — reload so approval status reflects edits. */
@@ -220,38 +263,62 @@ export class MeetingDetailViewComponent implements OnInit {
     }
 
     private async loadData(): Promise<void> {
+        const meetingId = NormalizeValidUuid(this.MeetingID);
+        if (!meetingId) {
+            this.resetDetailState();
+            return;
+        }
         const rv = new RunView();
-        const [meetingResult, attendanceResult, agendaResult, motionResult, minuteResult] =
-            await rv.RunViews(this.buildDetailQueries());
-        this.applyDetailResults(meetingResult, attendanceResult, agendaResult, motionResult, minuteResult);
+        const [meetingResult, attendanceResult, agendaResult, motionResult, minuteResult, artifactResult] =
+            await rv.RunViews(this.buildDetailQueries(meetingId));
+        const rawArtifacts = this.applyDetailResults(
+            meetingResult as DetailBatchResult<MeetingRow>,
+            attendanceResult as DetailBatchResult<AttendanceRow>,
+            agendaResult as DetailBatchResult<AgendaRow>,
+            motionResult as DetailBatchResult<MotionRow>,
+            minuteResult as DetailBatchResult<MinuteRow>,
+            artifactResult as DetailBatchResult<CommitteeArtifactBridgeInput>
+        );
+        await this.resolveArtifactLinkedRecords(rawArtifacts);
     }
 
-    /** The five per-meeting reads — one batch, one round trip. */
-    private buildDetailQueries(): Parameters<RunView['RunViews']>[0] {
+    private resetDetailState(): void {
+        this.Meeting = null;
+        this.Attendance = [];
+        this.AgendaItems = [];
+        this.Motions = [];
+        this.Minute = null;
+        this.ResolvedMinute = null;
+        this.ResolvedArtifacts = [];
+        this.PreviewArtifact = null;
+    }
+
+    /** All per-meeting reads collapsed into one RunViews round trip. */
+    private buildDetailQueries(meetingId: string): Parameters<RunView['RunViews']>[0] {
         return [
             {
                 EntityName: 'Committees: Meetings',
-                ExtraFilter: `ID='${this.MeetingID}'`,
+                ExtraFilter: `ID='${meetingId}'`,
                 Fields: ['ID', 'CommitteeID', 'Name', 'StartDateTime', 'EndDateTime', 'Committee', 'Status',
                          'LocationType', 'Location', 'VideoProvider', 'TranscriptURL'],
                 ResultType: 'simple',
             },
             {
                 EntityName: 'Committees: Attendances',
-                ExtraFilter: `MeetingID='${this.MeetingID}'`,
+                ExtraFilter: `MeetingID='${meetingId}'`,
                 Fields: ['ID', 'Person', 'AttendanceStatus'],
                 ResultType: 'simple',
             },
             {
                 EntityName: 'Committees: Agenda Items',
-                ExtraFilter: `MeetingID='${this.MeetingID}'`,
+                ExtraFilter: `MeetingID='${meetingId}'`,
                 OrderBy: 'Sequence ASC',
                 Fields: ['ID', 'Sequence', 'Name', 'ItemType', 'Status', 'Notes', 'DurationMinutes'],
                 ResultType: 'simple',
             },
             {
                 EntityName: 'Committees: Motions',
-                ExtraFilter: `MeetingID='${this.MeetingID}'`,
+                ExtraFilter: `MeetingID='${meetingId}'`,
                 OrderBy: 'Sequence ASC',
                 Fields: ['ID', 'Sequence', 'Name', 'Description', 'Result', 'ResultSummary',
                          'YesCount', 'NoCount', 'AbstainCount'],
@@ -259,38 +326,82 @@ export class MeetingDetailViewComponent implements OnInit {
             },
             {
                 EntityName: 'Committees: Minutes',
-                ExtraFilter: `MeetingID='${this.MeetingID}'`,
-                Fields: ['ID', 'Content', 'ApprovalStatus'],
+                ExtraFilter: `MeetingID='${meetingId}'`,
+                Fields: [
+                    'ID', 'MeetingID', 'Content', 'ApprovalStatus', 'ApprovedAt',
+                    'ApprovedByMeetingID', 'MJArtifactID', 'ApprovedArtifactVersionID',
+                ],
+                ResultType: 'simple',
+            },
+            {
+                EntityName: 'Committees: Artifacts',
+                ExtraFilter: `MeetingID='${meetingId}'`,
+                Fields: [
+                    'ID', 'Name', 'Description', 'CommitteeID', 'MeetingID', 'AgendaItemID',
+                    'TaskID', 'ArtifactTypeID', 'Provider', 'ExternalID', 'URL', 'MimeType',
+                    'FileSize', 'MJArtifactID',
+                ],
+                OrderBy: 'Name ASC',
                 ResultType: 'simple',
             },
         ];
     }
 
     private applyDetailResults(
-        meetingResult: DetailBatchResult, attendanceResult: DetailBatchResult,
-        agendaResult: DetailBatchResult, motionResult: DetailBatchResult, minuteResult: DetailBatchResult
-    ): void {
+        meetingResult: DetailBatchResult<MeetingRow>,
+        attendanceResult: DetailBatchResult<AttendanceRow>,
+        agendaResult: DetailBatchResult<AgendaRow>,
+        motionResult: DetailBatchResult<MotionRow>,
+        minuteResult: DetailBatchResult<MinuteRow>,
+        artifactResult: DetailBatchResult<CommitteeArtifactBridgeInput>
+    ): CommitteeArtifactBridgeInput[] {
         if (meetingResult.Success && meetingResult.Results?.length) {
-            this.Meeting = meetingResult.Results[0] as unknown as MeetingRow;
+            this.Meeting = meetingResult.Results[0];
         }
-        if (attendanceResult.Success) this.Attendance = (attendanceResult.Results ?? []) as unknown as AttendanceRow[];
-        if (agendaResult.Success) this.AgendaItems = (agendaResult.Results ?? []) as unknown as AgendaRow[];
-        if (motionResult.Success) this.Motions = (motionResult.Results ?? []) as unknown as MotionRow[];
-        if (minuteResult.Success && minuteResult.Results?.length) {
-            this.Minute = minuteResult.Results[0] as unknown as MinuteRow;
-        }
+        if (attendanceResult.Success) this.Attendance = attendanceResult.Results ?? [];
+        if (agendaResult.Success) this.AgendaItems = agendaResult.Results ?? [];
+        if (motionResult.Success) this.Motions = motionResult.Results ?? [];
+        this.Minute = minuteResult.Success && minuteResult.Results?.length ? minuteResult.Results[0] : null;
+        return artifactResult.Success ? (artifactResult.Results ?? []) : [];
+    }
+
+    private async resolveArtifactLinkedRecords(rawArtifacts: CommitteeArtifactBridgeInput[]): Promise<void> {
+        const artifactIds: Array<string | null> = [
+            this.Minute?.MJArtifactID ?? null,
+            ...rawArtifacts.map((item) => item.MJArtifactID),
+        ];
+        const pinnedIds: Array<string | null> = [this.Minute?.ApprovedArtifactVersionID ?? null];
+        const bundle = await this.bridgeService.LoadArtifactBundles(artifactIds, pinnedIds);
+        this.ResolvedMinute = this.Minute
+            ? MinuteArtifactBridgeService.ResolveMinuteDocument(this.Minute, bundle)
+            : null;
+        this.ResolvedArtifacts = rawArtifacts.map((item) =>
+            MinuteArtifactBridgeService.ClassifyCommitteeArtifact(item, bundle)
+        );
     }
 
     private async reloadMinutes(): Promise<void> {
+        const meetingId = NormalizeValidUuid(this.MeetingID);
+        if (!meetingId) {
+            this.Minute = null;
+            this.ResolvedMinute = null;
+            this.cdr.markForCheck();
+            return;
+        }
         const rv = new RunView();
-        const result = await rv.RunView({
+        const result = await rv.RunView<MinuteRow>({
             EntityName: 'Committees: Minutes',
-            ExtraFilter: `MeetingID='${this.MeetingID}'`,
-            Fields: ['ID', 'Content', 'ApprovalStatus'],
+            ExtraFilter: `MeetingID='${meetingId}'`,
+            Fields: [
+                'ID', 'MeetingID', 'Content', 'ApprovalStatus', 'ApprovedAt',
+                'ApprovedByMeetingID', 'MJArtifactID', 'ApprovedArtifactVersionID',
+            ],
             ResultType: 'simple',
         });
         if (result.Success && result.Results?.length) {
-            this.Minute = result.Results[0] as MinuteRow;
+            this.Minute = result.Results[0];
+            const [resolved] = await this.bridgeService.LoadAndResolveMinutes([this.Minute]);
+            this.ResolvedMinute = resolved ?? null;
         }
         this.cdr.markForCheck();
     }

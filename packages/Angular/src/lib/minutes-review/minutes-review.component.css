@@ -1,11 +1,11 @@
 /* Minutes Review & Approval — UX v2 screen 07.
    Full-screen focus surface (same overlay pattern as Live Meeting Mode).
-   Semantic MJ tokens only; AI grammar via violet primitives. */
+   Semantic MJ tokens only; AI grammar via MJ violet design tokens. */
 
 :host {
-    --cmt-ai: var(--mj-color-violet-600, #7c3aed);
-    --cmt-ai-bg: color-mix(in srgb, var(--mj-color-violet-500, #8b5cf6) 10%, transparent);
-    --cmt-ai-border: color-mix(in srgb, var(--mj-color-violet-400, #a78bfa) 55%, transparent);
+    --cmt-ai: var(--mj-color-violet-600);
+    --cmt-ai-bg: color-mix(in srgb, var(--mj-color-violet-500) 10%, transparent);
+    --cmt-ai-border: color-mix(in srgb, var(--mj-color-violet-400) 55%, transparent);
 }
 
 .mr {
@@ -44,6 +44,7 @@
 
 .mr-loading { flex: 1; display: grid; place-items: center; }
 .skel { background: var(--mj-bg-surface-sunken); border-radius: 8px; animation: mr-shimmer 1.6s infinite; }
+.skel-page { height: 50%; width: 60%; }
 @keyframes mr-shimmer { 50% { opacity: .55; } }
 
 /* ── Body layout ───────────────────────────────────────────── */
@@ -66,7 +67,7 @@
     border: 1px solid var(--mj-border-default);
     border-radius: 12px;
     padding: 28px 32px;
-    box-shadow: var(--mj-shadow-sm, 0 1px 2px rgba(0,0,0,.05));
+    box-shadow: var(--mj-shadow-sm);
 }
 .dochead { text-align: center; padding-bottom: 18px; border-bottom: 1px solid var(--mj-border-subtle); margin-bottom: 18px; }
 .dochead h2 { font-size: 18px; font-weight: var(--mj-font-semibold, 600); margin: 0; }
@@ -152,7 +153,7 @@
 }
 .btn:hover:not(:disabled) { background: var(--mj-bg-surface-hover); }
 .btn:disabled { opacity: .55; cursor: not-allowed; }
-.btn.primary { background: var(--mj-brand-primary); border-color: var(--mj-brand-primary); color: var(--mj-brand-on-primary, #fff); }
+.btn.primary { background: var(--mj-brand-primary); border-color: var(--mj-brand-primary); color: var(--mj-brand-on-primary); }
 .btn.primary:hover:not(:disabled) { background: var(--mj-brand-primary-hover); border-color: var(--mj-brand-primary-hover); }
 .btn.ghost { border-color: transparent; background: transparent; color: var(--mj-text-secondary); }
 .btn.ghost:hover:not(:disabled) { background: var(--mj-bg-surface-hover); color: var(--mj-text-primary); }

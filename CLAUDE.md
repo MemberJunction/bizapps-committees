@@ -360,6 +360,23 @@ Every `RunView` is a network + database round trip. All new and modified code in
 
 ---
 
+## MJ Docs (`MJ: Artifacts`) vs. `MJ: Comments` vs. Quick Notes
+
+Use this three-category rubric when modeling textual content in `bizapps-committees` so governance records stay clean, auditable, and free of over-engineering:
+
+| Category | Backing Store | When to Use | Committees Examples |
+|---|---|---|---|
+| **Category A — Rich / Versioned Governance Documents** | **MJ Docs** (`MJ: Artifacts` + `MJ: Artifact Versions`) linked via nullable `MJArtifactID` (and optional `ApprovedArtifactVersionID` for immutable governance snapshots), rendered with `<mj-artifact-viewer-panel>` from `@memberjunction/ng-artifacts` | Long-form, multi-revision, formatted, or formally approved documents needing version history, immutable approval pinning, AI extraction/refinement, or rich inline preview | `Committees: Minutes` (`MJArtifactID` + `ApprovedArtifactVersionID`; legacy `Minute.Content` preserved via dual-read + opt-in bridge), native `Committees: Artifacts` (`MJArtifactID` alongside external URLs) |
+| **Category B — Threaded Review Discussions** | **`MJ: Comments`** / `Committees: Comments` (threaded `ParentCommentID` hierarchy) | Conversational back-and-forth, review feedback, questions, and discussion threads attached to a committee, meeting, motion, task, or artifact | Meeting prep discussions, review commentary on draft minutes, task/artifact comment threads |
+| **Category C — Short Relational Quick Notes** | **Relational `Notes` / text columns** directly on the domain table (NEVER migrate to `MJ: Artifacts`) | Short, atomic, row-scoped annotations, rationales, or clerical remarks tied 1:1 to a transactional record | `Committees: Motions.Notes`, `Committees: Votes.Notes`, `Committees: Attendances.Notes` |
+
+### Key Invariants for Category A Dual-Read & Pinning
+- **Strictly additive (`PUBLISH_NO_BREAK_POLICY.md`)**: Never drop or rename `Minute.Content`, `Minute.ArtifactID`, or external URL `Artifact` fields.
+- **Pinning consistency (`MinuteEntityCustom`)**: `ApprovedArtifactVersionID` cannot be set when `MJArtifactID` is `NULL`, and must reference a version belonging to the linked `MJArtifactID`.
+- **Single-batch dual-read (`MinuteArtifactBridgeService`)**: Load `MJ: Artifacts` and `MJ: Artifact Versions` in one chunked `rv.RunViews([...])` call (`ResultType: 'simple'`). When `ApprovedArtifactVersionID` is set, render that immutable version read-only; when `NULL`, float on the latest draft version; when `MJArtifactID` is `NULL`, render legacy `Minute.Content` with an opt-in bridge helper that leaves `Minute.Content` intact.
+
+---
+
 ## GitHub Repository
 - Repository: https://github.com/MemberJunction/bizapps-committees
 - Default branch: `next`

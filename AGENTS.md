@@ -48,6 +48,12 @@ Every `RunView` is a network + SQL round trip. Follow all five rules across `pac
 - Never use raw cross-view SQL subqueries inside `ExtraFilter` (e.g., `IN (SELECT ID FROM [__mj_BizAppsCommittees].[vwMeetings] ...)` or `[__mj_BizAppsTasks].[vwTaskAssignments]`), which bypass entity-level RLS and break cross-dialect portability.
 - Resolve accessible parent IDs via a first-class `RunView` (returning early when empty), validate UUIDs, chunk `ID IN (...)` clauses (e.g., 400 IDs per batch via `rv.RunViews`), and check `result.Success`.
 
+## MJ Docs (`MJ: Artifacts`) vs. `MJ: Comments` vs. Quick Notes
+
+- **Category A — MJ Docs (`MJ: Artifacts` + `MJ: Artifact Versions`)**: Use for rich, multi-revision, or formally approved governance documents (`Committees: Minutes` via nullable `MJArtifactID` + immutable `ApprovedArtifactVersionID`, and native `Committees: Artifacts` via nullable `MJArtifactID`). Render with `<mj-artifact-viewer-panel>` from `@memberjunction/ng-artifacts`, batch loads via `MinuteArtifactBridgeService`, and preserve legacy `Minute.Content` and external URL columns (`PUBLISH_NO_BREAK_POLICY.md`).
+- **Category B — `MJ: Comments` (`Committees: Comments`)**: Use for threaded review discussions and conversational feedback attached to committees, meetings, artifacts, or tasks.
+- **Category C — Relational Quick Notes**: Keep `Motion.Notes`, `Vote.Notes`, and `Attendance.Notes` as strictly relational columns — never migrate them to `MJ: Artifacts`.
+
 ## Build & Verification
 
 ```bash

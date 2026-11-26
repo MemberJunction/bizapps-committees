@@ -1,14 +1,42 @@
 import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { RegisterClass } from '@memberjunction/global';
-import { BaseResourceComponent } from '@memberjunction/ng-shared';
+import { RegisterClass, UUIDsEqual } from '@memberjunction/global';
+import { BaseResourceComponent, NavigationService } from '@memberjunction/ng-shared';
 import { ResourceData } from '@memberjunction/core-entities';
-import { Metadata, RunView } from '@memberjunction/core';
+import { CompositeKey, Metadata, RunView } from '@memberjunction/core';
 import { CommitteePermissionHelper } from '../shared/committee-permission-helper';
-import { UUIDsEqual } from '@memberjunction/global';
 import { CommitteeTaskService, CommitteeTaskRow } from '@mj-biz-apps/committees-core';
 
-interface RunViewBatchResult { Success: boolean; Results: Record<string, unknown>[]; }
+interface DashboardIdRow {
+    ID: string;
+}
+
+interface DashboardMeetingRow {
+    ID: string;
+    Name: string;
+    StartDateTime: string | Date;
+    Committee: string | null;
+    Status: string;
+    LocationType?: string | null;
+    VideoJoinURL?: string | null;
+}
+
+interface DashboardFileLinkRow {
+    FileID: string;
+}
+
+interface DashboardDocumentRow {
+    ID: string;
+    Name: string;
+    Category: string | null;
+    Provider: string | null;
+    __mj_CreatedAt: string | Date | null;
+}
+
+interface TypedBatchResult<T> {
+    Success: boolean;
+    Results: T[];
+}
 
 @RegisterClass(BaseResourceComponent, 'CommitteeDashboardComponent')
 @Component({
@@ -25,19 +53,20 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
     OverdueTaskCount = 0;
     DocumentCount = 0;
 
-    RecentMeetings: Record<string, unknown>[] = [];
-    UpcomingMeetings: Record<string, unknown>[] = [];
+    RecentMeetings: DashboardMeetingRow[] = [];
+    UpcomingMeetings: DashboardMeetingRow[] = [];
     MyTasks: CommitteeTaskRow[] = [];
-    RecentDocuments: Record<string, unknown>[] = [];
+    RecentDocuments: DashboardDocumentRow[] = [];
 
     IsLoading = true;
     TodayString = new Date().toISOString().split('T')[0];
 
-    private cdr = inject(ChangeDetectorRef);
-    private router = inject(Router);
+    private readonly cdr = inject(ChangeDetectorRef);
+    private readonly router = inject(Router);
+    private readonly navigation = inject(NavigationService);
 
     async ngOnInit(): Promise<void> {
-        this.NotifyLoadStarted();
+        queueMicrotask(() => this.NotifyLoadStarted());
         await this.loadDashboardData();
         this.IsLoading = false;
         this.NotifyLoadComplete();
@@ -54,6 +83,10 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
 
     NavigateToTab(tabName: string): void {
         this.router.navigate(['/app/mjcommittees', tabName]);
+    }
+
+    OpenMeetingRecord(meetingID: string): void {
+        this.navigation.OpenEntityRecord('Committees: Meetings', CompositeKey.FromID(meetingID));
     }
 
     GetDocIcon(category: string | null | undefined): string {
@@ -78,7 +111,6 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
     private async loadDashboardData(): Promise<void> {
         const myCommitteeIDs = await this.resolveUserCommitteeIDs();
         if (myCommitteeIDs.length === 0) {
-            // User is not a member of any committees
             return;
         }
 
@@ -87,18 +119,22 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
         const today = new Date().toISOString().split('T')[0];
         const committeeEntityID = new Metadata().EntityByName('Committees: Committees')?.ID ?? null;
 
-        // Open tasks come from BizAppsTasks, concurrently with the batch below.
         const tasksPromise = new CommitteeTaskService().GetTasks({});
         const [committees, upcoming, recent, links] = await rv.RunViews(
             this.buildDashboardQueries(committeeFilter, today, committeeEntityID));
 
         const tasks = (await tasksPromise).filter(t =>
             t.CommitteeIDs.some(cid => myCommitteeIDs.some(mine => UUIDsEqual(mine, cid))));
-        this.applyDashboardResults(committees, upcoming, recent, tasks, today);
-        await this.loadRecentDocuments(rv, links);
+        this.applyDashboardResults(
+            committees as TypedBatchResult<DashboardIdRow>,
+            upcoming as TypedBatchResult<DashboardMeetingRow>,
+            recent as TypedBatchResult<DashboardMeetingRow>,
+            tasks,
+            today
+        );
+        await this.loadRecentDocuments(rv, links as TypedBatchResult<DashboardFileLinkRow>);
     }
 
-    /** The dashboard's five independent reads — one batch, one round trip. */
     private buildDashboardQueries(committeeFilter: string, today: string, committeeEntityID: string | null): Parameters<RunView['RunViews']>[0] {
         return [
             {
@@ -135,8 +171,11 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
     }
 
     private applyDashboardResults(
-        committees: RunViewBatchResult, upcoming: RunViewBatchResult,
-        recent: RunViewBatchResult, tasks: CommitteeTaskRow[], today: string
+        committees: TypedBatchResult<DashboardIdRow>,
+        upcoming: TypedBatchResult<DashboardMeetingRow>,
+        recent: TypedBatchResult<DashboardMeetingRow>,
+        tasks: CommitteeTaskRow[],
+        today: string
     ): void {
         if (committees.Success) {
             this.CommitteeCount = committees.Results.length;
@@ -153,25 +192,22 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
         this.OverdueTaskCount = tasks.filter(t => t.DueAt != null && t.DueAt < today).length;
     }
 
-    /**
-     * Resolves the current user's committee IDs through cached CommitteePermissionHelper.
-     */
     private async resolveUserCommitteeIDs(): Promise<string[]> {
         const memberships = await CommitteePermissionHelper.GetCurrentUserMemberships();
         return [...new Set(memberships.map(m => m.CommitteeID).filter(Boolean))];
     }
 
-    private async loadRecentDocuments(rv: RunView, linksResult: RunViewBatchResult): Promise<void> {
+    private async loadRecentDocuments(rv: RunView, linksResult: TypedBatchResult<DashboardFileLinkRow>): Promise<void> {
         if (!linksResult.Success || linksResult.Results.length === 0) {
             this.RecentDocuments = [];
             this.DocumentCount = 0;
             return;
         }
 
-        const fileIDs = [...new Set((linksResult.Results as { FileID: string }[]).map(l => l.FileID))];
+        const fileIDs = [...new Set(linksResult.Results.map(l => l.FileID))];
         const fileIDFilter = fileIDs.map(id => `'${id}'`).join(', ');
 
-        const filesResult = await rv.RunView<Record<string, unknown>>({
+        const filesResult = await rv.RunView<DashboardDocumentRow>({
             EntityName: 'MJ: Files',
             Fields: ['ID', 'Name', 'Category', 'Provider', '__mj_CreatedAt'],
             ExtraFilter: `ID IN (${fileIDFilter}) AND Status != 'Deleted'`,
@@ -181,8 +217,8 @@ export class CommitteeDashboardComponent extends BaseResourceComponent implement
         });
 
         if (filesResult.Success) {
-            this.RecentDocuments = filesResult.Results;
-            this.DocumentCount = filesResult.Results.length;
+            this.RecentDocuments = filesResult.Results ?? [];
+            this.DocumentCount = this.RecentDocuments.length;
         }
     }
 }

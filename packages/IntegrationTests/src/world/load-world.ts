@@ -37,6 +37,7 @@ import {
     WorldFilter,
 } from '../fixture.js';
 import { SetWorld, type WorldIds } from './world.js';
+import { SeedMJDocsWorld } from './load-mj-docs-world.js';
 
 const WORLD_EMAIL = 'com-world.test';
 
@@ -306,13 +307,13 @@ export async function LoadWorld(ctx: IntegrationCheckContext): Promise<WorldIds>
         { seq: 3, name: 'Adjourn', type: 'Information', mins: 5 },
     ]);
 
-    await upsertMinutes(ctx, meetFinPast, 'Draft',
+    const minFinPast = await upsertMinutes(ctx, meetFinPast, 'Draft',
         'Finance Committee met to review Q1 close. Packet incomplete; minutes held as draft pending the chair’s signature.');
-    await upsertMinutes(ctx, meetGovPast, 'Approved',
+    const minGovPast = await upsertMinutes(ctx, meetGovPast, 'Approved',
         'Governance Committee adopted the working draft of the conflict-of-interest policy for member review.');
-    await upsertMinutes(ctx, meetAbsPast, 'Approved',
+    const minAbsPast = await upsertMinutes(ctx, meetAbsPast, 'Approved',
         'Abstract Review adopted the double-blind scoring rubric. Calibration notes filed.');
-    await upsertMinutes(ctx, meetPan2021, 'Approved',
+    const minPan2021 = await upsertMinutes(ctx, meetPan2021, 'Approved',
         'Task force voted to dissolve at year-end. Lessons learned attached.');
 
     // Audit quorum risk: 4 Expected, 3 Absent of 7.
@@ -403,16 +404,37 @@ export async function LoadWorld(ctx: IntegrationCheckContext): Promise<WorldIds>
         'Tabled until site-visit data is in.',
         'Tabled');
 
+    const committeesMap = {
+        finance, governance, audit, membership, program, publications: pubs, board,
+        pandemic, abstracts,
+    };
+    const meetingsMap = {
+        financePast: meetFinPast, financeThu: meetFinThu, auditThu: meetAuditThu,
+        membershipWed: meetMemWed, governancePast: meetGovPast,
+        boardPast: meetBoardPast, programPostponed: meetProgPostpone,
+        pubsCancelled: meetPubsCancel, abstractsPast: meetAbsPast,
+        abstractsNext: meetAbsNext, pandemicKickoff: meetPan2020,
+        pandemicSunset: meetPan2021, financeLive: meetFinProgress,
+    };
+    const mjDocs = await SeedMJDocsWorld(ctx, {
+        Committees: committeesMap,
+        Meetings: meetingsMap,
+        People: people,
+        LegacyMinutes: {
+            financePastLegacy: minFinPast,
+            governancePastLegacy: minGovPast,
+            abstractsPastLegacy: minAbsPast,
+            pandemicSunsetLegacy: minPan2021,
+        },
+    });
+
     const world: WorldIds = {
         OrganizationID: orgID,
         People: people,
         Users: users,
         Roles: roles,
         Types: types,
-        Committees: {
-            finance, governance, audit, membership, program, publications: pubs, board,
-            pandemic, abstracts,
-        },
+        Committees: committeesMap,
         Terms: {
             finance: termFinance, governance: termGov, audit: termAudit,
             membership: termMem, program: termProg, publications: termPubs,
@@ -420,14 +442,11 @@ export async function LoadWorld(ctx: IntegrationCheckContext): Promise<WorldIds>
             abstractsPrev: termAbsPrev, abstracts: termAbs,
             ...boardTerms,
         },
-        Meetings: {
-            financePast: meetFinPast, financeThu: meetFinThu, auditThu: meetAuditThu,
-            membershipWed: meetMemWed, governancePast: meetGovPast,
-            boardPast: meetBoardPast, programPostponed: meetProgPostpone,
-            pubsCancelled: meetPubsCancel, abstractsPast: meetAbsPast,
-            abstractsNext: meetAbsNext, pandemicKickoff: meetPan2020,
-            pandemicSunset: meetPan2021, financeLive: meetFinProgress,
-        },
+        Meetings: meetingsMap,
+        Minutes: mjDocs.Minutes,
+        Artifacts: mjDocs.Artifacts,
+        MJArtifacts: mjDocs.MJArtifacts,
+        MJArtifactVersions: mjDocs.MJArtifactVersions,
     };
     void ballot;
     SetWorld(world);
@@ -759,7 +778,7 @@ async function upsertMinutes(
     meetingID: string,
     status: 'Draft' | 'Approved' | 'PendingApproval',
     content: string,
-): Promise<void> {
+): Promise<string> {
     const existing = await FindId(ctx, E_MINUTE, `MeetingID = '${meetingID}'`);
     const row = await EntityOf(ctx, E_MINUTE);
     if (existing) {
@@ -774,6 +793,9 @@ async function upsertMinutes(
         row.Set('ApprovedAt', UtcDay(-30));
     }
     await RequireSave(row, 'minutes');
+    const savedId = existing ?? (await FindId(ctx, E_MINUTE, `MeetingID = '${meetingID}'`));
+    Assert(savedId !== null, 'minutes id');
+    return savedId;
 }
 
 async function upsertAttendance(

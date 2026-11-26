@@ -97,9 +97,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Meetings','VideoProviderID')"
-                [NewRecordValues]="NewRecordValues('Committees: Meetings')"
+                [NewRecordValues]="NewRecordValues('Committees: Meetings','VideoProviderID')"
                 [AllowLoad]="IsSectionExpanded('committeesMeetings')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesMeetings', $event.totalRowCount)"
                 >

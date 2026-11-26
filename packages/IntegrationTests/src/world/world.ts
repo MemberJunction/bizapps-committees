@@ -8,6 +8,10 @@ export interface WorldIds {
     Committees: Record<string, string>;
     Terms: Record<string, string>;
     Meetings: Record<string, string>;
+    Minutes: Record<string, string>;
+    Artifacts: Record<string, string>;
+    MJArtifacts: Record<string, string>;
+    MJArtifactVersions: Record<string, string>;
 }
 
 let cached: WorldIds | null = null;

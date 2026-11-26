@@ -1,12 +1,12 @@
 // Import entity package to trigger @RegisterClass decorators for entity
-// subclasses (incl. the custom MeetingEntity / MembershipEntity).
+// subclasses (incl. the custom MeetingEntity / MembershipEntity / MinuteEntity).
 import '@mj-biz-apps/committees-entities';
 
 // Generated form components (triggers @RegisterClass for form components).
 // Re-exported so consumers can import GeneratedFormsModule from this package.
 export * from './lib/generated/generated-forms.module';
 
-// Custom form panels (triggers @RegisterClassEx for header and overview panels)
+// Custom form panels (triggers @RegisterClassEx for header, overview, and MJ Docs panels)
 import './lib/custom/custom-forms.module';
 export * from './lib/custom/custom-forms.module';
 export { CommitteeHeaderPanel } from './lib/custom/form-panels/committee-header.panel';
@@ -19,6 +19,8 @@ export { CommitteeMembersComponent } from './lib/custom/form-panels/committee-me
 export { CommitteeRosterComponent } from './lib/membership/committee-roster.component';
 export { MeetingHeaderPanel } from './lib/custom/form-panels/meeting-header.panel';
 export { MeetingOverviewPanel } from './lib/custom/form-panels/meeting-overview.panel';
+export { MinuteDocumentFormPanel } from './lib/custom/form-panels/minute-document.panel';
+export { ArtifactDocumentFormPanel } from './lib/custom/form-panels/artifact-document.panel';
 
 export * from './lib/module';
 export * from './lib/dashboard/committee-dashboard.component';
@@ -30,6 +32,7 @@ export * from './lib/tasks/task-tracker.component';
 export * from './lib/documents/document-browser.component';
 export * from './lib/documents/document-edit-dialog.component';
 export * from './lib/documents/document-preview-panel.component';
+export * from './lib/documents/committee-artifact-preview.component';
 export * from './lib/shared/person-picker.component';
 export * from './lib/shared/committee-permission-helper';
 export * from './lib/comments/comment-thread.component';
@@ -41,6 +44,8 @@ export * from './lib/membership/membership-panel.component';
 export * from './lib/membership/membership-edit-dialog.component';
 export * from './lib/membership/person-detail-panel.component';
 export * from './lib/minutes/generate-minutes-panel.component';
+export * from './lib/minutes/minute-dual-read.model';
+export * from './lib/minutes/minute-document-viewer.component';
 export * from './lib/meeting-detail/meeting-detail-view.component';
 export * from './lib/management-committee-list/management-committee-list.component';
 export * from './lib/management-membership-list/management-membership-list.component';

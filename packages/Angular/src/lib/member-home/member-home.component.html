@@ -1,3 +1,4 @@
+<mj-page-layout>
 <div class="mh">
   <!-- ── Header ──────────────────────────────────────────────── -->
   <header class="mh-header">
@@ -17,8 +18,17 @@
         </div>
       }
     </div>
+    <div class="mh-view-toggle">
+      <div class="seg sm" role="group" aria-label="Member view mode">
+        <button type="button" [class.on]="ViewMode === 'home'" (click)="SetViewMode('home')">Home</button>
+        <button type="button" [class.on]="ViewMode === 'dashboard'" (click)="SetViewMode('dashboard')">Overview</button>
+      </div>
+    </div>
   </header>
 
+  @if (ViewMode === 'dashboard') {
+    <committees-dashboard></committees-dashboard>
+  } @else {
   <div class="mh-body">
     @if (ErrorMessage) {
       <div class="callout error"><i class="fa-solid fa-triangle-exclamation"></i> {{ ErrorMessage }}</div>
@@ -179,7 +189,9 @@
       }
     }
   </div>
+  }
 </div>
+</mj-page-layout>
 
 @if (MinutesReviewMeetingID) {
   <committees-minutes-review [MeetingID]="MinutesReviewMeetingID" (Exited)="OnMinutesExited()"></committees-minutes-review>

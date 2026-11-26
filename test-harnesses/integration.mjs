@@ -1,42 +1,127 @@
 /**
- * Standalone dispatcher for the committees integration suite.
+ * Standalone dual-DBMS dispatcher for the committees integration suite.
  *
  *   node test-harnesses/integration.mjs
  *   node test-harnesses/integration.mjs committees-world
  *   node test-harnesses/integration.mjs ballot-sealing
+ *   node test-harnesses/integration.mjs minute-artifact-dual-read
+ *   node test-harnesses/integration.mjs pg-parity-and-boundary
+ *   DB_PLATFORM=postgresql node test-harnesses/integration.mjs
  *
  * committees-world COMMITS COM-WORLD so Explorer has rows. Exit 0 pass · 1 fail · 2 bootstrap.
  */
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import sql from 'mssql';
 import { loadEnvFrom } from './load-env.mjs';
 
-loadEnvFrom(import.meta.url);
+if (!process.env.DB_DATABASE && !process.env.PG_DATABASE) {
+    loadEnvFrom(import.meta.url);
+}
 
-const ALL_BUNDLES = ['committees-world', 'ballot-sealing'];
+const SQLSERVER_DEFAULT_BUNDLES = [
+    'committees-world',
+    'ballot-sealing',
+    'minute-artifact-dual-read',
+    'pg-parity-and-boundary',
+];
+
+// `ballot-sealing` exercises the pre-existing T-SQL `Committees: Visible Votes` RLS filter
+// (`TRY_CAST` / bracketed identifiers in metadata/row-level-security-filters), so the default
+// PostgreSQL lane runs the 3 dialect-portable governance + MJ Docs + parity bundles (23 checks).
+const POSTGRES_DEFAULT_BUNDLES = [
+    'committees-world',
+    'minute-artifact-dual-read',
+    'pg-parity-and-boundary',
+];
 
 const args = process.argv.slice(2);
-const only = args.filter((a) => !a.startsWith('-'));
+const summaryDirIdx = args.indexOf('--summary-dir');
+const summaryDir = summaryDirIdx >= 0 ? args[summaryDirIdx + 1] : null;
+const only = args.filter((a, i) => !a.startsWith('-') && i !== summaryDirIdx + 1);
+const platform = (process.env.DB_PLATFORM ?? 'sqlserver').trim().toLowerCase();
+const isPostgres = platform === 'postgresql' || platform === 'postgres' || platform === 'pg';
+const coreSchema = process.env.MJ_CORE_SCHEMA || '__mj';
 
-const { DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD } = process.env;
-const pool = await new sql.ConnectionPool({
-    server: DB_HOST ?? 'localhost',
-    port: Number(DB_PORT ?? 1433),
-    database: DB_DATABASE,
-    user: DB_USERNAME,
-    password: DB_PASSWORD,
-    options: { trustServerCertificate: true, encrypt: false },
-    pool: { max: 10, min: 1 },
-    requestTimeout: 60_000,
-}).connect();
+async function bootstrapProvider() {
+    if (isPostgres) {
+        const { PostgreSQLDataProvider, PostgreSQLProviderConfigData } = await import(
+            '@memberjunction/postgresql-dataprovider'
+        );
+        const { SetProvider, StartupManager } = await import('@memberjunction/core');
+        const { GetServerPrincipal, UserCache } = await import('@memberjunction/generic-database-provider');
 
-const { setupSQLServerClient, SQLServerProviderConfigData, UserCache } = await import('@memberjunction/sqlserver-dataprovider');
-const provider = await setupSQLServerClient(
-    new SQLServerProviderConfigData(pool, process.env.MJ_CORE_SCHEMA || '__mj'),
-);
-await UserCache.Instance.Refresh(provider); // MJ 6.2: the cache refreshes through the provider, not the pool
-const user = UserCache.Users.find((u) => u?.Type?.trim().toLowerCase() === 'owner') ?? UserCache.Users[0];
+        const host = process.env.DB_HOST ?? process.env.PG_HOST ?? process.env.PGHOST ?? 'localhost';
+        const port = Number(process.env.DB_PORT ?? process.env.PG_PORT ?? process.env.PGPORT ?? 5432);
+        const database = process.env.DB_DATABASE ?? process.env.PG_DATABASE ?? process.env.PGDATABASE;
+        const user = process.env.DB_USERNAME ?? process.env.PG_USERNAME ?? process.env.PGUSER;
+        const password = process.env.DB_PASSWORD ?? process.env.PG_PASSWORD ?? process.env.PGPASSWORD;
+
+        const provider = new PostgreSQLDataProvider();
+        await provider.Config(
+            new PostgreSQLProviderConfigData(
+                {
+                    Host: host,
+                    Port: port,
+                    Database: database,
+                    User: user,
+                    Password: password,
+                    MaxConnections: 10,
+                    MinConnections: 1,
+                    MJCoreSchemaName: coreSchema,
+                },
+                coreSchema,
+                1,
+            ),
+        );
+        SetProvider(provider);
+        await UserCache.Instance.Refresh(provider);
+        const systemUser = GetServerPrincipal() ?? undefined;
+        await StartupManager.Instance.Startup(false, systemUser, provider);
+        return {
+            provider,
+            pool: provider.DatabaseConnection,
+            users: UserCache.Users,
+            close: async () => {
+                await provider.Dispose();
+            },
+        };
+    }
+
+    const { DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME, DB_PASSWORD } = process.env;
+    const pool = await new sql.ConnectionPool({
+        server: DB_HOST ?? 'localhost',
+        port: Number(DB_PORT ?? 1433),
+        database: DB_DATABASE,
+        user: DB_USERNAME,
+        password: DB_PASSWORD,
+        options: { trustServerCertificate: true, encrypt: false },
+        pool: { max: 10, min: 1 },
+        requestTimeout: 60_000,
+    }).connect();
+
+    const { setupSQLServerClient, SQLServerProviderConfigData, UserCache } = await import(
+        '@memberjunction/sqlserver-dataprovider'
+    );
+    const provider = await setupSQLServerClient(
+        new SQLServerProviderConfigData(pool, coreSchema),
+    );
+    await UserCache.Instance.Refresh(provider);
+    return {
+        provider,
+        pool,
+        users: UserCache.Users,
+        close: async () => {
+            await pool.close();
+        },
+    };
+}
+
+const runtime = await bootstrapProvider();
+const user = runtime.users.find((u) => u?.Type?.trim().toLowerCase() === 'owner') ?? runtime.users[0];
 if (!user) {
     console.error('BOOTSTRAP: no context user in UserCache');
+    await runtime.close();
     process.exit(2);
 }
 
@@ -48,16 +133,20 @@ await import('@mj-biz-apps/committees-integration-tests');
 const registry = IntegrationCheckRegistry.Instance;
 const baseContext = {
     User: user,
-    Provider: provider,
-    Pool: pool,
-    Schema: process.env.MJ_CORE_SCHEMA || '__mj',
+    Provider: runtime.provider,
+    Pool: runtime.pool,
+    Schema: coreSchema,
     Storage: undefined,
 };
 
-const requested = only.length ? only : ALL_BUNDLES;
+console.log(`\nCommittees Integration Suite (${isPostgres ? 'PostgreSQL' : 'SQL Server'})`);
+
+const defaultBundles = isPostgres ? POSTGRES_DEFAULT_BUNDLES : SQLSERVER_DEFAULT_BUNDLES;
+const requested = only.length ? only : defaultBundles;
 let pass = 0;
 let fail = 0;
 const failures = [];
+const checkResults = [];
 
 for (const request of requested) {
     const [bundle, localId] = request.includes('.') ? [request.split('.')[0], request] : [request, null];
@@ -78,12 +167,16 @@ for (const request of requested) {
             const started = Date.now();
             try {
                 await check.Fn(ctx);
+                const durationMs = Date.now() - started;
                 pass++;
-                console.log(`  ✔ ${check.Name}  (${Date.now() - started}ms)`);
+                checkResults.push({ bundle, id: check.Id, name: check.Name, passed: true, durationMs });
+                console.log(`  ✔ ${check.Name}  (${durationMs}ms)`);
             } catch (e) {
+                const durationMs = Date.now() - started;
                 fail++;
                 const message = String(e?.message ?? e).split('\n')[0];
                 failures.push({ Id: check.Id, message });
+                checkResults.push({ bundle, id: check.Id, name: check.Name, passed: false, durationMs, error: message });
                 console.log(`  ✖ ${check.Name}\n      ${message}`);
                 const nested = e?.originalError?.message ?? e?.precedingErrors?.[0]?.message;
                 if (nested && nested !== message) console.log(`      ↳ ${nested}`);
@@ -99,7 +192,16 @@ for (const request of requested) {
     }
 }
 
-console.log(`\n${fail === 0 ? 'PASS' : 'FAIL'} — ${pass} passed, ${fail} failed`);
+const platformName = isPostgres ? 'postgresql' : 'sqlserver';
+if (summaryDir) {
+    mkdirSync(summaryDir, { recursive: true });
+    writeFileSync(
+        join(summaryDir, `integration-${platformName}.json`),
+        JSON.stringify({ platform: platformName, passed: pass, failed: fail, bundles: requested, failures, checks: checkResults }, null, 2),
+    );
+}
+
+console.log(`\n${fail === 0 ? 'PASS' : 'FAIL'} [${platformName}] — ${pass} passed, ${fail} failed`);
 if (fail) failures.forEach((f) => console.log(`  · ${f.Id}: ${f.message}`));
-await pool.close();
+await runtime.close();
 process.exit(fail === 0 ? 0 : 1);

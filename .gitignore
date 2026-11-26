@@ -15,6 +15,7 @@ logged-in.yml
 login.yml
 codegen.output.log
 dist/
+*.tsbuildinfo
 SQL Scripts/
 Schema Files/
 Update_MemberJunction_Packages_To_Latest.ps1

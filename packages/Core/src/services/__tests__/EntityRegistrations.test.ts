@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { BaseEntity } from '@memberjunction/core';
 import { MJGlobal } from '@memberjunction/global';
-import { MeetingEntityCustom, MembershipEntityCustom } from '@mj-biz-apps/committees-entities';
+import { MeetingEntityCustom, MembershipEntityCustom, MinuteEntityCustom } from '@mj-biz-apps/committees-entities';
 
 /**
  * The class factory hands out entity classes by the entity's full name ("Committees: Memberships"), which is
@@ -19,8 +19,14 @@ describe('custom entity registrations', () => {
         expect(registration?.SubClass).toBe(MeetingEntityCustom);
     });
 
+    it('Committees: Minutes resolves to the custom minute class', () => {
+        const registration = MJGlobal.Instance.ClassFactory.GetRegistration(BaseEntity, 'Committees: Minutes');
+        expect(registration?.SubClass).toBe(MinuteEntityCustom);
+    });
+
     it('the bare table names are not registration keys', () => {
         expect(MJGlobal.Instance.ClassFactory.GetRegistration(BaseEntity, 'Memberships')?.SubClass).not.toBe(MembershipEntityCustom);
         expect(MJGlobal.Instance.ClassFactory.GetRegistration(BaseEntity, 'Meetings')?.SubClass).not.toBe(MeetingEntityCustom);
+        expect(MJGlobal.Instance.ClassFactory.GetRegistration(BaseEntity, 'Minutes')?.SubClass).not.toBe(MinuteEntityCustom);
     });
 });

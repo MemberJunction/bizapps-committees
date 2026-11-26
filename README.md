@@ -25,7 +25,7 @@ Committee operations are fragmented across disconnected tools — spreadsheets f
 | **Document Browser** | Browse committee artifacts and files with type filtering and search |
 | **Membership Management** | Track who serves, their roles, term dates, and historical membership |
 | **Motions & Voting** | Record formal motions, individual votes, and results |
-| **Document Linking** | Connect to Google Drive, SharePoint, OneDrive, Box, Dropbox — no migration needed |
+| **Document Linking & MJ Docs Bridge** | Connect external URLs (Google Drive, SharePoint, OneDrive, Box, Dropbox) alongside native **MJ Docs** (`MJ: Artifacts` / `MJ: Artifact Versions`) with `<mj-artifact-viewer-panel>` inline previews, immutable `ApprovedArtifactVersionID` pinning for formally approved meeting minutes, and non-destructive opt-in bridging from legacy `Minute.Content` |
 
 ### AI Features (Phase 2 — In Progress)
 
@@ -56,6 +56,8 @@ All tables live in the `Committees` SQL schema (14 tables):
 **Operations** -- Meeting, AgendaItem, Attendance
 **Governance** -- Motion, Vote
 **Outcomes** -- ActionItem, Artifact, ArtifactType, Minute
+
+> **MJ Docs Dual-Read Bridge**: `Committees: Minutes` adds nullable `MJArtifactID` and `ApprovedArtifactVersionID` FKs (`__mj.Artifact` / `__mj.ArtifactVersion`) and `Committees: Artifacts` adds nullable `MJArtifactID` while preserving legacy `Minute.Content` and external URL columns. `MinuteArtifactBridgeService` (`@mj-biz-apps/committees-core`) batches dual-read lookups via `RunViews`, and `@mj-biz-apps/committees-ng` integrates `@memberjunction/ng-artifacts` (`<mj-artifact-viewer-panel>`) for pinned/live MJ Docs rendering and opt-in legacy bridging.
 
 See [plans/committees-design.md](plans/committees-design.md) for the full design document with ERDs, sequence diagrams, and state machines.
 

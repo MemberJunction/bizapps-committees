@@ -187,6 +187,102 @@
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="MeetingDurationMinutes"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="DaysUntilMeeting"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="IsVirtualFlag"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="IsHybridFlag"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="IsInPersonFlag"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="HasVideoLink"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="AgendaItemCount"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="TotalAttendees"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="ExpectedAttendees"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="PresentAttendees"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="AbsentAttendees"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="QuorumRiskOutcome"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
 
     </mj-collapsible-panel>
 
@@ -210,9 +306,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Artifacts','MeetingID')"
-                [NewRecordValues]="NewRecordValues('Committees: Artifacts')"
+                [NewRecordValues]="NewRecordValues('Committees: Artifacts','MeetingID')"
                 [AllowLoad]="IsSectionExpanded('committeesArtifacts')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesArtifacts', $event.totalRowCount)"
                 >
@@ -235,9 +331,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Agenda Items','MeetingID')"
-                [NewRecordValues]="NewRecordValues('Committees: Agenda Items')"
+                [NewRecordValues]="NewRecordValues('Committees: Agenda Items','MeetingID')"
                 [AllowLoad]="IsSectionExpanded('committeesAgendaItems')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesAgendaItems', $event.totalRowCount)"
                 >
@@ -260,9 +356,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Motions','MeetingID')"
-                [NewRecordValues]="NewRecordValues('Committees: Motions')"
+                [NewRecordValues]="NewRecordValues('Committees: Motions','MeetingID')"
                 [AllowLoad]="IsSectionExpanded('committeesMotions')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesMotions', $event.totalRowCount)"
                 >
@@ -285,9 +381,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Attendances','MeetingID')"
-                [NewRecordValues]="NewRecordValues('Committees: Attendances')"
+                [NewRecordValues]="NewRecordValues('Committees: Attendances','MeetingID')"
                 [AllowLoad]="IsSectionExpanded('committeesAttendances')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesAttendances', $event.totalRowCount)"
                 >
@@ -310,9 +406,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Minutes','ApprovedByMeetingID')"
-                [NewRecordValues]="NewRecordValues('Committees: Minutes')"
+                [NewRecordValues]="NewRecordValues('Committees: Minutes','ApprovedByMeetingID')"
                 [AllowLoad]="IsSectionExpanded('committeesMinutesApprovedByMeetingID')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesMinutesApprovedByMeetingID', $event.totalRowCount)"
                 >
@@ -321,10 +417,10 @@
         }
     </mj-collapsible-panel>
 
-    <!-- Minutes (Meeting ID) Section -->
+    <!-- Minutes Section -->
     <mj-collapsible-panel
         SectionKey="committeesMinutesMeetingID"
-        SectionName="Minutes (Meeting ID)"
+        SectionName="Minutes"
         Icon="fa fa-table"
         Variant="related-entity"
         [Form]="this"
@@ -335,9 +431,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Minutes','MeetingID')"
-                [NewRecordValues]="NewRecordValues('Committees: Minutes')"
+                [NewRecordValues]="NewRecordValues('Committees: Minutes','MeetingID')"
                 [AllowLoad]="IsSectionExpanded('committeesMinutesMeetingID')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesMinutesMeetingID', $event.totalRowCount)"
                 >
@@ -360,9 +456,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Comments','MeetingID')"
-                [NewRecordValues]="NewRecordValues('Committees: Comments')"
+                [NewRecordValues]="NewRecordValues('Committees: Comments','MeetingID')"
                 [AllowLoad]="IsSectionExpanded('committeesComments')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesComments', $event.totalRowCount)"
                 >

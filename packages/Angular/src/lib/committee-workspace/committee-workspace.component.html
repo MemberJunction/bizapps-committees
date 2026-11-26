@@ -1,3 +1,4 @@
+<mj-page-layout>
 @if (IsLoading) {
   <div class="ws-loading" aria-busy="true">
     <div class="skel skel-title"></div>
@@ -239,15 +240,28 @@
           <section class="card">
             <div class="card-h"><i class="fa-solid fa-file-lines"></i><h2>Documents</h2></div>
             <div class="card-b">
-              @for (d of Artifacts; track d.ID) {
-                <div class="doc-row">
-                  <i class="fa-solid fa-file-lines"></i>
-                  <div><b>{{ d.Name }}</b><small>{{ d.ArtifactType || 'Document' }}</small></div>
-                  @if (d.Provider) { <span class="badge neutral">{{ d.Provider }}</span> }
-                  @if (d.URL) { <a class="btn sm ghost" [href]="d.URL" target="_blank" rel="noopener">Open</a> }
+              @for (d of ResolvedArtifacts; track d.CommitteeArtifactID) {
+                <div class="doc-row" [attr.data-artifact-kind]="d.Kind">
+                  @if (d.Kind === 'mj-doc') {
+                    <i class="fa-solid fa-layer-group"></i>
+                    <div><b>{{ d.Name }}</b><small>{{ GetArtifactTypeLabel(d.CommitteeArtifactID) }}</small></div>
+                    <span class="badge info">MJ Doc{{ d.LatestVersion ? ' · v' + d.LatestVersion.VersionNumber : '' }}</span>
+                    <button type="button" class="btn sm" (click)="OnPreviewArtifact(d)">
+                      <i class="fa-solid fa-eye"></i> Preview
+                    </button>
+                  } @else {
+                    <i class="fa-solid fa-file-lines"></i>
+                    <div><b>{{ d.Name }}</b><small>{{ GetArtifactTypeLabel(d.CommitteeArtifactID) }}</small></div>
+                    @if (d.Provider) { <span class="badge neutral">{{ d.Provider }}</span> }
+                    @if (d.URL) {
+                      <button type="button" class="btn sm ghost" (click)="OnOpenExternalArtifact(d.URL)">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i> Open
+                      </button>
+                    }
+                  }
                 </div>
               } @empty {
-                <p class="small muted">No documents linked. Files stay in your providers — Committees stores the links.</p>
+                <p class="small muted">No documents linked. External files stay in your providers while native MJ Docs preview inline.</p>
               }
             </div>
           </section>
@@ -256,6 +270,7 @@
     </div>
   </div>
 }
+</mj-page-layout>
 
 @if (LiveMeetingID) {
   <committees-live-meeting [MeetingID]="LiveMeetingID" (Exited)="OnLiveMeetingExited()"></committees-live-meeting>
@@ -263,4 +278,8 @@
 
 @if (ShowEBallotDialog) {
   <committees-e-ballot-dialog [PreselectedCommitteeID]="CommitteeID" (DialogClosed)="OnEBallotDialogClosed($event)"></committees-e-ballot-dialog>
+}
+
+@if (PreviewArtifact) {
+  <committees-artifact-preview [Artifact]="PreviewArtifact" Mode="drawer" (Closed)="OnCloseArtifactPreview()"></committees-artifact-preview>
 }

@@ -16,8 +16,8 @@ import { LinkDirectivesModule } from '@memberjunction/ng-link-directives';
 
 // Import Generated Components
 import { mjBizAppsCommitteesAgendaItemFormComponent } from "./Entities/mjBizAppsCommitteesAgendaItem/mjbizappscommitteesagendaitem.form.component";
-import { mjBizAppsCommitteesArtifactTypeFormComponent } from "./Entities/mjBizAppsCommitteesArtifactType/mjbizappscommitteesartifacttype.form.component";
 import { mjBizAppsCommitteesArtifactFormComponent } from "./Entities/mjBizAppsCommitteesArtifact/mjbizappscommitteesartifact.form.component";
+import { mjBizAppsCommitteesArtifactTypeFormComponent } from "./Entities/mjBizAppsCommitteesArtifactType/mjbizappscommitteesartifacttype.form.component";
 import { mjBizAppsCommitteesAttendanceFormComponent } from "./Entities/mjBizAppsCommitteesAttendance/mjbizappscommitteesattendance.form.component";
 import { mjBizAppsCommitteesBallotFormComponent } from "./Entities/mjBizAppsCommitteesBallot/mjbizappscommitteesballot.form.component";
 import { mjBizAppsCommitteesCommentFormComponent } from "./Entities/mjBizAppsCommitteesComment/mjbizappscommitteescomment.form.component";
@@ -35,22 +35,8 @@ import { mjBizAppsCommitteesVoteFormComponent } from "./Entities/mjBizAppsCommit
 
 @NgModule({
 declarations: [
-    mjBizAppsCommitteesAgendaItemFormComponent,
-    mjBizAppsCommitteesArtifactTypeFormComponent,
-    mjBizAppsCommitteesArtifactFormComponent,
-    mjBizAppsCommitteesAttendanceFormComponent,
-    mjBizAppsCommitteesBallotFormComponent,
-    mjBizAppsCommitteesCommentFormComponent,
-    mjBizAppsCommitteesCommitteeFormComponent,
-    mjBizAppsCommitteesMeetingFormComponent,
-    mjBizAppsCommitteesMembershipFormComponent,
-    mjBizAppsCommitteesMinuteFormComponent,
-    mjBizAppsCommitteesMotionFormComponent,
-    mjBizAppsCommitteesRoleFormComponent,
-    mjBizAppsCommitteesTermFormComponent,
-    mjBizAppsCommitteesTypeFormComponent,
-    mjBizAppsCommitteesVideoProviderFormComponent,
-    mjBizAppsCommitteesVoteFormComponent],
+    mjBizAppsCommitteesMinuteFormComponent
+],
 imports: [
     CommonModule,
     FormsModule,
@@ -61,7 +47,243 @@ imports: [
 exports: [
 ]
 })
-export class GeneratedForms_SubModule_0 { }
+export class GeneratedForms_SubModule_2 { }
+    
+
+
+@NgModule({
+declarations: [
+    mjBizAppsCommitteesTypeFormComponent
+],
+imports: [
+    CommonModule,
+    FormsModule,
+    BaseFormsModule,
+    EntityViewerModule,
+    LinkDirectivesModule
+],
+exports: [
+]
+})
+export class GeneratedForms_SubModule_6 { }
+    
+
+
+@NgModule({
+declarations: [
+    mjBizAppsCommitteesMembershipFormComponent
+],
+imports: [
+    CommonModule,
+    FormsModule,
+    BaseFormsModule,
+    EntityViewerModule,
+    LinkDirectivesModule
+],
+exports: [
+]
+})
+export class GeneratedForms_SubModule_10 { }
+    
+
+
+@NgModule({
+declarations: [
+    mjBizAppsCommitteesCommentFormComponent
+],
+imports: [
+    CommonModule,
+    FormsModule,
+    BaseFormsModule,
+    EntityViewerModule,
+    LinkDirectivesModule
+],
+exports: [
+]
+})
+export class GeneratedForms_SubModule_11 { }
+    
+
+
+@NgModule({
+declarations: [
+    mjBizAppsCommitteesBallotFormComponent,
+    mjBizAppsCommitteesTermFormComponent
+],
+imports: [
+    CommonModule,
+    FormsModule,
+    BaseFormsModule,
+    EntityViewerModule,
+    LinkDirectivesModule
+],
+exports: [
+]
+})
+export class GeneratedForms_SubModule_12 { }
+    
+
+
+@NgModule({
+declarations: [
+    mjBizAppsCommitteesVoteFormComponent
+],
+imports: [
+    CommonModule,
+    FormsModule,
+    BaseFormsModule,
+    EntityViewerModule,
+    LinkDirectivesModule
+],
+exports: [
+]
+})
+export class GeneratedForms_SubModule_14 { }
+    
+
+
+@NgModule({
+declarations: [
+    mjBizAppsCommitteesArtifactFormComponent
+],
+imports: [
+    CommonModule,
+    FormsModule,
+    BaseFormsModule,
+    EntityViewerModule,
+    LinkDirectivesModule
+],
+exports: [
+]
+})
+export class GeneratedForms_SubModule_16 { }
+    
+
+
+@NgModule({
+declarations: [
+    mjBizAppsCommitteesRoleFormComponent,
+    mjBizAppsCommitteesVideoProviderFormComponent
+],
+imports: [
+    CommonModule,
+    FormsModule,
+    BaseFormsModule,
+    EntityViewerModule,
+    LinkDirectivesModule
+],
+exports: [
+]
+})
+export class GeneratedForms_SubModule_18 { }
+    
+
+
+@NgModule({
+declarations: [
+    mjBizAppsCommitteesAgendaItemFormComponent
+],
+imports: [
+    CommonModule,
+    FormsModule,
+    BaseFormsModule,
+    EntityViewerModule,
+    LinkDirectivesModule
+],
+exports: [
+]
+})
+export class GeneratedForms_SubModule_19 { }
+    
+
+
+@NgModule({
+declarations: [
+    mjBizAppsCommitteesAttendanceFormComponent
+],
+imports: [
+    CommonModule,
+    FormsModule,
+    BaseFormsModule,
+    EntityViewerModule,
+    LinkDirectivesModule
+],
+exports: [
+]
+})
+export class GeneratedForms_SubModule_23 { }
+    
+
+
+@NgModule({
+declarations: [
+    mjBizAppsCommitteesArtifactTypeFormComponent
+],
+imports: [
+    CommonModule,
+    FormsModule,
+    BaseFormsModule,
+    EntityViewerModule,
+    LinkDirectivesModule
+],
+exports: [
+]
+})
+export class GeneratedForms_SubModule_24 { }
+    
+
+
+@NgModule({
+declarations: [
+    mjBizAppsCommitteesCommitteeFormComponent
+],
+imports: [
+    CommonModule,
+    FormsModule,
+    BaseFormsModule,
+    EntityViewerModule,
+    LinkDirectivesModule
+],
+exports: [
+]
+})
+export class GeneratedForms_SubModule_27 { }
+    
+
+
+@NgModule({
+declarations: [
+    mjBizAppsCommitteesMotionFormComponent
+],
+imports: [
+    CommonModule,
+    FormsModule,
+    BaseFormsModule,
+    EntityViewerModule,
+    LinkDirectivesModule
+],
+exports: [
+]
+})
+export class GeneratedForms_SubModule_28 { }
+    
+
+
+@NgModule({
+declarations: [
+    mjBizAppsCommitteesMeetingFormComponent
+],
+imports: [
+    CommonModule,
+    FormsModule,
+    BaseFormsModule,
+    EntityViewerModule,
+    LinkDirectivesModule
+],
+exports: [
+]
+})
+export class GeneratedForms_SubModule_31 { }
     
 
 
@@ -69,7 +291,20 @@ export class GeneratedForms_SubModule_0 { }
 declarations: [
 ],
 imports: [
-    GeneratedForms_SubModule_0
+    GeneratedForms_SubModule_2,
+    GeneratedForms_SubModule_6,
+    GeneratedForms_SubModule_10,
+    GeneratedForms_SubModule_11,
+    GeneratedForms_SubModule_12,
+    GeneratedForms_SubModule_14,
+    GeneratedForms_SubModule_16,
+    GeneratedForms_SubModule_18,
+    GeneratedForms_SubModule_19,
+    GeneratedForms_SubModule_23,
+    GeneratedForms_SubModule_24,
+    GeneratedForms_SubModule_27,
+    GeneratedForms_SubModule_28,
+    GeneratedForms_SubModule_31
 ]
 })
 export class GeneratedFormsModule { }

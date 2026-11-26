@@ -1,0 +1,215 @@
+<section
+  class="mdv-root"
+  [attr.data-minute-mode]="ViewState.Mode"
+  [attr.data-artifact-id]="ViewState.ArtifactID ?? ''"
+  [attr.data-pinned-version-id]="ViewState.PinnedVersionID ?? ''"
+  [attr.data-version-number]="ViewState.VersionNumber ?? ''"
+>
+  @if (ActionError) {
+    <div class="mdv-callout mdv-callout--error" role="alert">
+      <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+      <span>{{ ActionError }}</span>
+    </div>
+  }
+
+  @if (ActionNotice) {
+    <div class="mdv-callout mdv-callout--success" role="status" aria-live="polite">
+      <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+      <span>{{ ActionNotice }}</span>
+    </div>
+  }
+
+  @if (IsResolving) {
+    <div class="mdv-loading" role="status" aria-live="polite">
+      <i class="fa-solid fa-spinner fa-spin" aria-hidden="true"></i>
+      <span>Loading linked MJ Doc…</span>
+    </div>
+  } @else {
+    @switch (ViewState.Mode) {
+      @case ('mj-doc-pinned') {
+        <header class="mdv-bar">
+          <div class="mdv-bar__identity">
+            <span class="mdv-badge mdv-badge--success" data-testid="minute-version-badge">
+              <i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
+              <span>{{ ViewState.VersionBadgeLabel }}</span>
+            </span>
+            @if (ViewState.ArtifactName) {
+              <span class="mdv-bar__title">{{ ViewState.ArtifactName }}</span>
+            }
+            <span class="mdv-bar__meta">Immutable approved snapshot</span>
+          </div>
+          <div class="mdv-bar__actions">
+            <button
+              type="button"
+              class="mdv-btn mdv-btn--ghost"
+              [attr.aria-pressed]="ShowViewerTabs"
+              (click)="OnToggleViewerTabs()"
+            >
+              <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+              <span>{{ ShowViewerTabs ? 'Hide Tabs' : 'Show Tabs' }}</span>
+            </button>
+          </div>
+        </header>
+
+        @if (CanMountLiveArtifactPanel && EffectiveCurrentUser && ViewState.ArtifactID) {
+          <div class="mdv-panel-host">
+            <mj-artifact-viewer-panel
+              [artifactId]="ViewState.ArtifactID"
+              [VersionNumber]="ViewState.VersionNumber"
+              [CurrentUser]="EffectiveCurrentUser"
+              [EnvironmentId]="EnvironmentId"
+              [ShowHeader]="true"
+              [ShowTabs]="ShowViewerTabs"
+              [ShowCloseButton]="false"
+              [ShowMaximizeButton]="false"
+              [ShowSaveToCollection]="false"
+              [CanEdit]="false"
+              (VersionSaved)="OnPanelVersionSaved($event)"
+            ></mj-artifact-viewer-panel>
+          </div>
+        } @else {
+          <div class="mdv-offline-card" role="region" aria-label="Pinned MJ Doc summary">
+            <div class="mdv-offline-card__meta">
+              <span class="mdv-badge mdv-badge--success">MJ Doc · v{{ ViewState.VersionNumber }}</span>
+              <code class="mdv-code">{{ ViewState.ArtifactID }}</code>
+            </div>
+            <p class="mdv-offline-card__excerpt">
+              {{ ViewState.PlainExcerpt || 'Pinned approved MJ Doc renders interactively in connected MJ Explorer sessions.' }}
+            </p>
+          </div>
+        }
+      }
+
+      @case ('mj-doc-latest') {
+        <header class="mdv-bar">
+          <div class="mdv-bar__identity">
+            <span class="mdv-badge mdv-badge--info" data-testid="minute-version-badge">
+              <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+              <span>{{ ViewState.VersionBadgeLabel }}</span>
+            </span>
+            @if (ViewState.ArtifactName) {
+              <span class="mdv-bar__title">{{ ViewState.ArtifactName }}</span>
+            }
+            <span class="mdv-bar__meta">Live MJ Doc (unpinned)</span>
+          </div>
+          <div class="mdv-bar__actions">
+            @if (ViewState.CanPinVersion) {
+              <button
+                type="button"
+                class="mdv-btn mdv-btn--secondary"
+                [disabled]="IsPinning"
+                (click)="OnPinCurrentVersion()"
+              >
+                <i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
+                <span>{{ IsPinning ? 'Pinning…' : 'Pin Version' }}</span>
+              </button>
+            }
+            <button
+              type="button"
+              class="mdv-btn mdv-btn--ghost"
+              [attr.aria-pressed]="ShowViewerTabs"
+              (click)="OnToggleViewerTabs()"
+            >
+              <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+              <span>{{ ShowViewerTabs ? 'Hide Tabs' : 'Show Tabs' }}</span>
+            </button>
+          </div>
+        </header>
+
+        @if (CanMountLiveArtifactPanel && EffectiveCurrentUser && ViewState.ArtifactID) {
+          <div class="mdv-panel-host">
+            <mj-artifact-viewer-panel
+              [artifactId]="ViewState.ArtifactID"
+              [VersionNumber]="ViewState.VersionNumber"
+              [CurrentUser]="EffectiveCurrentUser"
+              [EnvironmentId]="EnvironmentId"
+              [ShowHeader]="true"
+              [ShowTabs]="ShowViewerTabs"
+              [ShowCloseButton]="false"
+              [ShowMaximizeButton]="false"
+              [ShowSaveToCollection]="false"
+              [CanEdit]="ViewState.CanEditInPanel"
+              (VersionSaved)="OnPanelVersionSaved($event)"
+            ></mj-artifact-viewer-panel>
+          </div>
+        } @else {
+          <div class="mdv-offline-card" role="region" aria-label="Live MJ Doc summary">
+            <div class="mdv-offline-card__meta">
+              <span class="mdv-badge mdv-badge--info">{{ ViewState.VersionBadgeLabel }}</span>
+              <code class="mdv-code">{{ ViewState.ArtifactID }}</code>
+            </div>
+            <p class="mdv-offline-card__excerpt">
+              {{ ViewState.PlainExcerpt || 'MJ Doc renders interactively in connected MJ Explorer sessions.' }}
+            </p>
+          </div>
+        }
+      }
+
+      @case ('mj-doc-missing') {
+        <div
+          class="mdv-callout mdv-callout--warning"
+          role="status"
+          [attr.data-missing-reason]="ViewState.MissingReason ?? ''"
+        >
+          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          <div>
+            <strong>{{ ViewState.MissingHeadline }}</strong>
+            <p class="mdv-callout__detail">{{ ViewState.MissingDetail }}</p>
+          </div>
+        </div>
+
+        @if (ViewState.ShowLegacyFallback) {
+          <div class="mdv-legacy-surface" aria-label="Preserved legacy minutes fallback">
+            <div class="mdv-bar mdv-bar--subtle">
+              <span class="mdv-badge mdv-badge--neutral">Preserved Legacy Content</span>
+            </div>
+            @if (UseProjectedLegacyBody) {
+              <ng-content select="[minuteLegacyBody]"></ng-content>
+            } @else {
+              <div class="mdv-markdown" [innerHTML]="RenderedLegacyHtml"></div>
+            }
+          </div>
+        }
+      }
+
+      @case ('legacy-content') {
+        <header class="mdv-bar mdv-bar--subtle">
+          <div class="mdv-bar__identity">
+            <span class="mdv-badge mdv-badge--neutral" data-testid="minute-version-badge">
+              <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+              <span>{{ ViewState.VersionBadgeLabel }}</span>
+            </span>
+            <span class="mdv-bar__meta">Stored in Minute.Content</span>
+          </div>
+          <div class="mdv-bar__actions">
+            @if (ViewState.ShowBridgeToMJDocAction) {
+              <button
+                type="button"
+                class="mdv-btn mdv-btn--primary"
+                data-testid="bridge-to-mj-doc-btn"
+                [disabled]="IsBridging"
+                (click)="OnBridgeToMJDoc()"
+              >
+                <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+                <span>{{ IsBridging ? 'Bridging…' : 'Bridge to MJ Docs' }}</span>
+              </button>
+            }
+          </div>
+        </header>
+
+        @if (UseProjectedLegacyBody) {
+          <ng-content select="[minuteLegacyBody]"></ng-content>
+        } @else {
+          <div class="mdv-markdown" [innerHTML]="RenderedLegacyHtml"></div>
+        }
+      }
+
+      @case ('empty') {
+        <div class="mdv-empty">
+          <i class="fa-solid fa-file-lines" aria-hidden="true"></i>
+          <p>No minutes recorded for this meeting yet.</p>
+        </div>
+      }
+    }
+  }
+</section>

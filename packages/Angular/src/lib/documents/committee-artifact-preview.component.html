@@ -1,0 +1,116 @@
+@if (DisplayState; as state) {
+  @if (Mode === 'drawer') {
+    <div class="cap-backdrop" role="presentation" (click)="OnClose()">
+      <aside
+        class="cap-drawer"
+        role="dialog"
+        aria-modal="true"
+        [attr.aria-label]="state.Name"
+        [attr.data-artifact-kind]="state.Kind"
+        [attr.data-mj-artifact-id]="state.MJArtifactID ?? ''"
+        (click)="$event.stopPropagation()"
+      >
+        <ng-container *ngTemplateOutlet="previewBody; context: { $implicit: state }"></ng-container>
+      </aside>
+    </div>
+  } @else {
+    <section
+      class="cap-inline"
+      [attr.aria-label]="state.Name"
+      [attr.data-artifact-kind]="state.Kind"
+      [attr.data-mj-artifact-id]="state.MJArtifactID ?? ''"
+    >
+      <ng-container *ngTemplateOutlet="previewBody; context: { $implicit: state }"></ng-container>
+    </section>
+  }
+}
+
+<ng-template #previewBody let-state>
+  <header class="cap-header">
+    <div class="cap-header__title">
+      <div class="cap-badges">
+        <span
+          class="cap-badge"
+          [class.cap-badge--info]="state.SourceBadgeTone === 'info'"
+          [class.cap-badge--warning]="state.SourceBadgeTone === 'warning'"
+          [class.cap-badge--neutral]="state.SourceBadgeTone === 'neutral'"
+        >
+          @if (state.Kind === 'mj-doc') {
+            <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+          } @else {
+            <i class="fa-solid fa-link" aria-hidden="true"></i>
+          }
+          <span>{{ state.SourceBadgeLabel }}</span>
+        </span>
+      </div>
+      <h2>{{ state.Name }}</h2>
+    </div>
+    <div class="cap-header__actions">
+      @if (state.ExternalURL) {
+        <button type="button" class="cap-btn cap-btn--secondary" (click)="OnOpenExternalUrl()">
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+          <span>Open External Link</span>
+        </button>
+      }
+      @if (Mode === 'drawer') {
+        <button type="button" class="cap-icon-btn" aria-label="Close preview" (click)="OnClose()">
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
+      }
+    </div>
+  </header>
+
+  <div class="cap-body">
+    @if (state.Kind === 'mj-doc') {
+      @if (state.IsArtifactMissing) {
+        <div class="cap-warning" role="status">
+          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+          <div>
+            <strong>MJ Doc unavailable</strong>
+            <p>{{ state.MissingWarning }}</p>
+          </div>
+        </div>
+      } @else if (CanMountLivePanel && EffectiveCurrentUser && state.MJArtifactID) {
+        <div class="cap-viewer-host">
+          <mj-artifact-viewer-panel
+            [artifactId]="state.MJArtifactID"
+            [VersionNumber]="state.LatestVersionNumber"
+            [CurrentUser]="EffectiveCurrentUser"
+            [EnvironmentId]="EnvironmentId"
+            [ShowHeader]="true"
+            [ShowTabs]="true"
+            [ShowCloseButton]="false"
+            [ShowMaximizeButton]="false"
+            [ShowSaveToCollection]="false"
+            [CanEdit]="false"
+          ></mj-artifact-viewer-panel>
+        </div>
+      } @else {
+        <div class="cap-summary-card">
+          <p class="cap-summary-card__text">
+            {{ state.PlainSummary || 'Native MJ Doc preview renders interactively in connected MJ Explorer sessions.' }}
+          </p>
+          <code class="cap-code">{{ state.MJArtifactID }}</code>
+        </div>
+      }
+    } @else {
+      <div class="cap-external-card">
+        <div class="cap-external-card__icon">
+          <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+        </div>
+        <h3>External Document Link</h3>
+        @if (state.PlainSummary) {
+          <p>{{ state.PlainSummary }}</p>
+        }
+        @if (state.ExternalURL) {
+          <button type="button" class="cap-btn cap-btn--primary" (click)="OnOpenExternalUrl()">
+            <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            <span>Open in {{ state.Provider }}</span>
+          </button>
+        } @else {
+          <p class="cap-muted">No valid http(s) URL is configured for this artifact.</p>
+        }
+      </div>
+    }
+  </div>
+</ng-template>

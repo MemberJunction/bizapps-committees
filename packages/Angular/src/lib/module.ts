@@ -3,13 +3,39 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 // MJ shared modules
+import { ArtifactsModule } from '@memberjunction/ng-artifacts';
 import { SharedGenericModule } from '@memberjunction/ng-shared-generic';
+import { MJPageLayoutComponent } from '@memberjunction/ng-ui-components';
 
 // BizAppsCommon reusable components
 import { AddressEditorComponent, ContactMethodListComponent, RelationshipListComponent } from '@mj-biz-apps/common-ng';
 
 // BizAppsTasks reusable components
 import { BizAppsTasksModule, LoadBizAppsTasksClient } from '@mj-biz-apps/tasks-ng';
+
+// Generated entity forms & custom form panels (retained in startupExport against tree-shaking)
+import { GeneratedFormsModule } from './generated/generated-forms.module';
+import { mjBizAppsCommitteesAgendaItemFormComponent } from './generated/Entities/mjBizAppsCommitteesAgendaItem/mjbizappscommitteesagendaitem.form.component';
+import { mjBizAppsCommitteesArtifactFormComponent } from './generated/Entities/mjBizAppsCommitteesArtifact/mjbizappscommitteesartifact.form.component';
+import { mjBizAppsCommitteesArtifactTypeFormComponent } from './generated/Entities/mjBizAppsCommitteesArtifactType/mjbizappscommitteesartifacttype.form.component';
+import { mjBizAppsCommitteesAttendanceFormComponent } from './generated/Entities/mjBizAppsCommitteesAttendance/mjbizappscommitteesattendance.form.component';
+import { mjBizAppsCommitteesBallotFormComponent } from './generated/Entities/mjBizAppsCommitteesBallot/mjbizappscommitteesballot.form.component';
+import { mjBizAppsCommitteesCommentFormComponent } from './generated/Entities/mjBizAppsCommitteesComment/mjbizappscommitteescomment.form.component';
+import { mjBizAppsCommitteesCommitteeFormComponent } from './generated/Entities/mjBizAppsCommitteesCommittee/mjbizappscommitteescommittee.form.component';
+import { mjBizAppsCommitteesMeetingFormComponent } from './generated/Entities/mjBizAppsCommitteesMeeting/mjbizappscommitteesmeeting.form.component';
+import { mjBizAppsCommitteesMembershipFormComponent } from './generated/Entities/mjBizAppsCommitteesMembership/mjbizappscommitteesmembership.form.component';
+import { mjBizAppsCommitteesMinuteFormComponent } from './generated/Entities/mjBizAppsCommitteesMinute/mjbizappscommitteesminute.form.component';
+import { mjBizAppsCommitteesMotionFormComponent } from './generated/Entities/mjBizAppsCommitteesMotion/mjbizappscommitteesmotion.form.component';
+import { mjBizAppsCommitteesRoleFormComponent } from './generated/Entities/mjBizAppsCommitteesRole/mjbizappscommitteesrole.form.component';
+import { mjBizAppsCommitteesTermFormComponent } from './generated/Entities/mjBizAppsCommitteesTerm/mjbizappscommitteesterm.form.component';
+import { mjBizAppsCommitteesTypeFormComponent } from './generated/Entities/mjBizAppsCommitteesType/mjbizappscommitteestype.form.component';
+import { mjBizAppsCommitteesVideoProviderFormComponent } from './generated/Entities/mjBizAppsCommitteesVideoProvider/mjbizappscommitteesvideoprovider.form.component';
+import { mjBizAppsCommitteesVoteFormComponent } from './generated/Entities/mjBizAppsCommitteesVote/mjbizappscommitteesvote.form.component';
+import { CustomFormsModule, LoadCustomFormsModule } from './custom/custom-forms.module';
+
+// Standalone dual-read MJ Docs viewer components
+import { MinuteDocumentViewerComponent } from './minutes/minute-document-viewer.component';
+import { CommitteeArtifactPreviewComponent } from './documents/committee-artifact-preview.component';
 
 // Committees components
 import { CommitteeDashboardComponent, LoadCommitteeDashboard } from './dashboard/committee-dashboard.component';
@@ -52,6 +78,25 @@ import { BallotCloseDialogComponent } from './motions-ballots/ballot-close-dialo
 import { AgendaBuilderComponent } from './meeting-detail/agenda-builder.component';
 import { PersonCreateDialogComponent } from './shared/person-create-dialog.component';
 import { MemberHomeComponent, LoadMemberHome } from './member-home/member-home.component';
+
+const GENERATED_FORM_COMPONENTS = [
+    mjBizAppsCommitteesAgendaItemFormComponent,
+    mjBizAppsCommitteesArtifactFormComponent,
+    mjBizAppsCommitteesArtifactTypeFormComponent,
+    mjBizAppsCommitteesAttendanceFormComponent,
+    mjBizAppsCommitteesBallotFormComponent,
+    mjBizAppsCommitteesCommentFormComponent,
+    mjBizAppsCommitteesCommitteeFormComponent,
+    mjBizAppsCommitteesMeetingFormComponent,
+    mjBizAppsCommitteesMembershipFormComponent,
+    mjBizAppsCommitteesMinuteFormComponent,
+    mjBizAppsCommitteesMotionFormComponent,
+    mjBizAppsCommitteesRoleFormComponent,
+    mjBizAppsCommitteesTermFormComponent,
+    mjBizAppsCommitteesTypeFormComponent,
+    mjBizAppsCommitteesVideoProviderFormComponent,
+    mjBizAppsCommitteesVoteFormComponent,
+];
 
 @NgModule({
     declarations: [
@@ -99,11 +144,15 @@ import { MemberHomeComponent, LoadMemberHome } from './member-home/member-home.c
     imports: [
         CommonModule,
         FormsModule,
+        ArtifactsModule,
         SharedGenericModule,
+        MJPageLayoutComponent,
         AddressEditorComponent,
         ContactMethodListComponent,
         RelationshipListComponent,
         BizAppsTasksModule,
+        MinuteDocumentViewerComponent,
+        CommitteeArtifactPreviewComponent,
     ],
     exports: [
         CommitteeDashboardComponent,
@@ -136,12 +185,20 @@ import { MemberHomeComponent, LoadMemberHome } from './member-home/member-home.c
         MinutesReviewComponent,
         PeopleTermsComponent,
         MemberHomeComponent,
+        MinuteDocumentViewerComponent,
+        CommitteeArtifactPreviewComponent,
     ]
 })
 export class CommitteesModule { }
 
-/** Tree-shaking prevention — call from public-api.ts */
-export function LoadCommitteesModule() {
+/** Tree-shaking prevention — retains all resources, generated entity forms, and custom form panels. */
+export function LoadCommitteesModule(): void {
+    void GeneratedFormsModule;
+    void GENERATED_FORM_COMPONENTS;
+    void CustomFormsModule;
+    void MinuteDocumentViewerComponent;
+    void CommitteeArtifactPreviewComponent;
+    LoadCustomFormsModule();
     LoadBizAppsTasksClient();
     LoadCommitteeDashboard();
     LoadCommitteeList();

@@ -1,3 +1,4 @@
+<mj-page-layout>
 @if (IsLoading) {
     <div class="dashboard-loading">
         <mj-loading text="Loading dashboard..."></mj-loading>
@@ -49,31 +50,46 @@
                     </div>
                 } @else {
                     <div class="panel-body">
-                        @for (meeting of UpcomingMeetings; track meeting['ID']) {
-                            <div class="row-item">
+                        @for (meeting of UpcomingMeetings; track meeting.ID) {
+                            <div
+                                class="row-item"
+                                role="button"
+                                tabindex="0"
+                                (click)="OpenMeetingRecord(meeting.ID)"
+                                (keydown.enter)="OpenMeetingRecord(meeting.ID)"
+                                (keydown.space)="OpenMeetingRecord(meeting.ID); $event.preventDefault()"
+                            >
                                 <div class="date-chip">
-                                    <span class="date-month">{{ $any(meeting['StartDateTime']) | date:'MMM' }}</span>
-                                    <span class="date-day">{{ $any(meeting['StartDateTime']) | date:'d' }}</span>
+                                    <span class="date-month">{{ meeting.StartDateTime | date:'MMM' }}</span>
+                                    <span class="date-day">{{ meeting.StartDateTime | date:'d' }}</span>
                                 </div>
                                 <div class="row-content">
-                                    <div class="row-title">{{ meeting['Name'] }}</div>
+                                    <div class="row-title">{{ meeting.Name }}</div>
                                     <div class="row-meta">
-                                        {{ meeting['Committee'] }}
+                                        {{ meeting.Committee }}
                                         <span class="meta-sep">&middot;</span>
-                                        {{ $any(meeting['StartDateTime']) | date:'h:mm a' }}
+                                        {{ meeting.StartDateTime | date:'h:mm a' }}
                                         <span class="meta-sep">&middot;</span>
-                                        @if (meeting['LocationType'] === 'Virtual') {
+                                        @if (meeting.LocationType === 'Virtual') {
                                             <i class="fa-solid fa-video"></i>
-                                        } @else if (meeting['LocationType'] === 'InPerson') {
+                                        } @else if (meeting.LocationType === 'InPerson') {
                                             <i class="fa-solid fa-location-dot"></i>
                                         } @else {
                                             <i class="fa-solid fa-arrows-split-up-and-left"></i>
                                         }
-                                        {{ meeting['LocationType'] }}
+                                        {{ meeting.LocationType }}
                                     </div>
                                 </div>
-                                @if (meeting['VideoJoinURL']) {
-                                    <a class="join-btn" [href]="meeting['VideoJoinURL']" target="_blank" rel="noopener" (click)="$event.stopPropagation()">
+                                @if (meeting.VideoJoinURL) {
+                                    <a
+                                        class="join-btn"
+                                        [href]="meeting.VideoJoinURL"
+                                        target="_blank"
+                                        rel="noopener"
+                                        (click)="$event.stopPropagation()"
+                                        (keydown.enter)="$event.stopPropagation()"
+                                        (keydown.space)="$event.stopPropagation()"
+                                    >
                                         Join
                                     </a>
                                 }
@@ -126,15 +142,22 @@
                     <h3>Recent Meetings</h3>
                 </div>
                 <div class="panel-body">
-                    @for (meeting of RecentMeetings; track meeting['ID']) {
-                        <div class="row-item row-muted">
+                    @for (meeting of RecentMeetings; track meeting.ID) {
+                        <div
+                            class="row-item row-muted"
+                            role="button"
+                            tabindex="0"
+                            (click)="OpenMeetingRecord(meeting.ID)"
+                            (keydown.enter)="OpenMeetingRecord(meeting.ID)"
+                            (keydown.space)="OpenMeetingRecord(meeting.ID); $event.preventDefault()"
+                        >
                             <div class="date-chip date-past">
-                                <span class="date-month">{{ $any(meeting['StartDateTime']) | date:'MMM' }}</span>
-                                <span class="date-day">{{ $any(meeting['StartDateTime']) | date:'d' }}</span>
+                                <span class="date-month">{{ meeting.StartDateTime | date:'MMM' }}</span>
+                                <span class="date-day">{{ meeting.StartDateTime | date:'d' }}</span>
                             </div>
                             <div class="row-content">
-                                <div class="row-title">{{ meeting['Name'] }}</div>
-                                <div class="row-meta">{{ meeting['Committee'] }}</div>
+                                <div class="row-title">{{ meeting.Name }}</div>
+                                <div class="row-meta">{{ meeting.Committee }}</div>
                             </div>
                             <span class="tag tag-completed">Completed</span>
                         </div>
@@ -150,17 +173,17 @@
                     <h3>Recent Documents</h3>
                 </div>
                 <div class="panel-body">
-                    @for (doc of RecentDocuments; track doc['ID']) {
+                    @for (doc of RecentDocuments; track doc.ID) {
                         <div class="row-item">
                             <div class="doc-icon">
-                                <i [class]="GetDocIcon($any(doc['Category']))"></i>
+                                <i [class]="GetDocIcon(doc.Category)"></i>
                             </div>
                             <div class="row-content">
-                                <div class="row-title">{{ doc['Name'] }}</div>
-                                <div class="row-meta">{{ doc['Provider'] }}</div>
+                                <div class="row-title">{{ doc.Name }}</div>
+                                <div class="row-meta">{{ doc.Provider }}</div>
                             </div>
-                            @if (doc['Category']) {
-                                <span class="tag tag-neutral">{{ doc['Category'] }}</span>
+                            @if (doc.Category) {
+                                <span class="tag tag-neutral">{{ doc.Category }}</span>
                             }
                         </div>
                     }
@@ -169,3 +192,4 @@
         }
     </div>
 }
+</mj-page-layout>

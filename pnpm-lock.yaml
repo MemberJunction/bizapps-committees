@@ -209,6 +209,9 @@ importers:
       '@memberjunction/core':
         specifier: 6.3.0-edge.1
         version: 6.3.0-edge.1
+      '@memberjunction/core-entities':
+        specifier: ^6.3.0-edge.1
+        version: 6.3.0-edge.1
       '@memberjunction/global':
         specifier: 6.3.0-edge.1
         version: 6.3.0-edge.1
@@ -292,6 +295,10 @@ importers:
       zod:
         specifier: ^3.25.28
         version: 3.25.76
+    devDependencies:
+      vitest:
+        specifier: 1.6.1
+        version: 1.6.1(@types/node@20.14.2)(jsdom@26.1.0)(less@4.4.2)(sass@1.97.1)(terser@5.44.1)
 
   packages/IntegrationTests:
     dependencies:

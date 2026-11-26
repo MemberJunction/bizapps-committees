@@ -132,6 +132,38 @@
             [EditMode]="EditMode"
             [FormContext]="formContext"
         ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="ParentAgendaItemIDDepth"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="ParentAgendaItemIDPath"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="ParentAgendaItemIDIsLeaf"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
+        <mj-form-field 
+            [Record]="record"
+            [ShowLabel]="true"
+            FieldName="ParentAgendaItemIDChildCount"
+            Type="textbox"
+            [EditMode]="EditMode"
+            [FormContext]="formContext"
+        ></mj-form-field>
 
     </mj-collapsible-panel>
 
@@ -155,9 +187,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Agenda Items','ParentAgendaItemID')"
-                [NewRecordValues]="NewRecordValues('Committees: Agenda Items')"
+                [NewRecordValues]="NewRecordValues('Committees: Agenda Items','ParentAgendaItemID')"
                 [AllowLoad]="IsSectionExpanded('committeesAgendaItems')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesAgendaItems', $event.totalRowCount)"
                 >
@@ -180,9 +212,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Motions','AgendaItemID')"
-                [NewRecordValues]="NewRecordValues('Committees: Motions')"
+                [NewRecordValues]="NewRecordValues('Committees: Motions','AgendaItemID')"
                 [AllowLoad]="IsSectionExpanded('committeesMotions')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesMotions', $event.totalRowCount)"
                 >
@@ -205,9 +237,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Comments','AgendaItemID')"
-                [NewRecordValues]="NewRecordValues('Committees: Comments')"
+                [NewRecordValues]="NewRecordValues('Committees: Comments','AgendaItemID')"
                 [AllowLoad]="IsSectionExpanded('committeesComments')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesComments', $event.totalRowCount)"
                 >
@@ -230,9 +262,9 @@
         <div>
             <mj-explorer-entity-data-grid
                 [Params]="BuildRelationshipViewParamsByEntityName('Committees: Artifacts','AgendaItemID')"
-                [NewRecordValues]="NewRecordValues('Committees: Artifacts')"
+                [NewRecordValues]="NewRecordValues('Committees: Artifacts','AgendaItemID')"
                 [AllowLoad]="IsSectionExpanded('committeesArtifacts')"
-                [ShowToolbar]="false"
+                [ShowToolbar]="true"
                 (Navigate)="OnFormNavigate($event)"
                 (AfterDataLoad)="SetSectionRowCount('committeesArtifacts', $event.totalRowCount)"
                 >

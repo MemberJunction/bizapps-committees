@@ -22,7 +22,7 @@ export class mjBizAppsCommitteesMeetingFormComponent extends BaseFormComponent {
             { sectionKey: 'committeesMotions', sectionName: 'Motions', isExpanded: false },
             { sectionKey: 'committeesAttendances', sectionName: 'Attendances', isExpanded: false },
             { sectionKey: 'committeesMinutesApprovedByMeetingID', sectionName: 'Minutes (Approved By Meeting ID)', isExpanded: false },
-            { sectionKey: 'committeesMinutesMeetingID', sectionName: 'Minutes (Meeting ID)', isExpanded: false },
+            { sectionKey: 'committeesMinutesMeetingID', sectionName: 'Minutes', isExpanded: false },
             { sectionKey: 'committeesComments', sectionName: 'Comments', isExpanded: false }
         ]);
     }
